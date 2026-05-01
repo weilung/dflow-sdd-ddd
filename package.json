@@ -1,0 +1,42 @@
+{
+  "name": "dflow-sdd-ddd",
+  "version": "0.1.0",
+  "description": "Dflow SDD/DDD project scaffolding CLI",
+  "type": "commonjs",
+  "bin": {
+    "dflow": "bin/dflow.js",
+    "dflow-sdd-ddd": "bin/dflow.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "templates/",
+    "README.md"
+  ],
+  "keywords": [
+    "sdd",
+    "ddd",
+    "specification-driven-development",
+    "domain-driven-design",
+    "codex",
+    "claude-code"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/weilung/AI-Guided-SDD-DDD-Development-Skills.git"
+  },
+  "bugs": {
+    "url": "https://github.com/weilung/AI-Guided-SDD-DDD-Development-Skills/issues"
+  },
+  "homepage": "https://github.com/weilung/AI-Guided-SDD-DDD-Development-Skills#readme",
+  "scripts": {
+    "test": "node test/smoke.mjs"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}
