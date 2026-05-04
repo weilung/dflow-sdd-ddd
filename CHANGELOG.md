@@ -6,6 +6,24 @@
 
 ---
 
+## 2026-05-04 — Public distribution naming：Greenfield / Brownfield tracks
+
+**變更**：
+- 公開 track naming 從早期 `core` / `webforms` 改為 `greenfield` / `brownfield`
+- CLI init 移除第二題 edition prompt；Q1 project type 直接決定 packaged template set
+- package templates 目錄改為 `templates/greenfield/` 與 `templates/brownfield/`
+- AI-facing skill source 目錄改為 `sdd-ddd-greenfield-skill/` 與 `sdd-ddd-brownfield-skill/`
+- Tutorial 目錄改為 `tutorial/01-greenfield/` 與 `tutorial/02-brownfield/`
+- README / package metadata 同步 public dist repo wording，並納入 `docs/why-ddd-for-ai.md`
+
+**驗證**：
+- `npm test`
+- `npm pack --dry-run`
+- `diff -qr` skill source vs packaged templates
+- `git diff --check`
+
+---
+
 ## 2026-05-01 — Public npm publish：`dflow-sdd-ddd@0.1.0`
 
 **發布**：`dflow-sdd-ddd@0.1.0` 已發布到 npm public registry。
@@ -19,7 +37,7 @@
 - 分段 tutorial 的 init 劇本標明為教學化轉寫，避免被誤讀為 `dflow-sdd-ddd@0.1.0` 的逐字 CLI transcript
 - 移除已退場的 P001 前 / P001 hybrid 單檔 tutorial，避免後續 AI 或人讀者誤用過期流程素材
 - 將歷史 proposal / review 材料移入 `archive/`，讓 `proposals/`、`reviews/` 保留給後續 active work
-- 完成 Closeout C2 tutorial 索引收尾：新增 `tutorial/README.md`、補 `01-greenfield-core/00-setup.md`，並加入 Mermaid reading map
+- 完成 Closeout C2 tutorial 索引收尾：新增 `tutorial/README.md`、補 `01-greenfield/00-setup.md`，並加入 Mermaid reading map
 
 **備註**：npm publish 使用 npm Security Key / WebAuthn 2FA flow；不要使用 TOTP `--otp` 作為新帳號的預設發布路徑。
 
@@ -181,7 +199,7 @@
 - `sdd-ddd-{webforms|core}-skill/templates/_index.md`（F-01 擴 scope）
 - `CHANGELOG.md` Wave 1 段 + 新增本段（F-02）
 - `sdd-ddd-{webforms|core}-skill/references/git-integration.md`（F-02，頂部加 file history note）
-- `sdd-ddd-webforms-skill/scaffolding/CLAUDE-md-snippet.md`（F-03，5 處路徑修正）
+- `sdd-ddd-brownfield-skill/scaffolding/CLAUDE-md-snippet.md`（F-03，5 處路徑修正）
 - `sdd-ddd-{webforms|core}-skill/templates/CLAUDE.md`（F-04）
 
 **不變動**：
@@ -293,8 +311,8 @@
 Codex R7 Implement Review 指出本 commit（`bf5bb85`）在 `git diff-tree --summary` 預設（`-M50`）顯示為 delete+add 而非 rename。經 verify，**實際上有執行 `git mv`**，但此 commit 同時刪除 Git Flow 專屬內容並新增大量新內容，新舊檔相似度：WebForms 版 43%、Core 版 18%，低於 git 預設 rename detection 門檻（50%）。
 
 查看 rename 軌跡的指令：
-- WebForms：`git log --follow -M30 sdd-ddd-webforms-skill/references/git-integration.md`
-- Core：`git log --follow -M10 sdd-ddd-core-skill/references/git-integration.md`
+- WebForms：`git log --follow -M30 sdd-ddd-brownfield-skill/references/git-integration.md`
+- Core：`git log --follow -M10 sdd-ddd-greenfield-skill/references/git-integration.md`
 
 **教訓**：`git mv` **不等於** git 會自動把 commit 識別為 rename。當 rename 與大幅內容改寫發生在同一 commit 時，git 依新舊檔相似度判斷；若低於 `-M50` 預設門檻，會顯示為 delete+add。
 
@@ -321,10 +339,10 @@ Codex R7 Implement Review 指出本 commit（`bf5bb85`）在 `git diff-tree --su
 
 ### 影響檔案
 
-- `sdd-ddd-webforms-skill/SKILL.md`
-- `sdd-ddd-core-skill/SKILL.md`
-- `sdd-ddd-webforms-skill/references/drift-verification.md`
-- `sdd-ddd-core-skill/references/drift-verification.md`
+- `sdd-ddd-brownfield-skill/SKILL.md`
+- `sdd-ddd-greenfield-skill/SKILL.md`
+- `sdd-ddd-brownfield-skill/references/drift-verification.md`
+- `sdd-ddd-greenfield-skill/references/drift-verification.md`
 
 ### 繁中版同步狀態
 
@@ -344,8 +362,8 @@ Codex R7 Implement Review 指出本 commit（`bf5bb85`）在 `git diff-tree --su
 
 ### 影響檔案
 
-- `sdd-ddd-webforms-skill/references/new-feature-flow.md`
-- `sdd-ddd-core-skill/references/new-feature-flow.md`
+- `sdd-ddd-brownfield-skill/references/new-feature-flow.md`
+- `sdd-ddd-greenfield-skill/references/new-feature-flow.md`
 
 ### 繁中版同步狀態
 
@@ -365,7 +383,7 @@ Codex R7 Implement Review 指出本 commit（`bf5bb85`）在 `git diff-tree --su
 
 ### 影響檔案
 
-- `sdd-ddd-core-skill/SKILL.md`
+- `sdd-ddd-greenfield-skill/SKILL.md`
 
 ### 繁中版同步狀態
 
@@ -531,12 +549,12 @@ TW（6 個）：兩版 SKILL_tw.md、四個 flow TW 檔案
 
 ### 影響檔案
 
-- `sdd-ddd-core-skill/SKILL.md`（P006a）
-- `sdd-ddd-core-skill-tw/SKILL_tw.md`（P006a 繁中）
-- `sdd-ddd-webforms-skill/references/modify-existing-flow.md`（P007a）
-- `sdd-ddd-webforms-skill-tw/modify-existing-flow_tw.md`（P007a 繁中）
-- `sdd-ddd-webforms-skill/templates/CLAUDE.md`（P007c）
-- `sdd-ddd-core-skill/templates/CLAUDE.md`（P007c）
+- `sdd-ddd-greenfield-skill/SKILL.md`（P006a）
+- `sdd-ddd-greenfield-skill-tw/SKILL_tw.md`（P006a 繁中）
+- `sdd-ddd-brownfield-skill/references/modify-existing-flow.md`（P007a）
+- `sdd-ddd-brownfield-skill-tw/modify-existing-flow_tw.md`（P007a 繁中）
+- `sdd-ddd-brownfield-skill/templates/CLAUDE.md`（P007c）
+- `sdd-ddd-greenfield-skill/templates/CLAUDE.md`（P007c）
 - `proposals/PROPOSAL-006a-ddd-depth-column.md`（status + 實施紀錄）
 - `proposals/PROPOSAL-007a-brownfield-reverse-documentation.md`（status + 實施紀錄）
 - `proposals/PROPOSAL-007c-claude-md-segmentation.md`（status + 實施紀錄）
@@ -549,7 +567,7 @@ TW（6 個）：兩版 SKILL_tw.md、四個 flow TW 檔案
 
 ### 同步內容
 
-將 Wave A 實施的所有英文版變更同步到繁體中文版（`sdd-ddd-webforms-skill-tw/` 和 `sdd-ddd-core-skill-tw/`），包括：
+將 Wave A 實施的所有英文版變更同步到繁體中文版（`sdd-ddd-brownfield-skill-tw/` 和 `sdd-ddd-greenfield-skill-tw/`），包括：
 
 - **P001**：決策樹改為雙軌（/dflow: 指令 + NL 安全網）；新增完整「工作流程透明度」章節（三層透明度、Phase Gate 位置、確認訊號、/dflow:status 格式）
 - **P002**：modify-existing-flow 的 Step 2 改用 Delta 格式（ADDED / MODIFIED / REMOVED / RENAMED + 可選 UNCHANGED）
@@ -560,14 +578,14 @@ TW（6 個）：兩版 SKILL_tw.md、四個 flow TW 檔案
 
 ### 影響檔案（8 個）
 
-- `sdd-ddd-webforms-skill-tw/SKILL_tw.md`
-- `sdd-ddd-webforms-skill-tw/new-feature-flow_tw.md`
-- `sdd-ddd-webforms-skill-tw/modify-existing-flow_tw.md`
-- `sdd-ddd-webforms-skill-tw/pr-review-checklist_tw.md`
-- `sdd-ddd-core-skill-tw/SKILL_tw.md`
-- `sdd-ddd-core-skill-tw/new-feature-flow_tw.md`
-- `sdd-ddd-core-skill-tw/modify-existing-flow_tw.md`
-- `sdd-ddd-core-skill-tw/pr-review-checklist_tw.md`
+- `sdd-ddd-brownfield-skill-tw/SKILL_tw.md`
+- `sdd-ddd-brownfield-skill-tw/new-feature-flow_tw.md`
+- `sdd-ddd-brownfield-skill-tw/modify-existing-flow_tw.md`
+- `sdd-ddd-brownfield-skill-tw/pr-review-checklist_tw.md`
+- `sdd-ddd-greenfield-skill-tw/SKILL_tw.md`
+- `sdd-ddd-greenfield-skill-tw/new-feature-flow_tw.md`
+- `sdd-ddd-greenfield-skill-tw/modify-existing-flow_tw.md`
+- `sdd-ddd-greenfield-skill-tw/pr-review-checklist_tw.md`
 
 ---
 
@@ -589,8 +607,8 @@ TW（6 個）：兩版 SKILL_tw.md、四個 flow TW 檔案
 
 ### 影響檔案
 
-- `sdd-ddd-webforms-skill/references/pr-review-checklist.md`
-- `sdd-ddd-core-skill/references/pr-review-checklist.md`
+- `sdd-ddd-brownfield-skill/references/pr-review-checklist.md`
+- `sdd-ddd-greenfield-skill/references/pr-review-checklist.md`
 - `proposals/PROPOSAL-007b-pr-review-spec-intent.md`（status + 實施紀錄）
 
 ### 繁中版同步狀態
@@ -630,12 +648,12 @@ TW（6 個）：兩版 SKILL_tw.md、四個 flow TW 檔案
 
 ### 影響檔案
 
-- `sdd-ddd-webforms-skill/references/new-feature-flow.md`
-- `sdd-ddd-core-skill/references/new-feature-flow.md`
-- `sdd-ddd-webforms-skill/references/modify-existing-flow.md`
-- `sdd-ddd-core-skill/references/modify-existing-flow.md`
-- `sdd-ddd-webforms-skill/SKILL.md`
-- `sdd-ddd-core-skill/SKILL.md`
+- `sdd-ddd-brownfield-skill/references/new-feature-flow.md`
+- `sdd-ddd-greenfield-skill/references/new-feature-flow.md`
+- `sdd-ddd-brownfield-skill/references/modify-existing-flow.md`
+- `sdd-ddd-greenfield-skill/references/modify-existing-flow.md`
+- `sdd-ddd-brownfield-skill/SKILL.md`
+- `sdd-ddd-greenfield-skill/SKILL.md`
 - `proposals/PROPOSAL-005-completion-flow.md`
 - `proposals/PROPOSAL-005a-completion-checklist-wave-a.md`（新檔）
 - `proposals/PROPOSAL-005b-completion-checklist-wave-b.md`（新檔）
@@ -667,10 +685,10 @@ Delta 標記**僅用於變更 spec**，不累積到 P003 的 `behavior.md`（con
 
 ### 影響檔案
 
-- `sdd-ddd-webforms-skill/references/modify-existing-flow.md`
-- `sdd-ddd-core-skill/references/modify-existing-flow.md`
-- `sdd-ddd-webforms-skill/templates/lightweight-spec.md`
-- `sdd-ddd-core-skill/templates/lightweight-spec.md`
+- `sdd-ddd-brownfield-skill/references/modify-existing-flow.md`
+- `sdd-ddd-greenfield-skill/references/modify-existing-flow.md`
+- `sdd-ddd-brownfield-skill/templates/lightweight-spec.md`
+- `sdd-ddd-greenfield-skill/templates/lightweight-spec.md`
 - `proposals/PROPOSAL-002-delta-spec-format.md`（status + B1/B2 追加 + 評估紀錄）
 
 ### 繁中版同步狀態
@@ -705,14 +723,14 @@ Delta 標記**僅用於變更 spec**，不累積到 P003 的 `behavior.md`（con
 
 ### 影響檔案
 
-- `sdd-ddd-webforms-skill/templates/feature-spec.md`
-- `sdd-ddd-core-skill/templates/feature-spec.md`
-- `sdd-ddd-webforms-skill/references/new-feature-flow.md`
-- `sdd-ddd-core-skill/references/new-feature-flow.md`
-- `sdd-ddd-webforms-skill/references/modify-existing-flow.md`
-- `sdd-ddd-core-skill/references/modify-existing-flow.md`
-- `sdd-ddd-webforms-skill/SKILL.md`
-- `sdd-ddd-core-skill/SKILL.md`
+- `sdd-ddd-brownfield-skill/templates/feature-spec.md`
+- `sdd-ddd-greenfield-skill/templates/feature-spec.md`
+- `sdd-ddd-brownfield-skill/references/new-feature-flow.md`
+- `sdd-ddd-greenfield-skill/references/new-feature-flow.md`
+- `sdd-ddd-brownfield-skill/references/modify-existing-flow.md`
+- `sdd-ddd-greenfield-skill/references/modify-existing-flow.md`
+- `sdd-ddd-brownfield-skill/SKILL.md`
+- `sdd-ddd-greenfield-skill/SKILL.md`
 
 ### 繁中版同步狀態
 
@@ -744,12 +762,12 @@ Delta 標記**僅用於變更 spec**，不累積到 P003 的 `behavior.md`（con
 
 ### 影響檔案
 
-- `sdd-ddd-webforms-skill/SKILL.md`
-- `sdd-ddd-webforms-skill/references/new-feature-flow.md`
-- `sdd-ddd-webforms-skill/references/modify-existing-flow.md`
-- `sdd-ddd-core-skill/SKILL.md`
-- `sdd-ddd-core-skill/references/new-feature-flow.md`
-- `sdd-ddd-core-skill/references/modify-existing-flow.md`
+- `sdd-ddd-brownfield-skill/SKILL.md`
+- `sdd-ddd-brownfield-skill/references/new-feature-flow.md`
+- `sdd-ddd-brownfield-skill/references/modify-existing-flow.md`
+- `sdd-ddd-greenfield-skill/SKILL.md`
+- `sdd-ddd-greenfield-skill/references/new-feature-flow.md`
+- `sdd-ddd-greenfield-skill/references/modify-existing-flow.md`
 
 ### 繁中版同步狀態
 

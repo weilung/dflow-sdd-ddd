@@ -77,7 +77,6 @@ function runDflow(cwd, input = '') {
 try {
   const input = [
     '1',
-    '1',
     'ASP.NET Core 9, EF Core 8, MediatR 12, xUnit',
     'none',
     '1',
@@ -130,7 +129,6 @@ try {
 
   const legacyInput = [
     '1',
-    '1',
     'ASP.NET Core 9, EF Core 8, MediatR 12, xUnit',
     'none',
     '2',
@@ -148,7 +146,6 @@ try {
   await mkdir(webformsRoot, { recursive: true });
 
   const webformsInput = [
-    '1',
     '2',
     'ASP.NET WebForms 4.8, .NET Framework 4.8, EF6',
     'Future ASP.NET Core migration',
@@ -159,7 +156,7 @@ try {
   ].join('\n') + '\n';
 
   const webforms = await runDflow(webformsRoot, webformsInput);
-  assert.equal(webforms.code, 0, `webforms init failed\nSTDOUT:\n${webforms.stdout}\nSTDERR:\n${webforms.stderr}`);
+  assert.equal(webforms.code, 0, `brownfield init failed\nSTDOUT:\n${webforms.stdout}\nSTDERR:\n${webforms.stderr}`);
 
   const webformsPaths = [
     'dflow/specs/features/active/.gitkeep',
@@ -176,11 +173,11 @@ try {
     assert.equal(await exists(join(webformsRoot, relativePath)), true, `${relativePath} should exist`);
   }
 
-  assert.equal(await exists(join(webformsRoot, 'dflow/specs/domain/context-map.md')), false, 'WebForms init should not create context-map.md');
-  assert.equal(await exists(join(webformsRoot, 'dflow/specs/architecture')), false, 'WebForms init should not create architecture/');
+  assert.equal(await exists(join(webformsRoot, 'dflow/specs/domain/context-map.md')), false, 'Brownfield init should not create context-map.md');
+  assert.equal(await exists(join(webformsRoot, 'dflow/specs/architecture')), false, 'Brownfield init should not create architecture/');
 
   const webformsConventions = await readFile(join(webformsRoot, 'dflow/specs/shared/_conventions.md'), 'utf8');
-  assert.equal((webformsConventions.match(/^## Prose Language$/gm) || []).length, 1, 'WebForms Prose Language section count');
+  assert.equal((webformsConventions.match(/^## Prose Language$/gm) || []).length, 1, 'Brownfield Prose Language section count');
   assert.match(webformsConventions, /Project prose language: `fr-CA`/);
 
   const webformsOverview = await readFile(join(webformsRoot, 'dflow/specs/shared/_overview.md'), 'utf8');
