@@ -1,7 +1,7 @@
 {
   "name": "dflow-sdd-ddd",
   "version": "0.1.0",
-  "description": "Dflow SDD/DDD project scaffolding CLI",
+  "description": "Spec-first SDD/DDD workflow kit for AI-assisted development",
   "type": "commonjs",
   "bin": {
     "dflow": "bin/dflow.js",
@@ -12,6 +12,7 @@
   },
   "files": [
     "bin/",
+    "docs/",
     "lib/",
     "templates/",
     "README.md"
@@ -21,17 +22,18 @@
     "ddd",
     "specification-driven-development",
     "domain-driven-design",
-    "codex",
-    "claude-code"
+    "spec-first",
+    "ai-assisted-development",
+    "ai-coding-agent"
   ],
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/weilung/AI-Guided-SDD-DDD-Development-Skills.git"
+    "url": "git+ssh://git@github.com/weilung/dflow-sdd-ddd.git"
   },
   "bugs": {
-    "url": "https://github.com/weilung/AI-Guided-SDD-DDD-Development-Skills/issues"
+    "url": "https://github.com/weilung/dflow-sdd-ddd/issues"
   },
-  "homepage": "https://github.com/weilung/AI-Guided-SDD-DDD-Development-Skills#readme",
+  "homepage": "https://github.com/weilung/dflow-sdd-ddd#readme",
   "scripts": {
     "test": "node test/smoke.mjs"
   },
