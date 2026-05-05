@@ -24,9 +24,9 @@ async function exists(path) {
   }
 }
 
-function runDflow(cwd, input = '') {
+function runDflow(cwd, input = '', args = ['init']) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [dflowBin, 'init'], {
+    const child = spawn(process.execPath, [dflowBin, ...args], {
       cwd,
       stdio: ['pipe', 'pipe', 'pipe']
     });
@@ -49,7 +49,7 @@ function runDflow(cwd, input = '') {
     child.on('close', (code) => {
       clearTimeout(timeout);
       if (timedOut) {
-        reject(new Error(`dflow init timed out after ${RUN_TIMEOUT_MS}ms\nSTDOUT:\n${stdout}\nSTDERR:\n${stderr}`));
+        reject(new Error(`dflow ${args.join(' ')} timed out after ${RUN_TIMEOUT_MS}ms\nSTDOUT:\n${stdout}\nSTDERR:\n${stderr}`));
         return;
       }
       resolve({ code, stdout, stderr });
@@ -161,6 +161,24 @@ try {
   assert.match(legacy.stderr, /Detected legacy specs\/\./);
   assert.equal(await exists(join(legacyRoot, 'specs', 'legacy.md')), true, 'legacy specs/ file should remain untouched');
   assert.equal(await exists(join(legacyRoot, 'dflow/specs/shared/_conventions.md')), true, 'legacy run should write dflow/specs/');
+
+  await writeFile(join(legacyRoot, 'AGENTS.md'), '# Existing agent rules\n');
+  const configureInput = [
+    '1,2,4',
+    'y'
+  ].join('\n') + '\n';
+  const configured = await runDflow(legacyRoot, configureInput, ['configure-agents']);
+  assert.equal(configured.code, 0, `configure-agents failed\nSTDOUT:\n${configured.stdout}\nSTDERR:\n${configured.stderr}`);
+  assert.equal(await exists(join(legacyRoot, 'dflow/specs/shared/AI-AGENT-GUIDE.md')), true, 'configure should create canonical AI guide');
+  assert.equal(await exists(join(legacyRoot, 'dflow/specs/shared/AGENTS-md-snippet.md')), true, 'configure should write merge snippet for existing AGENTS.md');
+  assert.equal(await exists(join(legacyRoot, 'CLAUDE.md')), true, 'configure should create selected CLAUDE.md shim');
+  assert.equal(await exists(join(legacyRoot, '.github/copilot-instructions.md')), true, 'configure should create selected Copilot shim');
+  const existingAgents = await readFile(join(legacyRoot, 'AGENTS.md'), 'utf8');
+  assert.match(existingAgents, /^# Existing agent rules/);
+
+  const reconfigured = await runDflow(legacyRoot, '2\ny\n', ['configure-agents']);
+  assert.equal(reconfigured.code, 0, `second configure-agents failed\nSTDOUT:\n${reconfigured.stdout}\nSTDERR:\n${reconfigured.stderr}`);
+  assert.equal(await exists(join(legacyRoot, 'dflow/specs/shared/CLAUDE-md-snippet.md')), false, 'configured CLAUDE.md should skip instead of creating a duplicate snippet');
 
   const webformsRoot = join(tempRoot, 'webforms-custom');
   await mkdir(webformsRoot, { recursive: true });

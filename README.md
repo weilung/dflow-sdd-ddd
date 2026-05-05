@@ -32,6 +32,16 @@ npm install -g dflow-sdd-ddd
 dflow init
 ```
 
+If the project is already initialized and you later add another AI coding
+tool, run:
+
+```bash
+dflow configure-agents
+```
+
+This command only configures AI instruction files. It does not rerun project
+initialization or touch existing specs.
+
 After init, start work through the Dflow workflow in your AI coding agent:
 
 ```text
@@ -125,6 +135,9 @@ If one of those files already exists, Dflow leaves it unchanged and writes a
 merge snippet under `dflow/specs/shared/` instead. The project guide stays the
 single source of truth, so teams can use multiple AI tools without maintaining
 multiple copies of the workflow rules.
+
+You can run `dflow configure-agents` later to add more tool shims as the team
+adopts additional AI coding agents.
 
 ## Main Flows
 

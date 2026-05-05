@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { runInit } = require('../lib/init');
+const { runConfigureAgents, runInit } = require('../lib/init');
 const pkg = require('../package.json');
 
 const args = process.argv.slice(2);
@@ -9,11 +9,10 @@ function printHelp() {
   process.stdout.write(`Dflow CLI ${pkg.version}
 
 Usage:
-  dflow init       Initialize Dflow specs in the current project
-  dflow --help     Show this help
-  dflow --version  Show the CLI version
-
-Only the init subcommand is implemented in this version.
+  dflow init              Initialize Dflow specs in the current project
+  dflow configure-agents  Add or update AI agent instruction shims
+  dflow --help            Show this help
+  dflow --version         Show the CLI version
 `);
 }
 
@@ -22,8 +21,19 @@ function printInitHelp() {
   dflow init
 
 Initializes Dflow project specs under dflow/specs/.
-The command prompts for project type, edition, tech stack, prose language,
-and optional starter files before showing a full file preview.
+The command prompts for project type, tech stack, prose language,
+optional starter files, and AI coding agents before showing a full file preview.
+`);
+}
+
+function printConfigureAgentsHelp() {
+  process.stdout.write(`Usage:
+  dflow configure-agents
+
+Adds AI agent instruction files to an existing Dflow project.
+The command can create AGENTS.md, CLAUDE.md, GEMINI.md, and
+.github/copilot-instructions.md shims that point to the canonical
+dflow/specs/shared/AI-AGENT-GUIDE.md file.
 `);
 }
 
@@ -50,6 +60,25 @@ async function main() {
     }
 
     return await runInit({
+      cwd: process.cwd(),
+      stdin: process.stdin,
+      stdout: process.stdout,
+      stderr: process.stderr
+    });
+  }
+
+  if (args[0] === 'configure-agents') {
+    if (args.length > 1 && (args[1] === '--help' || args[1] === '-h')) {
+      printConfigureAgentsHelp();
+      return 0;
+    }
+
+    if (args.length > 1) {
+      process.stderr.write(`Unsupported configure-agents option: ${args.slice(1).join(' ')}\n`);
+      return 1;
+    }
+
+    return await runConfigureAgents({
       cwd: process.cwd(),
       stdin: process.stdin,
       stdout: process.stdout,
