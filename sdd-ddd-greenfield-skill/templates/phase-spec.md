@@ -178,7 +178,7 @@ And {產生的 Domain Event}
 
 > AI 在 Phase 4 實作規劃完成後，根據「Implementation Plan (Layer by Layer)」產生的具體任務清單。
 > 格式：`[LAYER]-[NUMBER]: 任務描述`
-> 分類標籤（Core 版，對應 Clean Architecture 各層）：
+> 分類標籤（Greenfield track，對應 Clean Architecture 各層）：
 >   - `DOMAIN` — Aggregate、Entity、VO、Domain Event、Domain Service、Repository Interface
 >   - `APP`    — Command/Query、Handler、Validator、DTO、Event Handler
 >   - `INFRA`  — EF Configuration、Repository Impl、外部服務 adapter、Migration

@@ -27,7 +27,7 @@ Bob 已經看完 OrderManager 的現況：WebForms、EF 6、SQL Server、少量 
 >  - `OrderManager.DataAccess/`: EF 6 + Stored Procedure wrappers
 >  - `tests/OrderManager.IntegrationTests/`: 少量 integration tests
 >  - `src/Domain/`: not present
->  - `CLAUDE.md`: not present
+>  - `CLAUDE.md`: not present → 等等可選擇建立 Claude Code shim
 >
 > 判定：**Brownfield Dflow setup**。這次 init 只建立 baseline governance files，不搬動既有程式碼，也不預設第一個 Bounded Context。
 
@@ -37,30 +37,21 @@ Bob 已經看完 OrderManager 的現況：WebForms、EF 6、SQL Server、少量 
 
 > **Bob**：Brownfield。OrderManager 已經上線 5-7 年，現在才導入 Dflow。
 
-> **Dflow CLI**：
+> **Dflow CLI**：收到。這次會使用 Brownfield track scaffolding。
 >
-> **Q2 edition**：要使用哪個 Dflow edition？
->
-> 1. ASP.NET Core — Clean Architecture + DDD
-> 2. ASP.NET WebForms — brownfield modernization
-
-> **Bob**：ASP.NET WebForms — brownfield modernization。
-
-> **Dflow CLI**：
->
-> **Q3 tech stack**：請描述目前技術棧。
+> **Q2 tech stack**：請描述目前技術棧。
 
 > **Bob**：.NET Framework 4.8、ASP.NET WebForms、Entity Framework 6、SQL Server 2019、IIS。前端還有 jQuery 跟 Bootstrap 3。
 
 > **Dflow CLI**：
 >
-> **Q4 migration context**：是否有 modernization 或 migration 目標？
+> **Q3 migration context**：是否有 modernization 或 migration 目標？
 
 > **Bob**：有。長期目標是逐步遷移到 ASP.NET Core，但短期不能停機，也不能先大重寫。Dflow 先拿來保護每次修改，順便抽出可遷移的 Domain logic。
 
 > **Dflow CLI**：
 >
-> **Q5 prose language**：請選擇專案的 prose language。這只影響 spec 內的自由敘述文字；headings、table headers、fixed labels、placeholders、IDs、anchors、file paths 與 code-facing terms 仍保留 canonical English structural language。
+> **Q4 prose language**：請選擇專案的 prose language。這只影響 spec 內的自由敘述文字；headings、table headers、fixed labels、placeholders、IDs、anchors、file paths 與 code-facing terms 仍保留 canonical English structural language。
 >
 > - `en`
 > - `zh-TW`
@@ -70,30 +61,40 @@ Bob 已經看完 OrderManager 的現況：WebForms、EF 6、SQL Server、少量 
 
 > **Dflow CLI**：記下來。`dflow/specs/shared/_conventions.md` 會包含 `## Prose Language`，值為 `zh-TW`。
 >
-> **Q6 optional starter files**（多選）：除了 mandatory baseline，還想 seed 哪些 optional starter 檔？`_conventions.md` 是 mandatory，因為它要記錄 prose language，不在 optional 清單內。
+> **Q5 optional starter files**（多選）：除了 mandatory baseline，還想 seed 哪些 optional starter 檔？`_conventions.md` 是 mandatory，因為它要記錄 prose language，不在 optional 清單內。
 >
 >   - [ ] `dflow/specs/shared/_overview.md`
 >   - [ ] Git principles —— Git Flow 或 trunk-based 二擇一
->   - [ ] `CLAUDE.md` snippet
 
-> **Bob**：`_overview.md` 要。Git 我們有 release / hotfix 節奏，所以選 `Git-principles-gitflow.md`。`CLAUDE.md` snippet 也要，repo root 目前沒有。
+> **Bob**：`_overview.md` 要。Git 我們有 release / hotfix 節奏，所以選 `Git-principles-gitflow.md`。
+
+> **Dflow CLI**：
+>
+> **Q6 AI coding agents**（多選）：要為哪些工具建立 instruction shim？如果選任何一項，我會建立 `dflow/specs/shared/AI-AGENT-GUIDE.md` 作為 canonical guide，root tool file 只指回這份 guide；既有檔不覆寫，改放 merge snippet。
+>
+>   - [ ] `AGENTS.md` — Codex / Copilot coding agent
+>   - [ ] `CLAUDE.md` — Claude Code
+>   - [ ] `GEMINI.md` — Gemini CLI
+>   - [ ] `.github/copilot-instructions.md` — GitHub Copilot
+
+> **Bob**：先建 `CLAUDE.md`。Legacy repo 目前只有 Claude Code 在跑。
 
 > **Dflow CLI**：Step 2 的答案整理如下：
 >
 > | Q | Answer |
 > |---|---|
 > | Q1 project type | brownfield |
-> | Q2 edition | ASP.NET WebForms — brownfield modernization |
-> | Q3 tech stack | .NET Framework 4.8 / WebForms / EF 6 / SQL Server 2019 / IIS |
-> | Q4 migration | long-term ASP.NET Core modernization; no big-bang rewrite |
-> | Q5 prose language | `zh-TW` |
-> | Q6 optional | `_overview.md` ✓ / `Git-principles-gitflow.md` ✓ / `CLAUDE.md` snippet ✓ |
+> | Q2 tech stack | .NET Framework 4.8 / WebForms / EF 6 / SQL Server 2019 / IIS |
+> | Q3 migration | long-term ASP.NET Core modernization; no big-bang rewrite |
+> | Q4 prose language | `zh-TW` |
+> | Q5 optional | `_overview.md` ✓ / `Git-principles-gitflow.md` ✓ |
+> | Q6 AI agents | `CLAUDE.md` ✓ |
 >
 > Step 2 complete. Entering Step 3: File-list preview.
 
 > **Dflow CLI**：Step 3 我先把要寫 / 要跳過 / 故意不建的檔案列清楚，請你確認後才動手寫。
 >
-> **Will create (9 files):**
+> **Will create (10 files):**
 >
 > | Path | Source |
 > |---|---|
@@ -105,7 +106,8 @@ Bob 已經看完 OrderManager 的現況：WebForms、EF 6、SQL Server、少量 
 > | `dflow/specs/shared/_conventions.md` | mandatory — records project prose language and spec writing conventions |
 > | `dflow/specs/shared/_overview.md` | optional — Bob selected |
 > | `dflow/specs/shared/Git-principles-gitflow.md` | optional — Bob selected |
-> | `CLAUDE.md` (repo root) | optional — repo has no existing `CLAUDE.md` |
+> | `dflow/specs/shared/AI-AGENT-GUIDE.md` | selected AI agent guide |
+> | `CLAUDE.md` (repo root) | selected tool shim |
 >
 > **Will skip (0 files already present):**
 >
@@ -143,6 +145,7 @@ Bob 已經看完 OrderManager 的現況：WebForms、EF 6、SQL Server、少量 
 >   dflow/specs/shared/_conventions.md
 >   dflow/specs/shared/_overview.md
 >   dflow/specs/shared/Git-principles-gitflow.md
+>   dflow/specs/shared/AI-AGENT-GUIDE.md
 >   CLAUDE.md
 > ```
 >
@@ -169,14 +172,16 @@ Bob 已經看完 OrderManager 的現況：WebForms、EF 6、SQL Server、少量 
 - [`dflow/specs/shared/_conventions.md`](outputs/dflow/specs/shared/_conventions.md) — `## Prose Language` 設為 `zh-TW`
 - [`dflow/specs/shared/_overview.md`](outputs/dflow/specs/shared/_overview.md)
 - [`dflow/specs/shared/Git-principles-gitflow.md`](outputs/dflow/specs/shared/Git-principles-gitflow.md)
+- [`dflow/specs/shared/AI-AGENT-GUIDE.md`](outputs/dflow/specs/shared/AI-AGENT-GUIDE.md) — AI tool-neutral canonical guide
 
-**repo root**
-- [`CLAUDE.md`](outputs/CLAUDE.md)
+**AI tool shim**
+- [`CLAUDE.md`](outputs/CLAUDE.md) — Claude Code shim，指向 canonical guide
 
 ## 觀察重點
 
 - **CLI init 不修改 production code**。Bob 的情境是 brownfield，因此 init 只建立治理結構與 baseline documents，不建立 `src/Domain/`、不搬 Code-Behind、不抽 Stored Procedure。
 - **`_conventions.md` 是 mandatory baseline**。它記錄 `## Prose Language`，讓後續 specs 的自由敘述使用 `zh-TW`，但固定結構語言仍保持 canonical English。
+- **AI agent guide 與 tool shim 分離**。這個 brownfield repo 目前只選 `CLAUDE.md`，但規則集中在 `dflow/specs/shared/AI-AGENT-GUIDE.md`；未來要加 Codex、Gemini 或 Copilot，只需新增 thin shim。
 - **第一個 Bounded Context 與 context map 延後到真需求出現**。Order / Customer / Inventory 等候選不在 init 時預先固定；真正的 `dflow/specs/domain/{context}/` 與 `dflow/specs/domain/context-map.md` 由後續 `/dflow:modify-existing` 或 `/dflow:new-feature` 根據實際修改建立。
 
 ## 下一個劇情段

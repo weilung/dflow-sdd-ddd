@@ -5,20 +5,20 @@
 > Source: `scaffolding/CLAUDE-md-snippet.md`
 > Purpose: a minimal block you paste into (or replace with) your
 > project's root `CLAUDE.md` when adopting Dflow.
-> For the Core skill, the full reference template lives at
+> For the Greenfield track, the full reference template lives at
 > `sdd-ddd-greenfield-skill/templates/CLAUDE.md` — if you want the complete
-> version, use that instead. This snippet is a lighter starting point.
+> legacy Claude-specific version, use that instead. New CLI init output uses
+> `AI-AGENT-GUIDE.md` plus a generated `CLAUDE.md` shim.
 
 ---
 
 ## How to use this snippet
 
-- **If your project has no `CLAUDE.md`**: `npx dflow-sdd-ddd init` will
-  create one using this snippet as the base
-- **If your project already has a `CLAUDE.md`**: do NOT overwrite.
-  Merge the **two H2 blocks** below (`System Context` / `Development Workflow`) into your
-  existing file, preserving any project-specific content you already
-  have
+- New `npx dflow-sdd-ddd init` output uses
+  `dflow/specs/shared/AI-AGENT-GUIDE.md` as the canonical guide and creates
+  a thin `CLAUDE.md` shim that points back to it.
+- Use this legacy snippet only if you intentionally want the older
+  Claude-specific two-H2 layout in your project's root `CLAUDE.md`.
 
 The two-H2 structure (`System Context` / `Development Workflow`) is intentional and must be
 preserved — it matches the Dflow skill's `templates/CLAUDE.md` and

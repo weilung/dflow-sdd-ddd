@@ -81,6 +81,7 @@ try {
     'none',
     '1',
     '1,2',
+    '1,2,3,4',
     'y'
   ].join('\n') + '\n';
 
@@ -94,12 +95,17 @@ try {
     'dflow/specs/features/completed/.gitkeep',
     'dflow/specs/features/backlog/.gitkeep',
     'dflow/specs/shared/_conventions.md',
+    'dflow/specs/shared/AI-AGENT-GUIDE.md',
     'dflow/specs/shared/_overview.md',
     'dflow/specs/shared/Git-principles-trunk.md',
     'dflow/specs/domain/glossary.md',
     'dflow/specs/domain/context-map.md',
     'dflow/specs/architecture/tech-debt.md',
-    'dflow/specs/architecture/decisions/README.md'
+    'dflow/specs/architecture/decisions/README.md',
+    'AGENTS.md',
+    'CLAUDE.md',
+    'GEMINI.md',
+    '.github/copilot-instructions.md'
   ];
 
   for (const relativePath of mandatoryPaths) {
@@ -119,6 +125,19 @@ try {
   assert.match(overview, /\[Tech debt backlog\]\(\.\.\/architecture\/tech-debt\.md\)/);
   assert.doesNotMatch(`${conventions}\n${overview}`, /\]\((?:domain|architecture|migration)\//);
 
+  const aiGuide = await readFile(join(tempRoot, 'dflow/specs/shared/AI-AGENT-GUIDE.md'), 'utf8');
+  assert.match(aiGuide, /\| Dflow track \| greenfield \|/);
+  assert.match(aiGuide, /\| Prose language \| zh-TW \|/);
+
+  const agentsGuide = await readFile(join(tempRoot, 'AGENTS.md'), 'utf8');
+  const claudeGuide = await readFile(join(tempRoot, 'CLAUDE.md'), 'utf8');
+  const geminiGuide = await readFile(join(tempRoot, 'GEMINI.md'), 'utf8');
+  const copilotGuide = await readFile(join(tempRoot, '.github/copilot-instructions.md'), 'utf8');
+  assert.match(agentsGuide, /dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/);
+  assert.match(claudeGuide, /@dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/);
+  assert.match(geminiGuide, /@dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/);
+  assert.match(copilotGuide, /dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/);
+
   const second = await runDflow(tempRoot);
   assert.notEqual(second.code, 0, 'second init should abort');
   assert.match(second.stderr, /Dflow already initialized at dflow\/specs\/\./);
@@ -132,6 +151,7 @@ try {
     'ASP.NET Core 9, EF Core 8, MediatR 12, xUnit',
     'none',
     '2',
+    'none',
     'none',
     'y'
   ].join('\n') + '\n';
@@ -151,7 +171,8 @@ try {
     'Future ASP.NET Core migration',
     '4',
     'fr-CA',
-    '1,4',
+    '1',
+    '2',
     'y'
   ].join('\n') + '\n';
 
@@ -163,6 +184,7 @@ try {
     'dflow/specs/features/completed/.gitkeep',
     'dflow/specs/features/backlog/.gitkeep',
     'dflow/specs/shared/_conventions.md',
+    'dflow/specs/shared/AI-AGENT-GUIDE.md',
     'dflow/specs/shared/_overview.md',
     'dflow/specs/domain/glossary.md',
     'dflow/specs/migration/tech-debt.md',
@@ -185,9 +207,8 @@ try {
   assert.doesNotMatch(`${webformsConventions}\n${webformsOverview}`, /\]\((?:domain|architecture|migration)\//);
 
   const rootClaude = await readFile(join(webformsRoot, 'CLAUDE.md'), 'utf8');
-  assert.match(rootClaude, /^# Project:/);
-  assert.doesNotMatch(rootClaude, /## Snippet to merge into `CLAUDE\.md`/);
-  assert.doesNotMatch(rootClaude, /## Merge Guidance/);
+  assert.match(rootClaude, /^# CLAUDE\.md - Dflow Project Instructions/);
+  assert.match(rootClaude, /@dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/);
 
   console.log(`Smoke test passed in ${tempRoot}`);
 } finally {

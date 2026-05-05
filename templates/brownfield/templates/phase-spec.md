@@ -173,7 +173,7 @@ Then {新的預期結果}
 
 > AI 在 Phase 4 實作規劃完成後，根據「Implementation Notes」產生的具體任務清單。
 > 格式：`[LAYER]-[NUMBER]: 任務描述`
-> 分類標籤（WebForms 版）：
+> 分類標籤（Brownfield track）：
 >   - `DOMAIN`  — Domain 層類別、VO、Service、Interface
 >   - `PAGE`    — Code-Behind / ASPX 變更
 >   - `DATA`    — 資料表 schema 或 Repository 實作

@@ -105,10 +105,26 @@ dflow/
       tech-debt.md
     features/
       active/
-      done/
+      completed/
 ```
 
 Dflow also creates or provides a mergeable project instruction file for your AI coding agent. The exact file depends on the target tool and existing project setup; Dflow avoids overwriting existing project instructions.
+
+When you select AI agent setup during init, Dflow writes
+`dflow/specs/shared/AI-AGENT-GUIDE.md` as the canonical project guide, then
+creates small tool-specific shims that point back to it:
+
+| Tool target | Generated file |
+|---|---|
+| Codex / Copilot coding agent | `AGENTS.md` |
+| Claude Code | `CLAUDE.md` |
+| Gemini CLI | `GEMINI.md` |
+| GitHub Copilot | `.github/copilot-instructions.md` |
+
+If one of those files already exists, Dflow leaves it unchanged and writes a
+merge snippet under `dflow/specs/shared/` instead. The project guide stays the
+single source of truth, so teams can use multiple AI tools without maintaining
+multiple copies of the workflow rules.
 
 ## Main Flows
 

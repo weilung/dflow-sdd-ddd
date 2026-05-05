@@ -5,13 +5,11 @@
 > This file is a **snippet**, not a standalone `CLAUDE.md`. Its purpose
 > is to be merged into your project's root `CLAUDE.md`:
 >
-> - If your project does **not** yet have a `CLAUDE.md`, the
->   `npx dflow-sdd-ddd init` flow will create one using this snippet as
->   the starting content.
-> - If your project **already has** a `CLAUDE.md`, the init flow will
->   copy this file into your repo and prompt you to merge the
->   sections below into the appropriate places in your existing
->   `CLAUDE.md`. No auto-merge — you keep editorial control.
+> - New `npx dflow-sdd-ddd init` output uses
+>   `dflow/specs/shared/AI-AGENT-GUIDE.md` as the canonical guide and
+>   creates a thin `CLAUDE.md` shim that points back to it.
+> - Use this legacy snippet only if you intentionally want the older
+>   Claude-specific two-H2 layout in your project's root `CLAUDE.md`.
 
 The snippet follows the Dflow `templates/CLAUDE.md` H2 segmentation
 (established in PROPOSAL-007c): **System Context** (what the system is)

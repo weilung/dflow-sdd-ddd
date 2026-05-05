@@ -405,7 +405,7 @@ These two files are not runtime inputs for workflows; use them during review, ma
 
 ### Scaffolding (used by `npx dflow-sdd-ddd init`)
 
-The `scaffolding/` directory holds **project-level** templates seeded by `npx dflow-sdd-ddd init` into a project's `dflow/specs/shared/` directory (or repo root for `CLAUDE.md`). They are **not** read by AI during normal flows; they are written to the target project once, then owned and maintained by the project.
+The `scaffolding/` directory holds **project-level** templates seeded by `npx dflow-sdd-ddd init` into a project's `dflow/specs/shared/` directory and selected tool-specific root files. They are **not** read by AI during normal flows until they are written to the target project; after init, the project owns and maintains them.
 
 | Scaffolding file | Purpose |
 |---|---|
@@ -413,6 +413,7 @@ The `scaffolding/` directory holds **project-level** templates seeded by `npx df
 | `scaffolding/_conventions.md` | Project-level spec-writing conventions (references the skill's T1 / T2 / T3 tiers and feature/phase naming) |
 | `scaffolding/Git-principles-gitflow.md` | Git Flow edition of project Git conventions — includes Integration Commit Message Conventions that pair with `/dflow:finish-feature` output |
 | `scaffolding/Git-principles-trunk.md` | Trunk-based / GitHub Flow edition of project Git conventions — includes squash/rebase Integration Commit Message formats |
-| `scaffolding/CLAUDE-md-snippet.md` | Starter block for a project's root `CLAUDE.md`, preserving the `System Context` / `Development Workflow` H2 layout |
+| `scaffolding/AI-AGENT-GUIDE.md` | Canonical project guide for selected AI coding agents; tool-specific root files should stay as thin shims pointing back to this guide |
+| `scaffolding/CLAUDE-md-snippet.md` | Legacy Claude-specific reference snippet kept for compatibility; new init output uses `AI-AGENT-GUIDE.md` plus generated tool shims |
 
 See `references/init-project-flow.md` for how the scaffolding files are selected and written.

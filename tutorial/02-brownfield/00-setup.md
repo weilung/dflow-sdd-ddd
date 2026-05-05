@@ -122,11 +122,11 @@ Bob 的 init 選擇假設如下：
 | Question | Bob 的選擇 |
 |---|---|
 | Q1 project type | brownfield：既有 ASP.NET WebForms 系統現在才導入 Dflow |
-| Q2 edition | ASP.NET WebForms — brownfield modernization |
-| Q3 tech stack | .NET Framework 4.8 / Entity Framework 6 / SQL Server 2019 / WebForms |
-| Q4 migration | 是，長期目標是逐步遷移到 .NET Core |
-| Q5 prose language | `zh-TW` |
-| Q6 optional | `_overview.md`、`Git-principles-gitflow.md`、`CLAUDE.md` snippet 全選；`_conventions.md` 為 mandatory |
+| Q2 tech stack | .NET Framework 4.8 / Entity Framework 6 / SQL Server 2019 / WebForms |
+| Q3 migration | 是，長期目標是逐步遷移到 .NET Core |
+| Q4 prose language | `zh-TW` |
+| Q5 optional | `_overview.md`、`Git-principles-gitflow.md`；`_conventions.md` 為 mandatory |
+| Q6 AI agents | `CLAUDE.md` |
 
 baseline 檔案清單：
 

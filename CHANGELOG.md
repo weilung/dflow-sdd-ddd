@@ -6,6 +6,23 @@
 
 ---
 
+## 2026-05-05 — Multi-AI init guide and tool shims
+
+**變更**：
+- CLI init 新增 Q6 AI coding agents，可選 `AGENTS.md`、`CLAUDE.md`、`GEMINI.md`、`.github/copilot-instructions.md`
+- 新增 `dflow/specs/shared/AI-AGENT-GUIDE.md` 作為 tool-neutral canonical guide
+- Tool-specific root files 改為 thin shim，既有檔案不覆寫，改產生 `dflow/specs/shared/*-snippet.md`
+- Optional starter Q5 移除 Claude-only 選項，避免 public init 看起來綁定單一 AI 工具
+- README、init contract、tutorial init 段與 coverage matrix 同步 multi-AI wording
+
+**驗證**：
+- `npm test`
+- `npm pack --dry-run`
+- `diff -qr` skill source vs packaged templates
+- `git diff --check`
+
+---
+
 ## 2026-05-04 — Public distribution naming：Greenfield / Brownfield tracks
 
 **變更**：

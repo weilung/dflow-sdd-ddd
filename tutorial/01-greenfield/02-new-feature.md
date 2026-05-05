@@ -135,7 +135,7 @@
 > |---|---|---|
 > | `dflow/specs/features/active/SPEC-20260428-001-employee-submit-expense/_index.md` | `templates/_index.md` | 新建 — feature dashboard |
 > | `dflow/specs/features/active/SPEC-20260428-001-employee-submit-expense/phase-spec-2026-04-28-mvp.md` | `templates/phase-spec.md` | 新建 — phase 1 spec |
-> | `dflow/specs/features/active/SPEC-20260428-001-employee-submit-expense/aggregate-design.md` | `templates/aggregate-design.md` | 新建 — Core 版特有 |
+> | `dflow/specs/features/active/SPEC-20260428-001-employee-submit-expense/aggregate-design.md` | `templates/aggregate-design.md` | 新建 — Greenfield track 特有 |
 > | `dflow/specs/domain/Expense/context.md` | `templates/context-definition.md` | 新建 — BC 定義 |
 > | `dflow/specs/domain/Expense/models.md` | `templates/models.md` | 新建 — BC model catalog |
 > | `dflow/specs/domain/Expense/rules.md` | `templates/rules.md` | 新建 — BR-ID index |
@@ -286,7 +286,7 @@
 **新建 — feature 目錄（3 檔）**
 - [`dflow/specs/features/active/SPEC-20260428-001-employee-submit-expense/_index.md`](outputs/dflow/specs/features/active/SPEC-20260428-001-employee-submit-expense/_index.md) — feature dashboard，含 6 個 sections（Metadata / Goals & Scope / Phase Specs / Current BR Snapshot / Lightweight Changes / Resume Pointer）+ canonical English headings + `<!-- dflow:section ... -->` anchors
 - [`dflow/specs/features/active/SPEC-20260428-001-employee-submit-expense/phase-spec-2026-04-28-mvp.md`](outputs/dflow/specs/features/active/SPEC-20260428-001-employee-submit-expense/phase-spec-2026-04-28-mvp.md) — phase 1 spec，「首 phase，無前置 Delta」 + 4 個 BR + 3 個 EC + 15 個 Implementation Tasks
-- [`dflow/specs/features/active/SPEC-20260428-001-employee-submit-expense/aggregate-design.md`](outputs/dflow/specs/features/active/SPEC-20260428-001-employee-submit-expense/aggregate-design.md) — Core 版特有；ExpenseReport 5 條 invariants + State Transition Methods + 4 個 Design Decisions
+- [`dflow/specs/features/active/SPEC-20260428-001-employee-submit-expense/aggregate-design.md`](outputs/dflow/specs/features/active/SPEC-20260428-001-employee-submit-expense/aggregate-design.md) — Greenfield track 特有；ExpenseReport 5 條 invariants + State Transition Methods + 4 個 Design Decisions
 
 **新建 — Expense BC 目錄（4 檔）**
 - [`dflow/specs/domain/Expense/context.md`](outputs/dflow/specs/domain/Expense/context.md) — BC 定義：Responsibilities / In Scope / Out of Scope / 概覽各模型 / Interactions / Code Mapping
@@ -305,7 +305,7 @@
 ## 觀察重點
 
 - **Step 3 → Step 3.5 的 Phase Gate 真的等 confirm**：Step 3 結束時 announce「等 `/dflow:next` 進 Step 3.5」，Alice 回 `/dflow:next` 才進。slug 確認也是先 propose 再等回應，沒有自動建目錄。對照 new-feature-flow.md `Phase Gates` 列表的 4 道 gate（Step 3→3.5、Step 4→5、Step 6→7、Step 7→8），其他 step transition（如 Step 1→2、Step 2→3、Step 3.5→4、Step 5→6）都是 step-internal「announce + 直接繼續」——這個對話完整體現了兩種 transition 的差別。
-- **BR / EC / INV 的三層職責劃分清楚**：INV 是 Aggregate 不變條件（aggregate-design.md），BR 是業務規則（rules.md），EC 是邊界場景（phase-spec.md）。EC-001（金額=0）衍生出 BR-003 + INV-03，三層都對得起來，這是 P003 + P008 的 source-of-truth 結構在 Core 版的具體展現。同事 review 時可以特別檢查這三層有沒有矛盾。
+- **BR / EC / INV 的三層職責劃分清楚**：INV 是 Aggregate 不變條件（aggregate-design.md），BR 是業務規則（rules.md），EC 是邊界場景（phase-spec.md）。EC-001（金額=0）衍生出 BR-003 + INV-03，三層都對得起來，這是 P003 + P008 的 source-of-truth 結構在 Greenfield track 的具體展現。同事 review 時可以特別檢查這三層有沒有矛盾。
 - **`_index.md` 的 6 sections + canonical English headings + dflow:section anchors**（per R8b cascade）都到位：Goals & Scope / Phase Specs / Current BR Snapshot / Lightweight Changes / Resume Pointer 五段內容 + Metadata frontmatter。`<!-- dflow:section current-br-snapshot -->` 和 `<!-- dflow:section lightweight-changes -->` 兩個 anchor 注入點都有，方便 `/dflow:status` 或自動工具定位。
 - **`aggregate-design.md` 的 Design Decisions 段被刻意填滿**：「為什麼 ExpenseItem 是 Entity 而非 VO」「為什麼 Aggregate 邊界劃在一份 Report」「為什麼 Money 是 VO」「為什麼 ReceiptReference 是 VO」——這四個決策都在對話中被討論到並寫進 spec。未來 review 時不會再被同事問「為什麼這樣設計」。模板的 Design Decisions 段如果只填一句話會浪費這個 review 介面。
 - **glossary 補 term 的時機策略**：Approver / Reimbursement 兩個 term 在 MVP phase 還沒對應到任何 code，但因為它們會被 BR-002 / Goals & Scope 提到，**先入詞表 + code mapping 留 `(尚未建模)`**——避免「術語出現在 spec 但 glossary 查不到」的斷層。Code mapping 等對應 phase 落地時再回補。同事讀 spec 時不會卡在「Approver 是什麼」。

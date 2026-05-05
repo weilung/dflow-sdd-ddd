@@ -1,4 +1,4 @@
-# CLAUDE.md - Dflow Project Instructions
+# GEMINI.md - Dflow Project Instructions
 
 This project uses Dflow for spec-first AI-assisted development.
 

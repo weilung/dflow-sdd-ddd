@@ -129,14 +129,26 @@ free prose inside generated spec sections.
 >         Pick Git Flow only if you have a formal release cycle with
 >         dedicated release / hotfix branches):
 >     - [ ] `dflow/specs/shared/Git-principles-gitflow.md`
->     - [ ] `dflow/specs/shared/Git-principles-trunk.md`
->   - [ ] `CLAUDE.md` snippet — mandatory if no `CLAUDE.md` exists in
->         repo root (I'll create one); otherwise I'll drop the snippet
->         as a standalone file so you can merge it manually"
+>     - [ ] `dflow/specs/shared/Git-principles-trunk.md`"
 
 Wait for answers. If the developer picks both Git-principles flavours,
 confirm once more that they really want both (usually a project picks
 one).
+
+### Q6. AI coding agents (multi-select)
+
+> "Which AI coding agents should Dflow configure?
+>
+>   - [ ] `AGENTS.md` — Codex / Copilot coding agent
+>   - [ ] `CLAUDE.md` — Claude Code
+>   - [ ] `GEMINI.md` — Gemini CLI
+>   - [ ] `.github/copilot-instructions.md` — GitHub Copilot
+>
+> If you select any agent, Dflow will create
+> `dflow/specs/shared/AI-AGENT-GUIDE.md` as the canonical guide. Root-level
+> tool files stay thin and point back to that guide. Existing tool files are
+> never overwritten; Dflow writes merge snippets under `dflow/specs/shared/`
+> instead."
 
 **→ Transition (step-internal)**: Step 2 complete. Announce
 > "Step 2 complete (project information captured). Entering Step 3:
@@ -182,8 +194,8 @@ Key Brownfield-track notes:
   the first bounded context is established. Creating empty
   `behavior.md` files here would create stale placeholders.
 - `domain/context-map.md` is **not** mandatory in the Brownfield track
-  (contexts emerge organically during domain extraction; the Core
-  edition makes this file mandatory because BCs are usually planned
+  (contexts emerge organically during domain extraction; the Greenfield
+  track makes this file mandatory because BCs are usually planned
   up-front).
 
 ### 3.2 Optional files (from Step 2 Q5)
@@ -197,7 +209,9 @@ destination path:
 | `scaffolding/_conventions.md` | `dflow/specs/shared/_conventions.md` (mandatory baseline) |
 | `scaffolding/Git-principles-gitflow.md` | `dflow/specs/shared/Git-principles-gitflow.md` |
 | `scaffolding/Git-principles-trunk.md` | `dflow/specs/shared/Git-principles-trunk.md` |
-| `scaffolding/CLAUDE-md-snippet.md` | repo root `CLAUDE.md` (if missing) OR `dflow/specs/shared/CLAUDE-md-snippet.md` (if root `CLAUDE.md` exists) |
+| `scaffolding/AI-AGENT-GUIDE.md` | `dflow/specs/shared/AI-AGENT-GUIDE.md` when at least one AI agent is selected |
+| generated tool shim | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, or `.github/copilot-instructions.md` when selected and missing |
+| generated merge snippet | `dflow/specs/shared/*-snippet.md` when the selected tool file already exists |
 
 ### 3.3 Present the preview
 
@@ -218,7 +232,8 @@ skip, and wait for developer confirmation:
 > | `dflow/specs/migration/tech-debt.md` | `templates/tech-debt.md` (mandatory baseline) |
 > | `dflow/specs/shared/_overview.md` | optional (you picked it) |
 > | `dflow/specs/shared/Git-principles-trunk.md` | optional (you picked it) |
-> | `CLAUDE.md` | optional — snippet seeded because repo has no CLAUDE.md |
+> | `dflow/specs/shared/AI-AGENT-GUIDE.md` | selected AI agent guide |
+> | `CLAUDE.md` | selected tool shim because repo has no CLAUDE.md |
 >
 > **Will skip ({M} files — already present):**
 >
@@ -240,7 +255,7 @@ skip, and wait for developer confirmation:
 **→ Phase Gate: Step 3 → Step 4**
 
 Wait for explicit confirmation. If the developer asks to change the
-selection, go back to Step 2 Q5 and re-run Step 3.
+selection, go back to Step 2 Q5 or Q6 and re-run Step 3.
 
 ---
 
@@ -282,20 +297,20 @@ notice:
 <!-- TODO: fill in 業務領域 on next review -->
 ```
 
-### 4.3 Special case — `CLAUDE.md` handling
+### 4.3 Special case — AI agent instruction files
 
-- **No repo-root `CLAUDE.md` exists, developer wants the snippet:**
-  create `CLAUDE.md` at repo root with the snippet content (from
-  `scaffolding/CLAUDE-md-snippet.md`, stripped of its outer "How to
-  use this snippet" scaffolding wrapper — keep only the snippet body).
-- **Repo-root `CLAUDE.md` exists, developer wants the snippet:** write
-  `dflow/specs/shared/CLAUDE-md-snippet.md` (a copy of the scaffolding file)
-  and announce:
-  > "Your project already has `CLAUDE.md` at repo root — I did not
-  > touch it. The snippet is now at `dflow/specs/shared/CLAUDE-md-snippet.md`
-  > for you to merge manually. Preserve the `System Context` / `Development Workflow`
-  > H2 structure when merging — it matches what the Dflow skill
-  > expects."
+If the developer selected any AI coding agent in Q6, create
+`dflow/specs/shared/AI-AGENT-GUIDE.md` as the canonical Dflow project
+guide.
+
+For each selected tool-specific file (`AGENTS.md`, `CLAUDE.md`,
+`GEMINI.md`, `.github/copilot-instructions.md`):
+
+- if the target file does not exist, create a small shim at the target
+  path that points to `dflow/specs/shared/AI-AGENT-GUIDE.md`
+- if the target file already exists, do not overwrite it; write a merge
+  snippet under `dflow/specs/shared/` and report that the developer
+  should merge it manually
 
 ### 4.4 Directory-only entries
 
