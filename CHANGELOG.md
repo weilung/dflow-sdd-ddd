@@ -6,7 +6,7 @@
 
 ---
 
-## 2026-05-05 — Multi-AI init guide and tool shims
+## 0.1.1 — 2026-05-05 — Multi-AI init guide and tool shims
 
 **變更**：
 - CLI init 新增 Q6 AI coding agents，可選 `AGENTS.md`、`CLAUDE.md`、`GEMINI.md`、`.github/copilot-instructions.md`
