@@ -1,6 +1,7 @@
 # npm Publish Checklist
 
 This checklist is for maintainers preparing a manual Dflow npm release.
+Contributors do not need to run these steps for ordinary pull requests.
 
 Replace `<version>` with the version being published, for example `0.1.2`.
 

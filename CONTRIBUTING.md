@@ -67,6 +67,14 @@ git diff --check
 
 If a command cannot be run in your environment, note that in the PR.
 
+When changing templates or scaffolding, keep both source surfaces aligned:
+
+- skill source under `sdd-ddd-greenfield-skill/` or
+  `sdd-ddd-brownfield-skill/`
+- packaged templates under `templates/greenfield/` or `templates/brownfield/`
+
+If you are unsure which surface to edit, describe that uncertainty in the PR.
+
 ## Greenfield and Brownfield Synchronization
 
 Several Dflow flows are shared between the Greenfield and Brownfield tracks. If
@@ -75,6 +83,7 @@ intentionally track-specific.
 
 Common shared flows include:
 
+- `dflow-feedback-flow.md`
 - `init-project-flow.md`
 - `new-feature-flow.md`
 - `modify-existing-flow.md`

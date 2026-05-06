@@ -17,13 +17,18 @@ AI makes delivery faster, but it also makes ambiguous domain knowledge more dang
 
 ## Get Started
 
+Prerequisite: a local Node.js / npm environment that can run `npx`.
+
 Run Dflow from the root of the project you want to adopt it in:
 
 ```bash
 npx dflow-sdd-ddd init
 ```
 
-The init flow asks whether the project is greenfield or brownfield, then previews the files it will create. Existing files are not overwritten.
+The init flow asks whether the project is greenfield or brownfield, then
+previews the files it will create. Existing files are not overwritten. Init
+creates workflow documentation and AI instruction files; it does not inspect,
+refactor, or migrate your application code.
 
 For a fixed global CLI:
 
@@ -55,6 +60,10 @@ After init, start work through the Dflow workflow in your AI coding agent:
 ```
 
 If your tool does not support custom slash commands, use the same command names as plain instructions in chat. Dflow is Markdown-based workflow material plus a scaffolding CLI, so it can be used with AI coding agents that can read project instructions and repository context.
+
+For the first adoption pass, use a branch or disposable sample project so your
+team can inspect the generated `dflow/specs/` workspace before bringing the
+workflow into an active codebase.
 
 ## Project Tracks
 
@@ -180,9 +189,9 @@ For a longer explanation, see [Why DDD Matters More with AI](docs/why-ddd-for-ai
 ## Contributing and Releases
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for issue and pull request guidance.
-Maintainer release rules are documented in
-[Release and Versioning Policy](docs/release-versioning-policy.md), with the
-manual npm flow in [npm Publish Checklist](docs/npm-publish-checklist.md).
+Maintainer-facing release rules are documented in [Release and Versioning
+Policy](docs/release-versioning-policy.md), with the manual npm flow in [npm
+Publish Checklist](docs/npm-publish-checklist.md).
 
 ## Status
 

@@ -6,6 +6,24 @@
 
 ---
 
+## 2026-05-06 — Public package docs polish
+
+**變更**：
+- README Get Started 補 Node.js / npm prerequisite，並說明 `init` 只建立 workflow docs / AI instruction files，不會 inspect、refactor、migrate application code
+- README 補建議 first adoption pass 可先用 branch 或 disposable sample project 檢查 generated `dflow/specs/`
+- CONTRIBUTING 補 template / scaffolding change 時需同步 skill source 與 packaged templates
+- CONTRIBUTING 的 common shared flow list 補 `dflow-feedback-flow.md`
+- Release / publish docs 補 maintainer-facing 語氣，避免 contributor 誤以為一般 PR 需要執行 publish checklist
+
+**驗證**：
+- `scripts/check-repo-consistency.sh`
+- `scripts/export-dist.sh --check`
+- dist `npm test`
+- dist `npm pack --dry-run`
+- dist `git diff --check`
+
+---
+
 ## 2026-05-06 — Repository consistency local verification
 
 **Proposal**：PROPOSAL-018（implemented）

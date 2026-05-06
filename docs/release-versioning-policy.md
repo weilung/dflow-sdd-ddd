@@ -1,7 +1,8 @@
 # Release and Versioning Policy
 
 This document defines the lightweight release policy for Dflow while the project
-is in the `0.x` series.
+is in the `0.x` series. It is maintainer-facing; contributors can use it to
+describe expected version impact in a PR, but only maintainers publish releases.
 
 ## Versioning During 0.x
 
