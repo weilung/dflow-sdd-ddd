@@ -12,9 +12,12 @@
   },
   "files": [
     "bin/",
+    "CHANGELOG.md",
     "CONTRIBUTING.md",
     "docs/",
     "lib/",
+    "TEMPLATE-COVERAGE.md",
+    "TEMPLATE-LANGUAGE-GLOSSARY.md",
     "templates/",
     "README.md"
   ],

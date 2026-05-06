@@ -6,6 +6,20 @@
 
 ---
 
+## 2026-05-06 — npm package hygiene: include referenced maintainer docs
+
+**變更**：
+- `package.json#files` 新增 `CHANGELOG.md`、`TEMPLATE-COVERAGE.md`、`TEMPLATE-LANGUAGE-GLOSSARY.md`
+- 原因：`CONTRIBUTING.md` 已進 npm package，且會指引 contributor 閱讀 template coverage / glossary；release policy 也以 `CHANGELOG.md` 作為 release history source
+- 保持 `.github/` 不進 npm package；issue templates 仍只屬 GitHub public repo surface
+
+**驗證**：
+- `npm test`
+- `npm pack --dry-run`
+- `git diff --check`
+
+---
+
 ## 2026-05-06 — npm package hygiene: include contributing guide
 
 **變更**：
