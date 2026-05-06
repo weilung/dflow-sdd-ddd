@@ -6,6 +6,25 @@
 
 ---
 
+## 2026-05-06 — Repository consistency local verification
+
+**Proposal**：PROPOSAL-018（implemented）
+
+**變更**：
+- 新增 dev-only `scripts/check-repo-consistency.sh`
+- 一鍵執行 `npm test`、`npm pack --dry-run`、`git diff --check`
+- 補 skill source vs npm packaged template mirror byte-compare
+- 補 Greenfield / Brownfield common reference flow coverage 檢查
+- 補 track-specific file manifest、`package.json#files`、`bin/dflow.js` shebang / executable、retired localized skill references 檢查
+- `AGENTS.md` / `CLAUDE.md` 補 dev repo consistency check 規則
+- Phase 1 不新增 GitHub Actions、不改 release ownership、不碰 npm publish / tag / GitHub Release
+
+**驗證**：
+- `scripts/check-repo-consistency.sh`
+- `git diff --check`
+
+---
+
 ## 2026-05-06 — Dist sync script hardening
 
 **變更**：
