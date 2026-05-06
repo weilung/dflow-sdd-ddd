@@ -128,6 +128,7 @@ try {
   const aiGuide = await readFile(join(tempRoot, 'dflow/specs/shared/AI-AGENT-GUIDE.md'), 'utf8');
   assert.match(aiGuide, /\| Dflow track \| greenfield \|/);
   assert.match(aiGuide, /\| Prose language \| zh-TW \|/);
+  assert.match(aiGuide, /\/dflow:report-dflow-feedback/);
 
   const agentsGuide = await readFile(join(tempRoot, 'AGENTS.md'), 'utf8');
   const claudeGuide = await readFile(join(tempRoot, 'CLAUDE.md'), 'utf8');

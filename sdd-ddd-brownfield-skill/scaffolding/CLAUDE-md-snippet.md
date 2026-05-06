@@ -105,6 +105,7 @@ AI 的完整決策樹、Workflow Transparency、Ceremony Scaling 三層判準
 - `/dflow:finish-feature` — feature 收尾
 - `/dflow:pr-review` — PR 審查
 - `/dflow:verify` — rules.md ↔ behavior.md 漂移檢查
+- `/dflow:report-dflow-feedback` — 草擬給 Dflow upstream 的已清理回饋，不自動送出
 - `/dflow:status` / `/dflow:next` / `/dflow:cancel` — 狀態管理
 
 ### Project-Level Supplemental Rules

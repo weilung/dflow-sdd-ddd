@@ -6,6 +6,46 @@
 
 ---
 
+## 2026-05-06 — AI-assisted Dflow feedback draft flow
+
+**Proposal**：PROPOSAL-017（implemented）
+
+**變更**：
+- 新增 `/dflow:report-dflow-feedback` standalone flow，讓 AI 將使用 Dflow 時發現的 upstream 問題或改良點整理成本地草稿
+- 新增雙版 `references/dflow-feedback-flow.md`，規範分類、safe evidence capture、redaction checklist、GitHub issue body draft、optional PR plan
+- 雙版 `SKILL.md` command routing、reference table、standalone command list 同步新增 feedback flow
+- 雙版 `AI-AGENT-GUIDE.md` 與 `CLAUDE-md-snippet.md`（含 packaged `templates/*/scaffolding/` source）同步新增命令說明
+- README / CONTRIBUTING 補 AI-assisted feedback draft 說明
+- `TEMPLATE-COVERAGE.md` 補 reference flow parity note，明示 GitHub CLI submission 需另案
+
+**邊界**：
+- 不自動執行 `gh issue create` / `gh pr create`
+- 不 push、不開 PR、不將本地資訊送出
+- 使用者必須審核 redaction checklist 後才可自行提交
+
+**驗證**：
+- `npm test`
+- `git diff --check`
+
+---
+
+## 2026-05-06 — Public project governance baseline
+
+**Proposal**：PROPOSAL-016（implemented）
+
+**變更**：
+- 新增 `CONTRIBUTING.md`，定義 public issue / PR guidance、Greenfield/Brownfield common-flow sync expectations、template heading change guard
+- 新增 `docs/release-versioning-policy.md`，定義 0.x patch / minor / breaking-change handling，以及 dev repo / dist repo / npm / GitHub Release 的 release surface
+- 新增 `docs/npm-publish-checklist.md`，整理 manual publish、post-publish smoke、tag、GitHub Release、dist sync closeout
+- 新增 GitHub issue templates：bug report、workflow change request、docs feedback、question
+- README 補 contributing / release policy / publish checklist links，並將 status wording 更新到 `0.1.1`
+- `planning/public-distribution-backlog.md` 標記 governance baseline 已由 P016 接管；release automation 仍保留為後續議題
+
+**驗證**：
+- `git diff --check`
+
+---
+
 ## 0.1.1 — 2026-05-05 — Multi-AI init guide and tool shims
 
 **變更**：

@@ -30,6 +30,7 @@ are not available in the current AI tool:
 | `/dflow:finish-feature` | Implementation is complete and needs drift closure. |
 | `/dflow:verify` | Specs, domain docs, implementation, and tests need consistency checks. |
 | `/dflow:pr-review` | A change is ready for SDD/DDD review. |
+| `/dflow:report-dflow-feedback` | You found a Dflow issue or improvement and want a sanitized upstream feedback draft. |
 
 ## Source of Truth
 

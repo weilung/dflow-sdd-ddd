@@ -150,6 +150,7 @@ adopts additional AI coding agents.
 | `/dflow:finish-feature` | The implementation is done and needs closure. | Drift verification, feature snapshot, technical debt update, review checklist. |
 | `/dflow:verify` | You need confidence that docs and code still match. | Drift report across spec, domain docs, implementation, tests, and debt records. |
 | `/dflow:pr-review` | A change is ready for review. | SDD/DDD compliance review with risks, gaps, and follow-up items. |
+| `/dflow:report-dflow-feedback` | You or the AI found a Dflow issue or improvement while using the workflow. | Sanitized local feedback draft for a GitHub issue or future PR; nothing is submitted automatically. |
 
 ## Why DDD Matters More with AI
 
@@ -176,9 +177,16 @@ For a longer explanation, see [Why DDD Matters More with AI](docs/why-ddd-for-ai
 | `tutorial/` | Guided learning scenarios and expected outputs. |
 | `sdd-ddd-*-skill/` | Source workflow material consumed by AI coding agents. |
 
+## Contributing and Releases
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for issue and pull request guidance.
+Maintainer release rules are documented in
+[Release and Versioning Policy](docs/release-versioning-policy.md), with the
+manual npm flow in [npm Publish Checklist](docs/npm-publish-checklist.md).
+
 ## Status
 
-Dflow is currently published as `dflow-sdd-ddd` on npm. Version `0.1.0` focuses on project initialization, workflow documentation, and AI-agent-readable SDD/DDD guidance. Additional packaging for specific AI tools can be layered on top without changing the core workflow model.
+Dflow is currently published as `dflow-sdd-ddd` on npm. Version `0.1.1` focuses on project initialization, workflow documentation, multi-AI agent setup, and AI-agent-readable SDD/DDD guidance. Additional packaging for specific AI tools can be layered on top without changing the core workflow model.
 
 ## License
 

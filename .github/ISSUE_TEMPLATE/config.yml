@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Dflow documentation
+    url: https://github.com/weilung/dflow-sdd-ddd#readme
+    about: Read the public README before opening an issue.

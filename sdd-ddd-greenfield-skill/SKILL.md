@@ -5,7 +5,8 @@ description: >
   for greenfield projects adopting Dflow with Clean Architecture and DDD.
   PRIMARY TRIGGERS — /dflow: slash commands: /dflow:new-feature,
   /dflow:modify-existing, /dflow:bug-fix, /dflow:new-phase, /dflow:finish-feature,
-  /dflow:pr-review, /dflow:verify, /dflow:status, /dflow:next, /dflow:cancel.
+  /dflow:pr-review, /dflow:verify, /dflow:report-dflow-feedback,
+  /dflow:status, /dflow:next, /dflow:cancel.
   SECONDARY TRIGGERS (auto-trigger safety net) — natural language:
   "I need to add a feature", "I want to modify...", "there's a bug in...", "new requirement",
   "let's work on...", "set up SDD in this project", "adopt Dflow", any mention of creating or
@@ -72,6 +73,8 @@ Developer input arrives
     │   │                             git mv feature dir to completed/, emit Integration Summary.
     │   ├─ /dflow:pr-review       → PR REVIEW CHECKLIST (references/pr-review-checklist.md)
     │   ├─ /dflow:verify [<bc>]    → DRIFT VERIFICATION (references/drift-verification.md)
+    │   ├─ /dflow:report-dflow-feedback
+    │   │                         → DFLOW FEEDBACK DRAFT FLOW (references/dflow-feedback-flow.md)
     │   ├─ /dflow:status          → Report current workflow state (see § Workflow Transparency)
     │   ├─ /dflow:next            → Confirm proceeding to next phase (active workflow only)
     │   └─ /dflow:cancel          → Abort current workflow, return to free conversation
@@ -90,6 +93,9 @@ Developer input arrives
     │
     ├─ "I'm creating a branch"
     │   └─ → GIT INTEGRATION (read references/git-integration.md)
+    │
+    ├─ "Dflow seems wrong" / "this template is confusing" / AI notices Dflow guidance drift
+    │   └─ → Suggest `/dflow:report-dflow-feedback`; do not submit anything upstream automatically
     │
     └─ Anything else code-related
         └─ → Assess: does this touch business logic?
@@ -127,6 +133,7 @@ manual reference for environments without Node.js/npm.
 
 **Standalone commands** — run independently of any workflow:
 - `/dflow:verify [<bc>]` — run drift verification on rules.md ↔ behavior.md
+- `/dflow:report-dflow-feedback` — draft sanitized feedback for Dflow upstream; never submits automatically
 
 ### Auto-Trigger Safety Net
 
@@ -215,7 +222,7 @@ Remaining:
 - [ ] Step 8: Completion
 ```
 
-If no workflow is active, reply: "No active workflow. Use `/dflow:new-feature`, `/dflow:modify-existing`, `/dflow:bug-fix`, or `/dflow:pr-review` to start one."
+If no workflow is active, reply: "No active workflow. Use `/dflow:new-feature`, `/dflow:modify-existing`, `/dflow:bug-fix`, or `/dflow:pr-review` to start one. Use `/dflow:report-dflow-feedback` only when you want to draft feedback about Dflow itself."
 
 ---
 
@@ -444,6 +451,7 @@ Format: `| Term | Definition | Bounded Context | Code Mapping |`
 | `references/pr-review-checklist.md` | Code review |
 | `references/git-integration.md` | Branch management and SDD ↔ Git coupling (branching-strategy-neutral) |
 | `references/drift-verification.md` | `/dflow:verify` — rules.md ↔ behavior.md consistency check |
+| `references/dflow-feedback-flow.md` | `/dflow:report-dflow-feedback` — draft sanitized feedback for Dflow upstream |
 
 ## Templates & Scaffolding
 

@@ -1,0 +1,38 @@
+name: Question
+description: Ask how Dflow applies to your project or workflow.
+title: "[Question]: "
+labels:
+  - question
+body:
+  - type: dropdown
+    id: project-type
+    attributes:
+      label: Project type
+      options:
+        - New project
+        - Existing project
+        - Not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: track
+    attributes:
+      label: Dflow track you are considering
+      options:
+        - Greenfield
+        - Brownfield
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: goal
+    attributes:
+      label: What are you trying to do?
+      description: Describe the workflow or decision you need help with.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Project context
+      description: Include framework, team workflow, AI coding agent, and constraints if relevant.

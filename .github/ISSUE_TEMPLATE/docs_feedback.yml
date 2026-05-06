@@ -1,0 +1,32 @@
+name: Documentation feedback
+description: Report unclear, incomplete, or confusing documentation.
+title: "[Docs]: "
+labels:
+  - documentation
+body:
+  - type: input
+    id: page
+    attributes:
+      label: Affected page or file
+      placeholder: "README.md"
+    validations:
+      required: true
+  - type: textarea
+    id: reader-goal
+    attributes:
+      label: Reader goal
+      description: What were you trying to understand or do?
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: What was confusing?
+      description: Describe the missing, unclear, or misleading part.
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested improvement
+      description: Optional wording or structure you think would help.

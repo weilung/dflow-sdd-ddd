@@ -1,0 +1,55 @@
+name: Workflow change request
+description: Propose a change to Dflow workflow behavior, templates, scaffolding, or DDD guidance.
+title: "[Workflow]: "
+labels:
+  - enhancement
+  - workflow
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What workflow problem or design limitation are you trying to address?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Describe the behavior, template, command, or guidance you want to change.
+    validations:
+      required: true
+  - type: dropdown
+    id: affected-track
+    attributes:
+      label: Affected track
+      options:
+        - Greenfield
+        - Brownfield
+        - Both
+        - Not sure
+    validations:
+      required: true
+  - type: checkboxes
+    id: affected-area
+    attributes:
+      label: Affected area
+      options:
+        - label: CLI command
+        - label: Generated template
+        - label: Generated scaffolding
+        - label: Skill workflow guidance
+        - label: Tutorial or examples
+        - label: Documentation only
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility risk
+      description: Could this break existing Dflow projects, generated docs, or AI-agent behavior?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What simpler or lower-risk options have you considered?
