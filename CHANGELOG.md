@@ -6,6 +6,24 @@
 
 ---
 
+## 2026-05-06 — Dist sync script hardening
+
+**變更**：
+- `scripts/export-dist.sh` 新增 `--check`，可非破壞性確認 dist repo 已等同 dev public file set
+- `scripts/export-dist.sh` 新增 `--dry-run`，可預覽會 copy / update / remove 的 public distribution paths
+- 正常 export 結尾新增 known excluded stale path 驗證，避免 dev-only material 殘留在 dist repo
+- `AGENTS.md` 補上 `--check` / `--dry-run` 的長期操作規則
+
+**驗證**：
+- `bash -n scripts/export-dist.sh`
+- `scripts/export-dist.sh --check`
+- `scripts/export-dist.sh --dry-run`
+- `npm test`
+- `npm pack --dry-run`
+- `git diff --check`
+
+---
+
 ## 2026-05-06 — Public README release-state clarification
 
 **變更**：
