@@ -6,6 +6,20 @@
 
 ---
 
+## 2026-05-06 — npm package hygiene: include contributing guide
+
+**變更**：
+- `package.json#files` 新增 `CONTRIBUTING.md`
+- 原因：README 已連到 `CONTRIBUTING.md`；下一次 npm package 應包含該文件，避免 npm package / npm README 上的 governance link 指向 package 內不存在的檔案
+- `.github/` 維持只屬於 GitHub public repo，不納入 npm package
+
+**驗證**：
+- `npm test`
+- `npm pack --dry-run`
+- `git diff --check`
+
+---
+
 ## 2026-05-06 — AI-assisted Dflow feedback draft flow
 
 **Proposal**：PROPOSAL-017（implemented）
