@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -25,53 +25,23 @@ async function exists(path) {
 }
 
 function runDflow(cwd, input = '', args = ['init']) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [dflowBin, ...args], {
-      cwd,
-      stdio: ['pipe', 'pipe', 'pipe']
-    });
-
-    let stdout = '';
-    let stderr = '';
-    let timedOut = false;
-    const timeout = setTimeout(() => {
-      timedOut = true;
-      child.kill('SIGTERM');
-    }, RUN_TIMEOUT_MS);
-
-    child.stdout.on('data', (chunk) => {
-      stdout += chunk.toString();
-    });
-    child.stderr.on('data', (chunk) => {
-      stderr += chunk.toString();
-    });
-    child.on('error', reject);
-    child.on('close', (code) => {
-      clearTimeout(timeout);
-      if (timedOut) {
-        reject(new Error(`dflow ${args.join(' ')} timed out after ${RUN_TIMEOUT_MS}ms\nSTDOUT:\n${stdout}\nSTDERR:\n${stderr}`));
-        return;
-      }
-      resolve({ code, stdout, stderr });
-    });
-
-    if (!input) {
-      child.stdin.end();
-      return;
-    }
-
-    let inputSent = false;
-    const sendInput = () => {
-      if (inputSent) {
-        return;
-      }
-      inputSent = true;
-      child.stdin.end(input);
-    };
-
-    child.stdout.once('data', sendInput);
-    child.stderr.once('data', sendInput);
+  const result = spawnSync(process.execPath, [dflowBin, ...args], {
+    cwd,
+    input,
+    encoding: 'utf8',
+    timeout: RUN_TIMEOUT_MS,
+    maxBuffer: 1024 * 1024
   });
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  return {
+    code: result.status,
+    stdout: result.stdout || '',
+    stderr: result.stderr || ''
+  };
 }
 
 try {

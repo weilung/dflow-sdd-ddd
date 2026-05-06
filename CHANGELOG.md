@@ -6,6 +6,20 @@
 
 ---
 
+## 2026-05-06 — Public README release-state clarification
+
+**變更**：
+- README Status 補清楚 npm latest 仍為 `0.1.1`
+- README Status 補清楚 GitHub source 可能已包含 post-`0.1.1` docs / governance / feedback-flow 更新，實際 release history 以 `CHANGELOG.md` 為準
+- Smoke test harness 改用 synchronous subprocess + scripted stdin，避免非 TTY 環境下等待 first output 導致 init 未實際執行
+
+**驗證**：
+- `npm test`
+- `npm pack --dry-run`
+- `git diff --check`
+
+---
+
 ## 2026-05-06 — npm package hygiene: include referenced maintainer docs
 
 **變更**：
