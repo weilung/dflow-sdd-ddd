@@ -1,0 +1,34 @@
+name: Verification
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm test
+      - run: npm pack --dry-run
+      - run: git diff --check
+      - name: Repository consistency
+        if: >-
+          hashFiles('MAINTAINERS.md') != '' &&
+          hashFiles('scripts/check-repo-consistency.sh') != ''
+        run: scripts/check-repo-consistency.sh
