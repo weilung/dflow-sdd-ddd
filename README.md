@@ -228,6 +228,10 @@ feedback-flow updates before the next npm patch release is published. See
 [CHANGELOG.md](CHANGELOG.md) for unreleased repository changes and release
 history.
 
+If you maintain a project that adopted an early Dflow form before
+`0.1.0` was published, see [Migrating to Dflow
+V1](docs/migrating-to-dflow-v1.md) for the manual migration checklist.
+
 ## License
 
 MIT License. See [LICENSE](LICENSE).

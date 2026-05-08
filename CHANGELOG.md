@@ -6,6 +6,29 @@
 
 ---
 
+## 2026-05-08 — Migration guide cross-links from README and init warning
+
+**變更**：
+- `README.md` Status 段補一行連到 `docs/migrating-to-dflow-v1.md`，
+  讓既有 pre-V1 Dflow 採用者從首頁就能找到 manual migration checklist
+- `lib/init.js` 偵測到 legacy root `specs/` 時的 warning 文末附上
+  migration guide 連結，使 init 階段的 hint 可直接導向人讀步驟
+- CLI 行為仍為 warn-only：不修改既有檔案、不執行任何 migration 動作；
+  V1 clean cut 立場不變
+
+**邊界**：
+- 不 bump version、不 publish、不 tag、不建 GitHub Release
+- 不擴張 init 行為（無新 prompt、無自動 migration）
+
+**驗證**：
+- `npm test`
+- `scripts/check-repo-consistency.sh`
+- `scripts/export-dist.sh --check`
+- dist `npm pack --dry-run`
+- `git diff --check`
+
+---
+
 ## 2026-05-08 — Manual migration guide for V1 baseline
 
 **變更**：
