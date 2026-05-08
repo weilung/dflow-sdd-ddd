@@ -6,6 +6,79 @@
 
 ---
 
+## 2026-05-08 — Template coverage / glossary archived P013 link fix
+
+**變更**：
+- `TEMPLATE-COVERAGE.md` 與 `TEMPLATE-LANGUAGE-GLOSSARY.md` 的 HTML comment 與 anchor-add 步驟改指向 `archive/proposals/PROPOSAL-013-system-document-template-coverage.md`
+- 舊路徑 `proposals/PROPOSAL-013` 已於 P013 implementation closeout 時 archive，公開讀者沿著舊 link 會 404
+
+**驗證**：
+- `scripts/check-repo-consistency.sh`
+- `scripts/export-dist.sh --check`
+- dist `npm test`
+- dist `npm pack --dry-run`
+- `git diff --check`
+
+---
+
+## 2026-05-08 — Per-tool walkthrough docs (Claude Code, Codex CLI)
+
+**變更**：
+- 新增 `docs/using-with-claude-code.md`：說明 `init` 在 Claude Code 環境下產生的檔案、`/dflow:*` slash commands 在 Claude Code 中如何呼叫、project-level 與 user-level 安裝差異
+- 新增 `docs/using-with-codex.md`：同範本對應 Codex CLI，覆蓋 `AGENTS.md` shim 與 Codex CLI 對 Dflow workflow 的呼叫方式
+- README "Files Created by Init" 段加 per-tool walkthrough cross-link
+- `docs/evaluating-dflow.md` AI tool support 段補上 per-tool walkthrough 連結
+
+**邊界**：
+- Gemini CLI / GitHub Copilot 兩條 walkthrough 本次不附，仍 gated；trigger 條件記錄於 `planning/public-onboarding-tasklist.md` §5
+
+**驗證**：
+- `scripts/export-dist.sh --check`
+- dist `npm test`
+- dist `npm pack --dry-run`
+- `git diff --check`
+
+---
+
+## 2026-05-08 — Public evaluator guide and onboarding cross-links
+
+**變更**：
+- 新增 `docs/evaluating-dflow.md`：public-facing decision aid，涵蓋 What `init` Creates and Does Not Do、Greenfield or Brownfield 選擇指引、30-Minute Evaluation Playbook、AI tool 支援
+- README "Get Started" 段加 evaluator guide 與 `tutorial/` cross-link，將 evaluator guide 定位為公開試用主入口
+- README "Files Created by Init" 段澄清 `init` 不複製 `tutorial/`，`tutorial/` 為 source repo 的 evaluation material，並連到 tutorial reading guide
+- `tutorial/README.md` 開頭加入 English Reading Guide：scenario 命名、step-file 編號、`outputs/` 鏡像規則、與 `docs/evaluating-dflow.md` 的分工
+- README 與 `CONTRIBUTING.md` 補 verification CI 說明：PR 會自動跑 GitHub Actions verification workflow，CI 為 verification-only
+
+**驗證**：
+- `scripts/export-dist.sh --check`
+- dist `npm test`
+- dist `npm pack --dry-run`
+- `git diff --check`
+
+---
+
+## 2026-05-07 — Verification-only CI workflow
+
+**Proposal**：PROPOSAL-021（implemented）
+
+**變更**：
+- 新增 `.github/workflows/verification.yml`：對 `pull_request` 至 `main`、`push` 至 `main`、`workflow_dispatch` 三類事件執行 `npm test`、`npm pack --dry-run`、`git diff --check`
+- Workflow 採 `permissions: contents: read`、workflow-level `concurrency`、Node 22；dev-only `scripts/check-repo-consistency.sh` 由 `MAINTAINERS.md` / 該腳本自身雙重 guard，dist workflow 自動 skip 該步
+- Actions runtime 升至 Node 24 compatible：`actions/checkout@v6`、`actions/setup-node@v6`
+- 新增 dev `.gitattributes`：`*.sh text eol=lf`，確保 shell scripts 在 Windows checkout 時不會被 CRLF 化破壞執行
+
+**邊界**：
+- CI 為 verification-only，不執行 publish、tag、Release，不需 publish-capable secrets
+- 詳細 release-boundary 設計與決策見 `archive/proposals/PROPOSAL-021-verification-ci-and-release-boundary.md`
+
+**驗證**：
+- dev / dist Verification GitHub Actions run 均 success
+- `scripts/check-repo-consistency.sh`
+- `scripts/export-dist.sh --check`
+- `git diff --check`
+
+---
+
 ## 2026-05-06 — Public package docs polish
 
 **變更**：
