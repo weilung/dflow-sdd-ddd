@@ -67,6 +67,10 @@ git diff --check
 
 If a command cannot be run in your environment, note that in the PR.
 
+GitHub Actions runs the same verification commands on every pull request to
+`main` and on every push to `main`. The CI is verification-only — it does not
+publish releases, change versions, or create tags.
+
 When changing templates or scaffolding, keep both source surfaces aligned:
 
 - skill source under `sdd-ddd-greenfield-skill/` or

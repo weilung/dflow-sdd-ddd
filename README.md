@@ -189,6 +189,7 @@ For a longer explanation, see [Why DDD Matters More with AI](docs/why-ddd-for-ai
 ## Contributing and Releases
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for issue and pull request guidance.
+Pull requests run an automated verification workflow on GitHub before review.
 Maintainer-facing release rules are documented in [Release and Versioning
 Policy](docs/release-versioning-policy.md), with the manual npm flow in [npm
 Publish Checklist](docs/npm-publish-checklist.md).
