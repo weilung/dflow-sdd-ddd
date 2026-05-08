@@ -1,4 +1,4 @@
-<!-- Maintenance contract for Dflow. See proposals/PROPOSAL-013 §4 for origin. -->
+<!-- Maintenance contract for Dflow. See archive/proposals/PROPOSAL-013-system-document-template-coverage.md §4 for origin. -->
 
 # Template Coverage Matrix
 
@@ -41,6 +41,6 @@ The `Section anchors` column is the single maintenance location for template sec
 
 When adding a new anchor:
 
-1. Add the anchor definition to PROPOSAL-013 §1 "Important Dflow-updated sections" or its successor governance document.
+1. Add the anchor definition to `archive/proposals/PROPOSAL-013-system-document-template-coverage.md` §1 "Important Dflow-updated sections" (historical reference) or its successor governance document.
 2. Add the anchor id to the matching row in this matrix.
-3. Follow the anchor naming / namespacing / versioning rules defined in PROPOSAL-013 §1.
+3. Follow the anchor naming / namespacing / versioning rules defined in `archive/proposals/PROPOSAL-013-system-document-template-coverage.md` §1.

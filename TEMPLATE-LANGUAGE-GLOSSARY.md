@@ -1,4 +1,4 @@
-<!-- Maintenance contract for Dflow. See proposals/PROPOSAL-013 §1.1 for origin. -->
+<!-- Maintenance contract for Dflow. See archive/proposals/PROPOSAL-013-system-document-template-coverage.md §1.1 for origin. -->
 
 # Template Language Glossary
 
