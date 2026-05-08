@@ -67,7 +67,10 @@ workflow into an active codebase.
 
 For a guided evaluation walk-through — what `init` creates, AI tool support,
 track choice, and a 30-minute sample-project playbook — see [Evaluating
-Dflow](docs/evaluating-dflow.md).
+Dflow](docs/evaluating-dflow.md). For end-to-end scenario walk-throughs of
+Greenfield and Brownfield workflows with worked spec outputs, see the
+[`tutorial/`](tutorial/README.md) index (top of file has an English reading
+guide).
 
 ## Project Tracks
 
@@ -152,9 +155,11 @@ multiple copies of the workflow rules.
 You can run `dflow configure-agents` later to add more tool shims as the team
 adopts additional AI coding agents.
 
-Init does not copy the `tutorial/` directory into your project. The tutorial
-lives in this source repository as evaluation material for understanding how
-Dflow works on Greenfield and Brownfield scenarios.
+Init does not copy the `tutorial/` directory into your project. The
+[`tutorial/`](tutorial/README.md) directory lives in this source repository
+as evaluation material for understanding how Dflow works on Greenfield and
+Brownfield scenarios; the tutorial index opens with an English reading guide
+for non-Chinese readers.
 
 ## Main Flows
 
