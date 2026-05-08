@@ -3,6 +3,7 @@
 # Spec Writing Conventions — {System Name}
 
 > Created: {YYYY-MM-DD}
+> Dflow Version: {dflow-version}
 > Scope: how spec documents are authored and named in this project.
 > Audience: engineers writing specs; AI assistants producing spec drafts.
 

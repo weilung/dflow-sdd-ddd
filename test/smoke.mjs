@@ -90,6 +90,7 @@ try {
   assert.equal((conventions.match(/^## Prose Language$/gm) || []).length, 1, 'Prose Language section count');
   assert.match(conventions, /Project prose language: `zh-TW`/);
   assert.match(conventions, /\[Glossary\]\(\.\.\/domain\/glossary\.md\)/);
+  assert.match(conventions, /^> Dflow Version: \d+\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?$/m, 'Greenfield Dflow Version field present');
 
   const overview = await readFile(join(tempRoot, 'dflow/specs/shared/_overview.md'), 'utf8');
   assert.match(overview, /\[Tech debt backlog\]\(\.\.\/architecture\/tech-debt\.md\)/);
@@ -190,6 +191,7 @@ try {
   const webformsConventions = await readFile(join(webformsRoot, 'dflow/specs/shared/_conventions.md'), 'utf8');
   assert.equal((webformsConventions.match(/^## Prose Language$/gm) || []).length, 1, 'Brownfield Prose Language section count');
   assert.match(webformsConventions, /Project prose language: `fr-CA`/);
+  assert.match(webformsConventions, /^> Dflow Version: \d+\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?$/m, 'Brownfield Dflow Version field present');
 
   const webformsOverview = await readFile(join(webformsRoot, 'dflow/specs/shared/_overview.md'), 'utf8');
   assert.match(webformsOverview, /\[Tech debt backlog\]\(\.\.\/migration\/tech-debt\.md\)/);

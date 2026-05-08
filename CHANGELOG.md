@@ -6,6 +6,35 @@
 
 ---
 
+## 2026-05-08 — Init records Dflow Version in generated `_conventions.md`
+
+**變更**：
+- `_conventions.md` scaffolding template 在 front matter 新增一行
+  `> Dflow Version: {dflow-version}`，由 `lib/init.js` 在 init 時用
+  `package.json#version` 替換為實際版本號
+- 兩 track 同步：`sdd-ddd-greenfield-skill/scaffolding/_conventions.md`、
+  `sdd-ddd-brownfield-skill/scaffolding/_conventions.md` 與 packaged
+  template mirrors 全部更新
+- `test/smoke.mjs` 補兩條 assertions（Greenfield / Brownfield）驗證
+  該欄位存在且符合 semver 格式
+- 既有 0.1.0 / 0.1.1 init 過的專案不會自動補欄位；要補可在
+  `dflow/specs/shared/_conventions.md` front matter 自行加一行，或參考
+  `docs/migrating-to-dflow-v1.md` 的「Pre-V1 / V1 升級」流程後在新建
+  專案時自動帶入
+
+**邊界**：
+- 不改既有 init 行為的其他輸出，不新增 prompt
+- 不 bump version、不 publish、不 tag、不建 GitHub Release
+
+**驗證**：
+- `npm test`
+- `scripts/check-repo-consistency.sh`
+- `scripts/export-dist.sh --check`
+- dist `npm pack --dry-run`
+- `git diff --check`
+
+---
+
 ## 2026-05-08 — Migration guide cross-links from README and init warning
 
 **變更**：
