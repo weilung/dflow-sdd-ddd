@@ -6,6 +6,40 @@
 
 ---
 
+## 2026-05-08 — `dflow doctor` read-only health check command
+
+**變更**：
+- 新增 `dflow doctor` CLI 子命令（`bin/dflow.js` + `lib/init.js`
+  `runDoctor`），提供 read-only 健檢，不修改任何檔案
+- 健檢三條 signal：
+  - 偵測 root `specs/` 是否含 Dflow 內容（指向 migration guide §1）
+  - 偵測 `_共用/` 是否殘留於 `specs/` 或 `dflow/specs/`（指向 §2）
+  - 偵測 `dflow/specs/shared/_conventions.md` 是否缺 `> Dflow Version:`
+    front-matter 行（建議 manual backfill）
+- 輸出格式列出 finding level（warn / info）、title、detail、action 與
+  finding 統計，並明示 doctor 為 read-only
+- `bin/dflow.js` 新增 `doctor` 子命令、`--help` 與 main help 說明
+- `test/smoke.mjs` 新增兩條 doctor 斷言（clean V1 init 與 legacy specs/
+  專案各一），驗證 finding 文字與 read-only stance
+- README "Get Started" 加段提到 `dflow doctor`；
+  `docs/migrating-to-dflow-v1.md` "Before You Start" 補一條 cross-link
+
+**邊界**：
+- read-only：doctor 不寫 / 不改 / 不刪除任何檔案；exit code 為操作成功
+  與否（findings 存在仍 exit 0），便於互動式檢查與 CI smoke
+- 依 `docs/release-versioning-policy.md`，新增 CLI 子命令屬 minor，本次
+  不 bump version、不 publish、不 tag、不建 GitHub Release；變更 accumulate
+  到下次 minor release window
+
+**驗證**：
+- `npm test`
+- `scripts/check-repo-consistency.sh`
+- `scripts/export-dist.sh --check`
+- dist `npm pack --dry-run`
+- `git diff --check`
+
+---
+
 ## 2026-05-08 — AI-AGENT-GUIDE adds Pre-V1 artifacts detection segment
 
 **變更**：

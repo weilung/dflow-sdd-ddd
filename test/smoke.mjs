@@ -114,6 +114,11 @@ try {
   assert.notEqual(second.code, 0, 'second init should abort');
   assert.match(second.stderr, /Dflow already initialized at dflow\/specs\/\./);
 
+  const cleanDoctor = await runDflow(tempRoot, '', ['doctor']);
+  assert.equal(cleanDoctor.code, 0, `doctor on clean V1 init failed\nSTDOUT:\n${cleanDoctor.stdout}\nSTDERR:\n${cleanDoctor.stderr}`);
+  assert.match(cleanDoctor.stdout, /^Dflow Doctor /m, 'doctor should print header');
+  assert.match(cleanDoctor.stdout, /All checks passed\. No legacy artifacts detected\./);
+
   const legacyRoot = join(tempRoot, 'legacy-warning');
   await mkdir(join(legacyRoot, 'specs'), { recursive: true });
   await writeFile(join(legacyRoot, 'specs', 'legacy.md'), '# Existing non-Dflow specs\n');
@@ -133,6 +138,13 @@ try {
   assert.match(legacy.stderr, /Detected legacy specs\/\./);
   assert.equal(await exists(join(legacyRoot, 'specs', 'legacy.md')), true, 'legacy specs/ file should remain untouched');
   assert.equal(await exists(join(legacyRoot, 'dflow/specs/shared/_conventions.md')), true, 'legacy run should write dflow/specs/');
+
+  const legacyDoctor = await runDflow(legacyRoot, '', ['doctor']);
+  assert.equal(legacyDoctor.code, 0, `doctor on legacy project failed\nSTDOUT:\n${legacyDoctor.stdout}\nSTDERR:\n${legacyDoctor.stderr}`);
+  assert.match(legacyDoctor.stdout, /\[warn\] Legacy specs\/ directory at project root/);
+  assert.match(legacyDoctor.stdout, /docs\/migrating-to-dflow-v1\.md/);
+  assert.match(legacyDoctor.stdout, /Doctor is read-only and does not modify any files\./);
+  assert.equal(await exists(join(legacyRoot, 'specs', 'legacy.md')), true, 'doctor should not touch legacy specs/');
 
   await writeFile(join(legacyRoot, 'AGENTS.md'), '# Existing agent rules\n');
   const configureInput = [

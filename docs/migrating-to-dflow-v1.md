@@ -44,6 +44,9 @@ independent.
   - `TEMPLATE-COVERAGE.md` — V1 file layout and parity matrix.
   - `docs/evaluating-dflow.md` — what a fresh V1 `init` produces, if
     you want to spin up a sample project to compare against.
+- For an on-demand read-only summary of legacy artifacts in your
+  project, run `dflow doctor`. The command lists detected legacy
+  paths and missing V1 fields; it never modifies files.
 
 ## Migration Steps
 

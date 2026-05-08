@@ -47,6 +47,17 @@ dflow configure-agents
 This command only configures AI instruction files. It does not rerun project
 initialization or touch existing specs.
 
+To check whether the project still has legacy or pre-V1 artifacts (such as
+a top-level `specs/` directory or a `_共用/` directory left over from older
+Dflow forms), run:
+
+```bash
+dflow doctor
+```
+
+`doctor` is a read-only health check. It never modifies files; it only
+reports findings and points at the migration guide.
+
 After init, start work through the Dflow workflow in your AI coding agent:
 
 ```text
