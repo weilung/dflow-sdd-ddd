@@ -65,6 +65,10 @@ For the first adoption pass, use a branch or disposable sample project so your
 team can inspect the generated `dflow/specs/` workspace before bringing the
 workflow into an active codebase.
 
+For a guided evaluation walk-through — what `init` creates, AI tool support,
+track choice, and a 30-minute sample-project playbook — see [Evaluating
+Dflow](docs/evaluating-dflow.md).
+
 ## Project Tracks
 
 | Track | Use it when | Main outcome |
