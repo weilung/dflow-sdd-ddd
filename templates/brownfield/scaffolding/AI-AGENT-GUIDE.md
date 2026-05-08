@@ -54,6 +54,33 @@ Dflow-owned project documents live under `dflow/specs/`.
 4. Check drift before calling work complete.
 5. Follow `dflow/specs/shared/_conventions.md`, especially `## Prose Language`.
 
+## Pre-V1 Artifacts Detection
+
+When working in a project that adopted Dflow before `dflow-sdd-ddd@0.1.0`,
+you may encounter layout or naming patterns that predate the V1 baseline.
+If any of the following appear, surface the observation to the developer
+and recommend manual migration; do not rewrite anything silently.
+
+Signals:
+
+- Top-level `specs/` directory containing Dflow-shaped content (V1 layout
+  uses `dflow/specs/`).
+- `_共用/` directory under `specs/` or `dflow/specs/` (V1 uses `shared/`).
+- Section headings in Traditional Chinese where V1 templates render
+  canonical English; compare against `TEMPLATE-LANGUAGE-GLOSSARY.md` if
+  available.
+- References to a runtime `/dflow:init-project` slash command (V1
+  replaced it with the shell command `npx dflow-sdd-ddd init`).
+- A root `CLAUDE.md`, `AGENTS.md`, or equivalent that holds the full
+  Dflow workflow text instead of being a thin shim pointing to this
+  file.
+- `dflow/specs/shared/_conventions.md` is missing the `> Dflow Version:`
+  front-matter line (V1 init writes it automatically).
+
+Recommend `docs/migrating-to-dflow-v1.md` for the manual migration
+checklist. Migration affects every spec the team has written; manual
+review is required.
+
 ## Tool-Specific Notes
 
 This file is the canonical Dflow guide. Root-level files such as

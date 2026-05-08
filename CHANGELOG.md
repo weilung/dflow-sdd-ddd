@@ -6,6 +6,38 @@
 
 ---
 
+## 2026-05-08 — AI-AGENT-GUIDE adds Pre-V1 artifacts detection segment
+
+**變更**：
+- `AI-AGENT-GUIDE.md` scaffolding 新增 `## Pre-V1 Artifacts Detection`
+  段，要求 AI agent 在偵測到 6 類 pre-V1 殘留訊號時 surface 給使用者
+  並指向 `docs/migrating-to-dflow-v1.md`，明確禁止 silent rewrite
+  - top-level `specs/` 含 Dflow 內容
+  - `_共用/` directory
+  - V1 templates 應為 canonical English 但實際為繁中 heading
+  - 文件提及 runtime `/dflow:init-project` slash command
+  - root `CLAUDE.md` / `AGENTS.md` 為 full file 而非 thin shim
+  - `_conventions.md` 缺 `> Dflow Version:` 前 matter 行
+- 兩 track 同步：`sdd-ddd-greenfield-skill/scaffolding/AI-AGENT-GUIDE.md`、
+  `sdd-ddd-brownfield-skill/scaffolding/AI-AGENT-GUIDE.md` 與 packaged
+  template mirror 全部更新
+
+**邊界**：
+- 行為性質：AI 偵測後只 surface 觀察與建議手動 migration；不允許 AI
+  自行改寫既有檔案路徑或 heading
+- 不 bump version、不 publish、不 tag、不建 GitHub Release
+- 既有專案的 AI-AGENT-GUIDE 不會自動更新；要 backfill 可手動將該段
+  貼入 `dflow/specs/shared/AI-AGENT-GUIDE.md`，或在新建專案時自動帶入
+
+**驗證**：
+- `npm test`
+- `scripts/check-repo-consistency.sh`
+- `scripts/export-dist.sh --check`
+- dist `npm pack --dry-run`
+- `git diff --check`
+
+---
+
 ## 2026-05-08 — Init records Dflow Version in generated `_conventions.md`
 
 **變更**：
