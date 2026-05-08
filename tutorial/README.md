@@ -1,5 +1,44 @@
 # Dflow Tutorial
 
+## Reading Guide (English)
+
+These tutorials are **evaluation walkthroughs**, not required setup after
+running `npx dflow-sdd-ddd init`. You can read the entire tutorial without
+installing anything; the goal is to let you see what a Dflow-driven feature
+flow looks like end to end before deciding to try it on a real project. The
+narrative below is written in Traditional Chinese; this section orients
+non-Chinese readers to the structure so the code blocks, spec files, and
+`outputs/` trees remain useful even without translating the prose.
+
+**Two scenarios.** Pick the one that matches the project shape you are
+evaluating against:
+
+- [`01-greenfield/`](01-greenfield/00-setup.md) — Alice starts a brand new
+  ASP.NET Core project (ExpenseTracker) and uses Dflow from day one to shape
+  Clean Architecture and DDD tactical patterns.
+- [`02-brownfield/`](02-brownfield/00-setup.md) — Bob maintains a legacy
+  ASP.NET WebForms system (OrderManager) and uses Dflow to incrementally
+  extract domain logic from existing code without an upfront rewrite.
+
+**File naming and reading order.** Each scenario has step files numbered
+`00-setup.md` through `06-finish-feature.md`. Read them in order; every step
+builds on the previous step's specs and outputs.
+
+**`outputs/` directories.** Each scenario's `outputs/` tree mirrors what an
+actual `dflow/specs/` directory looks like after the tutorial steps run.
+Open the relevant files under `outputs/` alongside the step you are reading
+to see how AI conversation turns into committed spec files.
+
+**Which scenario fits your situation?** A short rule of thumb: pick
+Greenfield if you are starting a new system or a new bounded module with
+room to shape architecture from the start; pick Brownfield if you are
+extending an existing codebase with business rules scattered across
+handlers, UI code, or stored procedures. For the full decision guide
+including mixed-case advice, see
+[`docs/evaluating-dflow.md` "Greenfield or Brownfield: Choosing a Track"](../docs/evaluating-dflow.md#greenfield-or-brownfield-choosing-a-track).
+
+---
+
 這裡是 Dflow 的人讀教學劇本。目標不是列 API reference，而是讓同事在還沒把 Dflow 用到真實專案前，就能完整 read-through 兩條端到端情境、看到對話、規格文件與 outputs 長什麼樣。
 
 目前維護中的 tutorial 只有兩條分段劇情：
