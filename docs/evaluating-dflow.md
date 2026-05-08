@@ -74,6 +74,13 @@ names (e.g., `/dflow:new-feature`) as plain instructions in chat. Dflow is
 Markdown-based workflow material; it works with any AI agent that can read
 project instructions and repository context.
 
+For a tool-specific walk-through of what `init` writes and how the slash
+commands appear in conversation, see the per-tool guides:
+
+- [Using Dflow with Claude Code](using-with-claude-code.md)
+- (Guides for Codex, Gemini, and GitHub Copilot may follow as maintainer
+  experience with each tool stabilizes.)
+
 ## Greenfield or Brownfield: Choosing a Track
 
 Pick **Greenfield** if:

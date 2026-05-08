@@ -155,6 +155,12 @@ multiple copies of the workflow rules.
 You can run `dflow configure-agents` later to add more tool shims as the team
 adopts additional AI coding agents.
 
+For tool-specific walk-throughs of what `init` writes and how Dflow's
+workflow commands appear in a given AI tool, see the per-tool guides under
+`docs/`. The first such guide is [Using Dflow with Claude
+Code](docs/using-with-claude-code.md); guides for other tools may follow as
+maintainer experience stabilizes.
+
 Init does not copy the `tutorial/` directory into your project. The
 [`tutorial/`](tutorial/README.md) directory lives in this source repository
 as evaluation material for understanding how Dflow works on Greenfield and
