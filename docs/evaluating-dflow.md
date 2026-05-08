@@ -78,8 +78,9 @@ For a tool-specific walk-through of what `init` writes and how the slash
 commands appear in conversation, see the per-tool guides:
 
 - [Using Dflow with Claude Code](using-with-claude-code.md)
-- (Guides for Codex, Gemini, and GitHub Copilot may follow as maintainer
-  experience with each tool stabilizes.)
+- [Using Dflow with Codex CLI](using-with-codex.md)
+- (Guides for Gemini and GitHub Copilot may follow as maintainer experience
+  with each tool stabilizes.)
 
 ## Greenfield or Brownfield: Choosing a Track
 

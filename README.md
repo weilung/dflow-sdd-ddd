@@ -157,9 +157,13 @@ adopts additional AI coding agents.
 
 For tool-specific walk-throughs of what `init` writes and how Dflow's
 workflow commands appear in a given AI tool, see the per-tool guides under
-`docs/`. The first such guide is [Using Dflow with Claude
-Code](docs/using-with-claude-code.md); guides for other tools may follow as
-maintainer experience stabilizes.
+`docs/`:
+
+- [Using Dflow with Claude Code](docs/using-with-claude-code.md)
+- [Using Dflow with Codex CLI](docs/using-with-codex.md)
+
+Guides for Gemini CLI and GitHub Copilot may follow as maintainer
+experience with each tool stabilizes.
 
 Init does not copy the `tutorial/` directory into your project. The
 [`tutorial/`](tutorial/README.md) directory lives in this source repository
