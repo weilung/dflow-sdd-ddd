@@ -6,6 +6,30 @@
 
 ---
 
+## 2026-05-08 — Manual migration guide for V1 baseline
+
+**變更**：
+- 新增 `docs/migrating-to-dflow-v1.md`：人工 migration guide，覆蓋五條 V1 baseline 變更
+  - root `specs/` → `dflow/specs/`（PROPOSAL-014）
+  - `dflow/specs/_共用/` → `dflow/specs/shared/`（PROPOSAL-012）
+  - Chinese template heading → canonical English heading（PROPOSAL-013）
+  - `/dflow:init-project` runtime slash command → `npx dflow-sdd-ddd init` shell command（PROPOSAL-014）
+  - Claude-only init → multi-AI thin shim（PROPOSAL-020）
+- 文件刻意保留 manual：V1 不提供 auto-migration、`dflow doctor`、`dflow migrate`；相關 trigger 條件記錄於 `planning/version-upgrade-migration-strategy.md`
+
+**邊界**：
+- 不修 README cross-link（避免本批次擴張到 README rewriting）
+- 不 bump version、不 publish、不 tag、不建 GitHub Release
+
+**驗證**：
+- `scripts/check-repo-consistency.sh`
+- `scripts/export-dist.sh --check`
+- dist `npm test`
+- dist `npm pack --dry-run`
+- `git diff --check`
+
+---
+
 ## 2026-05-08 — Template coverage / glossary archived P013 link fix
 
 **變更**：
