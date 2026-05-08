@@ -148,6 +148,10 @@ multiple copies of the workflow rules.
 You can run `dflow configure-agents` later to add more tool shims as the team
 adopts additional AI coding agents.
 
+Init does not copy the `tutorial/` directory into your project. The tutorial
+lives in this source repository as evaluation material for understanding how
+Dflow works on Greenfield and Brownfield scenarios.
+
 ## Main Flows
 
 | Flow | When to use it | Typical outputs |
