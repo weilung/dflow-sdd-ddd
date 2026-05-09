@@ -6,6 +6,50 @@
 
 ---
 
+## 2026-05-09 — Tutorial English-first promotion (full tutorial rewrite Batch 1)
+
+**變更**：
+
+- `tutorial/README.md` 推升為 English-first canonical entry：
+  - 開頭兩段英文 orientation；既有 zh-TW 表格與 `使用方式` 段落移至
+    `## 中文導讀` companion section，保留現有內容
+  - 新增 `## Two Scenarios` 概述 Greenfield (Alice / ExpenseTracker)
+    與 Brownfield (Bob / OrderManager) 適配對象
+  - 每條 scenario 新增 `### Reading Order` 段落，每個 step file 一段
+    1-2 句英文 plot summary
+  - 新增 `### Curated Outputs Tour` 區塊，前向連到尚未存在的
+    `01-greenfield/outputs-tour.md` 與 `02-brownfield/outputs-tour.md`
+    （由本 rewrite 計畫的 Batch 2 / Batch 3 建立）
+  - mermaid workflow chart 保留為 language-neutral，置於英文段內
+- 對 `docs/evaluating-dflow.md`、`docs/using-with-{claude-code,codex}.md`
+  與 root `README.md` 採 cross-link，不重述 evaluator playbook /
+  per-tool surface / Get Started 內容（per
+  `planning/full-tutorial-rewrite-plan.md` Non-duplication guardrails）
+- 14 個 step file 內容未動（English summary header 屬本 rewrite 計畫
+  的 Batch 4 / Batch 5 範疇）
+
+**邊界**：
+
+- doc-only；無 `lib/` / `templates/` / `bin/` / skill source 變更
+- 依 `planning/full-tutorial-rewrite-plan.md` §3.4，本次走 independent
+  public docs update：不 bump `package.json`、不 `npm publish`、不
+  `git tag`、不建 GitHub Release
+- `outputs/` tree 完全未動（無 file move / delete / rename / 內容修改）
+
+**驗證**：
+
+- `npm test`
+- `scripts/check-repo-consistency.sh`
+- `scripts/export-dist.sh --check`
+- dist `npm pack --dry-run`
+- `git diff --check`
+- 手動 link spot-check：`../docs/evaluating-dflow.md`、
+  `../docs/using-with-claude-code.md`、`../docs/using-with-codex.md`、
+  step file paths、`outputs/` tree 連結均可達；`outputs-tour.md` 兩條
+  forward-link 為設計性故意，將於 Batch 2 / Batch 3 落地
+
+---
+
 ## 0.2.0 — 2026-05-09 — Public migration tooling, governance baseline, and evaluator onboarding
 
 **Proposals**：PROPOSAL-016（governance baseline）、PROPOSAL-017（AI-assisted feedback flow）、PROPOSAL-018（repository consistency）、PROPOSAL-021（verification-only CI）。其餘為 backlog 推進的公開 docs 與 migration tooling 累積項。

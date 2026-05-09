@@ -1,56 +1,35 @@
 # Dflow Tutorial
 
-## Reading Guide (English)
+These tutorials are read-through walkthroughs, not required setup after
+running `npx dflow-sdd-ddd init`. You can read them without installing
+anything; the goal is to see what a Dflow-driven feature flow looks like
+end to end before trying it on a real project. The detailed scenario
+dialogue is written in Traditional Chinese, while this English entry
+gives non-Chinese readers a navigable path through the steps and
+outputs.
 
-These tutorials are **evaluation walkthroughs**, not required setup after
-running `npx dflow-sdd-ddd init`. You can read the entire tutorial without
-installing anything; the goal is to let you see what a Dflow-driven feature
-flow looks like end to end before deciding to try it on a real project. The
-narrative below is written in Traditional Chinese; this section orients
-non-Chinese readers to the structure so the code blocks, spec files, and
-`outputs/` trees remain useful even without translating the prose.
+For the evaluator decision aid — track choice, safe trial, language
+compatibility, and what `init` creates — see
+[`docs/evaluating-dflow.md`](../docs/evaluating-dflow.md). For the
+tool-specific surface, use the per-tool guides:
+[Using Dflow with Claude Code](../docs/using-with-claude-code.md) and
+[Using Dflow with Codex CLI](../docs/using-with-codex.md).
 
-**Two scenarios.** Pick the one that matches the project shape you are
-evaluating against:
+## Two Scenarios
 
-- [`01-greenfield/`](01-greenfield/00-setup.md) — Alice starts a brand new
-  ASP.NET Core project (ExpenseTracker) and uses Dflow from day one to shape
-  Clean Architecture and DDD tactical patterns.
-- [`02-brownfield/`](02-brownfield/00-setup.md) — Bob maintains a legacy
-  ASP.NET WebForms system (OrderManager) and uses Dflow to incrementally
-  extract domain logic from existing code without an upfront rewrite.
+**Greenfield: Alice / ExpenseTracker.** Alice is starting a new ASP.NET
+Core system and wants Dflow to shape Clean Architecture and DDD tactical
+patterns from the first feature. This track fits readers who want to
+inspect how a new bounded context, aggregate, value objects, and feature
+lifecycle emerge from a clean project.
 
-**File naming and reading order.** Each scenario has step files numbered
-`00-setup.md` through `06-finish-feature.md`. Read them in order; every step
-builds on the previous step's specs and outputs.
+**Brownfield: Bob / OrderManager.** Bob maintains a legacy ASP.NET
+WebForms system where business rules already live in code-behind,
+repositories, and stored procedures. This track fits readers who want
+to inspect how Dflow supports incremental domain extraction without
+treating modernization as an upfront rewrite.
 
-**`outputs/` directories.** Each scenario's `outputs/` tree mirrors what an
-actual `dflow/specs/` directory looks like after the tutorial steps run.
-Open the relevant files under `outputs/` alongside the step you are reading
-to see how AI conversation turns into committed spec files.
-
-**Which scenario fits your situation?** A short rule of thumb: pick
-Greenfield if you are starting a new system or a new bounded module with
-room to shape architecture from the start; pick Brownfield if you are
-extending an existing codebase with business rules scattered across
-handlers, UI code, or stored procedures. For the full decision guide
-including mixed-case advice, see
-[`docs/evaluating-dflow.md` "Greenfield or Brownfield: Choosing a Track"](../docs/evaluating-dflow.md#greenfield-or-brownfield-choosing-a-track).
-
----
-
-這裡是 Dflow 的人讀教學劇本。目標不是列 API reference，而是讓同事在還沒把 Dflow 用到真實專案前，就能完整 read-through 兩條端到端情境、看到對話、規格文件與 outputs 長什麼樣。
-
-目前維護中的 tutorial 只有兩條分段劇情：
-
-| 劇情 | 適用對象 | 技術情境 | 建議讀法 |
-|---|---|---|---|
-| [01-greenfield](01-greenfield/00-setup.md) | 新專案團隊、想練 Clean Architecture + DDD 的團隊 | ASP.NET Core greenfield | 從 `00-setup.md` 順讀到 `06-finish-feature.md` |
-| [02-brownfield](02-brownfield/00-setup.md) | 維護既有 WebForms 系統、準備漸進抽 Domain logic 的團隊 | ASP.NET WebForms brownfield | 從 `00-setup.md` 順讀到 `06-finish-feature.md` |
-
-已退場的早期單檔 tutorial 已刪除。不要再使用 P001 前或 P001 hybrid 版本作為目前流程依據。
-
-## 閱讀路線圖
+## Workflow Map
 
 ```mermaid
 flowchart LR
@@ -74,7 +53,132 @@ flowchart LR
   C5 --> C6[/dflow:finish-feature]
 ```
 
-## 劇情 1：Greenfield
+## Greenfield: Alice / ExpenseTracker
+
+### Reading Order
+
+[`00-setup.md`](01-greenfield/00-setup.md) introduces Alice, the
+ExpenseTracker project, the .NET 9 technical shape, and the before-Dflow
+repository structure. It establishes why the first useful slice is
+employee expense submission and where the worked outputs can be
+inspected later.
+
+[`01-init-project.md`](01-greenfield/01-init-project.md) shows Alice
+creating the Greenfield Dflow baseline for ExpenseTracker. The result
+is the initial `dflow/specs/` workspace and AI collaboration guide that
+future feature work will build on.
+
+[`02-new-feature.md`](01-greenfield/02-new-feature.md) starts the first
+feature: employees submit expense reports. The step produces the first
+Expense bounded context shape, the core aggregate and supporting model
+decisions, and the phase 1 feature spec for submission.
+
+[`03-new-phase.md`](01-greenfield/03-new-phase.md) adds supervisor
+approval as the next phase of the same feature. The feature stays
+continuous while new approval behavior, rules, and implementation
+scope are recorded as an additional phase.
+
+[`04-modify-existing.md`](01-greenfield/04-modify-existing.md) handles
+a small rule change around reject reason length. The point of the step
+is to show a lightweight adjustment that updates the relevant spec and
+rule context without reopening the whole feature design.
+
+[`05-bug-fix.md`](01-greenfield/05-bug-fix.md) follows a bug where
+emoji input is truncated under an existing rule. The step records the
+expected behavior, the defect boundary, and the regression check needed
+to protect the agreed rule.
+
+[`06-finish-feature.md`](01-greenfield/06-finish-feature.md) closes the
+first feature. The completed work is synchronized into durable domain
+documents, the feature snapshot is finalized, and the feature moves
+into the completed outputs.
+
+### Curated Outputs Tour
+
+Use the Greenfield outputs tour at
+[`01-greenfield/outputs-tour.md`](01-greenfield/outputs-tour.md) as the
+short path through the most important files in the full
+[`01-greenfield/outputs/`](01-greenfield/outputs/) tree. The tour
+points to the key project, domain, feature, phase, and finish-feature
+artifacts without requiring readers to inspect every generated file
+first.
+
+## Brownfield: Bob / OrderManager
+
+### Reading Order
+
+[`00-setup.md`](02-brownfield/00-setup.md) introduces Bob, the
+OrderManager WebForms system, the production constraints, and the
+before-Dflow structure. It explains why the scenario begins from
+existing behavior and migration risk rather than from a clean
+architecture model.
+
+[`01-init-project.md`](02-brownfield/01-init-project.md) shows Bob
+creating the Brownfield Dflow baseline for OrderManager. The result is
+an initial spec workspace with project context, conventions, glossary,
+tech debt, and AI collaboration guidance, but no premature domain
+subdirectory.
+
+[`02-modify-existing.md`](02-brownfield/02-modify-existing.md) starts
+from a specific change in `OrderEntry.aspx.cs`: extracting discount
+logic from code-behind. The step captures current behavior, narrows
+the modification scope, and begins turning confirmed Order rules into
+maintainable domain knowledge.
+
+[`03-baseline-capture.md`](02-brownfield/03-baseline-capture.md)
+records rounding behavior that crosses more than one page or code
+path. The output is a baseline artifact that lets later changes
+compare against observed production behavior before refactoring or
+moving logic.
+
+[`04-new-feature.md`](02-brownfield/04-new-feature.md) adds a VIP
+discount feature after the Order context has enough shape to support
+it. The scenario shows new feature work building on extracted
+brownfield knowledge rather than bypassing it.
+
+[`05-bug-fix.md`](02-brownfield/05-bug-fix.md) follows a production
+bug fix with an explicit expected-versus-actual boundary. The step
+keeps the fix narrow, preserves the relevant business-rule snapshot,
+and records the regression check.
+
+[`06-finish-feature.md`](02-brownfield/06-finish-feature.md) completes
+the first Order modification feature while leaving later VIP discount
+work active. The result is an archived completed feature plus an
+explicit record of what remains in progress.
+
+### Curated Outputs Tour
+
+Use the Brownfield outputs tour at
+[`02-brownfield/outputs-tour.md`](02-brownfield/outputs-tour.md) as
+the short path through the most important files in the full
+[`02-brownfield/outputs/`](02-brownfield/outputs/) tree. The tour
+points to the baseline, tech debt, domain extraction, feature, and
+finish-feature artifacts that matter most when evaluating brownfield
+adoption.
+
+## Where To Next
+
+Start with [`01-greenfield/00-setup.md`](01-greenfield/00-setup.md) to
+follow Alice through a new ExpenseTracker feature from baseline to
+completed specs. Start with
+[`02-brownfield/00-setup.md`](02-brownfield/00-setup.md) to follow Bob
+through incremental domain extraction in an existing OrderManager
+system.
+
+## 中文導讀
+
+這裡是 Dflow 的人讀教學劇本。目標不是列 API reference，而是讓同事在還沒把 Dflow 用到真實專案前，就能完整 read-through 兩條端到端情境、看到對話、規格文件與 outputs 長什麼樣。
+
+目前維護中的 tutorial 只有兩條分段劇情：
+
+| 劇情 | 適用對象 | 技術情境 | 建議讀法 |
+|---|---|---|---|
+| [01-greenfield](01-greenfield/00-setup.md) | 新專案團隊、想練 Clean Architecture + DDD 的團隊 | ASP.NET Core greenfield | 從 `00-setup.md` 順讀到 `06-finish-feature.md` |
+| [02-brownfield](02-brownfield/00-setup.md) | 維護既有 WebForms 系統、準備漸進抽 Domain logic 的團隊 | ASP.NET WebForms brownfield | 從 `00-setup.md` 順讀到 `06-finish-feature.md` |
+
+已退場的早期單檔 tutorial 已刪除。不要再使用 P001 前或 P001 hybrid 版本作為目前流程依據。
+
+### 劇情 1：Greenfield
 
 Alice 從零建立 ExpenseTracker。這條線展示 Greenfield track 如何從 `npx dflow-sdd-ddd init` 進到第一個 feature、phase 2、輕量修改、bug fix，最後把 feature 收到 completed。
 
@@ -88,9 +192,9 @@ Alice 從零建立 ExpenseTracker。這條線展示 Greenfield track 如何從 `
 | [05-bug-fix.md](01-greenfield/05-bug-fix.md) | 已有規則下的 bug fix |
 | [06-finish-feature.md](01-greenfield/06-finish-feature.md) | finish-feature、sync domain docs、archive feature |
 
-Greenfield outputs 位於 [01-greenfield/outputs](01-greenfield/outputs/)。
+Greenfield outputs 位於 [`01-greenfield/outputs/`](01-greenfield/outputs/)。
 
-## 劇情 2：Brownfield
+### 劇情 2：Brownfield
 
 Bob 維護既有 OrderManager。這條線展示 Brownfield track 如何避免一開始就重構，而是從具體修改需求進入、捕捉 baseline、逐步抽出 Order domain logic。
 
@@ -104,9 +208,9 @@ Bob 維護既有 OrderManager。這條線展示 Brownfield track 如何避免一
 | [05-bug-fix.md](02-brownfield/05-bug-fix.md) | production bug fix 與 BR snapshot 邊界 |
 | [06-finish-feature.md](02-brownfield/06-finish-feature.md) | 完成 SPEC-001，同時保留仍 active 的 SPEC-002 |
 
-Brownfield outputs 位於 [02-brownfield/outputs](02-brownfield/outputs/)。
+Brownfield outputs 位於 [`02-brownfield/outputs/`](02-brownfield/outputs/)。
 
-## 使用方式
+### 使用方式
 
 閱讀 tutorial 時，建議同時打開對應 `outputs/` 目錄。每個劇情段的「本段產出的檔案」會連到實際 outputs，方便 reviewer 檢查對話是否真的收斂到可維護的 Dflow specs。
 
