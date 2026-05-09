@@ -6,6 +6,38 @@
 
 ---
 
+## 0.2.0 — 2026-05-09 — Public migration tooling, governance baseline, and evaluator onboarding
+
+**Proposals**：PROPOSAL-016（governance baseline）、PROPOSAL-017（AI-assisted feedback flow）、PROPOSAL-018（repository consistency）、PROPOSAL-021（verification-only CI）。其餘為 backlog 推進的公開 docs 與 migration tooling 累積項。
+
+**變更**：
+- 新增 CLI 子命令 `dflow doctor`，read-only 健檢三條 V1 migration signal（root `specs/`、`_共用/`、缺 `> Dflow Version:` 行），輸出指向 `docs/migrating-to-dflow-v1.md`。
+- 生成檔 shape 調整：`dflow/specs/shared/_conventions.md` front matter 新增 `> Dflow Version: <version>` 行，由 `lib/init.js` 用 `package.json#version` 替換為實際版本。
+- 新增 `/dflow:report-dflow-feedback` workflow，AI 將 upstream 觀察整理為本地 sanitized draft，不自動送出（PROPOSAL-017）。
+- `AI-AGENT-GUIDE.md` 新增 `## Pre-V1 Artifacts Detection` 段，要求 AI 偵測 6 類 pre-V1 殘留訊號並 surface，禁止 silent rewrite。
+- 新增 `docs/migrating-to-dflow-v1.md` 人讀 migration guide 覆蓋 5 條 V1 baseline 變更；README Status 與 `lib/init.js` legacy `specs/` warning 都加 cross-link。
+- Public governance baseline（PROPOSAL-016）：`CONTRIBUTING.md`、`docs/release-versioning-policy.md`、`docs/npm-publish-checklist.md`、4 套 GitHub issue templates。
+- Public onboarding：`docs/evaluating-dflow.md` 公開評估者指引、`docs/using-with-claude-code.md`、`docs/using-with-codex.md` per-tool walkthrough、`tutorial/README.md` English Reading Guide、README Get Started cross-link。
+- Verification-only GitHub Actions workflow（PROPOSAL-021），對 `pull_request` / `push` 至 `main` 自動跑 `npm test` + `npm pack --dry-run` + `git diff --check`，不附 publish-capable secrets。
+- Dev-only consistency tooling（PROPOSAL-018）：`scripts/check-repo-consistency.sh` 一鍵驗證；`scripts/export-dist.sh` 新增 `--check` / `--dry-run`。
+- npm package hygiene：`package.json#files` 涵蓋 `CONTRIBUTING.md`、`CHANGELOG.md`、`TEMPLATE-COVERAGE.md`、`TEMPLATE-LANGUAGE-GLOSSARY.md`。
+- `TEMPLATE-COVERAGE.md` / `TEMPLATE-LANGUAGE-GLOSSARY.md` 內 PROPOSAL-013 reference 改指 `archive/proposals/PROPOSAL-013-system-document-template-coverage.md`。
+
+**Migration notes**：
+- 既有 0.1.x 專案的 generated `_conventions.md` 不會自動補 `> Dflow Version:` 行；可手動加，或循 `docs/migrating-to-dflow-v1.md` 在新建專案時自動帶入。
+- Pre-V1 採用者循 `docs/migrating-to-dflow-v1.md` 5 條 manual migration paths；CLI 對 legacy 路徑仍 warn-only，無 destructive auto-migration。
+
+**驗證**：
+- `npm test`
+- `npm pack --dry-run`
+- `scripts/check-repo-consistency.sh`
+- `scripts/export-dist.sh --check`
+- `git diff --check`
+
+詳見以下 dated entries（按時間倒序）。
+
+---
+
 ## 2026-05-08 — `dflow doctor` read-only health check command
 
 **變更**：

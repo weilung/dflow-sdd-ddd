@@ -231,13 +231,16 @@ Publish Checklist](docs/npm-publish-checklist.md).
 ## Status
 
 Dflow is currently published as `dflow-sdd-ddd` on npm. The latest published
-npm package is `0.1.1`, focused on project initialization, workflow
-documentation, multi-AI agent setup, and AI-agent-readable SDD/DDD guidance.
+npm package is `0.2.0`, covering project initialization, workflow
+documentation, multi-AI agent setup, AI-agent-readable SDD/DDD guidance,
+public migration tooling (manual migration guide and `dflow doctor`
+read-only health check), public onboarding (evaluator guide and per-tool
+walkthroughs for Claude Code and Codex CLI), and a verification-only CI
+workflow.
 
-The GitHub source may include post-`0.1.1` documentation, governance, and
-feedback-flow updates before the next npm patch release is published. See
-[CHANGELOG.md](CHANGELOG.md) for unreleased repository changes and release
-history.
+The GitHub source may include post-`0.2.0` repository changes before the
+next npm release is published. See [CHANGELOG.md](CHANGELOG.md) for full
+release history.
 
 If you maintain a project that adopted an early Dflow form before
 `0.1.0` was published, see [Migrating to Dflow
