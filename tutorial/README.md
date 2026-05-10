@@ -1,12 +1,13 @@
 # Dflow Tutorial
 
-These tutorials are read-through walkthroughs, not required setup after
-running `npx dflow-sdd-ddd init`. You can read them without installing
-anything; the goal is to see what a Dflow-driven feature flow looks like
-end to end before trying it on a real project. The detailed scenario
-dialogue is written in Traditional Chinese, while this English entry
-gives non-Chinese readers a navigable path through the steps and
-outputs.
+These tutorials are read-through learning material, not required setup
+after running `npx dflow-sdd-ddd init`. You can read them without
+installing anything; the goal is to see what a Dflow-driven feature flow
+looks like end to end before trying it on a real project or using it as
+an internal team manual. The detailed scenario dialogue is written in
+Traditional Chinese, and newer immersive walkthroughs are drafted in
+Traditional Chinese first with English adaptations planned after the
+shape stabilizes.
 
 For the evaluator decision aid — track choice, safe trial, language
 compatibility, and what `init` creates — see
@@ -14,6 +15,11 @@ compatibility, and what `init` creates — see
 tool-specific surface, use the per-tool guides:
 [Using Dflow with Claude Code](../docs/using-with-claude-code.md) and
 [Using Dflow with Codex CLI](../docs/using-with-codex.md).
+
+For the current command surface — `npx dflow-sdd-ddd init` versus
+`/dflow:*`, workflow commands, control commands, verification, and
+review — start with
+[`dflow-command-surface.zh-TW.md`](dflow-command-surface.zh-TW.md).
 
 ## Two Scenarios
 
@@ -71,7 +77,9 @@ future feature work will build on.
 [`02-new-feature.md`](01-greenfield/02-new-feature.md) starts the first
 feature: employees submit expense reports. The step produces the first
 Expense bounded context shape, the core aggregate and supporting model
-decisions, and the phase 1 feature spec for submission.
+decisions, and the phase 1 feature spec for submission. For the
+accepted immersive version of this step, read
+[`walkthrough-02-new-feature.zh-TW.md`](01-greenfield/walkthrough-02-new-feature.zh-TW.md).
 
 [`03-new-phase.md`](01-greenfield/03-new-phase.md) adds supervisor
 approval as the next phase of the same feature. The feature stays
@@ -93,15 +101,13 @@ first feature. The completed work is synchronized into durable domain
 documents, the feature snapshot is finalized, and the feature moves
 into the completed outputs.
 
-### Curated Outputs Tour
+### Immersive Walkthroughs
 
-Use the Greenfield outputs tour at
-[`01-greenfield/outputs-tour.md`](01-greenfield/outputs-tour.md) as the
-short path through the most important files in the full
-[`01-greenfield/outputs/`](01-greenfield/outputs/) tree. The tour
-points to the key project, domain, feature, phase, and finish-feature
-artifacts without requiring readers to inspect every generated file
-first.
+Start with
+[`01-greenfield/walkthrough-02-new-feature.zh-TW.md`](01-greenfield/walkthrough-02-new-feature.zh-TW.md)
+to see how the first feature moves from AI dialogue to bounded context,
+Aggregate design, phase spec, domain documents, and implementation tasks.
+More Greenfield walkthroughs will be added incrementally.
 
 ## Brownfield: Bob / OrderManager
 
@@ -146,15 +152,13 @@ the first Order modification feature while leaving later VIP discount
 work active. The result is an archived completed feature plus an
 explicit record of what remains in progress.
 
-### Curated Outputs Tour
+### Immersive Walkthroughs
 
-Use the Brownfield outputs tour at
-[`02-brownfield/outputs-tour.md`](02-brownfield/outputs-tour.md) as
-the short path through the most important files in the full
-[`02-brownfield/outputs/`](02-brownfield/outputs/) tree. The tour
-points to the baseline, tech debt, domain extraction, feature, and
-finish-feature artifacts that matter most when evaluating brownfield
-adoption.
+Brownfield immersive walkthroughs will be added incrementally. Until
+then, follow the step files above and inspect the full
+[`02-brownfield/outputs/`](02-brownfield/outputs/) tree to see the
+baseline, tech debt, domain extraction, feature, and finish-feature
+artifacts.
 
 ## Where To Next
 
@@ -167,12 +171,13 @@ system.
 
 ## 中文導讀
 
-這裡是 Dflow 的人讀教學劇本。目標不是列 API reference，而是讓同事在還沒把 Dflow 用到真實專案前，就能完整 read-through 兩條端到端情境、看到對話、規格文件與 outputs 長什麼樣。
+這裡是 Dflow 的人讀教學劇本。目標不是列 API reference，而是讓讀者在還沒把 Dflow 用到真實專案前，或團隊已經導入後作為內部教學手冊時，都能 read-through 看到對話、規格文件與 outputs 長什麼樣。
 
-目前維護中的 tutorial 只有兩條分段劇情：
+目前 tutorial 包含跨情境導讀與兩條分段劇情：
 
-| 劇情 | 適用對象 | 技術情境 | 建議讀法 |
+| 內容 | 適用對象 | 技術情境 | 建議讀法 |
 |---|---|---|---|
+| [命令表面導讀](dflow-command-surface.zh-TW.md) | 第一次讀 Dflow tutorial、或需要教同事分辨 CLI / AI workflow 的人 | 通用 | 先讀，避免混淆 `init`、`/dflow:*`、verify / review / control commands |
 | [01-greenfield](01-greenfield/00-setup.md) | 新專案團隊、想練 Clean Architecture + DDD 的團隊 | ASP.NET Core greenfield | 從 `00-setup.md` 順讀到 `06-finish-feature.md` |
 | [02-brownfield](02-brownfield/00-setup.md) | 維護既有 WebForms 系統、準備漸進抽 Domain logic 的團隊 | ASP.NET WebForms brownfield | 從 `00-setup.md` 順讀到 `06-finish-feature.md` |
 
@@ -187,6 +192,7 @@ Alice 從零建立 ExpenseTracker。這條線展示 Greenfield track 如何從 `
 | [00-setup.md](01-greenfield/00-setup.md) | 角色、假想專案、技術棧與 before-Dflow 結構 |
 | [01-init-project.md](01-greenfield/01-init-project.md) | CLI init 建立 greenfield baseline |
 | [02-new-feature.md](01-greenfield/02-new-feature.md) | 第一個 `Expense` BC、Aggregate、phase 1 spec |
+| [walkthrough-02-new-feature.zh-TW.md](01-greenfield/walkthrough-02-new-feature.zh-TW.md) | 中文 immersive walkthrough：從 AI 對話、DDD discovery、phase gate 到文件產出 |
 | [03-new-phase.md](01-greenfield/03-new-phase.md) | 在同一 feature 內新增 supervisor approval phase |
 | [04-modify-existing.md](01-greenfield/04-modify-existing.md) | 小型規則調整與 lightweight change |
 | [05-bug-fix.md](01-greenfield/05-bug-fix.md) | 已有規則下的 bug fix |

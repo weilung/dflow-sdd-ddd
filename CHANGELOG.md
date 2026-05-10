@@ -6,6 +6,47 @@
 
 ---
 
+## 2026-05-10 — Bilingual immersive tutorial suite
+
+**變更**：
+
+- 新增 `tutorial/dflow-command-surface.zh-TW.md`，整理現行 Dflow 命令表面：
+  `npx dflow-sdd-ddd init` / `dflow doctor` / `dflow configure-agents`
+  與 `/dflow:*` AI workflow commands 的分工，並明確列出 workflow /
+  phase / closeout / control / verify / review / feedback commands。
+- 新增 `tutorial/01-greenfield/walkthrough-02-new-feature.zh-TW.md`，
+  作為第一份中文 canonical immersive walkthrough，展示
+  `/dflow:new-feature` 如何從 AI 對話、DDD discovery、phase gate、
+  generated document excerpts 走到 implementation task list。
+- 更新 `tutorial/README.md`，移除不存在的 `outputs-tour.md` forward-links，
+  改連到已存在的中文 command surface 與 Greenfield walkthrough；Brownfield
+  walkthrough 標為後續 incremental work。
+- 新增 `planning/immersive-tutorial-suite-plan.md` 作為目前 tutorial rewrite
+  的 active source of truth，記錄 zh-TW first、English adaptation later、
+  「讀者」用詞、cross-cutting tutorials、Worker 分工策略。
+- 將 `planning/full-tutorial-rewrite-plan.md` 收斂為 superseded stub，避免
+  舊 English-first / `outputs-tour.md` 設計干擾後續 session；歷史細節由 git
+  history 保留。
+- 更新 `planning/public-onboarding-tasklist.md` 的 tutorial rewrite 狀態，
+  指向新的 immersive tutorial suite plan。
+
+**邊界**：
+
+- doc-only；無 `lib/` / `templates/` / `bin/` / skill source 變更。
+- `outputs/` tree 完全未動；walkthrough 只以連結與內嵌 excerpt 引用。
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release。
+
+**驗證**：
+
+- `git diff --check`
+- `scripts/check-repo-consistency.sh`
+- `scripts/export-dist.sh --dry-run`
+- dist `npm test`
+- dist `npm pack --dry-run`
+- dist `git diff --check`
+
+---
+
 ## 2026-05-09 — Tutorial English-first promotion (full tutorial rewrite Batch 1)
 
 **變更**：
