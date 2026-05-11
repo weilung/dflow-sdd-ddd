@@ -6,6 +6,66 @@
 
 ---
 
+## 2026-05-10 — Brownfield baseline-capture immersive walkthrough
+
+**變更**：
+
+- 新增 `tutorial/02-brownfield/walkthrough-03-baseline-capture.zh-TW.md`，
+  以中文 canonical walkthrough 展示 baseline-only path：不硬塞 T1 / T2 /
+  T3、不改 code、不建 spec、不改 rules，而是把跨頁面 `OrderList` /
+  `OrderDetail` 現況分成 confirmed / buggy / unknown 並分流到
+  `behavior.md` 與 `tech-debt.md`。
+- 更新 `tutorial/README.md` 的 Brownfield reading path，連到新的
+  baseline-capture walkthrough。
+- 更新 `planning/immersive-tutorial-suite-plan.md`，把 Brownfield
+  `walkthrough-03-baseline-capture.zh-TW.md` 加入 accepted pattern。
+
+**邊界**：
+
+- dev-only checkpoint；本次不投影 dist。
+- doc-only；無 `lib/` / `templates/` / `bin/` / skill source 變更。
+- `outputs/` tree 完全未動；walkthrough 只以連結與內嵌 excerpt 引用。
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release。
+
+**驗證**：
+
+- `git diff --check`
+- 手動 spot-check 新增 tutorial link targets
+
+---
+
+## 2026-05-10 — Brownfield modify-existing immersive walkthrough
+
+**變更**：
+
+- 新增 `tutorial/02-brownfield/walkthrough-02-modify-existing.zh-TW.md`，
+  以中文 canonical walkthrough 展示 Brownfield `/dflow:modify-existing`
+  如何從 WebForms 客訴進入 T1 判定、無 host feature 時升級為
+  `/dflow:new-feature`、捕捉 baseline contrast、建立第一個 Order BC，
+  並把折扣計算抽成可測試 Domain logic。
+- 更新 `tutorial/README.md` 的 Brownfield reading path 與 immersive
+  walkthrough 區塊，連到新 walkthrough。
+- 更新 `planning/immersive-tutorial-suite-plan.md`，把 Brownfield
+  `walkthrough-02-modify-existing.zh-TW.md` 加入 accepted pattern。
+- 更新 `MAINTAINERS.md` 與 active tutorial plan，記錄 tutorial-only
+  變更不需要 `npm test`，且 active tutorial rewrite 期間 dev commits
+  不必每次投影 dist；等 user-approved tutorial checkpoint 或 full rewrite
+  ready 時再 export。
+
+**邊界**：
+
+- dev-only checkpoint；本次不投影 dist。
+- doc-only；無 `lib/` / `templates/` / `bin/` / skill source 變更。
+- `outputs/` tree 完全未動；walkthrough 只以連結與內嵌 excerpt 引用。
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release。
+
+**驗證**：
+
+- `git diff --check`
+- 手動 spot-check 新增 tutorial link targets
+
+---
+
 ## 2026-05-10 — Bilingual immersive tutorial suite
 
 **變更**：

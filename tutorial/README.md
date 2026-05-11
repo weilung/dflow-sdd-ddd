@@ -129,13 +129,16 @@ subdirectory.
 from a specific change in `OrderEntry.aspx.cs`: extracting discount
 logic from code-behind. The step captures current behavior, narrows
 the modification scope, and begins turning confirmed Order rules into
-maintainable domain knowledge.
+maintainable domain knowledge. For the immersive version of this step,
+read
+[`walkthrough-02-modify-existing.zh-TW.md`](02-brownfield/walkthrough-02-modify-existing.zh-TW.md).
 
 [`03-baseline-capture.md`](02-brownfield/03-baseline-capture.md)
 records rounding behavior that crosses more than one page or code
 path. The output is a baseline artifact that lets later changes
 compare against observed production behavior before refactoring or
-moving logic.
+moving logic. For the immersive version of this step, read
+[`walkthrough-03-baseline-capture.zh-TW.md`](02-brownfield/walkthrough-03-baseline-capture.zh-TW.md).
 
 [`04-new-feature.md`](02-brownfield/04-new-feature.md) adds a VIP
 discount feature after the Order context has enough shape to support
@@ -154,11 +157,11 @@ explicit record of what remains in progress.
 
 ### Immersive Walkthroughs
 
-Brownfield immersive walkthroughs will be added incrementally. Until
-then, follow the step files above and inspect the full
-[`02-brownfield/outputs/`](02-brownfield/outputs/) tree to see the
-baseline, tech debt, domain extraction, feature, and finish-feature
-artifacts.
+Start with
+[`02-brownfield/walkthrough-02-modify-existing.zh-TW.md`](02-brownfield/walkthrough-02-modify-existing.zh-TW.md)
+to see how a WebForms discount bug becomes baseline capture, scope
+control, the first Order bounded context, and a small Domain extraction.
+More Brownfield walkthroughs will be added incrementally.
 
 ## Where To Next
 
@@ -209,7 +212,9 @@ Bob 維護既有 OrderManager。這條線展示 Brownfield track 如何避免一
 | [00-setup.md](02-brownfield/00-setup.md) | 角色、既有系統、痛點與 before-Dflow 結構 |
 | [01-init-project.md](02-brownfield/01-init-project.md) | CLI init 建立 brownfield baseline |
 | [02-modify-existing.md](02-brownfield/02-modify-existing.md) | 第一次從 `OrderEntry.aspx.cs` 抽折扣邏輯 |
+| [walkthrough-02-modify-existing.zh-TW.md](02-brownfield/walkthrough-02-modify-existing.zh-TW.md) | 中文 immersive walkthrough：從 WebForms 客訴、baseline contrast、T1 判定到第一段 Domain extraction |
 | [03-baseline-capture.md](02-brownfield/03-baseline-capture.md) | 跨頁面 rounding baseline capture |
+| [walkthrough-03-baseline-capture.zh-TW.md](02-brownfield/walkthrough-03-baseline-capture.zh-TW.md) | 中文 immersive walkthrough：baseline-only、confirmed / buggy / unknown 分流、跨頁面 behavior capture |
 | [04-new-feature.md](02-brownfield/04-new-feature.md) | 已有 Order BC 後新增 VIP discount feature |
 | [05-bug-fix.md](02-brownfield/05-bug-fix.md) | production bug fix 與 BR snapshot 邊界 |
 | [06-finish-feature.md](02-brownfield/06-finish-feature.md) | 完成 SPEC-001，同時保留仍 active 的 SPEC-002 |

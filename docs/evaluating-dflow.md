@@ -79,8 +79,8 @@ commands appear in conversation, see the per-tool guides:
 
 - [Using Dflow with Claude Code](using-with-claude-code.md)
 - [Using Dflow with Codex CLI](using-with-codex.md)
-- (Guides for Gemini and GitHub Copilot may follow as maintainer experience
-  with each tool stabilizes.)
+- [Using Dflow with Gemini CLI](using-with-gemini-cli.md)
+- [Using Dflow with GitHub Copilot](using-with-github-copilot.md)
 
 ## Greenfield or Brownfield: Choosing a Track
 

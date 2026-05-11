@@ -172,9 +172,8 @@ workflow commands appear in a given AI tool, see the per-tool guides under
 
 - [Using Dflow with Claude Code](docs/using-with-claude-code.md)
 - [Using Dflow with Codex CLI](docs/using-with-codex.md)
-
-Guides for Gemini CLI and GitHub Copilot may follow as maintainer
-experience with each tool stabilizes.
+- [Using Dflow with Gemini CLI](docs/using-with-gemini-cli.md)
+- [Using Dflow with GitHub Copilot](docs/using-with-github-copilot.md)
 
 Init does not copy the `tutorial/` directory into your project. The
 [`tutorial/`](tutorial/README.md) directory lives in this source repository
