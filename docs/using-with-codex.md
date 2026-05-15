@@ -24,7 +24,8 @@ loading.
 
 - Codex CLI installed and authenticated (see
   [developers.openai.com/codex/cli](https://developers.openai.com/codex/cli)).
-- Node.js / npx available (Dflow ships through npm).
+- Node.js / npm available (Dflow ships through npm). Install globally with
+  `npm install -g dflow-sdd-ddd`, or use `npx dflow-sdd-ddd` for the no-install path.
 - A project directory you are comfortable initializing in. A branch or a
   disposable sample project is recommended for first contact; see the
   [evaluator guide playbook](evaluating-dflow.md#a-30-minute-evaluation-playbook).
@@ -36,9 +37,9 @@ The workflows are Markdown-based instructions and project files.
 
 ## What Codex CLI Sees After `init`
 
-Running `npx dflow-sdd-ddd init` and selecting
-`AGENTS.md - Codex / Copilot coding agent` as a target tool creates a thin
-shim at the project root:
+Running `dflow init` (or `npx dflow-sdd-ddd init` on the no-install path) and
+selecting `AGENTS.md - Codex / Copilot coding agent` as a target tool creates
+a thin shim at the project root:
 
 ```markdown
 # AGENTS.md - Dflow Project Instructions
@@ -194,8 +195,9 @@ chat instructions when raw slash input is intercepted or rejected. Raw
 the supported Codex version.
 
 **Do not confuse Codex `/init` with Dflow `init`.** Codex `/init` creates a
-generic `AGENTS.md` scaffold for Codex. Dflow setup is `npx dflow-sdd-ddd
-init`, and adding later tool shims is `dflow configure-agents`.
+generic `AGENTS.md` scaffold for Codex. Dflow setup is `dflow init` (or
+`npx dflow-sdd-ddd init` on the no-install path), and adding later tool shims
+is `dflow configure-agents`.
 
 **Permission gates and Dflow workflow gates are separate.** Codex may ask
 permission to run a command, edit outside the workspace, or access network
@@ -228,8 +230,8 @@ If you have not run `init` yet:
 
 If you have run `init` and want to see end-to-end workflow examples:
 
-- Read [`tutorial/01-greenfield/`](../tutorial/01-greenfield/00-setup.md) or
-  [`tutorial/02-brownfield/`](../tutorial/02-brownfield/00-setup.md). The
+- Read [`tutorial/01-greenfield/`](../tutorial/01-greenfield/walkthrough-00-setup.zh-TW.md) or
+  [`tutorial/02-brownfield/`](../tutorial/02-brownfield/walkthrough-00-setup.zh-TW.md). The
   tutorial walk-throughs show conversation flows and the resulting
   `dflow/specs/` outputs.
 

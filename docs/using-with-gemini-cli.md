@@ -21,7 +21,8 @@ loading.
 ## 2. Prerequisites
 
 - Gemini CLI installed (see [github.com/google/gemini-cli](https://github.com/google/gemini-cli)).
-- Node.js / npx available (Dflow ships through npm).
+- Node.js / npm available (Dflow ships through npm). Install globally with
+  `npm install -g dflow-sdd-ddd`, or use `npx dflow-sdd-ddd` for the no-install path.
 - A project directory you are comfortable initializing in. A branch or a
   disposable sample project is recommended for first contact; see the
   [evaluator guide playbook](evaluating-dflow.md#a-30-minute-evaluation-playbook).
@@ -31,8 +32,8 @@ text-based and use Gemini CLI's existing capabilities.
 
 ## 3. What Gemini CLI Sees After `init`
 
-Running `npx dflow-sdd-ddd init` and selecting Gemini CLI as a target tool
-creates a thin shim at the project root:
+Running `dflow init` (or `npx dflow-sdd-ddd init` on the no-install path) and
+selecting Gemini CLI as a target tool creates a thin shim at the project root:
 
 ```markdown
 # GEMINI.md - Dflow Project Instructions
@@ -181,8 +182,8 @@ If you have not run `init` yet:
 
 If you have run `init` and want to see end-to-end workflow examples:
 
-- Read [`tutorial/01-greenfield/`](../tutorial/01-greenfield/00-setup.md) or
-  [`tutorial/02-brownfield/`](../tutorial/02-brownfield/00-setup.md). The
+- Read [`tutorial/01-greenfield/`](../tutorial/01-greenfield/walkthrough-00-setup.zh-TW.md) or
+  [`tutorial/02-brownfield/`](../tutorial/02-brownfield/walkthrough-00-setup.zh-TW.md). The
   tutorial walk-throughs show conversation flows and the resulting
   `dflow/specs/` outputs.
 

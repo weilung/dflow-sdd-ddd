@@ -5,9 +5,9 @@
 > This file is a **snippet**, not a standalone `CLAUDE.md`. Its purpose
 > is to be merged into your project's root `CLAUDE.md`:
 >
-> - New `npx dflow-sdd-ddd init` output uses
->   `dflow/specs/shared/AI-AGENT-GUIDE.md` as the canonical guide and
->   creates a thin `CLAUDE.md` shim that points back to it.
+> - New Dflow CLI init output (`dflow init`, or `npx dflow-sdd-ddd init` when
+>   using the no-install path) uses `dflow/specs/shared/AI-AGENT-GUIDE.md` as
+>   the canonical guide and creates a thin `CLAUDE.md` shim that points back to it.
 > - Use this legacy snippet only if you intentionally want the older
 >   Claude-specific two-H2 layout in your project's root `CLAUDE.md`.
 
@@ -45,7 +45,7 @@ ASP.NET Core 做準備。
 
 ```
 dflow/specs/
-├── shared/                   # 專案級治理文件（由 npx dflow-sdd-ddd init 寫入）
+├── shared/                   # 專案級治理文件（由 Dflow CLI init 寫入）
 │   ├── _overview.md          # 系統現況與遷移策略
 │   ├── _conventions.md       # 規格撰寫慣例
 │   └── Git-principles-*.md   # Git 規範（gitflow 或 trunk 版）
@@ -97,7 +97,7 @@ AI 的完整決策樹、Workflow Transparency、Ceremony Scaling 三層判準
 當你作為 AI assistant 被呼叫時，若偵測到使用者需要 SDD/DDD 工作流
 引導，請參考 Dflow entry points：
 
-- `npx dflow-sdd-ddd init` — 專案初始化（建立 `dflow/specs/` 結構）
+- Dflow CLI init command (`dflow init`, or `npx dflow-sdd-ddd init` when using the no-install path) — 專案初始化（建立 `dflow/specs/` 結構）
 - `/dflow:new-feature` — 新功能開發
 - `/dflow:new-phase` — 在 active feature 內新增階段
 - `/dflow:modify-existing` — 修改既有功能
@@ -162,5 +162,5 @@ When merging this snippet into an existing `CLAUDE.md`:
    duplicate it.
 
 If you are starting from scratch (no existing `CLAUDE.md`), the
-`npx dflow-sdd-ddd init` flow will install this snippet as-is and you
-can refine from there.
+the Dflow CLI init flow (`dflow init`, or `npx dflow-sdd-ddd init` when using
+the no-install path) will install this snippet as-is and you can refine from there.

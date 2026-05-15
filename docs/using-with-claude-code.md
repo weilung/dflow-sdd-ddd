@@ -22,7 +22,8 @@ actually loading.
 ## Prerequisites
 
 - Claude Code CLI installed (see [claude.ai/code](https://claude.com/claude-code)).
-- Node.js / npx available (Dflow ships through npm).
+- Node.js / npm available (Dflow ships through npm). Install globally with
+  `npm install -g dflow-sdd-ddd`, or use `npx dflow-sdd-ddd` for the no-install path.
 - A project directory you are comfortable initializing in. A branch or a
   disposable sample project is recommended for first contact; see the
   [evaluator guide playbook](evaluating-dflow.md#a-30-minute-evaluation-playbook).
@@ -34,8 +35,8 @@ auth.
 
 ## What Claude Code Sees After `init`
 
-Running `npx dflow-sdd-ddd init` and selecting Claude Code as a target tool
-creates a thin shim at the project root:
+Running `dflow init` (or `npx dflow-sdd-ddd init` on the no-install path) and
+selecting Claude Code as a target tool creates a thin shim at the project root:
 
 ```markdown
 # CLAUDE.md - Dflow Project Instructions
@@ -140,9 +141,9 @@ across tools. Only the root-level shim differs:
 | Gemini CLI | `GEMINI.md` | `@dflow/specs/shared/AI-AGENT-GUIDE.md` Markdown import |
 | GitHub Copilot | `.github/copilot-instructions.md` | Reads file content directly |
 
-You can run `dflow configure-agents` later to add another tool's shim
-without re-running `init`. Multiple tools can be active in the same project
-and stay synchronized via the canonical guide.
+You can run `dflow configure-agents` later to add another tool's shim without
+re-running `init`. Multiple tools can be active in the same project and stay
+synchronized via the canonical guide.
 
 If your team uses both Claude Code and Codex CLI on the same project (a
 common setup), no extra coordination is needed. Both tools read the same
@@ -191,8 +192,8 @@ If you have not run `init` yet:
 
 If you have run `init` and want to see end-to-end workflow examples:
 
-- Read [`tutorial/01-greenfield/`](../tutorial/01-greenfield/00-setup.md) or
-  [`tutorial/02-brownfield/`](../tutorial/02-brownfield/00-setup.md). The
+- Read [`tutorial/01-greenfield/`](../tutorial/01-greenfield/walkthrough-00-setup.zh-TW.md) or
+  [`tutorial/02-brownfield/`](../tutorial/02-brownfield/walkthrough-00-setup.zh-TW.md). The
   tutorial walk-throughs show conversation flows and the resulting
   `dflow/specs/` outputs.
 

@@ -70,7 +70,8 @@ Signals:
   canonical English; compare against `TEMPLATE-LANGUAGE-GLOSSARY.md` if
   available.
 - References to a runtime `/dflow:init-project` slash command (V1
-  replaced it with the shell command `npx dflow-sdd-ddd init`).
+  replaced it with the Dflow CLI init command (`dflow init`, or
+  `npx dflow-sdd-ddd init` when using the no-install path)).
 - A root `CLAUDE.md`, `AGENTS.md`, or equivalent that holds the full
   Dflow workflow text instead of being a thin shim pointing to this
   file.

@@ -27,7 +27,7 @@ in your project's `dflow/specs/` directory and AI instruction files.
 
 ## What `init` Creates and Does Not Do
 
-`npx dflow-sdd-ddd init` creates:
+`dflow init` (or `npx dflow-sdd-ddd init` on the no-install path) creates:
 
 - A `dflow/specs/` workspace (overview, conventions, domain glossary, context
   map, architecture/tech-debt, features active/completed). See
@@ -65,7 +65,7 @@ Each shim points back to the canonical
 - Multiple tools can be active in the same project without diverging
   workflow rules.
 - Switching or adding tools later does not require re-running `init`; use
-  `dflow configure-agents` to add another shim.
+  run `dflow configure-agents` to add another shim.
 - The project guide stays the single source of truth for Dflow workflow
   behavior.
 
@@ -117,14 +117,16 @@ real codebase.
    git init
    ```
 
-2. **Run init**:
+2. **Install and run init**:
 
    ```bash
-   npx dflow-sdd-ddd init
+   npm install -g dflow-sdd-ddd
+   dflow init
    ```
 
-   When prompted, choose Greenfield. Pick one AI tool to generate the shim
-   for.
+   If you prefer not to install globally, use `npx dflow-sdd-ddd init`
+   instead. When prompted, choose Greenfield. Pick one AI tool to generate
+   the shim for.
 
 3. **Inspect what was created**:
 
@@ -139,8 +141,8 @@ real codebase.
 
 4. **Read one tutorial walk-through** to see what a real feature flow looks
    like end to end:
-   - Greenfield: [`tutorial/01-greenfield/`](../tutorial/01-greenfield/00-setup.md)
-   - Brownfield: [`tutorial/02-brownfield/`](../tutorial/02-brownfield/00-setup.md)
+   - Greenfield: [`tutorial/01-greenfield/`](../tutorial/01-greenfield/walkthrough-00-setup.zh-TW.md)
+   - Brownfield: [`tutorial/02-brownfield/`](../tutorial/02-brownfield/walkthrough-00-setup.zh-TW.md)
 
 5. **Optional: try one workflow command**. Open the sample project in your
    AI tool and ask it to run `/dflow:new-feature` (or paste the equivalent

@@ -8,6 +8,15 @@
 > migration. This guide is a manual checklist. The CLI only warns when
 > it detects legacy paths; it does not modify existing files.
 
+> **Audience reality (2026-05-15)**: To date, the only known user of
+> this guide has been the **OBTS** migration (a single, completed
+> one-off). Dflow has not had broad pre-V1 adoption; this guide is
+> maintained as a contingency endpoint for `dflow doctor` and
+> `dflow init` warning messages, not as documentation of an active
+> migration program. If you reach this page via those tool outputs
+> and your case isn't covered below, please open a docs feedback issue
+> so the guide can be extended.
+
 ## When You Need This Guide
 
 Skip this guide if you started using Dflow at `dflow-sdd-ddd@0.1.0`
@@ -22,7 +31,8 @@ Read this guide if any of the following are true:
   canonical English vocabulary documented in
   `TEMPLATE-LANGUAGE-GLOSSARY.md`.
 - Your AI instructions point teammates to `/dflow:init-project`
-  instead of `npx dflow-sdd-ddd init`.
+  instead of the Dflow CLI init command (`dflow init`, or
+  `npx dflow-sdd-ddd init` on the no-install path).
 - Your `CLAUDE.md` (or equivalent root instruction file) was generated
   by an early Dflow variant that wrote a full Claude-only file rather
   than the V1 multi-AI thin shim that points to
@@ -45,8 +55,9 @@ independent.
   - `docs/evaluating-dflow.md` — what a fresh V1 `init` produces, if
     you want to spin up a sample project to compare against.
 - For an on-demand read-only summary of legacy artifacts in your
-  project, run `dflow doctor`. The command lists detected legacy
-  paths and missing V1 fields; it never modifies files.
+  project, run `dflow doctor` (or `npx dflow-sdd-ddd doctor` on the
+  no-install path). The command lists detected legacy paths and missing
+  V1 fields; it never modifies files.
 
 ## Migration Steps
 
@@ -124,7 +135,14 @@ grep -rn "## 業務規則\|## 行為情境\|## 領域模型" dflow/specs/
 Pre-V1 documentation may have instructed teammates to start a Dflow
 project by running `/dflow:init-project` from inside an AI agent. V1
 removed that runtime slash command (PROPOSAL-014). The init flow now
-runs as a shell command:
+runs as a shell command. Install Dflow globally and run:
+
+```bash
+npm install -g dflow-sdd-ddd
+dflow init
+```
+
+If you cannot or do not want to install globally, use the no-install path:
 
 ```bash
 npx dflow-sdd-ddd init
@@ -155,8 +173,8 @@ early Dflow form that wrote a full file rather than a thin shim:
 dflow configure-agents
 ```
 
-This command adds shims for any AI tools you select. It does not
-overwrite an existing `CLAUDE.md`; instead, it writes a
+This command adds shims for any AI tools you select. `dflow configure-agents`
+does not overwrite an existing `CLAUDE.md`; instead, it writes a
 `dflow/specs/shared/<tool>-md-snippet.md` that you can merge into the
 existing file at your own pace.
 

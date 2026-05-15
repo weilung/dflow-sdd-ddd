@@ -14,9 +14,9 @@
 
 ## How to use this snippet
 
-- New `npx dflow-sdd-ddd init` output uses
-  `dflow/specs/shared/AI-AGENT-GUIDE.md` as the canonical guide and creates
-  a thin `CLAUDE.md` shim that points back to it.
+- New Dflow CLI init output (`dflow init`, or `npx dflow-sdd-ddd init` when
+  using the no-install path) uses `dflow/specs/shared/AI-AGENT-GUIDE.md` as
+  the canonical guide and creates a thin `CLAUDE.md` shim that points back to it.
 - Use this legacy snippet only if you intentionally want the older
   Claude-specific two-H2 layout in your project's root `CLAUDE.md`.
 
@@ -66,7 +66,7 @@ Presentation → Application → Domain ← Infrastructure
 ### Project Structure
 
 完整 specs 目錄結構見 Dflow skill `SKILL.md` § "Project Structure"。
-以下只列本專案當前狀態（`npx dflow-sdd-ddd init` 建立後可能還未全填）：
+以下只列本專案當前狀態（Dflow CLI init 建立後可能還未全填）：
 
 ```
 dflow/specs/
@@ -101,7 +101,7 @@ AI 的完整決策樹、Workflow Transparency、Ceremony Scaling 三層判準
 - `sdd-ddd-greenfield-skill/references/` 內各 flow 文件
 
 本專案採用的 Dflow entry points：
-- `npx dflow-sdd-ddd init` — 專案初始化（一次性，已執行過）
+- Dflow CLI init command (`dflow init`, or `npx dflow-sdd-ddd init` when using the no-install path) — 專案初始化（一次性，已執行過）
 - `/dflow:new-feature` — 新功能
 - `/dflow:new-phase` — 既有 active feature 加新 phase
 - `/dflow:modify-existing` — 修改既有行為
@@ -165,5 +165,6 @@ AI 的完整決策樹、Workflow Transparency、Ceremony Scaling 三層判準
 - The snippet does NOT re-copy the Dflow decision tree, Ceremony
   Scaling criteria, or per-flow step details — those live in the
   skill and change when the skill evolves
-- Re-run `npx dflow-sdd-ddd init` will NOT overwrite an existing
-  `CLAUDE.md`; if you want to re-sync, merge manually
+- Re-running the Dflow CLI init command (`dflow init`, or `npx dflow-sdd-ddd init`
+  when using the no-install path) will NOT overwrite an existing `CLAUDE.md`;
+  if you want to re-sync, merge manually

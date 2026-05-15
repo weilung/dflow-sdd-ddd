@@ -3,9 +3,8 @@
 > 語言版本：繁體中文 canonical draft。
 > English adaptation 會在中文版定稿後另建。
 
-這份 walkthrough 不是命令 reference，也不是單純把
-[02-new-feature.md](02-new-feature.md) 翻寫成英文導覽。它的目標是讓讀者在還沒把
-Dflow 用到自己的專案前，就能 read-through 感受到一次 `/dflow:new-feature` 的工作方式：
+這份 walkthrough 讓讀者在還沒把 Dflow 用到自己的專案前，就能 read-through 感受到一次
+`/dflow:new-feature` 的工作方式：
 
 - 開發者如何觸發 Dflow
 - AI 如何先確認需求、再引導 DDD discovery
@@ -13,10 +12,10 @@ Dflow 用到自己的專案前，就能 read-through 感受到一次 `/dflow:new
 - 會產生哪些規格與 domain 文件
 - 這些文件如何把「對話中的決策」變成後續 AI coding agent 可讀的約束
 
-[note] 本篇引用的 `outputs/` 連結指向 Greenfield 劇情全部跑完後的 final snapshot。
-其中部分檔案在後續 `03-new-phase.md`、`04-modify-existing.md`、`05-bug-fix.md`、
-`06-finish-feature.md` 會再被修改。因此，本篇內嵌的 code block 代表
-`/dflow:new-feature` 這一步結束當下的重點片段；連結則提供讀者檢查最終完整文件。
+閱讀提示：本篇會連到完整文件範例（目前存放在本 tutorial 的 `outputs/` 目錄）。這些範例代表 Greenfield 劇情跑完後的
+最終狀態；本篇內嵌 code block 則代表 `/dflow:new-feature` 這一步結束當下的重點片段。
+只讀本篇也能順著劇情理解；若想先看完整文件家族的讀法，再讀
+[〈如何閱讀 Dflow 規格與完整文件範例〉](../how-to-read-dflow-specs.zh-TW.md)。
 
 ## 本篇適合誰讀
 
@@ -36,19 +35,19 @@ Dflow 用到自己的專案前，就能 read-through 感受到一次 `/dflow:new
 
 | 類型 | 本篇狀態 |
 |---|---|
-| `npx dflow-sdd-ddd init` | 已在 [01-init-project.md](01-init-project.md) 完成，建立 `dflow/specs/` baseline。 |
+| `dflow init` | 已在 [〈Walkthrough 01 — `dflow init` 建立 Greenfield baseline〉](walkthrough-01-init-project.zh-TW.md) 完成，建立 `dflow/specs/` baseline。 |
 | `/dflow:new-feature` | 本篇主角，用來啟動第一個 feature。 |
 | `/dflow:next` | 有效的控制命令，用來在 phase gate 確認繼續。 |
 | `/dflow:status` / `/dflow:cancel` | 有效的控制命令；本篇沒有使用，但 flow 中允許在 gate 或 active workflow 中使用。 |
 | `/dflow:verify` / `/dflow:pr-review` | 有效的獨立檢查命令；本篇尚未進到 PR 或 drift verification 階段。 |
 
-[note] 評估時請把 `npx dflow-sdd-ddd init` 和 `/dflow:*` 分開看：
+閱讀提示：評估時請把 `dflow init`（或 `npx dflow-sdd-ddd init`）和 `/dflow:*` 分開看：
 前者是 npm CLI bootstrap，負責建立 baseline；後者是 AI coding agent 讀取 Dflow
 workflow material 後執行的日常協作流程。
 
 ## 劇情背景
 
-Alice 已經完成 [01-init-project.md](01-init-project.md)。ExpenseTracker 現在有一個乾淨的
+Alice 已經完成 [〈Walkthrough 01 — `dflow init` 建立 Greenfield baseline〉](walkthrough-01-init-project.zh-TW.md)。ExpenseTracker 現在有一個乾淨的
 Dflow baseline：
 
 ```text
@@ -105,7 +104,7 @@ Dflow 的切入點不同。它要求先把問題拆成可審視的 domain decisi
 | Item 是 Entity 還是 Value Object？ | 影響後續修改單筆 item、審核時指出某筆 item 的模型能力。 |
 | 哪個事件需要被發布？ | 讓後續 phase 能接上，而不是 phase 2 再回頭補 domain event。 |
 
-這就是 Dflow README 裡說的 Spec-first 與 DDD semantic backbone：不是先產生 code，
+這就是 Dflow 的 Spec-first 與 DDD semantic backbone：不是先產生 code，
 而是先限制 AI 不能亂猜 domain。
 
 ## Step 1 — Alice 觸發 `/dflow:new-feature`
@@ -427,11 +426,11 @@ Aggregate design done; Implementation Tasks generated.
 **Next Action**: 建立 branch 後，從 Domain layer 開始實作。
 ```
 
-完整 final snapshot 可看：
+完整文件範例：
 [`outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/_index.md)
 
-[note] final snapshot 中已包含 phase 2、lightweight changes、bug fix 與 integration summary；
-它比本步驟當下版本更完整。
+補充：連結版本已包含 phase 2、lightweight changes、bug fix 與 integration summary；
+上方內嵌片段才是本步驟當下的 `_index.md` 重點。
 
 ## 文件片段 2 — Phase spec 把對話變成驗收行為
 
@@ -483,7 +482,7 @@ Scenario: 員工嘗試提交一份沒有費用項的 ExpenseReport
 這裡展示的是 Dflow 的 Spec-first development：AI 後續要寫 code 時，不是只靠
 「幫我做提交費用單」這句話，而是有具體 Given/When/Then 和 BR-ID 可對照。
 
-完整 final snapshot 可看：
+完整文件範例：
 [`outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/phase-spec-2026-04-28-mvp.md`](outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/phase-spec-2026-04-28-mvp.md)
 
 ## 文件片段 3 — `aggregate-design.md` 記錄為什麼這樣設計
@@ -533,11 +532,11 @@ ExpenseReport (Aggregate Root)
 也避免未來多幣別時不同 currency 被直接相加。
 ```
 
-完整 final snapshot 可看：
+完整文件範例：
 [`outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/aggregate-design.md`](outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/aggregate-design.md)
 
-[note] final snapshot 裡還有 phase 2 加入的 `ApprovalDecision` aggregate；
-本篇 step 02 當下只建立 `ExpenseReport`。
+補充：連結版本後續會出現 phase 2 加入的 `ApprovalDecision` aggregate；
+本段重點仍是第一個 feature 當下的 `ExpenseReport`。
 
 ## 文件片段 4 — System-level domain docs 開始長出來
 
@@ -569,7 +568,7 @@ Feature spec 是短期執行文件；domain docs 是長期 system state。Dflow 
 - 收據影像儲存
 ```
 
-完整 final snapshot：
+完整文件範例：
 [`outputs/dflow/specs/domain/Expense/context.md`](outputs/dflow/specs/domain/Expense/context.md)
 
 ### `domain/Expense/models.md`
@@ -599,7 +598,7 @@ Feature spec 是短期執行文件；domain docs 是長期 system state。Dflow 
 | ExpenseCategory | 費用類別 | MVP 列舉內建類別 |
 ```
 
-完整 final snapshot：
+完整文件範例：
 [`outputs/dflow/specs/domain/Expense/models.md`](outputs/dflow/specs/domain/Expense/models.md)
 
 ### `domain/Expense/events.md`
@@ -619,7 +618,7 @@ Payload 不含 ExpenseItem 細節，避免 event 太重。
 consumer 若需要明細，自行透過 repository 重新讀取。
 ```
 
-完整 final snapshot：
+完整文件範例：
 [`outputs/dflow/specs/domain/Expense/events.md`](outputs/dflow/specs/domain/Expense/events.md)
 
 這些 system-level docs 會在後續 feature、bug fix、PR review、drift verification
@@ -768,7 +767,7 @@ feature/SPEC-20260428-001-employee-submit-expense，
 再進 Step 7 從 Domain layer 開始實作。
 ```
 
-## 本步驟產生或更新的文件
+## 本步驟的文件地圖
 
 | 狀態 | Path | 讀者看什麼 |
 |---|---|---|
@@ -783,18 +782,17 @@ feature/SPEC-20260428-001-employee-submit-expense，
 | 修改 | [`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md) | Expense BC 加入 context map。 |
 | 延後 | `dflow/specs/domain/Expense/behavior.md` | Step 8.3 / finish-feature 時才從 phase spec merge。 |
 
-[note] 上表連結是 final snapshot。後續 phase 2 與 finish-feature 會把部分檔案補成 completed
-狀態；本篇關注的是 step 02 如何建立這些文件的第一個可審視版本。
+上表連到完整文件範例；本篇重點是 step 02 如何建立這些文件的第一個可審視版本。
 
-## README feature claims 在這裡如何被驗證
+## 本篇展示的 Dflow 能力
 
-| README claim | 本篇可看到的證據 |
+| Dflow 能力 | 本篇可看到的證據 |
 |---|---|
 | Spec-first development | Dflow 先寫 phase spec、behavior scenarios、BR、tasks；本篇沒有進入 code generation。 |
 | Greenfield track | 第一個 BC、Aggregate、VO、Domain Event 從 clean project 長出來。 |
 | Hybrid workflow control | `/dflow:new-feature` 明確進入；phase gates 等 Alice `/dflow:next`。 |
 | DDD semantic backbone | BC、Aggregate、Entity/VO、Invariant、Domain Event 都有對話與文件化決策。 |
-| Three-layer documentation model | phase spec、feature `_index.md`、system-level domain docs 分別承擔不同生命週期。 |
+| 三層文件分工 | phase spec、feature `_index.md`、system-level domain docs 分別承擔不同生命週期。 |
 | Drift verification readiness | BR-ID、behavior scenarios、events、tasks 都已具備後續 `/dflow:verify` 或 PR review 可讀的依據。 |
 
 ## 這一段帶來的實際好處
@@ -841,7 +839,7 @@ feature/SPEC-20260428-001-employee-submit-expense，
 
 ## 下一個 walkthrough
 
-下一步會進入 [03-new-phase.md](03-new-phase.md) 的內容：Alice 跑完 phase 1 後，
+下一步會進入 [〈Walkthrough 03 — `/dflow:new-phase` 在同一 feature 內新增主管審核〉](walkthrough-03-new-phase.zh-TW.md)：Alice 跑完 phase 1 後，
 使用 `/dflow:new-phase` 在同一個 active feature 內加入「主管審核」。那一段會展示：
 
 - 既有 feature 如何新增 phase，而不是開一個 unrelated new feature

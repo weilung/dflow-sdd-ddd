@@ -17,7 +17,7 @@
 
 ```
 dflow/specs/
-├── shared/                   # 專案級治理文件（由 npx dflow-sdd-ddd init 寫入）
+├── shared/                   # 專案級治理文件（由 dflow init 寫入）
 │   ├── _overview.md          # 系統現況與遷移策略
 │   └── _conventions.md       # 規格撰寫慣例與模板
 ├── domain/                   # 領域知識

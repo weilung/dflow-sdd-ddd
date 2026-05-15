@@ -17,12 +17,13 @@ production code，也不打算新增 business rule。他只是發現：如果只
 - buggy：看起來錯、但今天不修的行為
 - unknown：來源不明，不能寫成 business rule 的 legacy 行為
 
-本篇來源是 [03-baseline-capture.md](03-baseline-capture.md)。本 walkthrough 會把它整理成一份
-可教學、可 review 的讀物，讓讀者看懂 Dflow 如何在「不改程式」時仍然累積 domain knowledge。
+本篇把 Bob 與 Dflow 的 baseline-capture 對話整理成一份可教學、可 review 的讀物，
+讓讀者看懂 Dflow 如何在「不改程式」時仍然累積 domain knowledge。
 
-[note] 本篇引用的 `outputs/` 連結指向 Brownfield 劇情全部跑完後的 final snapshot。
-部分檔案在後續 `05-bug-fix.md`、`06-finish-feature.md` 會再被修改。因此，本篇內嵌的
-code block 代表 baseline capture 當下的重點片段；連結則提供讀者檢查最終完整文件。
+閱讀提示：本篇會連到完整文件範例（目前存放在本 tutorial 的 `outputs/` 目錄）。這些範例代表 Brownfield 劇情跑完後的
+最終狀態；本篇內嵌 code block 則代表 baseline capture 當下的重點片段。只讀本篇也能看懂
+baseline-only 為什麼不順手修 code；若想看完整文件家族的讀法，再讀
+[〈如何閱讀 Dflow 規格與完整文件範例〉](../how-to-read-dflow-specs.zh-TW.md)。
 
 ## 本篇適合誰讀
 
@@ -36,7 +37,7 @@ code block 代表 baseline capture 當下的重點片段；連結則提供讀者
 
 ## 前情提要
 
-上一篇 [walkthrough-02-modify-existing.zh-TW.md](walkthrough-02-modify-existing.zh-TW.md)
+上一篇 [〈Walkthrough 02 — `/dflow:modify-existing` 從 WebForms 抽出第一段 Order Domain logic〉](walkthrough-02-modify-existing.zh-TW.md)
 中，Bob 已經把經銷商「華昕貿易」的折扣客訴整理成
 `SPEC-20260430-001-order-discount-calculation`。
 
@@ -492,10 +493,10 @@ Then 在相同 inputs 下，discounted total 的 source 一致
 And 兩個頁面預期都反映 BR-004 compound discount accumulation
 ```
 
-完整 final snapshot：
+完整文件範例：
 [`outputs/dflow/specs/domain/Order/behavior.md`](outputs/dflow/specs/domain/Order/behavior.md)
 
-[note] final snapshot 還包含後續 `SPEC-20260505-002` 的 VIP discount behavior。
+補充：完整文件範例還包含後續 `SPEC-20260505-002` 的 VIP discount behavior。
 本篇 baseline capture 當下只新增 `Confirmed across pages` 區塊。
 
 ### `tech-debt.md` 新增 buggy / unknown items
@@ -509,10 +510,10 @@ And 兩個頁面預期都反映 BR-004 compound discount accumulation
 | OrderList isVip multiplier 0.93 規則來源不明 | OrderList.aspx.cs BindGrid() | if (customer.IsVip) discountedTotal *= 0.93m 沒有註解或 ticket reference，且可能與 Senior 5% off 互斥。 | Medium | open |
 ```
 
-完整 final snapshot：
+完整文件範例：
 [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md)
 
-[note] final snapshot 中這兩項後來被後續劇情處理：rounding inconsistency 由 BUG-001 修正，
+補充：完整文件範例中這兩項後來被後續劇情處理：rounding inconsistency 由 BUG-001 修正，
 `isVip` multiplier 後來確認為 dead code。這不改變本篇 baseline capture 的教學重點：
 當下它們都不能被直接寫成 accepted BR。
 
@@ -528,12 +529,12 @@ Host feature dashboard 也要知道這次 baseline capture 發生過：
 | 2026-05-04 | baseline-capture | Baseline-only capture：已補 OrderList.aspx.cs 與 OrderDetail.aspx.cs 的跨頁 confirmed behavior；新發現的 rounding / isVip debt 已記錄於 tech-debt.md。本 row 無對應 spec 檔。 | n/a - spec capture only |
 ```
 
-完整 final snapshot：
+完整文件範例：
 [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md)
 
 這個 row 不叫 T1 / T2 / T3。它的 Type 是 `baseline-capture`。這比硬塞 tier 更清楚。
 
-## 本步驟產生或更新的文件
+## 本步驟的文件地圖
 
 | 狀態 | Path | 讀者看什麼 |
 |---|---|---|
@@ -545,15 +546,15 @@ Host feature dashboard 也要知道這次 baseline capture 發生過：
 | 故意不改 | `rules.md` | 沒有新增或修改 accepted BR。 |
 | 故意不改 | `models.md` / `context.md` | 沒有新增 Domain structure。 |
 
-## README feature claims 在這裡如何被驗證
+## 本篇展示的 Dflow 能力
 
-| README claim | 本篇可看到的證據 |
+| Dflow 能力 | 本篇可看到的證據 |
 |---|---|
 | Brownfield track | 不重寫 WebForms；只讀 immediate neighbor Code-Behind 並更新 baseline docs。 |
 | Spec-first development | 即使不改 code，也先把 confirmed behavior 與 tech debt 放進 spec/doc surface。 |
 | Hybrid workflow control | Bob 明確宣告 baseline-only；Dflow 不自動升級成 bug fix 或 implementation。 |
 | DDD semantic backbone | `behavior.md` 只收 accepted behavior，未知 legacy 行為不進 rules。 |
-| Three-layer documentation model | host feature `_index.md` 記錄 baseline-capture row；system-level `behavior.md` / `tech-debt.md` 分別保存 confirmed / risk。 |
+| 三層文件分工 | host feature `_index.md` 記錄 baseline-capture row；system-level `behavior.md` / `tech-debt.md` 分別保存 confirmed / risk。 |
 | Drift verification readiness | 後續如果 rounding 被修，reviewer 可看到它原本是 tech debt，而不是沉默改動。 |
 
 ## 這一段帶來的實際好處
@@ -597,7 +598,7 @@ Host feature dashboard 也要知道這次 baseline capture 發生過：
 
 ## 下一個 walkthrough
 
-下一個 Brownfield walkthrough 可接 [04-new-feature.md](04-new-feature.md)：
+下一個 Brownfield walkthrough 可接 [〈Walkthrough 04 — `/dflow:new-feature` 在既有 Order BC 上新增 VIP discount policy〉](walkthrough-04-new-feature.zh-TW.md)：
 Bob 在已經建立 Order BC 後接到新的 VIP discount policy 需求。那一篇會展示：
 
 - Brownfield 專案已有 BC 後，`/dflow:new-feature` 如何建立第二個 feature

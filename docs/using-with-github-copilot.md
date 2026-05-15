@@ -11,7 +11,8 @@ You are using or evaluating Dflow with GitHub Copilot in an IDE (e.g., VS Code).
 ## Prerequisites
 
 - GitHub Copilot enabled in your IDE (VS Code, JetBrains, or GitHub.dev).
-- A project initialized with `npx dflow-sdd-ddd init` (so the repository shim exists).
+- A project initialized with `dflow init` (or `npx dflow-sdd-ddd init` on the
+  no-install path) so the repository shim exists.
 - Basic familiarity with the Dflow canonical guide: `dflow/specs/shared/AI-AGENT-GUIDE.md`.
 
 ## What GitHub Copilot sees after `init`
@@ -114,7 +115,7 @@ You: Instead of /dflow:new-feature, try: "Please help me start a new Dflow
 
 ## Where to go next
 
-- If you have not run `init`: run `npx dflow-sdd-ddd init` and choose the Copilot target to create `.github/copilot-instructions.md`.
+- If you have not run `init`: run `dflow init` (after `npm install -g dflow-sdd-ddd`) or `npx dflow-sdd-ddd init` and choose the Copilot target to create `.github/copilot-instructions.md`.
 - Read `dflow/specs/shared/AI-AGENT-GUIDE.md` before starting a workflow.
 - See `tutorial/01-greenfield/` for conversation examples that demonstrate Copilot chat flows.
 

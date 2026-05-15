@@ -8,8 +8,8 @@ body:
     id: dflow-version
     attributes:
       label: Dflow version
-      description: Run `npx dflow-sdd-ddd --version` or note the package version you used.
-      placeholder: "0.1.1"
+      description: Run `dflow --version` (or `npx dflow-sdd-ddd --version` on the no-install path), or note the package version you used.
+      placeholder: "0.2.0"
     validations:
       required: true
   - type: input
@@ -35,7 +35,7 @@ body:
     attributes:
       label: Command or workflow
       description: Paste the command or `/dflow:*` workflow you were using.
-      placeholder: "npx dflow-sdd-ddd init"
+      placeholder: "dflow init"
     validations:
       required: true
   - type: textarea

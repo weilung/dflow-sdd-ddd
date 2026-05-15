@@ -6,6 +6,545 @@
 
 ---
 
+## 2026-05-15 — Public README zh-TW strategy + migrating-to-v1 reframing (PROPOSAL-024)
+
+**變更**：
+
+- `README.md` 改為**繁體中文版**（GitHub / npm 預設顯示），新增 `README.en.md` 作為英文版備案
+- 兩份 README 頂部都有 language switcher（粗體 = 當前語言、連結 = 另一語言）
+- 兩份 README 都**移除**舊有的 migration-guide 廣告段（原 `README.md:254-256` 那段「If you maintain a project that adopted an early Dflow form...」）。Dflow 經驗上只有 OBTS 這個唯一 pre-V1 adopter 且已完成遷移；首頁廣告 migration guide 對新 evaluator 是干擾文字
+- `scripts/export-dist.sh` `include_paths` 加 `README.en.md`，確保未來 dist projection 把雙語版都帶過去
+- `docs/migrating-to-dflow-v1.md` 頂部加「Audience reality (2026-05-15)」blockquote，校正讀者期待 — 這篇 doc 仍存在是因為 `dflow doctor` / `dflow init` warning 接過來時需要它，**不是**廣告型 evangelism 文件
+- `MAINTAINERS.md` 新增「README Language Strategy」段，記錄雙語政策
+
+**邊界**：
+
+- dev-only；dist projection 留待 user-approved checkpoint，與 PROPOSAL-022 / 023 一起 bundle
+- 純 public-facing docs；無 lib/、bin/、test/、scaffolding 變動。`docs/migrating-to-dflow-v1.md` 的 runtime references（doctor、init.js warning、smoke test、scaffolding mirrors）全部保留
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release
+
+**驗證**：
+
+- `git diff --check` clean
+- `scripts/check-repo-consistency.sh` pass
+- `npm pack --dry-run`：file list 含 `README.en.md`
+- `test/smoke.mjs` 不受影響（migrating-to-v1 path reference 未動）
+
+---
+
+## 2026-05-15 — Line-ending policy, dev-side (PROPOSAL-023)
+
+**變更**：
+
+- 新增 `.gitattributes` line-ending 政策（commit `f7b3cbe`）：
+  - `* text=auto eol=lf` 規定全 repo 文字檔 LF（含 repo storage 與所有 OS 的 working tree）
+  - `*.bat` / `*.cmd` 例外 CRLF（Windows `cmd.exe` 必需）
+  - `*.png` / `*.jpg` / `*.pdf` 標記 binary（defensive future-proofing；repo 內目前無此類檔案）
+- `scripts/export-dist.sh` `include_paths` 加 `.gitattributes`（commit `c887b05`，Phase 1.5；resolves Director cross-check Finding 12），確保未來 dist projection 把政策帶過去
+- 一次性 brute-force WT refresh（`git ls-files -z | xargs -0 rm -f && git checkout -- .`）讓 dev 內 336 個 CRLF working-tree 檔對齊 LF。**無 commit 產生** — repo storage 早已是 LF（`autocrlf=true` 歷史），`git add --renormalize .` 是 no-op；只有 WT 不一致
+- `MAINTAINERS.md` 加「Line Endings」段，說明政策、`.bat`/`.cmd` 例外、Windows 個人 `core.autocrlf=input` 建議、`.git-blame-ignore-revs` 未使用的理由與未來啟用步驟
+- `planning/line-ending-finding.md` 加 closeout 註
+
+**邊界**：
+
+- dev-only；Phase 2（dist projection）留待 user-approved checkpoint，與 PROPOSAL-022 implementation + bug template 等 pending 變更一起 bundle
+- 純 line-ending policy + WT refresh；無 semantic / API / runtime 變化
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release
+
+**驗證**：
+
+- `git ls-files --eol | awk '{print $1, $2}' | sort | uniq -c` → 347 `i/lf w/lf` + 3 `i/none w/none`（無 `i/lf w/crlf` 殘留）
+- `scripts/check-repo-consistency.sh` pass
+- `git diff --check` clean
+- `git status` clean after WT refresh
+
+---
+
+## 2026-05-15 — Archive legacy tutorial drafts
+
+**變更**：
+
+- 將 14 個 legacy 非 zh-TW tutorial 草稿從 `tutorial/0X-{greenfield,brownfield}/`
+  搬到 `archive/tutorial-drafts/0X-{greenfield,brownfield}/`，使用 `git mv` 保留
+  rename history（檔案內容不變）：
+  - greenfield 7 檔（00-setup、01-init-project、02-new-feature、03-new-phase、
+    04-modify-existing、05-bug-fix、06-finish-feature）
+  - brownfield 7 檔（00-setup、01-init-project、02-modify-existing、
+    03-baseline-capture、04-new-feature、05-bug-fix、06-finish-feature）
+- 更新 `archive/README.md`，加入 `archive/tutorial-drafts/` 子目錄說明。
+
+**動機**：
+
+- zh-TW canonical walkthrough（`tutorial/0X-*/walkthrough-*.zh-TW.md`）已是
+  reader-facing 入口；legacy 草稿在公開閱讀流程中已無入口（PROPOSAL-022 Phase 2
+  已將 `docs/*.md` 連結重新指向 zh-TW canonical）。
+- `scripts/export-dist.sh` 將 `tutorial/` 整個投影到 dist；legacy 檔留在
+  `tutorial/` 內會在 dist projection 時被帶上 dist。搬到已被排除的 `archive/`
+  目錄即可保留 dev 歷史、不污染 dist。
+
+**邊界**：
+
+- 純檔案搬移；無內容變更。
+- `archive/` 已在 `scripts/export-dist.sh` `excluded_stale_paths` 內。
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release。
+
+**驗證**：
+
+- `git diff --check`
+- `scripts/check-repo-consistency.sh`
+- `ls tutorial/` 與 `ls archive/tutorial-drafts/` 確認 14 檔搬移完整。
+
+---
+
+## 2026-05-14 — CLI install recommendation docs update (PROPOSAL-022)
+
+**變更**：
+
+- 更新 `README.md`：將 `npm install -g dflow-sdd-ddd` + `dflow init` 提升為
+  主要安裝路徑；`npx dflow-sdd-ddd` 改為明確標示的「Alternative: try without
+  installing」替代路徑，並列出 init / doctor / configure-agents 的 npx 形式。
+- 更新 `tutorial/README.md`、`tutorial/dflow-command-surface.zh-TW.md`、
+  `tutorial/01-greenfield/walkthrough-0{0,1,2}-*.zh-TW.md`、
+  `tutorial/02-brownfield/walkthrough-0{0,1,6}-*.zh-TW.md`：
+  CLI 命令參照從 `npx dflow-sdd-ddd init` 更新為 `dflow init`；
+  walkthrough-01 保留一段 npx 替代路徑說明。
+- 更新 `templates/` 與 `sdd-ddd-*-skill/scaffolding/` 四個 mirror pair
+  (AI-AGENT-GUIDE.md、CLAUDE-md-snippet.md)：install 參照改為 neutral 措辭
+  (`dflow init`, or `npx dflow-sdd-ddd init` when using the no-install path)。
+- 更新 `templates/{greenfield,brownfield}/templates/CLAUDE.md` 與
+  `sdd-ddd-{green,brown}field-skill/templates/CLAUDE.md` 兩對 mirror pair：
+  目錄樹 comment 從「由 npx dflow-sdd-ddd init 寫入」改為「由 dflow init 寫入」。
+- 更新 `docs/evaluating-dflow.md`、`docs/using-with-claude-code.md`、
+  `docs/using-with-codex.md`、`docs/using-with-gemini-cli.md`、
+  `docs/using-with-github-copilot.md`、`docs/migrating-to-dflow-v1.md`：
+  install ordering 對齊新主路徑；重新連結四個 docs 的舊 tutorial 連結至
+  zh-TW canonical walkthrough 檔案。
+- 更新 `MAINTAINERS.md`：新增 contributor CLI 使用 `npm link` 的一行說明。
+- `docs/npm-publish-checklist.md`：確認未動，versioned smoke checks 保持不變。
+- `npx dflow-sdd-ddd` 形式繼續有效；本次只是不再作為主要文件路徑推薦。
+
+**邊界**：
+
+- doc-only；無 `lib/` / `bin/` / `package.json` / skill source 行為變更。
+- dev-only checkpoint；dist projection 待後續 user-approved checkpoint。
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release。
+
+**驗證**：
+
+- `git diff --check`
+- `scripts/check-repo-consistency.sh`
+- 手動 grep 分類：`rg -n "npx dflow-sdd-ddd|dflow doctor|dflow configure-agents"`
+
+---
+
+## 2026-05-14 — Maintainer operational guardrails
+
+**變更**：
+
+- 更新 `MAINTAINERS.md`，將近期 handoff 中反覆出現的跨任務運作規則制度化：
+  commit / push 判斷、依 changed surface 選擇驗證、dist projection cadence、
+  tutorial fixture 邊界與 release boundary。
+- 明確規定 docs / tutorial / planning-only 變更不需跑 `npm test`；
+  `npm test` 保留給 runtime、CLI、templates、tests、package metadata 或
+  release automation 等會影響 package behavior 的變更。
+- 明確規定 tutorial draft 不逐次投影 dist；dist projection 需在
+  user-approved checkpoint 或 full tutorial rewrite ready 時進行。
+- 明確規定 `tutorial/**/outputs/` fixture 不因 wording cleanup 或翻譯工作修改；
+  若要 rename，必須作為獨立 path-migration checkpoint 處理。
+
+**邊界**：
+
+- dev-only maintainer guidance；本次不投影 dist。
+- doc-only；無 `lib/` / `templates/` / `bin/` / skill source 變更。
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release。
+
+**驗證**：
+
+- `git diff --check`
+
+---
+
+## 2026-05-14 — Tutorial wording and link-label cleanup
+
+**變更**：
+
+- 更新 `tutorial/README.md` 開頭說明，移除「API reference」這類不直覺的對比，
+  改成直接說明 tutorial 讓讀者透過 Greenfield / Brownfield 劇情理解 Dflow。
+- 將 tutorial walkthrough 內指向其他教學篇章與導讀頁的連結文字，從檔名改為
+  reader-facing 篇名，並在段落連結中使用 `〈...〉` 呈現篇名。
+- 將 `how-to-read-dflow-specs.zh-TW.md` 的標題與說明從 `outputs snapshots`
+  收斂為「Dflow 規格與完整文件範例」，降低讀者必須理解 repo 內
+  `outputs/` 目錄命名的負擔。
+- 更新 walkthrough 開頭的閱讀提示，將 `outputs/` 描述為完整文件範例目前的存放位置。
+- 更新主 `README.md` 的 `Files Created by Init` 目錄樹，加入 tree connector 符號。
+
+**邊界**：
+
+- dev-only checkpoint；本次不投影 dist。
+- doc-only；無 `lib/` / `templates/` / `bin/` / skill source 變更。
+- 本次不 rename `tutorial/**/outputs/`；該目錄命名需要另行決策。
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release。
+
+**驗證**：
+
+- `git diff --check`
+- 手動 grep tutorial walkthrough 中舊式 walkthrough filename labels
+
+---
+
+## 2026-05-13 — Tutorial README reader-facing labels
+
+**變更**：
+
+- 更新 `tutorial/README.md`，將「先讀」與 walkthrough 入口的連結文字
+  從檔名改成 reader-facing 文件題名。
+- 保留 Greenfield / Brownfield walkthrough 表格形式，並補上「建議順讀、
+  但每篇可單篇閱讀」的導覽說明。
+- 將 README 中「正在改寫中的 immersive walkthrough 系列」改為
+  `zh-TW immersive walkthrough 系列`，避免過期語氣。
+
+**邊界**：
+
+- dev-only checkpoint；本次不投影 dist。
+- doc-only；無 `lib/` / `templates/` / `bin/` / skill source 變更。
+- `outputs/` tree 完全未動。
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release。
+
+**驗證**：
+
+- `git diff --check`
+- 手動 grep `tutorial/README.md` 中舊式 walkthrough filename labels
+
+---
+
+## 2026-05-13 — Walkthrough reading-flow cleanup
+
+**變更**：
+
+- 清理 Greenfield / Brownfield 02-06 user / evaluator-facing walkthrough 的
+  reading flow wording，範圍包含：
+  `tutorial/01-greenfield/walkthrough-02-new-feature.zh-TW.md` through
+  `tutorial/01-greenfield/walkthrough-06-finish-feature.zh-TW.md`，
+  以及 `tutorial/02-brownfield/walkthrough-02-modify-existing.zh-TW.md`
+  through `tutorial/02-brownfield/walkthrough-06-finish-feature.zh-TW.md`。
+- 將重複的 `final snapshot` 說明收斂成「完整文件範例」與少量情境補充，
+  避免每個文件片段都重複解釋 snapshot / excerpt 分工。
+- 將「README feature claims」區塊改成 reader-facing「本篇展示的 Dflow 能力」，
+  並把 `Three-layer documentation model` 改成較自然的「三層文件分工」。
+- 保留每篇開頭的自足閱讀提示，讓讀者不必先跳到
+  `how-to-read-dflow-specs.zh-TW.md` 才能讀懂單篇 walkthrough。
+
+**邊界**：
+
+- dev-only checkpoint；本次不投影 dist。
+- doc-only；無 `lib/` / `templates/` / `bin/` / skill source 變更。
+- `outputs/` tree 完全未動。
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release。
+
+**驗證**：
+
+- `git diff --check`
+- 手動 grep 02-06 walkthroughs 中的舊式 `final snapshot` /
+  `README feature claims` / `Three-layer` wording
+
+---
+
+## 2026-05-13 — Reader-facing walkthrough wording cleanup
+
+**變更**：
+
+- 清理 Greenfield / Brownfield `walkthrough-*.zh-TW.md` 的開頭與閱讀提示，
+  移除 `00-setup.md`、`02-new-feature.md` 等素材檔引用，避免 user /
+  evaluator-facing 文件暴露 maintainer source-material 語境。
+- 將 walkthrough 的 bracketed notes 改為 reader-facing「閱讀提示」，說明
+  `outputs/` 連結代表完整 snapshot、正文 excerpt 代表當下重點，並連到
+  `how-to-read-dflow-specs.zh-TW.md`。
+- 更新 `tutorial/dflow-command-surface.zh-TW.md`，把舊 step trace links
+  改指向公開 walkthrough 入口。
+
+**邊界**：
+
+- dev-only checkpoint；本次不投影 dist。
+- doc-only；無 `lib/` / `templates/` / `bin/` / skill source 變更。
+- `outputs/` tree 完全未動。
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release。
+
+**驗證**：
+
+- `git diff --check`
+- 手動 spot-check walkthrough source-material references
+
+---
+
+## 2026-05-13 — Dflow specs reading guide
+
+**變更**：
+
+- 新增 `tutorial/how-to-read-dflow-specs.zh-TW.md`，作為 cross-cutting
+  reading guide，說明 walkthrough excerpt 與 `outputs/` final snapshot
+  的差別、phase / lightweight / BUG specs、feature `_index.md`、BC layer
+  cumulative docs、Brownfield baseline capture 與 `migration/tech-debt.md`
+  的讀法。
+- 更新 `tutorial/README.md` 的「先讀」入口，加入 spec / snapshot 讀法導覽。
+- 更新 `planning/immersive-tutorial-suite-plan.md`，把
+  `how-to-read-dflow-specs.zh-TW.md` 從候選轉為 accepted cross-cutting
+  tutorial。
+
+**邊界**：
+
+- dev-only checkpoint；本次不投影 dist。
+- doc-only；無 `lib/` / `templates/` / `bin/` / skill source 變更。
+- `outputs/` tree 完全未動；本篇只說明如何閱讀 snapshots。
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release。
+
+**驗證**：
+
+- `git diff --check`
+- 手動 spot-check 新增 tutorial link targets
+
+---
+
+## 2026-05-13 — Setup and init immersive walkthroughs
+
+**變更**：
+
+- 新增 Greenfield walkthrough 00 / 01：
+  `tutorial/01-greenfield/walkthrough-00-setup.zh-TW.md` 與
+  `tutorial/01-greenfield/walkthrough-01-init-project.zh-TW.md`，補齊
+  Alice / ExpenseTracker 的專案起點、Clean Architecture repo state、
+  `npx dflow-sdd-ddd init`、file-list preview、Greenfield baseline
+  outputs、AI tool shims，以及 Day-0 不預建 `behavior.md` / ADR 的理由。
+- 新增 Brownfield walkthrough 00 / 01：
+  `tutorial/02-brownfield/walkthrough-00-setup.zh-TW.md` 與
+  `tutorial/02-brownfield/walkthrough-01-init-project.zh-TW.md`，補齊
+  Bob / OrderManager 的 legacy context、WebForms / EF 6 / Stored Procedure
+  風險、Brownfield init baseline、`migration/tech-debt.md`、Git Flow 選擇，
+  以及 init 不建立 `src/Domain/` 或預設 Order BC 的邊界。
+- 更新 `tutorial/README.md`，讓 Greenfield 與 Brownfield walkthrough path
+  都從 00-06 完整列出。
+- 更新 `planning/immersive-tutorial-suite-plan.md`，把 00 / 01 四篇 zh-TW
+  walkthrough 加入 accepted pattern。
+
+**邊界**：
+
+- dev-only checkpoint；本次不投影 dist。
+- doc-only；無 `lib/` / `templates/` / `bin/` / skill source 變更。
+- `outputs/` tree 完全未動；walkthrough 只以連結與內嵌 excerpt 引用。
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release。
+
+**驗證**：
+
+- `git diff --check`
+- 手動 spot-check 新增 tutorial link targets
+
+---
+
+## 2026-05-12 — Greenfield finish-feature immersive walkthrough
+
+**變更**：
+
+- 新增 `tutorial/01-greenfield/walkthrough-06-finish-feature.zh-TW.md`，
+  以中文 canonical walkthrough 展示 Greenfield `/dflow:finish-feature`
+  如何收尾 `SPEC-20260428-001-employee-submit-expense`：closeout
+  validation、deferred item disposition、status flip、BR-001~007 sync
+  到 Expense BC `rules.md`、completed archive、Integration Summary、
+  tech-debt preserve，以及 completed feature frozen history 邊界。
+- 更新 `tutorial/README.md` 的 Greenfield walkthrough 表格，連到新的
+  finish-feature walkthrough，並將目前狀態更新為 Greenfield 02-06
+  與 Brownfield 02-06 zh-TW immersive walkthroughs 已列入索引。
+- 更新 `planning/immersive-tutorial-suite-plan.md`，把 Greenfield
+  `walkthrough-06-finish-feature.zh-TW.md` 加入 accepted pattern。
+
+**邊界**：
+
+- dev-only checkpoint；本次不投影 dist。
+- doc-only；無 `lib/` / `templates/` / `bin/` / skill source 變更。
+- `outputs/` tree 完全未動；walkthrough 只以連結與內嵌 excerpt 引用。
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release。
+
+**驗證**：
+
+- `git diff --check`
+- 手動 spot-check 新增 tutorial link targets
+
+---
+
+## 2026-05-12 — Greenfield bug-fix immersive walkthrough
+
+**變更**：
+
+- 新增 `tutorial/01-greenfield/walkthrough-05-bug-fix.zh-TW.md`，
+  以中文 canonical walkthrough 展示 Greenfield `/dflow:bug-fix`
+  如何處理 reject reason emoji surrogate truncation：T2 Light 判定、
+  BUG-001 命名、active host feature linkage、Presentation primary /
+  Domain secondary layer split、BR-007 wording unchanged、Current BR
+  Snapshot intentionally unchanged note，以及 Unicode character counting
+  tech debt 分流。
+- 更新 `tutorial/README.md` 的 Greenfield walkthrough 表格，連到新的
+  bug-fix walkthrough，並將目前狀態更新為只剩 Greenfield 06 尚未
+  改寫。
+- 更新 `planning/immersive-tutorial-suite-plan.md`，把 Greenfield
+  `walkthrough-05-bug-fix.zh-TW.md` 加入 accepted pattern。
+
+**邊界**：
+
+- dev-only checkpoint；本次不投影 dist。
+- doc-only；無 `lib/` / `templates/` / `bin/` / skill source 變更。
+- `outputs/` tree 完全未動；walkthrough 只以連結與內嵌 excerpt 引用。
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release。
+
+**驗證**：
+
+- `git diff --check`
+- 手動 spot-check 新增 tutorial link targets
+
+---
+
+## 2026-05-12 — Greenfield modify-existing immersive walkthrough
+
+**變更**：
+
+- 新增 `tutorial/01-greenfield/walkthrough-04-modify-existing.zh-TW.md`，
+  以中文 canonical walkthrough 展示 Greenfield `/dflow:modify-existing`
+  如何把 BR-007 reject reason 從單一 10 字元調整為 bilingual length
+  rule：T2 Light 判定、active host feature linkage、completed-feature
+  reopen skip、lightweight spec Delta、Current BR Snapshot regenerate、
+  `ApprovalReason` Value Object impact，以及 `models.md` / `context.md`
+  故意不擴張同步的邊界。
+- 更新 `tutorial/README.md` 的 Greenfield reading path 與 immersive
+  walkthrough 區塊，連到新的 modify-existing walkthrough。
+- 更新 `planning/immersive-tutorial-suite-plan.md`，把 Greenfield
+  `walkthrough-04-modify-existing.zh-TW.md` 加入 accepted pattern。
+
+**邊界**：
+
+- dev-only checkpoint；本次不投影 dist。
+- doc-only；無 `lib/` / `templates/` / `bin/` / skill source 變更。
+- `outputs/` tree 完全未動；walkthrough 只以連結與內嵌 excerpt 引用。
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release。
+
+**驗證**：
+
+- `git diff --check`
+- 手動 spot-check 新增 tutorial link targets
+
+---
+
+## 2026-05-11 — Greenfield new-phase immersive walkthrough
+
+**變更**：
+
+- 新增 `tutorial/01-greenfield/walkthrough-03-new-phase.zh-TW.md`，
+  以中文 canonical walkthrough 展示 Greenfield `/dflow:new-phase`
+  如何在既有 `SPEC-20260428-001-employee-submit-expense` 內新增
+  supervisor approval phase：active feature context loading、phase scope
+  confirmation、ApprovalDecision Aggregate 邊界、ADDED / MODIFIED Delta、
+  Current BR Snapshot regenerate，以及 living domain docs sync。
+- 更新 `tutorial/README.md` 的 Greenfield reading path 與 immersive
+  walkthrough 區塊，連到新的 new-phase walkthrough。
+- 更新 `planning/immersive-tutorial-suite-plan.md`，把 Greenfield
+  `walkthrough-03-new-phase.zh-TW.md` 加入 accepted pattern。
+
+**邊界**：
+
+- dev-only checkpoint；本次不投影 dist。
+- doc-only；無 `lib/` / `templates/` / `bin/` / skill source 變更。
+- `outputs/` tree 完全未動；walkthrough 只以連結與內嵌 excerpt 引用。
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release。
+
+**驗證**：
+
+- `git diff --check`
+- 手動 spot-check 新增 tutorial link targets
+
+---
+
+## 2026-05-11 — Brownfield finish-feature immersive walkthrough
+
+**變更**：
+
+- 新增 `tutorial/02-brownfield/walkthrough-06-finish-feature.zh-TW.md`，
+  以中文 canonical walkthrough 展示 Brownfield `/dflow:finish-feature`
+  如何收尾 `SPEC-20260430-001-order-discount-calculation`：closeout
+  validation、BR-001~004 sync、BR-005~008 preserve、completed archive、
+  Integration Summary、tech-debt sweep，以及 completed feature frozen
+  history 邊界。
+- 更新 `tutorial/README.md` 的 Brownfield reading path 與 immersive
+  walkthrough 區塊，連到新的 finish-feature walkthrough。
+- 更新 `planning/immersive-tutorial-suite-plan.md`，把 Brownfield
+  `walkthrough-06-finish-feature.zh-TW.md` 加入 accepted pattern。
+
+**邊界**：
+
+- dev-only checkpoint；本次不投影 dist。
+- doc-only；無 `lib/` / `templates/` / `bin/` / skill source 變更。
+- `outputs/` tree 完全未動；walkthrough 只以連結與內嵌 excerpt 引用。
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release。
+
+**驗證**：
+
+- `git diff --check`
+- 手動 spot-check 新增 tutorial link targets
+
+---
+
+## 2026-05-11 — Brownfield bug-fix immersive walkthrough
+
+**變更**：
+
+- 新增 `tutorial/02-brownfield/walkthrough-05-bug-fix.zh-TW.md`，
+  以中文 canonical walkthrough 展示 Brownfield `/dflow:bug-fix`
+  如何處理跨頁 rounding inconsistency：T2 Light 判定、BUG-001 命名、
+  host feature 歸屬 SPEC-001、`Money.ToDisplay()` implementation contract
+  收斂、BR Snapshot intentionally unchanged note，以及 `tech-debt.md`
+  resolved disposition。
+- 更新 `tutorial/README.md` 的 Brownfield reading path 與 immersive
+  walkthrough 區塊，連到新的 bug-fix walkthrough。
+- 更新 `planning/immersive-tutorial-suite-plan.md`，把 Brownfield
+  `walkthrough-05-bug-fix.zh-TW.md` 加入 accepted pattern。
+
+**邊界**：
+
+- dev-only checkpoint；本次不投影 dist。
+- doc-only；無 `lib/` / `templates/` / `bin/` / skill source 變更。
+- `outputs/` tree 完全未動；walkthrough 只以連結與內嵌 excerpt 引用。
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release。
+
+**驗證**：
+
+- `git diff --check`
+- 手動 spot-check 新增 tutorial link targets
+
+---
+
+## 2026-05-11 — Brownfield new-feature immersive walkthrough
+
+**變更**：
+
+- 新增 `tutorial/02-brownfield/walkthrough-04-new-feature.zh-TW.md`，
+  以中文 canonical walkthrough 展示 Brownfield 已有 Order BC 後如何用
+  `/dflow:new-feature` 新增 VIP discount policy，並說明 `isVip * 0.93`
+  dead code disposition、Customer reference data 邊界、BR-005~008 與
+  既有 BR-001~004 的互動。
+- 更新 `tutorial/README.md` 的 Brownfield reading path 與 immersive
+  walkthrough 區塊，連到新的 new-feature walkthrough。
+- 更新 `planning/immersive-tutorial-suite-plan.md`，把 Brownfield
+  `walkthrough-04-new-feature.zh-TW.md` 加入 accepted pattern。
+
+**邊界**：
+
+- dev-only checkpoint；本次不投影 dist。
+- doc-only；無 `lib/` / `templates/` / `bin/` / skill source 變更。
+- `outputs/` tree 完全未動；walkthrough 只以連結與內嵌 excerpt 引用。
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release。
+
+**驗證**：
+
+- `git diff --check`
+- 手動 spot-check 新增 tutorial link targets
+
+---
+
 ## 2026-05-10 — Brownfield baseline-capture immersive walkthrough
 
 **變更**：
