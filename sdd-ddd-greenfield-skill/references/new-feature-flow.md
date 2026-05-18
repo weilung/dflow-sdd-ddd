@@ -4,7 +4,7 @@ Step-by-step guide for adding a new feature with full DDD and Clean Architecture
 
 Triggered by `/dflow:new-feature` (or natural language implying a new-feature task — see SKILL.md § Workflow Transparency for the auto-trigger safety net behavior).
 
-**Phase Gates** in this flow (stop-and-confirm before proceeding):
+**Step Gates** in this flow (stop-and-confirm before proceeding):
 - Step 3 → Step 3.5 (Aggregate / VO / Events identified → confirm slug + directory + branch names)
 - Step 4 → Step 5 (spec written → plan implementation)
 - Step 6 → Step 7 (branch ready → start implementation)
@@ -98,7 +98,7 @@ If foundational domain docs are missing, create them from templates before writi
 - `dflow/specs/domain/{context}/events.md` (when Domain Events are involved) → `templates/events.md`
 - `dflow/specs/domain/context-map.md` (when cross-context relationships are involved) → `templates/context-map.md`
 
-**→ Phase Gate: Step 3 → Step 3.5**
+**→ Step Gate: Step 3 → Step 3.5**
 
 Announce to developer:
 > "Aggregate / VO / Events identified. Before I create any files, let me confirm the SPEC-ID, slug, directory name, and branch name with you (Step 3.5). `/dflow:next` to proceed."
@@ -183,7 +183,7 @@ Scenario: Submit expense report
   And the report can no longer be modified
 ```
 
-**→ Phase Gate: Step 4 → Step 5**
+**→ Step Gate: Step 4 → Step 5**
 
 Announce to developer:
 > "Spec is drafted — behavior scenarios, Aggregate state transitions, Domain Events, and CQRS split are captured. Ready to plan the layer-by-layer implementation (Domain → Application → Infrastructure → Presentation)? `/dflow:next` or reply 'OK' to continue, or tell me if the spec needs another iteration first."
@@ -265,7 +265,7 @@ The slug **must match the slug agreed in Step 3.5** (which is also the
 feature directory name). The SPEC-ID + slug links the branch to its
 feature directory and `_index.md`.
 
-**→ Phase Gate: Step 6 → Step 7**
+**→ Step Gate: Step 6 → Step 7**
 
 Announce to developer:
 > "Branch `feature/{SPEC-ID}-{description}` is created. Ready to start layer-by-layer implementation (Domain first)? `/dflow:next` to proceed, or discuss layer order / scope first."
@@ -300,16 +300,16 @@ During implementation, continuously verify:
 - [ ] No domain objects exposed to API consumers
 - [ ] Proper HTTP status codes
 
-**→ Phase Gate: Step 7 → Step 8**
+**→ Step Gate: Step 7 → Step 8**
 
 Announce to developer:
 > "Implementation appears complete across all four layers. Ready to run the completion checklist (verify against spec, update domain docs + context-map, ensure test coverage, archive the spec)? `/dflow:next` to proceed."
 
-Wait for confirmation before entering Step 8. This phase gate is where the completion checklist is triggered — do not skip.
+Wait for confirmation before entering Step 8. This step gate is where the completion checklist is triggered — do not skip.
 
 ## Step 8: Completion
 
-Triggered by the Step 7 → Step 8 Phase Gate. AI runs the completion checklist in the order below; do **not** skip a section.
+Triggered by the Step 7 → Step 8 Step Gate. AI runs the completion checklist in the order below; do **not** skip a section.
 
 ### 8.1 Verification — AI runs independently
 
@@ -347,7 +347,7 @@ Ask these one-by-one; do not dump all six at once.
 - [ ] `dflow/specs/domain/{context}/models.md` — model definitions updated
 - [ ] `dflow/specs/domain/{context}/rules.md` — business rules updated
 - [ ] `dflow/specs/domain/{context}/behavior.md` — merge completed spec's Given/When/Then scenarios (incl. Aggregate transitions + Events) into consolidated behavior. Sub-steps:
-      - Promote any Phase 3 draft sections (from B3 mid-sync) to formal sections
+      - Promote any Activity 3 (Spec Writing) draft sections (from B3 mid-sync) to formal sections
       - Update the corresponding `rules.md` anchor's `last-updated` date (B4)
 - [ ] `behavior.md` draft cleanup — if the spec was abandoned mid-way, keep the `## 提案中變更` section's history or explicitly REMOVE it
 - [ ] `dflow/specs/domain/{context}/events.md` — Domain Events updated

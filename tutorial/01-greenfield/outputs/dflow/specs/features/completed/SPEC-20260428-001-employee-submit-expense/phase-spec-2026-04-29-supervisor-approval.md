@@ -1,7 +1,7 @@
 ---
 id: SPEC-20260428-001
 title: 員工提交費用單 — supervisor approval phase
-status: in-progress
+status: completed
 bounded-context: Expense
 created: 2026-04-29
 author: Alice
@@ -12,13 +12,13 @@ phase-slug: supervisor-approval
 
 # 員工提交費用單 — supervisor approval phase
 
-## Problem Description <!-- Fill timing: Phase 1 -->
+## Problem Description <!-- Fill timing: Activity 1: Understanding -->
 
 phase 1 MVP 讓員工能建立並提交 ExpenseReport，主管端也能看到送來的單，但小範圍試用後主管回饋：「我只能看到員工送來的單，但我點進去看完無法做任何動作。」
 
 phase 2 要補上主管審核動作：主管可以核准或退回一份已提交的 ExpenseReport。核准後 ExpenseReport 進入 Approved，退回後進入 Rejected，並允許員工依退回原因重新編輯後再次 Submit。這個 phase 不處理通知 email、SLA timer、財務匯款或批次審核。
 
-## Domain Concepts <!-- Fill timing: Phase 2 -->
+## Domain Concepts <!-- Fill timing: Activity 2: Domain Modeling -->
 
 涉及的 Domain 概念（引用 `dflow/specs/domain/Expense/models.md`）：
 
@@ -37,7 +37,7 @@ phase 2 要補上主管審核動作：主管可以核准或退回一份已提交
 - [x] `dflow/specs/domain/Expense/events.md` — ExpenseReportApproved / ExpenseReportRejected 已記錄
 
 <!-- dflow:section behavior-scenarios -->
-## Behavior Scenarios <!-- Fill timing: Phase 3 -->
+## Behavior Scenarios <!-- Fill timing: Activity 3: Spec Writing -->
 
 ### Main Success Scenario
 
@@ -89,7 +89,7 @@ Scenario: 主管嘗試退回但未提供足夠原因
   And 不建立 ApprovalDecision
 ```
 
-## Business Rules <!-- Fill timing: Phase 3 -->
+## Business Rules <!-- Fill timing: Activity 3: Spec Writing -->
 
 > Phase 2+ 注意：本段僅列本 phase 新增 / 修改到的 BR；未變動的 BR 不重抄（它們的當前狀態見 feature 的 `_index.md` Current BR Snapshot 表）。
 
@@ -100,7 +100,7 @@ Scenario: 主管嘗試退回但未提供足夠原因
 | BR-006 | 只有 Status = Submitted 的 ExpenseReport 能被 Approve / Reject；其他狀態一律 raise DomainException。 | Domain: ExpenseReport.Approve / Reject |
 | BR-007 | Reject 必須附註原因；ApprovalReason 至少 10 字元，否則 raise DomainException。 | Domain: ApprovalReason |
 
-## Delta from prior phases <!-- Fill timing: Phase 3; skip for the first phase -->
+## Delta from prior phases <!-- Fill timing: Activity 3: Spec Writing; skip for the first phase -->
 
 > 本段僅記本 phase 相對 phase 1 (mvp) 的變化，不累積歷史。歷史由 feature 目錄下各 phase-spec 的本段串接閱讀；feature 層的當前累積狀態見 `_index.md` 的 Current BR Snapshot。
 
@@ -158,7 +158,7 @@ _(none)_
 - BR-003 ExpenseItem 的 Money.Amount 必須 > 0。
 - BR-004 同一 ExpenseReport 內，相同 ReceiptReference 不允許重複加入。
 
-## Edge Cases <!-- Fill timing: Phase 3 -->
+## Edge Cases <!-- Fill timing: Activity 3: Spec Writing -->
 
 | ID | Case | Expected Handling |
 |---|---|---|
@@ -168,14 +168,14 @@ _(none)_
 | EC-007 | Rejected 後員工重新編輯並再次 Submit | Rejected 狀態允許編輯；再次 Submit 進入 Submitted，後續會建立新的 ApprovalDecision |
 | EC-008 | 同一 Submit attempt 重複審核 | ApprovalDecision one-to-one 約束拒絕第二筆 decision；Application 層以 unique index / concurrency guard 補強 |
 
-## Domain Events <!-- Fill timing: Phase 2-3; draft during design, finalized during spec writing -->
+## Domain Events <!-- Fill timing: Activity 2-3; draft during Domain Modeling, finalized during Spec Writing -->
 
 | Event | Trigger | Handler | Sync / Async |
 |---|---|---|---|
 | ExpenseReportApproved | ExpenseReport.Approve() 成功且 ApprovalDecision 建立後 | _(phase 2 暫無外部 consumer；保留給 phase 3 Reimbursement)_ | in-process / sync（MediatR INotification，同 transaction 內 dispatch） |
 | ExpenseReportRejected | ExpenseReport.Reject() 成功且 ApprovalDecision 建立後 | _(phase 2 暫無外部 consumer；UI 可透過查詢讀取 reason)_ | in-process / sync（MediatR INotification，同 transaction 內 dispatch） |
 
-## Implementation Plan (Layer by Layer) <!-- Fill timing: Phase 4 -->
+## Implementation Plan (Layer by Layer) <!-- Fill timing: Activity 4: Implementation Planning -->
 
 ### Domain Layer
 - 擴張 `ExpenseReportStatus`：Draft / Submitted / Approved / Rejected
@@ -203,7 +203,7 @@ _(none)_
 - `GET /api/expense-reports/pending-approval`
 - Request / Response models + Swagger annotations
 
-## Data Structure Changes <!-- Fill timing: Phase 4 -->
+## Data Structure Changes <!-- Fill timing: Activity 4: Implementation Planning -->
 
 | Table | Column | Change Type | Description |
 |---|---|---|---|
@@ -212,50 +212,50 @@ _(none)_
 | ApprovalDecisions | Id, ExpenseReportId, SubmitAttemptNo, ApproverId, Decision, Note, Reason, DecidedAt | 新增 | 第二個 Aggregate 的主表；一個 Submit attempt 對應一筆 decision |
 | ApprovalDecisions | UX_ApprovalDecision_Report_Attempt | 新增 index | `(ExpenseReportId, SubmitAttemptNo)` unique，防止同一次 Submit 被審兩次 |
 
-## Test Strategy <!-- Fill timing: Phase 4 -->
+## Test Strategy <!-- Fill timing: Activity 4: Implementation Planning -->
 
 ### Domain Unit Tests
-- [ ] Approve Submitted report → Status = Approved、ApprovalDecision 建立、ExpenseReportApproved raised
-- [ ] Reject Submitted report with valid reason → Status = Rejected、ApprovalDecision 建立、ExpenseReportRejected raised
-- [ ] ApproverId == SubmitterId → throw DomainException（驗 BR-005）
-- [ ] Approve / Reject non-Submitted report → throw DomainException（驗 BR-006）
-- [ ] Reject reason 少於 10 字元 → throw DomainException（驗 BR-007）
-- [ ] Rejected report can be edited and submitted again（驗 BR-002 modified）
+- [x] Approve Submitted report → Status = Approved、ApprovalDecision 建立、ExpenseReportApproved raised
+- [x] Reject Submitted report with valid reason → Status = Rejected、ApprovalDecision 建立、ExpenseReportRejected raised
+- [x] ApproverId == SubmitterId → throw DomainException（驗 BR-005）
+- [x] Approve / Reject non-Submitted report → throw DomainException（驗 BR-006）
+- [x] Reject reason 少於 10 字元 → throw DomainException（驗 BR-007）
+- [x] Rejected report can be edited and submitted again（驗 BR-002 modified）
 
 ### Application Tests
-- [ ] ApproveExpenseReportCommandHandler 主場景
-- [ ] RejectExpenseReportCommandHandler 主場景
-- [ ] Handler 不允許同一 Submit attempt 建立第二筆 ApprovalDecision
+- [x] ApproveExpenseReportCommandHandler 主場景
+- [x] RejectExpenseReportCommandHandler 主場景
+- [x] Handler 不允許同一 Submit attempt 建立第二筆 ApprovalDecision
 
 ### Integration Tests
-- [ ] ApprovalDecisionRepository round-trip
-- [ ] unique index 防止同一 Report + SubmitAttemptNo 重複寫入
+- [x] ApprovalDecisionRepository round-trip
+- [x] unique index 防止同一 Report + SubmitAttemptNo 重複寫入
 
 <!-- dflow:section open-questions -->
-## Open Questions <!-- Fill timing: Phase 1-4 -->
+## Open Questions <!-- Fill timing: Activity 1-4; any time during planning -->
 
 - 要不要支援「批次 Approve」？phase 2 不做。先完成單筆審核，等主管實際使用後再評估批次操作是否是 T1 新 phase 或 T2 lightweight change。
 - Rejected 後重新 Submit 是否要保留完整 item 編輯歷史？phase 2 只保留 ApprovalDecision 與 Report 狀態歷史；item-level 稽核軌跡留到審計需求明確後再評。
 - Approval policy 若未來出現金額門檻、二階主管、代理人等複雜規則，需重新檢視是否拆成獨立 Approval BC。
 
 <!-- dflow:section implementation-tasks -->
-## Implementation Tasks <!-- Fill timing: generated by AI after Phase 4; all items should be checked at completion -->
+## Implementation Tasks <!-- Fill timing: generated by AI after Activity 4: Implementation Planning; all items should be checked at completion -->
 
-- [ ] DOMAIN-1: 擴張 `ExpenseReportStatus` 為 Draft / Submitted / Approved / Rejected
-- [ ] DOMAIN-2: 更新 `ExpenseReport` 狀態轉移與 edit guard，支援 Approve / Reject / Rejected 後重編
-- [ ] DOMAIN-3: 建 `ApprovalDecision` Aggregate Root 與 `ApprovalDecisionType`
-- [ ] DOMAIN-4: 建 `ApprovalReason` VO（Reject reason 至少 10 字元）
-- [ ] DOMAIN-5: 建 `ExpenseReportApproved` / `ExpenseReportRejected` Domain Events
-- [ ] DOMAIN-6: 建 `IApprovalDecisionRepository` interface
-- [ ] APP-1: 建 `ApproveExpenseReportCommand` + Handler + Validator
-- [ ] APP-2: 建 `RejectExpenseReportCommand` + Handler + Validator
-- [ ] APP-3: 建 `GetSubmittedExpenseReportsForApproverQuery` + Handler
-- [ ] APP-4: 更新 `ExpenseReportDto`，新增 `ApprovalDecisionDto`
-- [ ] INFRA-1: 建 `ApprovalDecisionConfiguration` (EF Fluent API)
-- [ ] INFRA-2: 實作 `ApprovalDecisionRepository`
-- [ ] INFRA-3: 產 migration：新增 ApprovalDecisions、擴張 ExpenseReports.Status、加 unique index
-- [ ] API-1: 新增 approve / reject endpoints + request/response models + Swagger
-- [ ] API-2: 新增 pending-approval query endpoint
-- [ ] TEST-1: Domain unit tests — BR-002 modified + BR-005..007 + event assertions
-- [ ] TEST-2: Application handler tests — Approve / Reject 主場景與重複審核防護
-- [ ] TEST-3: Integration tests — ApprovalDecision repository + unique index
+- [x] DOMAIN-1: 擴張 `ExpenseReportStatus` 為 Draft / Submitted / Approved / Rejected
+- [x] DOMAIN-2: 更新 `ExpenseReport` 狀態轉移與 edit guard，支援 Approve / Reject / Rejected 後重編
+- [x] DOMAIN-3: 建 `ApprovalDecision` Aggregate Root 與 `ApprovalDecisionType`
+- [x] DOMAIN-4: 建 `ApprovalReason` VO（Reject reason 至少 10 字元）
+- [x] DOMAIN-5: 建 `ExpenseReportApproved` / `ExpenseReportRejected` Domain Events
+- [x] DOMAIN-6: 建 `IApprovalDecisionRepository` interface
+- [x] APP-1: 建 `ApproveExpenseReportCommand` + Handler + Validator
+- [x] APP-2: 建 `RejectExpenseReportCommand` + Handler + Validator
+- [x] APP-3: 建 `GetSubmittedExpenseReportsForApproverQuery` + Handler
+- [x] APP-4: 更新 `ExpenseReportDto`，新增 `ApprovalDecisionDto`
+- [x] INFRA-1: 建 `ApprovalDecisionConfiguration` (EF Fluent API)
+- [x] INFRA-2: 實作 `ApprovalDecisionRepository`
+- [x] INFRA-3: 產 migration：新增 ApprovalDecisions、擴張 ExpenseReports.Status、加 unique index
+- [x] API-1: 新增 approve / reject endpoints + request/response models + Swagger
+- [x] API-2: 新增 pending-approval query endpoint
+- [x] TEST-1: Domain unit tests — BR-002 modified + BR-005..007 + event assertions
+- [x] TEST-2: Application handler tests — Approve / Reject 主場景與重複審核防護
+- [x] TEST-3: Integration tests — ApprovalDecision repository + unique index

@@ -2,7 +2,7 @@
 
 Step-by-step guide for when a developer triggers `/dflow:new-feature` (or natural language implying a new-feature task — see SKILL.md § Workflow Transparency for the auto-trigger safety net behavior).
 
-**Phase Gates** in this flow (stop-and-confirm before proceeding):
+**Step Gates** in this flow (stop-and-confirm before proceeding):
 - Step 3 → Step 3.5 (domain concepts captured → confirm slug + directory + branch names)
 - Step 4 → Step 5 (spec written → plan implementation)
 - Step 6 → Step 7 (branch ready → start implementation)
@@ -73,7 +73,7 @@ If foundational domain docs are missing, create them from templates before writi
 - `dflow/specs/domain/{context}/rules.md` → `templates/rules.md`
 - `dflow/specs/domain/{context}/behavior.md` → `templates/behavior.md`
 
-**→ Phase Gate: Step 3 → Step 3.5**
+**→ Step Gate: Step 3 → Step 3.5**
 
 Announce to developer:
 > "Domain concepts captured. Before I create any files, let me confirm the SPEC-ID, slug, directory name, and branch name with you (Step 3.5). `/dflow:next` to proceed."
@@ -177,7 +177,7 @@ Specifically ask about:
 - Date/timezone boundaries
 - Character encoding (CJK, special characters)
 
-**→ Phase Gate: Step 4 → Step 5**
+**→ Step Gate: Step 4 → Step 5**
 
 Announce to developer:
 > "Spec is drafted — behavior scenarios, business rules, and edge cases are captured. Ready to plan the implementation (Domain layer design, interfaces, thin Code-Behind)? `/dflow:next` or reply 'OK' to continue, or tell me if the spec needs another iteration first."
@@ -267,7 +267,7 @@ The slug **must match the slug agreed in Step 3.5** (which is also the
 feature directory name). The SPEC-ID + slug links the branch to its
 feature directory and `_index.md`.
 
-**→ Phase Gate: Step 6 → Step 7**
+**→ Step Gate: Step 6 → Step 7**
 
 Announce to developer:
 > "Branch `feature/{SPEC-ID}-{description}` is created. Ready to start implementation? `/dflow:next` to proceed, or discuss implementation order / scope first."
@@ -283,16 +283,16 @@ During implementation, continuously check:
 - [ ] Are interfaces used for external dependencies?
 - [ ] Did we discover any tech debt? → Record in tech-debt.md
 
-**→ Phase Gate: Step 7 → Step 8**
+**→ Step Gate: Step 7 → Step 8**
 
 Announce to developer:
 > "Implementation appears complete. Ready to run the completion checklist (verify against spec, update domain docs, archive the spec)? `/dflow:next` to proceed."
 
-Wait for confirmation before entering Step 8. This phase gate is where the completion checklist is triggered — do not skip.
+Wait for confirmation before entering Step 8. This step gate is where the completion checklist is triggered — do not skip.
 
 ## Step 8: Completion
 
-Triggered by the Step 7 → Step 8 Phase Gate. AI runs the completion checklist in the order below; do **not** skip a section.
+Triggered by the Step 7 → Step 8 Step Gate. AI runs the completion checklist in the order below; do **not** skip a section.
 
 ### 8.1 Verification — AI runs independently
 
@@ -326,7 +326,7 @@ Ask these one-by-one; do not dump all five at once.
 - [ ] `dflow/specs/domain/{context}/models.md` — model definitions updated
 - [ ] `dflow/specs/domain/{context}/rules.md` — business rules updated
 - [ ] `dflow/specs/domain/{context}/behavior.md` — merge completed spec's Given/When/Then scenarios into consolidated behavior. Sub-steps:
-      - Promote any Phase 3 draft sections (from B3 mid-sync) to formal sections
+      - Promote any Activity 3 (Spec Writing) draft sections (from B3 mid-sync) to formal sections
       - Update the corresponding `rules.md` anchor's `last-updated` date (B4)
 - [ ] `behavior.md` draft cleanup — if the spec was abandoned mid-way, keep the `## 提案中變更` section's history or explicitly REMOVE it
 - [ ] `dflow/specs/migration/tech-debt.md` — tech debt discovered during implementation recorded

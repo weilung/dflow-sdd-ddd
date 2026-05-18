@@ -15,7 +15,7 @@
 閱讀提示：本篇會連到完整文件範例（目前存放在本 tutorial 的 `outputs/` 目錄）。這些範例代表 Greenfield 劇情跑完後的
 最終狀態；本篇內嵌 code block 則代表 `/dflow:new-feature` 這一步結束當下的重點片段。
 只讀本篇也能順著劇情理解；若想先看完整文件家族的讀法，再讀
-[〈如何閱讀 Dflow 規格與完整文件範例〉](../how-to-read-dflow-specs.zh-TW.md)。
+[〈如何閱讀 Dflow 規格與完整文件範例〉](../how-to-read-dflow-specs.md)。
 
 ## 本篇適合誰讀
 
@@ -26,7 +26,7 @@
 | AI 會不會直接開始寫 code？ | Dflow 先跑 intake、BC、Aggregate、spec、implementation plan；本篇停在實作前。 |
 | DDD 是不是只多幾個名詞？ | 本篇展示 Aggregate boundary、Entity vs Value Object、Invariant、Domain Event 如何被寫進文件。 |
 | Spec-first 到底產生什麼？ | 本篇內嵌 `_index.md`、phase spec、aggregate design、domain docs 的重點片段。 |
-| 開發者是否仍保有控制權？ | 本篇展示 Step 3 到 3.5、Step 4 到 5 的 phase gate。 |
+| 開發者是否仍保有控制權？ | 本篇展示 Step 3 到 3.5、Step 4 到 5 的 step gate。 |
 | 文件會不會變成一次性草稿？ | 本篇展示 feature-level 文件與 system-level domain docs 的分工。 |
 
 ## 版本與命令表面
@@ -35,9 +35,9 @@
 
 | 類型 | 本篇狀態 |
 |---|---|
-| `dflow init` | 已在 [〈Walkthrough 01 — `dflow init` 建立 Greenfield baseline〉](walkthrough-01-init-project.zh-TW.md) 完成，建立 `dflow/specs/` baseline。 |
+| `dflow init` | 已在 [〈Walkthrough 01 — `dflow init` 建立 Greenfield baseline〉](walkthrough-01-init-project.md) 完成，建立 `dflow/specs/` baseline。 |
 | `/dflow:new-feature` | 本篇主角，用來啟動第一個 feature。 |
-| `/dflow:next` | 有效的控制命令，用來在 phase gate 確認繼續。 |
+| `/dflow:next` | 有效的控制命令，用來在 step gate 確認繼續。 |
 | `/dflow:status` / `/dflow:cancel` | 有效的控制命令；本篇沒有使用，但 flow 中允許在 gate 或 active workflow 中使用。 |
 | `/dflow:verify` / `/dflow:pr-review` | 有效的獨立檢查命令；本篇尚未進到 PR 或 drift verification 階段。 |
 
@@ -47,7 +47,7 @@ workflow material 後執行的日常協作流程。
 
 ## 劇情背景
 
-Alice 已經完成 [〈Walkthrough 01 — `dflow init` 建立 Greenfield baseline〉](walkthrough-01-init-project.zh-TW.md)。ExpenseTracker 現在有一個乾淨的
+Alice 已經完成 [〈Walkthrough 01 — `dflow init` 建立 Greenfield baseline〉](walkthrough-01-init-project.md)。ExpenseTracker 現在有一個乾淨的
 Dflow baseline：
 
 ```text
@@ -291,7 +291,7 @@ AI 生成出常見的錯誤模型。
 這是 Dflow 把 DDD 變成 AI guardrail 的地方：不是要求團隊先上完整 DDD 課程，
 而是在 feature conversation 裡把關鍵設計問題問出來。
 
-## Phase Gate — Step 3 到 Step 3.5
+## Step Gate — Step 3 到 Step 3.5
 
 Step 3 結束後，Dflow 不直接建目錄。它停下來：
 
@@ -630,7 +630,7 @@ consumer 若需要明細，自行透過 repository 重新讀取。
 | Feature Snapshot | `_index.md`、`aggregate-design.md` | feature 的累積決策與 resume point |
 | System State | `domain/Expense/*.md`、`glossary.md`、`context-map.md` | 後續所有 feature 的長期上下文 |
 
-## Phase Gate — Step 4 到 Step 5
+## Step Gate — Step 4 到 Step 5
 
 Spec 寫完後，Dflow 再次停下來：
 
@@ -790,7 +790,7 @@ feature/SPEC-20260428-001-employee-submit-expense，
 |---|---|
 | Spec-first development | Dflow 先寫 phase spec、behavior scenarios、BR、tasks；本篇沒有進入 code generation。 |
 | Greenfield track | 第一個 BC、Aggregate、VO、Domain Event 從 clean project 長出來。 |
-| Hybrid workflow control | `/dflow:new-feature` 明確進入；phase gates 等 Alice `/dflow:next`。 |
+| Hybrid workflow control | `/dflow:new-feature` 明確進入；step gates 等 Alice `/dflow:next`。 |
 | DDD semantic backbone | BC、Aggregate、Entity/VO、Invariant、Domain Event 都有對話與文件化決策。 |
 | 三層文件分工 | phase spec、feature `_index.md`、system-level domain docs 分別承擔不同生命週期。 |
 | Drift verification readiness | BR-ID、behavior scenarios、events、tasks 都已具備後續 `/dflow:verify` 或 PR review 可讀的依據。 |
@@ -830,7 +830,7 @@ feature/SPEC-20260428-001-employee-submit-expense，
 
 - `/dflow:new-feature` 的第一個價值是讓 AI 慢下來：先讀既有 docs、問清楚 feature、
   找 BC、建模 Aggregate，再寫 spec。
-- Phase gate 不是儀式感；它讓 developer 在「AI 要擴大工作面」之前確認方向。
+- Step gate 不是儀式感；它讓 developer 在「AI 要擴大工作面」之前確認方向。
 - `aggregate-design.md` 是 reviewer 介面。它保留「為什麼這樣設計」，不是只有最後的 class 名稱。
 - `phase-spec` 是 execution surface。後續 coding agent 可以照 behavior scenarios、
   BR、edge cases、tasks 來實作與驗證。
@@ -839,7 +839,7 @@ feature/SPEC-20260428-001-employee-submit-expense，
 
 ## 下一個 walkthrough
 
-下一步會進入 [〈Walkthrough 03 — `/dflow:new-phase` 在同一 feature 內新增主管審核〉](walkthrough-03-new-phase.zh-TW.md)：Alice 跑完 phase 1 後，
+下一步會進入 [〈Walkthrough 03 — `/dflow:new-phase` 在同一 feature 內新增主管審核〉](walkthrough-03-new-phase.md)：Alice 跑完 phase 1 後，
 使用 `/dflow:new-phase` 在同一個 active feature 內加入「主管審核」。那一段會展示：
 
 - 既有 feature 如何新增 phase，而不是開一個 unrelated new feature

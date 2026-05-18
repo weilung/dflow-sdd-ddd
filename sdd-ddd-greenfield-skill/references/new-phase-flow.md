@@ -13,9 +13,11 @@ branch and does NOT create a feature directory. Both must already exist
 (produced by the original `/dflow:new-feature` invocation). This command
 adds a new phase to an in-progress feature only.
 
-**Phase Gates** in this flow (stop-and-confirm before proceeding):
+**Step Gates** in this flow (stop-and-confirm before proceeding):
 - Step 3 → Step 4 (phase scope confirmed → write the phase-spec)
 - Step 4 → Step 5 (phase-spec drafted → refresh `_index.md`)
+- Step 5 → Step 6 (`_index.md` refreshed → start implementation)
+- Step 6 → Step 7 (implementation done → complete the phase)
 
 All other step transitions are **step-internal**: announce "Step N complete,
 entering Step N+1" and proceed without waiting. See SKILL.md § Workflow
@@ -117,7 +119,7 @@ Slug rules (matches the feature-level slug rule):
 
 Wait for the developer to confirm before proceeding.
 
-**→ Phase Gate: Step 3 → Step 4**
+**→ Step Gate: Step 3 → Step 4**
 
 Announce to developer:
 > "Phase slug confirmed as `{phase-slug}`. Ready to draft the phase-spec
@@ -137,10 +139,10 @@ Create the file at:
 dflow/specs/features/active/{SPEC-ID}-{slug}/phase-spec-{YYYY-MM-DD}-{phase-slug}.md
 ```
 
-Use the `templates/phase-spec.md` template. Phase-2-onward specs **must**
-fill in the **Delta from prior phases** section (the first phase typically
-has just "首 phase，無前置 Delta"; this is phase 2+, so the section is
-required).
+Use the `templates/phase-spec.md` template and set the phase-spec
+frontmatter `status` to `in-progress`. Phase-2-onward specs **must** fill
+in the **Delta from prior phases** section (the first phase typically has
+just "首 phase，無前置 Delta"; this is phase 2+, so the section is required).
 
 Walk the developer through each section, in the same way `new-feature-flow`
 Step 4 does — Behavior (with Aggregate state transitions and Domain
@@ -157,7 +159,7 @@ After the spec body is drafted, generate the `Implementation Tasks` section
 DOMAIN / APP / INFRA / API / TEST — see `new-feature-flow.md` Step 5 for
 the detailed list, recommended order: DOMAIN → APP → INFRA → API).
 
-**→ Phase Gate: Step 4 → Step 5**
+**→ Step Gate: Step 4 → Step 5**
 
 Announce to developer:
 > "Phase-spec drafted at
@@ -199,7 +201,73 @@ synchronisation happens at `/dflow:finish-feature`.
 After the refresh, summarize for the developer:
 > "Phase-spec ready, `_index.md` refreshed. Snapshot now shows
 > {n_active} active BRs ({n_added} added in this phase, {n_modified}
-> modified, {n_removed} removed). Ready to start implementation —
-> follow the phase-spec's Implementation Tasks list (DOMAIN → APP → INFRA → API),
-> then run `/dflow:finish-feature` when all phases are completed and the
-> feature is ready to wrap up."
+> modified, {n_removed} removed). Ready to enter Step 6 —
+> follow the phase-spec's Implementation Tasks list (DOMAIN → APP → INFRA → API)?
+> `/dflow:next` to proceed, or adjust the plan first."
+
+**→ Step Gate: Step 5 → Step 6**
+
+Wait for confirmation before entering Step 6.
+
+## Step 6: Implement and Verify the Phase
+
+Follow the phase-spec's `Implementation Tasks` in the recommended layer order:
+DOMAIN → APP → INFRA → API, with TEST tasks interleaved where they prove the
+layer behavior.
+
+During implementation, continuously verify:
+
+- [ ] `Implementation Tasks` are checked off as they complete, or unchecked
+      items are explicitly labelled as follow-up
+- [ ] Every ADDED / MODIFIED / REMOVED / RENAMED Delta entry is covered by
+      implementation or tests
+- [ ] Every affected `BR-*` business rule is covered by implementation or tests
+- [ ] Every affected Given/When/Then scenario is covered by implementation or tests
+- [ ] New or changed Domain Events are raised in the implementation
+- [ ] Aggregate invariants still hold after the change
+- [ ] Domain layer remains framework-pure; EF configuration stays in Infrastructure
+- [ ] No business logic leaks into Application handlers, Infrastructure queries,
+      or Presentation controllers
+- [ ] Test failures have been resolved or explicitly recorded as follow-up
+
+If implementation changes the agreed Delta, update the phase-spec before
+continuing. Do not let code and spec diverge silently.
+
+**→ Step Gate: Step 6 → Step 7**
+
+Announce to developer:
+> "Phase implementation appears complete and verified against the phase-spec.
+> Ready to mark this phase completed and update `_index.md`? `/dflow:next`
+> to proceed."
+
+Wait for confirmation before entering Step 7.
+
+## Step 7: Complete the Phase
+
+Update the feature artifacts:
+
+1. **Phase spec status** — change this phase-spec's frontmatter `status`
+   from `in-progress` to `completed`.
+2. **Implementation Tasks** — keep completed tasks checked. If any task is not
+   done, mark it explicitly as follow-up and link to the relevant future
+   phase, issue, or tech-debt entry.
+3. **Phase Specs table** — update this phase's `_index.md` row from
+   `in-progress` to `completed`.
+4. **Current BR Snapshot** — reconcile the snapshot against the implemented
+   Delta. If implementation changed the Delta, update the phase-spec first,
+   then regenerate the snapshot.
+5. **Resume Pointer** — update to one of:
+   - "phase-{N+1} completed; next action: run `/dflow:new-phase` for the next
+     slice"
+   - "phase-{N+1} completed; next action: run `/dflow:finish-feature` if the
+     feature is ready to wrap up"
+
+The bounded context's `rules.md` / `behavior.md` / `events.md` and the
+feature directory move to `completed/` remain `/dflow:finish-feature`
+responsibilities. Do not sync BC-level current state or archive the whole
+feature from `/dflow:new-phase`.
+
+After completion, summarize for the developer:
+> "Phase {N+1} is implemented and marked completed. `_index.md` is refreshed.
+> If another slice is needed, run `/dflow:new-phase`; if the feature is done,
+> run `/dflow:finish-feature`."

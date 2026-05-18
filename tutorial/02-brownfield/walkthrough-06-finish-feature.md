@@ -19,7 +19,7 @@ bug，而是把 `SPEC-20260430-001-order-discount-calculation` 這個第一個 O
 閱讀提示：本篇會連到完整文件範例（目前存放在本 tutorial 的 `outputs/` 目錄）。這一步本身就是
 `SPEC-20260430-001` 的 closeout，因此連結的完整文件範例已位於 `features/completed/`。
 只讀本篇也能看懂 SPEC-001 如何 closeout；若想看 completed snapshot 的完整讀法，再讀
-[〈如何閱讀 Dflow 規格與完整文件範例〉](../how-to-read-dflow-specs.zh-TW.md)。
+[〈如何閱讀 Dflow 規格與完整文件範例〉](../how-to-read-dflow-specs.md)。
 
 ## 本篇適合誰讀
 
@@ -35,14 +35,14 @@ bug，而是把 `SPEC-20260430-001-order-discount-calculation` 這個第一個 O
 
 Brownfield 劇情到這裡已走完整個第一個 Order feature lifecycle：
 
-1. [〈Walkthrough 02 — `/dflow:modify-existing` 從 WebForms 抽出第一段 Order Domain logic〉](walkthrough-02-modify-existing.zh-TW.md)
+1. [〈Walkthrough 02 — `/dflow:modify-existing` 從 WebForms 抽出第一段 Order Domain logic〉](walkthrough-02-modify-existing.md)
    建立 `SPEC-20260430-001-order-discount-calculation`，從 `OrderEntry.aspx.cs`
    抽出第一段 Order Domain logic。
-2. [〈Walkthrough 03 — baseline capture 跨頁面折扣顯示行為〉](walkthrough-03-baseline-capture.zh-TW.md)
+2. [〈Walkthrough 03 — baseline capture 跨頁面折扣顯示行為〉](walkthrough-03-baseline-capture.md)
    baseline-only 捕捉 `OrderList` / `OrderDetail` 跨頁 behavior 與 tech debt。
-3. [〈Walkthrough 04 — `/dflow:new-feature` 在既有 Order BC 上新增 VIP discount policy〉](walkthrough-04-new-feature.zh-TW.md)
+3. [〈Walkthrough 04 — `/dflow:new-feature` 在既有 Order BC 上新增 VIP discount policy〉](walkthrough-04-new-feature.md)
    建立第二個 Order feature：`SPEC-20260505-002-vip-discount-policy`。
-4. [〈Walkthrough 05 — `/dflow:bug-fix` 修正跨頁 rounding inconsistency〉](walkthrough-05-bug-fix.zh-TW.md)
+4. [〈Walkthrough 05 — `/dflow:bug-fix` 修正跨頁 rounding inconsistency〉](walkthrough-05-bug-fix.md)
    把 baseline capture 發現的 rounding inconsistency 轉成 `BUG-001` 並規劃修復。
 
 本篇開始時，Bob 已收到 BUG-001 的最後確認：

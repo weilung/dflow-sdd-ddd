@@ -6,6 +6,201 @@
 
 ---
 
+## 0.3.0 — 2026-05-18 — Workflow flow completion, terminology disambiguation, bilingual public docs
+
+**Proposals**：PROPOSAL-022（CLI install 推薦路徑）、PROPOSAL-023（line-ending normalization）、PROPOSAL-024（README zh-TW + migration reframing）、PROPOSAL-025（Phase 術語拆解：Step Gate / Activity）、PROPOSAL-026（`/dflow:new-phase` 補 implementation / verification）、PROPOSAL-027（handoff lifecycle，dev-only）、PROPOSAL-028（`docs/*.md` 雙語化）、PROPOSAL-029（tutorial 檔名 align）。
+
+**變更**：
+
+- **CLI install 推薦路徑改為 `npm install -g dflow-sdd-ddd` + `dflow init`**（PROPOSAL-022）；`npx dflow-sdd-ddd init` 降為 labeled alternative。README、`docs/*.md`、scaffolding 模板與 bug template 全部對齊。
+- **`/dflow:new-phase` 從 5-step planning-only flow 擴為 7-step full phase workflow**（PROPOSAL-026），新增 Step 6 implementation / verification 與 Step 7 phase-level completion；phase-spec frontmatter lifecycle `status: in-progress` → `status: completed`。Greenfield / Brownfield `new-phase-flow.md`、兩份 `SKILL.md`、tutorial walkthrough-03 全部同步。
+- **Phase 術語拆解**（PROPOSAL-025）：
+  - `phase-spec` / `/dflow:new-phase` 保留（user-facing API）
+  - **Phase Gate → Step Gate**（Workflow 內 Step ↔ Step 之間的 checkpoint）
+  - **Phase 1-5 → Activity N: Name**（SDD 概念活動：Understanding / Domain Modeling / Spec Writing / Implementation Planning / Testing Strategy）
+- **bilingual public docs**（PROPOSAL-024 / 028）：
+  - `README.md` 改 zh-TW primary，新增 `README.en.md` 英文 alt，兩份頂部都有 language switcher
+  - `docs/` 6 份 user-facing docs（`why-ddd-for-ai`、`evaluating-dflow`、`using-with-{claude-code,codex,gemini-cli,github-copilot}`）全部雙語化：`<file>.md` zh-TW + `<file>.en.md` en，含 language switcher 與 outgoing-ref 分流
+- **Tutorial 檔名 align**（PROPOSAL-029）：14 份 `walkthrough-*.zh-TW.md` + 3 份 helper 全部去掉語言後綴，落到 `<file>.md`，與 README / docs pattern 統一
+- **line-ending policy**（PROPOSAL-023）：新增 `.gitattributes` 以 `* text=auto eol=lf` + `.bat`/`.cmd` CRLF 例外 + 二進位防護
+- **公開 docs 整體 register polish**：README round 2（reframe features around engineer problems + rewrite Documentation Model）、tier 標籤對齊、`using-with-github-copilot.md` register polish
+
+**Breaking / migration notes**：
+
+- **Phase Gate / Phase 1-5 在 AI agent 對話中已淘汰**。已採用 Dflow 的專案會在下次 AI 助理重新讀 skill 時自動換到新術語（skill source 已更新）。若 user 有自製 prompt / shortcut 用到 "Phase Gate" 或 "Phase 1-5"，請改成 "Step Gate" 與 "Activity N: <Name>"。
+- **`/dflow:new-phase` 行為擴展**：原本只寫 phase-spec / refresh `_index.md`，現在會走完 implementation / verification / phase-level completion。既有的 phase-spec 不需 retrofit；新跑的 `/dflow:new-phase` 走新流程。
+- **Tutorial 檔名變動**：若有外部連結指向 `tutorial/0X-*/walkthrough-NN-*.zh-TW.md`，需改為去掉 `.zh-TW` 後綴的版本。tutorial 是教學素材、無 runtime 影響。
+- **CLI install 推薦變更**：舊文件用 `npx dflow-sdd-ddd init` 仍可用，只是 README 與 docs 預設改成全域安裝。
+
+**邊界**：
+
+- 無 runtime API 破壞：`bin/dflow.js`、`lib/init.js`、`test/smoke.mjs`、scaffolding mirrors 行為向後相容
+- 無 `package.json#files` 變動（`.en.md` 自然透過既有 include 規則進 tarball）
+- PROPOSAL-027（handoff lifecycle）為 dev-only governance，不影響 public 行為
+- `docs/migrating-to-dflow-v1.md` 維持英文且未動內容（PROPOSAL-028 明確 defer 至有 real adopter 或需實質改寫時再翻譯）
+
+**驗證**：
+
+- `npm test`
+- `npm pack --dry-run`
+- `scripts/check-repo-consistency.sh`
+- `scripts/export-dist.sh --check`
+- `git diff --check`
+
+詳見以下 dated entries（按時間倒序）。
+
+---
+
+## 2026-05-17 ～ 2026-05-18 — `docs/*.md` 雙語化 (PROPOSAL-028)
+
+**變更**：
+
+延續 PROPOSAL-024 的 `<file>.md` (zh-TW primary) + `<file>.en.md` (en alternative) pattern，把 `docs/` 下 6 份 user-facing 文件雙語化。每份 doc 一個 commit、Sonnet worker 草譯、Director review。
+
+| Commit | Doc | en 行 / zh-TW 行 |
+|---|---|---|
+| `07c1cb9` | `docs/why-ddd-for-ai.md` | 36 / 37 |
+| `0a3ddd5` | `docs/evaluating-dflow.md` | 238 / 169 |
+| `8264ab4` | `docs/using-with-claude-code.md` | 208 / 199 |
+| `4720280` | `docs/using-with-codex.md` | 246 / 226 |
+| `3dfa428` | `docs/using-with-gemini-cli.md` | 198 / 184 |
+| `d065b3f` | `docs/using-with-github-copilot.md` | 136 / 178 |
+
+每份 doc 都掛 language switcher（在 H1 後第一行），outgoing refs 依規分流：zh-TW doc 連 `.md` + zh-TW anchor、en doc 連 `.en.md` + en anchor。Anchor 對齊例如 `#init-產生的檔案`、`#workflow-模型`、`#30-分鐘評估-playbook`。README.md 與 README.en.md、`docs/evaluating-dflow.md`(zh+en)、`docs/migrating-to-dflow-v1.md`、`docs/using-with-*.md` 互引、`planning/public-onboarding-tasklist.md` 的 incoming refs 全 sweep 並依語言分流。
+
+**Side findings & pre-translation sweeps**（cross-model review 階段 + 翻譯過程中發現並一併處理）：
+
+- `4023a99`：修 `docs/evaluating-dflow.md:178` tier 標籤倒置（T1 Lightweight / T2 Standard / T3 Full → T1 Heavy / T2 Light / T3 Trivial），對齊 README canonical 排序
+- `3dfa428` 順手：移除 `using-with-gemini-cli.en.md` 殘留章節編號（`## 1. / ## 2. / ...`），對齊其他 3 份 per-tool en docs
+- `82b3da4`：bilingualize 前先 polish `using-with-github-copilot.md` register（headings → Title Case、backtick path mentions → markdown links、合併「(verify with maintainer)」hedges 為單一 footer note）
+- `d065b3f` 順手：補上 `using-with-github-copilot.en.md` 缺的「Tool / Generated shim / Loads canonical guide via」對照表，4 份 per-tool docs 兩語版本完全對稱
+
+**Cross-model review**：
+
+PROPOSAL-028 起草後（`9da50f6`）走 cross-model review（reviewer 另一個 session）回 `approve with modifications`。所有 modifications 整合進 Proposal 內文（`fffabcb`）：scope 收斂為 Option B 分批 commit + Worker 草譯 + Director review、新增 Acceptance criteria 段（強制 pre-translation stale sweep）、新增 Validation 段（dev commit vs dist projection 兩級）、補 outgoing refs 分流規則、補 npm tarball 驗證。
+
+**Scope 不含**：
+
+- `docs/migrating-to-dflow-v1.md`：deferred（runtime contingency endpoint、Dflow 目前無 user 也無非 OBTS adopter；等真有 adopter 或該檔需實質改寫時再翻譯）。本次只更新它對其他 6 份新雙語 docs 的 outgoing refs 指向 `.en.md` 版本。
+- `docs/npm-publish-checklist.md`、`docs/release-versioning-policy.md`：maintainer-facing、user 是唯一 maintainer，英文 ops 文件對外更直覺，明確不譯。
+
+**邊界**：
+
+- dev-only；dist projection 留待 user-approved checkpoint
+- 純 public-facing docs；無 lib/、bin/、test/、scaffolding 變動。`package.json` `files`、`scripts/export-dist.sh` `include_paths`、`test/smoke.mjs`、`bin/dflow.js`、`lib/init.js`、scaffolding mirrors **全部未動**（runtime 零衝擊）
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release
+
+**驗證**：
+
+- 每份 commit 都驗證 `git diff --check` clean、incoming refs sweep 完整、stale anchor grep 通過
+- npm pack --dry-run（cross-model review 階段）：tarball 自然帶入 `.en.md`，`package.json` `files` 不需動
+
+---
+
+## 2026-05-17 — Tutorial 檔名與 README/docs 雙語規約對齊 (PROPOSAL-029)
+
+**變更**：
+
+純機械 cleanup：把 tutorial/ 內三種不一致後綴（`.zh-TW.md`、`_tw.md`、`.md`）統一到 PROPOSAL-024 規約（zh-TW primary 落在 `.md`，`.en.md` 保留給未來英文版）。
+
+17 個 `git mv` 去掉語言後綴（commit `edd97fa`）：
+
+- 14 個 walkthrough：`tutorial/0{1,2}-{greenfield,brownfield}/walkthrough-{00..06}-*.zh-TW.md` → `walkthrough-{00..06}-*.md`
+- 2 個 tutorial-level helpers：`tutorial/dflow-command-surface.zh-TW.md` 與 `tutorial/how-to-read-dflow-specs.zh-TW.md` → 同名 `.md`
+- 1 個離群檔案：`tutorial/DDD_MINDSET_SHIFT_tw.md` → `tutorial/DDD_MINDSET_SHIFT.md`
+
+Incoming refs sweep 同 commit：`tutorial/README.md`、所有 rename 後 walkthrough 互連、`docs/evaluating-dflow.md`、`docs/using-with-{claude-code,codex,gemini-cli}.md`、`MAINTAINERS.md`、6 份 `planning/*.md`。
+
+**保留不動**：
+
+- `tutorial/0X-*/outputs/` 內所有 demo 專案輸出（非雙語化目標）
+- `CHANGELOG.md` 歷史條目（凍結）
+- `archive/**`（archived 內容凍結）
+
+**邊界**：
+
+- 零 runtime 影響：scaffolding mirrors、`bin/`、`lib/`、`test/`、`scripts/export-dist.sh` 完全不引用 walkthrough 檔名
+- 無翻譯工作（內容語言不變）
+- dev-only；dist projection 留待 user-approved checkpoint
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release
+
+**驗證**：
+
+- `git diff --check` clean
+- 殘留 grep（`\.zh-TW\.md\|_tw\.md` 在 `tutorial`、`docs`、`MAINTAINERS.md`）：0 命中
+- Git rename detection: 90–100% similarity，17 個全部偵測為 rename
+- 不需 `npm test`（純檔名 cleanup、無 runtime 變動）
+
+---
+
+## 2026-05-17 — `/dflow:new-phase` implementation / verification flow (PROPOSAL-026)
+
+**變更**：
+
+- Greenfield / Brownfield `new-phase-flow.md` 從 5-step planning-only flow 改為 7-step full phase workflow：新增 Step 6 implementation / verification 與 Step 7 phase-level completion。
+- `/dflow:new-phase` 現在明確處理 phase-spec frontmatter lifecycle：Step 4 建檔時 `status: in-progress`，Step 7 完成時 `status: completed`。
+- 兩份 `SKILL.md` 的 command summary、Step Gate positions、Reference Files 與 `Completion Checklist Execution` 已同步，並明確區分 new-phase Step 6 -> 7 是 phase-level completion，不做 BC-level docs sync、不 archive feature directory。
+- README zh-TW / English、round-2 planning note、tutorial command surface 與 walkthrough-03 已同步 7-step 語意；`/dflow:new-phase` 不再被描述成只寫文件。
+- Tutorial supervisor-approval fixture 更新為 completed phase state，phase-spec status 與 tests / Implementation Tasks checkbox 對齊 completed `_index.md`。
+
+**邊界**：
+
+- Slash command 名稱、`phase-spec-{date}-{slug}.md` 命名、CLI runtime 不變。
+- `/dflow:finish-feature` 仍負責 BC-level `rules.md` / `behavior.md` / `events.md` sync、feature directory archival 與 Integration Summary。
+- Dev-only；dist projection 留待 user-approved checkpoint。
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release。
+
+**驗證**：
+
+- `git diff --check`
+- `scripts/check-repo-consistency.sh`
+- Targeted stale-grep for `new-phase` 5-step wording and missing `## Step 7`
+
+---
+
+## 2026-05-15 — Phase terminology disambiguation (PROPOSAL-025)
+
+**變更**：
+
+Dflow 內部「Phase」一詞之前同時用於三個互不相關的概念，造成 SKILL.md / templates / tutorial 內歧義。本次重命名清理：
+
+- **(A) `phase-spec` / `/dflow:new-phase`**（feature 內一次「提案 → 實作 → 歸檔」循環）— **保留**。這是已發佈 v0.2.0 的 user-facing API
+- **(B) Phase Gate → Step Gate**（Workflow 內 Step 與 Step 之間需停下等確認的 checkpoint）— 改名。標準書寫格式：`Step Gate: Step X → Step Y`。與既有 `Step-internal transition` 形成詞根對偶
+- **(C) Phase 1-5 → Activity 1-5**（SDD 概念活動：Understanding / Domain Modeling / Spec Writing / Implementation Planning / Testing Strategy）— 改名。HTML comment 標準格式 `<!-- Fill timing: Activity N: Name -->`（編號 + 名稱，提升 AI 排序與人類可讀性）
+
+**檔案範圍**：~30 個檔案、3 個 commit（atomic terminology rename）：
+
+- `c12f909` Add PROPOSAL-025 proposal (approved, cross-model reviewed by Codex)
+- `f091ffb` (B) Phase Gate → Step Gate in 12 skill source files；連帶 `/dflow:next` 與 Confirmation Signals 的 "next phase" / "next-phase" idiom 改成 "next step" 避免與 (A) 撞詞
+- `f0e7bcf` (C) Phase 1-5 → Activity N: Name in 13 source + packaged mirror files；含 SKILL.md `Guiding Questions by Phase` 段、phase-spec template HTML comments、scaffolding `_conventions.md` 的 CQRS-split convention、references flow 的 `Phase 3 draft sections` checklist item
+- `e287791` Tutorial walkthrough + outputs sync（9 檔）— 逐句判斷 (A)/(B)/(C) 後分別處理。Tutorial outputs 視為 live teaching artifacts（per user 決策 Q1 = A）
+
+**保留不動的部分**：
+
+- `/dflow:new-phase` 指令名稱、`phase-spec-{date}-{slug}.md` 檔名模式、`templates/phase-spec.md` template 檔名 — 都是 user-facing API
+- `_index.md` 內 `Phase Specs` table 標題、所有 `Phase 1 phase-spec` / `Phase 2+ specs` 衍生用法 — 都屬 (A)
+- `CHANGELOG.md` 內既有條目、`archive/proposals/` — 凍結歷史紀錄
+- `superseded-drafts/` 內檔案 — 已標 superseded，不維護
+- `PRACTICE_PLAN_tw.md` 內 `Phase 1-7`（tutorial 練習章節，第 4 種 Phase 用法）— 加入 disambiguation note；完整重命名（候選名 Module / Practice Session）留作 follow-up
+
+**Codex cross-model review**：
+
+提案經 Codex 獨立評審，accept with revisions。5 處具體修正全部納入（衍生用法澄清、標準書寫格式、HTML comment 格式、影響範圍補列 9 檔、atomic commit / release notes / 外部相容性配套）。User 拍板 2 個 Open Questions：tutorial outputs 視為 live artifact（Q1=A）、(B) 採 Step Gate（Q2=A）。
+
+**邊界**：
+
+- 無 CLI / 檔名 / 對外 API 表面變更 — 純文件術語清理
+- dev-only；dist projection 留待下次 user-approved checkpoint
+- 不 bump `package.json`、不 `npm publish`、不 `git tag`、不建 GitHub Release
+- 解鎖 PROPOSAL-024 後續 README polish 第二輪（README workflow 模型段落可用新詞彙改寫）
+
+**驗證**：
+
+- `scripts/check-repo-consistency.sh` pass（source ↔ packaged mirror diff clean）
+- 全 repo grep 無 `Phase Gate` / `phase gate` 殘留（CHANGELOG 與 PROPOSAL-025 文檔內提及為刻意）
+
+---
+
 ## 2026-05-15 — Public README zh-TW strategy + migrating-to-v1 reframing (PROPOSAL-024)
 
 **變更**：

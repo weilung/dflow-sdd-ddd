@@ -34,8 +34,9 @@ state across all phase-spec files in a feature, then cross-check against
 
 Reasons (R7 Review F-03 decision):
 - Feature-level BR aggregation is already maintained by `_index.md`
-  Current BR Snapshot, refreshed by `/dflow:new-phase` Step 5 and
-  `/dflow:finish-feature` Step 3
+  Current BR Snapshot, refreshed by `/dflow:new-phase` Step 5, reconciled
+  by `/dflow:new-phase` Step 7, and promoted by `/dflow:finish-feature`
+  Step 3
 - BC-level current state is already maintained by `rules.md` /
   `behavior.md`, written by the same `/dflow:finish-feature` Step 3
 - `/dflow:verify` keeps a small, mechanical scope: just the

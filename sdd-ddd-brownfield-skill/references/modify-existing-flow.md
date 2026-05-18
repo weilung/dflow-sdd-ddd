@@ -2,7 +2,7 @@
 
 Step-by-step guide for when a developer triggers `/dflow:modify-existing` or `/dflow:bug-fix` (or natural language implying a modification task — see SKILL.md § Workflow Transparency for the auto-trigger safety net).
 
-**Phase Gates** in this flow (stop-and-confirm before proceeding):
+**Step Gates** in this flow (stop-and-confirm before proceeding):
 - Step 2 → Step 3 (baseline captured → analyze code-behind)
 - Step 4 → Step 5 (extraction decision → start implementation)
 - Step 5 → Step 6 (implementation done → update artifacts)
@@ -233,7 +233,7 @@ the related Code-Behind. I found:
 This gives us a better baseline before we make our change."
 ```
 
-**→ Phase Gate: Step 2 → Step 3**
+**→ Step Gate: Step 2 → Step 3**
 
 Announce to developer:
 > "Baseline captured — current behavior is documented and the proposed change is marked. Ready to analyze the Code-Behind to identify business logic and tech debt? `/dflow:next` or reply 'OK' to continue."
@@ -294,7 +294,7 @@ For a lightweight-spec (T2), AI still generates a concise `Implementation Tasks`
 
 If the lightweight checklist looks larger than a short-fix checklist, AI must pause and ask the developer whether to keep T2 or upgrade to T1. Do not auto-upgrade based on task count alone.
 
-**→ Phase Gate: Step 4 → Step 5**
+**→ Step Gate: Step 4 → Step 5**
 
 Announce to developer:
 > "Extraction decision made — {extract now / defer and record}. Ready to start implementation? `/dflow:next` to proceed, or adjust the extraction scope first."
@@ -336,16 +336,16 @@ protected void Calculate()
 }
 ```
 
-**→ Phase Gate: Step 5 → Step 6**
+**→ Step Gate: Step 5 → Step 6**
 
 Announce to developer:
 > "Implementation appears complete. Ready to update artifacts (spec, rules.md, models.md, glossary, tech-debt)? `/dflow:next` to proceed."
 
-Wait for confirmation before entering Step 6. This phase gate is where the completion checklist is triggered — do not skip.
+Wait for confirmation before entering Step 6. This step gate is where the completion checklist is triggered — do not skip.
 
 ## Step 6: Update Artifacts
 
-Triggered by the Step 5 → Step 6 Phase Gate. AI runs the completion checklist in the order below; do **not** skip a section. `Implementation Tasks` checks apply to both `phase-spec.md` and `lightweight-spec.md` (T3 inline-only has no task section).
+Triggered by the Step 5 → Step 6 Step Gate. AI runs the completion checklist in the order below; do **not** skip a section. `Implementation Tasks` checks apply to both `phase-spec.md` and `lightweight-spec.md` (T3 inline-only has no task section).
 
 ### 6.1 Verification — AI runs independently
 
@@ -377,7 +377,7 @@ Ask these one-by-one.
 - [ ] `dflow/specs/domain/{context}/models.md` — domain model updated
 - [ ] `dflow/specs/domain/glossary.md` — new / renamed terms (mirror any RENAMED delta entries here)
 - [ ] `dflow/specs/domain/{context}/behavior.md` — update scenarios to reflect Delta result (merge final state, not Delta markup). Sub-steps:
-      - Promote any Phase 3 draft sections (from B3 mid-sync) to formal sections
+      - Promote any Activity 3 (Spec Writing) draft sections (from B3 mid-sync) to formal sections
       - Update the corresponding `rules.md` anchor's `last-updated` date (B4)
 - [ ] `behavior.md` draft cleanup — if the Delta was abandoned mid-way, keep the `## 提案中變更` section's history or explicitly REMOVE it
 - [ ] `dflow/specs/migration/tech-debt.md` — findings recorded

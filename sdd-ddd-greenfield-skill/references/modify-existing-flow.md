@@ -4,7 +4,7 @@ Step-by-step guide for changing or fixing existing functionality.
 
 Triggered by `/dflow:modify-existing` or `/dflow:bug-fix` (or natural language implying a modification task — see SKILL.md § Workflow Transparency for the auto-trigger safety net).
 
-**Phase Gates** in this flow (stop-and-confirm before proceeding):
+**Step Gates** in this flow (stop-and-confirm before proceeding):
 - Step 2 → Step 3 (baseline captured → assess DDD impact)
 - Step 3 → Step 4 (DDD impact decision → implement)
 - Step 4 → Step 5 (implementation done → update documentation)
@@ -215,7 +215,7 @@ And {產生的 Domain Event}
 - Always pair with `## Reason for Change` (why this PR exists — ticket / stakeholder ask).
 - For Aggregate state transitions and Domain Events, include them in the Given/When/Then — this is how `/dflow:pr-review` Step 0 understands the intent.
 
-**→ Phase Gate: Step 2 → Step 3**
+**→ Step Gate: Step 2 → Step 3**
 
 Announce to developer:
 > "Baseline captured — existing documentation reviewed, current behavior is documented and the proposed change is marked. Ready to assess the DDD impact (Aggregate design, Domain Events, Value Objects)? `/dflow:next` or reply 'OK' to continue."
@@ -258,7 +258,7 @@ For a lightweight-spec (T2), AI still generates a concise `Implementation Tasks`
 
 If the lightweight checklist looks larger than a short-fix checklist, AI must pause and ask the developer whether to keep T2 or upgrade to T1. Do not auto-upgrade based on task count alone.
 
-**→ Phase Gate: Step 3 → Step 4**
+**→ Step Gate: Step 3 → Step 4**
 
 Announce to developer:
 > "DDD impact analysis done — {Aggregate boundary OK / needs redesign}, {no new events / new events needed}. Ready to implement? `/dflow:next` to proceed, or adjust the design first."
@@ -276,16 +276,16 @@ Even for bug fixes, verify:
 - [ ] Tests updated to cover the fix
 - [ ] No business logic leaked to wrong layer
 
-**→ Phase Gate: Step 4 → Step 5**
+**→ Step Gate: Step 4 → Step 5**
 
 Announce to developer:
 > "Implementation appears complete. Ready to update documentation (spec, models.md, rules.md, events.md, glossary, tech-debt)? `/dflow:next` to proceed."
 
-Wait for confirmation before entering Step 5. This phase gate is where the completion checklist is triggered — do not skip.
+Wait for confirmation before entering Step 5. This step gate is where the completion checklist is triggered — do not skip.
 
 ## Step 5: Update Documentation
 
-Triggered by the Step 4 → Step 5 Phase Gate. AI runs the completion checklist in the order below; do **not** skip a section. `Implementation Tasks` checks apply to both `phase-spec.md` and `lightweight-spec.md` (T3 inline-only has no task section).
+Triggered by the Step 4 → Step 5 Step Gate. AI runs the completion checklist in the order below; do **not** skip a section. `Implementation Tasks` checks apply to both `phase-spec.md` and `lightweight-spec.md` (T3 inline-only has no task section).
 
 ### 5.1 Verification — AI runs independently
 
@@ -322,7 +322,7 @@ Ask these one-by-one.
 - [ ] `dflow/specs/domain/{context}/events.md` — Domain Event updates
 - [ ] `dflow/specs/domain/glossary.md` — new / renamed terms (mirror any RENAMED delta entries here)
 - [ ] `dflow/specs/domain/{context}/behavior.md` — update scenarios to reflect Delta result (merge final state, not Delta markup). Sub-steps:
-      - Promote any Phase 3 draft sections (from B3 mid-sync) to formal sections
+      - Promote any Activity 3 (Spec Writing) draft sections (from B3 mid-sync) to formal sections
       - Update the corresponding `rules.md` anchor's `last-updated` date (B4)
 - [ ] `behavior.md` draft cleanup — if the Delta was abandoned mid-way, keep the `## 提案中變更` section's history or explicitly REMOVE it
 - [ ] `dflow/specs/domain/context-map.md` — updated if cross-context interaction changed

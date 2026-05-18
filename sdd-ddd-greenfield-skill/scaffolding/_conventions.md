@@ -101,7 +101,7 @@ Project-specific guidance when filling these templates:
   descriptions (Mermaid state diagram or Given / When / Then + "And
   the Aggregate is in state X").
 - **CQRS split**: commands (write) vs queries (read) should be
-  identified during Phase 4 (Implementation Planning). Commands
+  identified during Activity 4 (Implementation Planning). Commands
   generally map 1:1 to an Aggregate method; queries bypass the
   Domain layer and read projections.
 

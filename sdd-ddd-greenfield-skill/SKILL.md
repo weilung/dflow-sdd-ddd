@@ -66,7 +66,8 @@ Developer input arrives
     │   ├─ /dflow:bug-fix         → Lightweight-ceremony modification of existing functionality.
     │   │                             Not tied to any branch strategy (not Git Flow's hotfix).
     │   ├─ /dflow:new-phase       → NEW PHASE WORKFLOW (references/new-phase-flow.md)
-    │   │                             Add a new phase-spec to an active feature directory.
+    │   │                             Add, implement, verify, and complete a new phase-spec
+    │   │                             inside an active feature directory.
     │   │                             Active features ONLY (rejects completed features).
     │   ├─ /dflow:finish-feature  → FINISH FEATURE WORKFLOW (references/finish-feature-flow.md)
     │   │                             Validate all phase-specs ✅, sync BR Snapshot to BC layer,
@@ -76,7 +77,7 @@ Developer input arrives
     │   ├─ /dflow:report-dflow-feedback
     │   │                         → DFLOW FEEDBACK DRAFT FLOW (references/dflow-feedback-flow.md)
     │   ├─ /dflow:status          → Report current workflow state (see § Workflow Transparency)
-    │   ├─ /dflow:next            → Confirm proceeding to next phase (active workflow only)
+    │   ├─ /dflow:next            → Confirm proceeding to next step (active workflow only)
     │   └─ /dflow:cancel          → Abort current workflow, return to free conversation
     │
     ├─ Natural language implying a development task (auto-trigger safety net)
@@ -121,14 +122,14 @@ manual reference for environments without Node.js/npm.
 - `/dflow:pr-review` — enter PR review checklist
 
 **Phase commands** — work inside an already-started active feature:
-- `/dflow:new-phase` — add a new phase-spec to an active feature directory + refresh `_index.md` (Current BR Snapshot, Phase Specs row). **Active features only**: if the target feature is in `completed/`, this command refuses and points the user to `/dflow:modify-existing` (follow-up path).
+- `/dflow:new-phase` — add a new phase-spec to an active feature directory, refresh `_index.md` (Current BR Snapshot, Phase Specs row), implement / verify the phase, and mark that phase completed. **Active features only**: if the target feature is in `completed/`, this command refuses and points the user to `/dflow:modify-existing` (follow-up path).
 
 **Closeout commands** — wrap a feature up:
 - `/dflow:finish-feature` — feature closeout ceremony. Verify every phase-spec status is `completed`, sync `_index.md` Current BR Snapshot to the BC layer (`rules.md` / `behavior.md`), `git mv` the feature directory from `active/` to `completed/`, and emit a Git-strategy-neutral **Integration Summary** (does NOT auto-merge).
 
 **Control commands** — manage an active workflow:
 - `/dflow:status` — report current workflow, step, and progress
-- `/dflow:next` — confirm proceeding to the next phase (equivalent to "OK" / "continue")
+- `/dflow:next` — confirm proceeding to the next step (equivalent to "OK" / "continue")
 - `/dflow:cancel` — abort current workflow, return to free conversation (artifacts created so far are kept as-is)
 
 **Standalone commands** — run independently of any workflow:
@@ -156,15 +157,22 @@ During an active workflow, communicate at three levels — no more, no less:
 | Level | Trigger Point | AI Behavior |
 |---|---|---|
 | **Flow entry (must confirm)** | After judging the workflow from NL | Stop and wait for confirmation (command, "OK", or implicit) |
-| **Phase gate (notify + optional confirm)** | Before major milestones | Announce the transition; if developer provides next-phase input, treat as implicit confirmation |
+| **Step Gate (notify + optional confirm)** | Before major milestones | Announce the transition; if developer provides next-step input, treat as implicit confirmation |
 | **Step-internal (notify only)** | Step N → Step N+1 | Announce "Step N complete, entering Step N+1" — do not wait |
 
-**Phase gate positions:**
+**Step Gate positions:**
 
 new-feature-flow (8 steps):
+- Step 3 → 3.5 (domain modeling → slug confirmation)
 - Step 4 → 5 (spec written → plan implementation)
 - Step 6 → 7 (branch created → start implementation)
 - Step 7 → 8 (implementation done → completion)
+
+new-phase-flow (7 steps):
+- Step 3 → 4 (phase scope confirmed → write the phase-spec)
+- Step 4 → 5 (phase-spec drafted → refresh `_index.md`)
+- Step 5 → 6 (`_index.md` refreshed → start implementation)
+- Step 6 → 7 (implementation done → complete the phase)
 
 modify-existing-flow (5 steps — Core version condenses extraction/analysis into one step since layers are already separated):
 - Step 2 → 3 (baseline captured → assess DDD impact)
@@ -173,28 +181,30 @@ modify-existing-flow (5 steps — Core version condenses extraction/analysis int
 
 ### Completion Checklist Execution
 
-The Step 7 → Step 8 Phase Gate (new-feature-flow) and Step 4 → Step 5 Phase Gate (modify-existing-flow) are the **completion checklist triggers**. Do not run the checklist opportunistically — wait until the developer crosses this gate via `/dflow:next`, a confirmation word, or implicit confirmation.
+The Step 7 → Step 8 Step Gate (new-feature-flow) and Step 4 → Step 5 Step Gate (modify-existing-flow) are the **feature-level completion checklist triggers**. Do not run the checklist opportunistically — wait until the developer crosses this gate via `/dflow:next`, a confirmation word, or implicit confirmation.
 
-Once triggered, execute the checklist in strict order:
+The Step 6 → Step 7 Step Gate in new-phase-flow is a separate **phase-level completion trigger**. It only marks the current phase complete: change the phase-spec frontmatter `status` from `in-progress` to `completed`, keep / reconcile `Implementation Tasks`, update the `_index.md` Phase Specs row to `completed`, refresh the Current BR Snapshot from the implemented Delta, and update the Resume Pointer. Do not run the feature-level checklist here: BC-level docs sync, developer-confirmation closeout, feature directory archival, and final "feature complete" messaging remain `/dflow:finish-feature` responsibilities.
+
+For feature-level completion triggers, execute the checklist in strict order:
 
 1. **AI-independent verification** (Section 8.1 / 5.1): run every item without asking the developer; report `✓` / `✗` as a single list. Items fall into two timing categories:
    - **Pre-merge** (default): verified before touching any docs — Given/When/Then and BR/EC coverage, Domain Events raised, Domain project purity (zero external NuGet), Aggregate invariants preserved, EF Fluent API only, `Implementation Tasks` section completeness.
    - **Post-8.3 / Post-5.3** (marked `*(post-...)*`): re-verified after the 8.3 / 5.3 merge step lands — `behavior.md` BR-* anchor correspondence (incl. deletions for REMOVED deltas) and `last-updated` date (mechanical input for `/dflow:verify`).
    If any item fails, pause and fix before continuing.
 2. **Developer-confirmation verification** (Section 8.2 / 5.2): ask one question at a time (intent fit, Aggregate boundary sanity, Domain Event placements, missed tech debt); wait for the developer's judgment. Do **not** dump all questions at once. P005b adds two questions: whether the scenarios merged into `behavior.md` (incl. Aggregate transitions + Events) faithfully express the intended behavior, and whether the spec's `Implementation Tasks` section should be collapsed / removed per team convention.
-3. **Documentation updates** (Section 8.3 / 5.3): update glossary / models / rules / events / context-map / tech-debt. The `behavior.md` merge includes two sub-steps: promote any Phase 3 draft sections (B3 mid-sync) to formal sections, and update the corresponding `rules.md` anchor's `last-updated` date (B4). If the spec was abandoned mid-way, clean up the `## 提案中變更` section (keep history or explicitly REMOVE).
+3. **Documentation updates** (Section 8.3 / 5.3): update glossary / models / rules / events / context-map / tech-debt. The `behavior.md` merge includes two sub-steps: promote any Activity 3 (Spec Writing) draft sections (B3 mid-sync) to formal sections, and update the corresponding `rules.md` anchor's `last-updated` date (B4). If the spec was abandoned mid-way, clean up the `## 提案中變更` section (keep history or explicitly REMOVE).
 4. **Archival** (Section 8.4 / 5.4): move spec to `completed/`, flip `status`.
 
-Only announce "feature complete" / "change complete" after archival is done. If the developer skips the Phase Gate and commits directly, the auto-trigger safety net should prompt "It looks like you're wrapping up — should I run the Step 8 checklist?" before allowing commit guidance.
+Only announce "feature complete" / "change complete" after archival is done. If the developer skips the Step Gate and commits directly, the auto-trigger safety net should prompt "It looks like you're wrapping up — should I run the Step 8 checklist?" before allowing commit guidance.
 
 ### Confirmation Signals (NL ↔ Command Equivalence)
 
-Any of these count as "proceed to next phase" — pick whichever the developer uses:
+Any of these count as "proceed to next step" — pick whichever the developer uses:
 
 - **Command**: `/dflow:next`
 - **Verbal (English)**: OK / yes / continue / go ahead / sounds good / proceed
 - **Verbal (Chinese)**: 好 / 對 / 繼續 / 可以 / 沒問題
-- **Implicit**: Developer provides the information needed for the next phase
+- **Implicit**: Developer provides the information needed for the next step
   (e.g., AI asks "Which Aggregate?" and developer answers with the Aggregate name → implicit confirmation)
 
 The implicit-confirmation rule is important — avoid turning every transition into a ceremony where the developer must say "OK" before every sentence.
@@ -399,16 +409,20 @@ Each Bounded Context has two complementary files that together describe the syst
 
 This is analogous to how OpenSpec's `specs/` directory serves as the system behavior source of truth, but organized by Bounded Context rather than by capability.
 
-## Guiding Questions by Phase
+## Guiding Questions by Activity
 
-**Phase markers in phase-spec template**: each section in `templates/phase-spec.md` carries an HTML comment (e.g., `<!-- Fill timing: Phase 2 -->`) indicating the phase in which that section should be filled. These markers align with the phases below and are used by `/dflow:status` and the completion checklist to track progress. When guiding a developer, fill sections in phase order; do not jump ahead to Phase 4 (implementation planning) before Phase 3 (spec writing) is agreed. The `Implementation Tasks` section at the end of the template is produced by AI at the end of Phase 4 — see new-feature-flow.md Step 5 / new-phase-flow.md Step 4 / modify-existing-flow.md Step 3.
+SDD has five conceptual activities (Understanding / Domain Modeling / Spec Writing / Implementation Planning / Testing Strategy) that the AI walks the developer through inside a Workflow. They cut across Workflow Steps — Activity 2 (Domain Modeling) might span Step 2 and Step 3 of new-feature-flow, for example.
 
-### Phase 1: Understanding (What & Why)
+**Activity markers in phase-spec template**: each section in `templates/phase-spec.md` carries an HTML comment (e.g., `<!-- Fill timing: Activity 2: Domain Modeling -->`) indicating the activity in which that section should be filled. These markers align with the activities below and are used by `/dflow:status` and the completion checklist to track progress. When guiding a developer, fill sections in activity order; do not jump ahead to Activity 4 (Implementation Planning) before Activity 3 (Spec Writing) is agreed. The `Implementation Tasks` section at the end of the template is produced by AI at the end of Activity 4 — see new-feature-flow.md Step 5 / new-phase-flow.md Step 4 / modify-existing-flow.md Step 3.
+
+Note: phase-spec template HTML comments cover Activity 1-4; Activity 5 (Testing Strategy) is a conceptual category folded into the Test Strategy section that the template marks with Activity 4 timing. In `new-phase-flow`, Activity 5 is exercised operationally in Step 6 when implementation and tests are verified against the phase-spec before Step 7 completion.
+
+### Activity 1: Understanding (What & Why)
 - What problem does this solve? Who asked for it?
 - What's the expected behavior from the user's perspective?
 - Are there existing specs or domain docs related to this?
 
-### Phase 2: Domain Modeling (DDD)
+### Activity 2: Domain Modeling (DDD)
 - Which Bounded Context? (Check context-map.md)
 - What Aggregate does this belong to? Or is it a new Aggregate?
 - What are the invariants this Aggregate must protect?
@@ -416,19 +430,19 @@ This is analogous to how OpenSpec's `specs/` directory serves as the system beha
 - Will this produce Domain Events? Who consumes them?
 - Does this cross Aggregate/Context boundaries? → Need integration strategy
 
-### Phase 3: Spec Writing
+### Activity 3: Spec Writing
 - Write the spec using the template (see templates/phase-spec.md)
 - Define Given/When/Then with Aggregate state transitions
 - Document Domain Events produced and consumed
 - Identify edge cases around Aggregate invariants
 
-### Phase 4: Implementation Planning
+### Activity 4: Implementation Planning
 - Domain layer: Aggregate design, Value Objects, Domain Events
 - Application layer: Command/Query, handlers, validation
 - Infrastructure: Repository implementation, EF configuration
 - Presentation: API endpoint design
 
-### Phase 5: Testing Strategy
+### Activity 5: Testing Strategy
 - Domain unit tests: invariants, business rules, value object equality
 - Application tests: command/query handler behavior
 - Integration tests: repository, external services
@@ -445,7 +459,7 @@ Format: `| Term | Definition | Bounded Context | Code Mapping |`
 | `references/init-project-flow.md` | CLI internal init flow spec for `npx dflow-sdd-ddd init`; manual bootstrap reference when Node.js/npm is unavailable |
 | `references/new-feature-flow.md` | New feature development |
 | `references/modify-existing-flow.md` | Changing existing functionality |
-| `references/new-phase-flow.md` | `/dflow:new-phase` — add a new phase-spec to an active feature |
+| `references/new-phase-flow.md` | `/dflow:new-phase` — add, implement, verify, and complete a new phase-spec inside an active feature |
 | `references/finish-feature-flow.md` | `/dflow:finish-feature` — feature closeout ceremony |
 | `references/ddd-modeling-guide.md` | Domain model design questions |
 | `references/pr-review-checklist.md` | Code review |

@@ -1,39 +1,38 @@
-# Using Dflow with Gemini CLI
+# 在 Gemini CLI 中使用 Dflow
 
-A walk-through of what Dflow looks like when your AI coding agent is
-[Gemini CLI](https://github.com/google/gemini-cli). About 10 minutes to read.
+> **繁體中文** | [English](using-with-gemini-cli.en.md)
 
-This guide focuses on the Gemini CLI experience specifically. For the
-tool-neutral evaluation flow, see
-[`docs/evaluating-dflow.md`](evaluating-dflow.md). For the full Get Started
-and feature list, see [`README.md`](../README.md).
+當你的 AI 程式設計助理是 [Gemini CLI](https://github.com/google/gemini-cli) 時，Dflow 的使用體驗 walk-through。閱讀約需 10 分鐘。
 
-## 1. Who This Guide Is For
+本指南專注於 Gemini CLI 的具體使用體驗。工具中立的評估流程請見
+[`docs/evaluating-dflow.md`](evaluating-dflow.md)。完整的 Get Started
+與功能列表請見 [`README.md`](../README.md)。
 
-You are using or evaluating Dflow with Gemini CLI as your AI coding agent.
-This guide covers what Gemini CLI sees after `init`, how Dflow's slash
-commands are recognized, and the Gemini-CLI-specific patterns worth knowing.
+## 本指南的適用對象
 
-You do not need to read this before running `init`. It is most useful after
-you have run `init` once and want to understand what Gemini CLI is actually
-loading.
+你正在使用或評估以 Gemini CLI 作為 AI 程式設計助理的 Dflow。
+本指南說明 `init` 之後 Gemini CLI 看到了什麼、Dflow 的 slash
+commands 是如何被識別的，以及幾個值得了解的 Gemini CLI 專屬使用模式。
 
-## 2. Prerequisites
+你不需要在執行 `init` 之前先讀本指南。它最適合在你執行過一次 `init` 之後、
+想了解 Gemini CLI 實際載入什麼內容時閱讀。
 
-- Gemini CLI installed (see [github.com/google/gemini-cli](https://github.com/google/gemini-cli)).
-- Node.js / npm available (Dflow ships through npm). Install globally with
-  `npm install -g dflow-sdd-ddd`, or use `npx dflow-sdd-ddd` for the no-install path.
-- A project directory you are comfortable initializing in. A branch or a
-  disposable sample project is recommended for first contact; see the
-  [evaluator guide playbook](evaluating-dflow.md#a-30-minute-evaluation-playbook).
+## 前置條件
 
-You do not need a separate Dflow service or API key. The workflows are
-text-based and use Gemini CLI's existing capabilities.
+- 已安裝 Gemini CLI（見 [github.com/google/gemini-cli](https://github.com/google/gemini-cli)）。
+- 已具備 Node.js / npm 環境（Dflow 透過 npm 發佈）。以
+  `npm install -g dflow-sdd-ddd` 全域安裝，或用 `npx dflow-sdd-ddd` 走免安裝路徑。
+- 有一個你願意在其中執行 init 的專案目錄。首次嘗試建議先用 branch 或
+  可拋棄的範例專案；見
+  [評估者指南 Playbook](evaluating-dflow.md#30-分鐘評估-playbook)。
 
-## 3. What Gemini CLI Sees After `init`
+你不需要獨立的 Dflow 服務或 API 金鑰。這些 workflow 是文字形式，使用
+Gemini CLI 本身既有的功能。
 
-Running `dflow init` (or `npx dflow-sdd-ddd init` on the no-install path) and
-selecting Gemini CLI as a target tool creates a thin shim at the project root:
+## `init` 之後 Gemini CLI 看到了什麼
+
+執行 `dflow init`（或免安裝路徑的 `npx dflow-sdd-ddd init`）並選擇 Gemini CLI
+作為目標工具後，會在專案根目錄建立一個薄 shim：
 
 ```markdown
 # GEMINI.md - Dflow Project Instructions
@@ -53,38 +52,34 @@ If your tool supports Markdown imports, the canonical guide is imported below:
 @dflow/specs/shared/AI-AGENT-GUIDE.md
 ```
 
-Two things happen when Gemini CLI starts in this project:
+Gemini CLI 在這個專案中啟動時，會發生兩件事：
 
-1. Gemini CLI automatically loads `GEMINI.md` from the project root into
-   its context. This is Gemini CLI's standard project instructions
-   mechanism.
-2. The trailing `@dflow/specs/shared/AI-AGENT-GUIDE.md` line uses Gemini
-   CLI's Markdown import syntax to inline the canonical Dflow guide. So
-   Gemini CLI effectively reads both files as one set of instructions.
+1. Gemini CLI 自動從專案根目錄載入 `GEMINI.md` 到它的 context 中。
+   這是 Gemini CLI 的標準專案指示機制。
+2. 末尾的 `@dflow/specs/shared/AI-AGENT-GUIDE.md` 這行使用 Gemini
+   CLI 的 Markdown import 語法，將 canonical Dflow 指南 inline 嵌入。因此 Gemini CLI
+   等效於把兩個檔案當成一組指示來讀取。
 
-The canonical guide (`dflow/specs/shared/AI-AGENT-GUIDE.md`) is where the
-real workflow rules live: project context (track, tech stack, prose
-language), the `/dflow:*` workflow table, source-of-truth file paths, and
-core SDD/DDD rules. The `GEMINI.md` shim stays small precisely so the
-canonical guide can evolve without Gemini-CLI-specific edits.
+canonical 指南（`dflow/specs/shared/AI-AGENT-GUIDE.md`）是實際 workflow
+規則的所在：專案上下文（track、技術棧、文章語言）、`/dflow:*` workflow 表、
+source-of-truth 檔案路徑，以及核心 SDD/DDD 規則。`GEMINI.md` shim 刻意保持精簡，
+這樣 canonical 指南就能在不需要 Gemini CLI 專屬修改的情況下持續演進。
 
-If a `GEMINI.md` already existed in the project, `init` does not overwrite
-it. Instead it writes a merge snippet under `dflow/specs/shared/` that you
-can paste into your existing `GEMINI.md` manually.
+如果專案中已有 `GEMINI.md`，`init` 不會覆蓋它。它改為在
+`dflow/specs/shared/` 下寫入 merge snippet，讓你手動貼入現有的 `GEMINI.md`。
 
-## 4. Using Dflow Workflow Commands in Gemini CLI
+## 在 Gemini CLI 中使用 Dflow Workflow 指令
 
-Dflow's `/dflow:*` slash commands are workflow names recognized by the AI
-through the workflow table in `AI-AGENT-GUIDE.md`, not Gemini CLI's
-built-in tool commands. You type them as plain chat:
+Dflow 的 `/dflow:*` slash commands 是 AI 透過 `AI-AGENT-GUIDE.md` 中的
+workflow 表識別的 workflow 名稱，不是 Gemini CLI 的內建工具指令。
+你以普通對話方式輸入它們：
 
 ```text
 /dflow:new-feature
 ```
 
-Gemini CLI treats this as input. Because it has the workflow table loaded
-via `GEMINI.md` import, it recognizes the prefix and enters the matching
-workflow. A typical conversation looks like:
+Gemini CLI 將此視為輸入。由於它已透過 `GEMINI.md` import 載入了 workflow 表，
+它會識別這個前綴並進入對應的 workflow。一次典型的對話如下：
 
 ```text
 User: /dflow:new-feature
@@ -100,99 +95,90 @@ dflow/specs/features/active/. Before I do, I need a short answer on:
 [clarifying questions about scope, owner, priority]
 ```
 
-The workflow then walks you through spec drafting, behavior examples,
-implementation planning, and finish-feature drift checks. The exact
-sequence depends on which workflow you entered (`/dflow:new-feature`,
-`/dflow:modify-existing`, `/dflow:bug-fix`, etc.). All workflow definitions
-live under the Dflow skill source; Gemini CLI follows them by reading the
-skill files when needed.
+接著這個 workflow 會引導你完成 spec 起草、行為範例、實作計畫，以及
+finish-feature 漂移（drift）檢查。確切的流程取決於你進入的是哪個 workflow
+（`/dflow:new-feature`、`/dflow:modify-existing`、`/dflow:bug-fix` 等）。
+所有 workflow 定義都存放在 Dflow skill source 中；Gemini CLI 在需要時讀取
+skill 檔案來執行它們。
 
-Available workflow entry points:
+可用的 workflow 入口：
 
-| Command | Use when |
+| 指令 | 適用情境 |
 |---|---|
-| `/dflow:new-feature` | A new user-visible capability or business behavior is requested. |
-| `/dflow:modify-existing` | Existing behavior needs to change. |
-| `/dflow:bug-fix` | A defect can be described with expected vs actual behavior. |
-| `/dflow:new-phase` | An active feature needs another implementation slice. |
-| `/dflow:finish-feature` | Implementation is complete and needs drift closure. |
-| `/dflow:verify` | Specs, domain docs, implementation, and tests need consistency checks. |
-| `/dflow:pr-review` | A change is ready for SDD/DDD review. |
-| `/dflow:report-dflow-feedback` | You found a Dflow issue or improvement and want a sanitized upstream feedback draft. |
+| `/dflow:new-feature` | 需要新增一個使用者可見的功能或業務行為。 |
+| `/dflow:modify-existing` | 需要修改現有行為。 |
+| `/dflow:bug-fix` | 可以用預期行為 vs 實際行為描述的缺陷。 |
+| `/dflow:new-phase` | 進行中的 feature 需要另一個實作 slice。 |
+| `/dflow:finish-feature` | 實作完成後需要進行漂移（drift）收尾。 |
+| `/dflow:verify` | 需要對 spec、領域文件、實作與測試進行一致性檢查。 |
+| `/dflow:pr-review` | 變更已準備好進行 SDD/DDD review。 |
+| `/dflow:report-dflow-feedback` | 你發現了 Dflow 的問題或改進點，想要一份清理過的上游回饋草稿。 |
 
-If you forget a command name, ask Gemini CLI "what dflow workflows are
-available?" — the answer comes from the workflow table it already has
-loaded.
+如果你忘了指令名稱，問 Gemini CLI「what dflow workflows are available?」
+即可 —— 答案會從它已載入的 workflow 表中給出。
 
-## 5. Differences vs Other AI Tools
+## 與其他 AI 工具的差異
 
-The canonical guide (`dflow/specs/shared/AI-AGENT-GUIDE.md`) is identical
-across tools. Only the root-level shim differs:
+canonical 指南（`dflow/specs/shared/AI-AGENT-GUIDE.md`）在各工具之間是相同的。
+只有根目錄層的 shim 有所不同：
 
-| Tool | Generated shim | Loads canonical guide via |
+| 工具 | 產生的 shim | 載入 canonical 指南的方式 |
 |---|---|---|
 | Gemini CLI | `GEMINI.md` | `@dflow/specs/shared/AI-AGENT-GUIDE.md` Markdown import |
 | Claude Code | `CLAUDE.md` | `@dflow/specs/shared/AI-AGENT-GUIDE.md` Markdown import |
-| Codex / Copilot coding agent | `AGENTS.md` | Reads file content directly when starting |
-| GitHub Copilot | `.github/copilot-instructions.md` | Reads file content directly |
+| Codex / Copilot coding agent | `AGENTS.md` | 啟動時直接讀取檔案內容 |
+| GitHub Copilot | `.github/copilot-instructions.md` | 直接讀取檔案內容 |
 
-You can run `dflow configure-agents` later to add another tool's shim
-without re-running `init`. Multiple tools can be active in the same project
-and stay synchronized via the canonical guide.
+你可以之後執行 `dflow configure-agents` 來新增另一個工具的 shim，而不需要重跑
+`init`。同一個專案可以同時啟用多個工具，並透過 canonical 指南保持同步。
 
-## 6. Common Patterns and Gotchas
+## 常見模式與注意事項
 
-**Keep `GEMINI.md` thin.** If you find yourself adding workflow rules,
-spec locations, or SDD constraints to `GEMINI.md`, those belong in
-`dflow/specs/shared/AI-AGENT-GUIDE.md` instead. The shim stays small so
-that other tools' shims don't drift away from it.
+**保持 `GEMINI.md` 精簡。** 如果你發現自己在把 workflow 規則、spec 路徑或
+SDD 約束加入 `GEMINI.md`，這些內容應該放到
+`dflow/specs/shared/AI-AGENT-GUIDE.md`。shim 保持精簡，其他工具的 shim 才不會
+與它產生漂移（drift）。
 
-**`/dflow:*` is not a Gemini CLI tool.** The slash commands are plain text
-patterns the AI recognizes from the workflow table. You can use them
-immediately after `init` without any Gemini CLI configuration.
+**`/dflow:*` 不是 Gemini CLI 的工具指令。** Slash commands 是 AI 從 workflow
+表識別的純文字模式。你在 `init` 之後就可以立即使用它們，不需要任何 Gemini CLI
+設定。
 
-**Permission gates and Dflow workflow gates are separate.** Gemini CLI may
-ask for confirmation before executing a shell command or modifying a file.
-Dflow's workflows have their own approval gates (e.g., "I drafted the spec —
-do you want me to proceed to implementation?"). Both can fire on the same
-action; this is expected and not a sign of misconfiguration.
+**Permission gates 與 Dflow workflow gates 是分開的。** Gemini CLI 可能會在執行
+shell 指令或修改檔案前要求確認。Dflow 的 workflow 有自己的審核關卡（例如「我已起草
+spec —— 你要我繼續進入實作嗎？」）。兩者可能在同一個動作上同時觸發；這是預期行為，
+不代表設定有誤。
 
-**The `@` import is not recursive.** `GEMINI.md` imports
-`AI-AGENT-GUIDE.md`, but if `AI-AGENT-GUIDE.md` references other files
-(e.g., feature specs), those are not auto-loaded — Gemini CLI reads them
-on demand when entering the relevant workflow. This keeps context usage
-proportional to active work.
+**`@` import 不是遞迴的。** `GEMINI.md` import 了 `AI-AGENT-GUIDE.md`，但如果
+`AI-AGENT-GUIDE.md` 引用了其他檔案（例如 feature spec），那些檔案不會被自動
+載入 —— Gemini CLI 會在進入對應 workflow 時按需讀取它們。這樣可以讓 context
+用量與正在進行的工作保持比例。
 
-**A pre-existing `GEMINI.md` is preserved.** `init` will not overwrite your
-existing project instructions. Look under `dflow/specs/shared/` for the
-merge snippet `init` wrote and paste the relevant sections into your
-existing `GEMINI.md` manually.
+**既有的 `GEMINI.md` 會被保留。** `init` 不會覆蓋你現有的專案指示。請到
+`dflow/specs/shared/` 下找 `init` 寫入的 merge snippet，並手動將相關段落貼入
+你現有的 `GEMINI.md`。
 
-**Cross-machine projects work.** `dflow/specs/` is plain Markdown checked
-into your repo. Anyone cloning the repo and using Gemini CLI in it will
-see the same Dflow setup automatically through the committed `GEMINI.md`
-shim and the canonical guide.
+**跨機器專案可正常運作。** `dflow/specs/` 是純 Markdown，已 check in 到你的
+repo。任何人 clone 該 repo 並在其中使用 Gemini CLI，都會透過已 commit 的
+`GEMINI.md` shim 與 canonical 指南自動看到相同的 Dflow 設定。
 
-## 7. Where to Go Next
+## 下一步
 
-If you have not run `init` yet:
+如果你還沒有執行 `init`：
 
-- Follow the [evaluator guide playbook](evaluating-dflow.md#a-30-minute-evaluation-playbook)
-  to try it on a disposable sample project.
+- 按照[評估者指南 Playbook](evaluating-dflow.md#30-分鐘評估-playbook)
+  在可拋棄的範例專案中試用。
 
-If you have run `init` and want to see end-to-end workflow examples:
+如果你已執行 `init` 且想查看端到端的 workflow 範例：
 
-- Read [`tutorial/01-greenfield/`](../tutorial/01-greenfield/walkthrough-00-setup.zh-TW.md) or
-  [`tutorial/02-brownfield/`](../tutorial/02-brownfield/walkthrough-00-setup.zh-TW.md). The
-  tutorial walk-throughs show conversation flows and the resulting
-  `dflow/specs/` outputs.
+- 閱讀 [`tutorial/01-greenfield/`](../tutorial/01-greenfield/walkthrough-00-setup.md) 或
+  [`tutorial/02-brownfield/`](../tutorial/02-brownfield/walkthrough-00-setup.md)。
+  tutorial walk-through 展示了對話流程與產生的 `dflow/specs/` 輸出。
 
-If you want to understand the design rationale:
+如果你想了解設計理念：
 
-- Read [`docs/why-ddd-for-ai.md`](why-ddd-for-ai.md).
+- 閱讀[為什麼 AI 時代 DDD 更重要](why-ddd-for-ai.md)。
 
-If something does not work as described:
+如果有任何行為與描述不符：
 
-- File a docs feedback issue (see [`CONTRIBUTING.md`](../CONTRIBUTING.md)).
-  Per-tool documentation is new and feedback specifically about Gemini CLI
-  behavior is valuable.
+- 開一個 docs feedback issue（見 [`CONTRIBUTING.md`](../CONTRIBUTING.md)）。
+  Per-tool 文件是新內容，有關 Gemini CLI 行為的具體回饋非常有價值。

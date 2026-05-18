@@ -267,7 +267,7 @@ skip, and wait for developer confirmation:
 > Looks good? Reply 'yes' to proceed with the writes, or tell me what to
 > adjust."
 
-**→ Phase Gate: Step 3 → Step 4**
+**→ Step Gate: Step 3 → Step 4**
 
 Wait for explicit confirmation. If the developer asks to change the
 selection, go back to Step 2 Q5 or Q6 and re-run Step 3.

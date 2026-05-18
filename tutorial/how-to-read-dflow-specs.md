@@ -60,8 +60,10 @@ Walkthrough 會常見這種 note：
 | 完整文件範例路徑在 `features/completed/` | closeout 後的位置；本篇當下可能仍是 `features/active/`。 |
 
 例子：Greenfield walkthrough 03 在講 `/dflow:new-phase` 時，feature 當下仍 active；
-但它連到的 `_index.md` 完整文件範例已經包含後續 bug fix 和 finish-feature 的結果。
-這不是矛盾，而是 tutorial 保留最後完成狀態作為 evidence，同時用正文 excerpt 說明當下。
+該 workflow 會把 phase-spec 從 `in-progress` 走到 `completed`，但不會把整個 feature
+搬到 `completed/`。它連到的 `_index.md` 完整文件範例已經包含後續 bug fix 和
+finish-feature 的結果。這不是矛盾，而是 tutorial 保留最後完成狀態作為 evidence，
+同時用正文 excerpt 說明當下。
 
 ## `_index.md` 不是歷史流水帳
 
@@ -91,7 +93,7 @@ phase spec 或 lightweight / BUG spec 的 Delta。
 
 | 文件 | 何時出現 | 讀法 |
 |---|---|---|
-| `phase-spec-YYYY-MM-DD-{slug}.md` | T1 feature phase 或 new-phase | 讀本 phase 的 problem、behavior scenarios、BR Delta、tasks。 |
+| `phase-spec-YYYY-MM-DD-{slug}.md` | T1 feature phase 或 new-phase | 讀本 phase 的 problem、behavior scenarios、BR Delta、Implementation Tasks、implementation / verification outcome。 |
 | `lightweight-YYYY-MM-DD-{slug}.md` | T2 modify-existing，仍需 spec 但不開新 phase | 讀小範圍 BR / behavior delta 和 scoped implementation tasks。 |
 | `BUG-NNN-{slug}.md` | bug-fix，有 expected vs actual | 讀 reproduction、root cause、fix approach、regression checks。 |
 
@@ -196,7 +198,7 @@ Brownfield 最重要的紀律是：
 
 建議讀者先看：
 
-1. [〈Dflow 命令表面導讀〉](dflow-command-surface.zh-TW.md)
+1. [〈Dflow 命令表面導讀〉](dflow-command-surface.md)
 2. 本頁
 3. Greenfield 或 Brownfield 的 00 / 01
 4. 對應 scenario walkthrough 02-06

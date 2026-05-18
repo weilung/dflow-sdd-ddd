@@ -21,7 +21,7 @@ code，而是要在既有 Order BC 上新增第二個 feature。
 閱讀提示：本篇會連到完整文件範例（目前存放在本 tutorial 的 `outputs/` 目錄）。這些範例代表 Brownfield 劇情跑完後的
 最終狀態；本篇內嵌 code block 則代表本步驟結束當下的重點片段。只讀本篇也能看懂
 第二個 Order feature 如何接在既有 BC 上；若想看完整文件家族的讀法，再讀
-[〈如何閱讀 Dflow 規格與完整文件範例〉](../how-to-read-dflow-specs.zh-TW.md)。
+[〈如何閱讀 Dflow 規格與完整文件範例〉](../how-to-read-dflow-specs.md)。
 
 ## 本篇適合誰讀
 
@@ -37,10 +37,10 @@ code，而是要在既有 Order BC 上新增第二個 feature。
 
 前兩篇 Brownfield walkthrough 已經建立了 Bob 的工作基礎：
 
-1. [〈Walkthrough 02 — `/dflow:modify-existing` 從 WebForms 抽出第一段 Order Domain logic〉](walkthrough-02-modify-existing.zh-TW.md)
+1. [〈Walkthrough 02 — `/dflow:modify-existing` 從 WebForms 抽出第一段 Order Domain logic〉](walkthrough-02-modify-existing.md)
    從 WebForms 客訴進入 `/dflow:modify-existing`，Dflow 判定為 T1 Heavy，升級成
    `/dflow:new-feature`，建立第一個 Order BC 與 BR-001~004。
-2. [〈Walkthrough 03 — baseline capture 跨頁面折扣顯示行為〉](walkthrough-03-baseline-capture.zh-TW.md)
+2. [〈Walkthrough 03 — baseline capture 跨頁面折扣顯示行為〉](walkthrough-03-baseline-capture.md)
    不改 code，只讀 `OrderList` / `OrderDetail` immediate neighbors，把跨頁面現況分成
    confirmed / buggy / unknown。
 
@@ -876,7 +876,7 @@ Brownfield 的難點不是「能不能新增功能」，而是新增功能時不
 
 ## 下一個 walkthrough
 
-下一個 Brownfield walkthrough 可接 [〈Walkthrough 05 — `/dflow:bug-fix` 修正跨頁 rounding inconsistency〉](walkthrough-05-bug-fix.zh-TW.md)：
+下一個 Brownfield walkthrough 可接 [〈Walkthrough 05 — `/dflow:bug-fix` 修正跨頁 rounding inconsistency〉](walkthrough-05-bug-fix.md)：
 Bob 在 Order BC 已有 BR 與 behavior baseline 後，處理 production bug 或段 3 發現的
 rounding inconsistency。那一篇會展示 bug-fix flow 如何維持 expected-versus-actual
 邊界、補 regression check，並避免把 bug fix 膨脹成另一個無邊界重構。

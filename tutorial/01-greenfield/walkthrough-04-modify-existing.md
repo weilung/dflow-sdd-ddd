@@ -23,7 +23,7 @@ phase 1 提交與 phase 2 主管審核後，試用者提出一個小而真實的
 最終狀態；本步驟當下，feature 仍位於 `features/active/`，並在後續 closeout 後移到
 `features/completed/`。只讀本篇也能看懂 BR-007 這次修改的發生順序；若想看 active /
 completed snapshot 的完整讀法，再讀
-[〈如何閱讀 Dflow 規格與完整文件範例〉](../how-to-read-dflow-specs.zh-TW.md)。
+[〈如何閱讀 Dflow 規格與完整文件範例〉](../how-to-read-dflow-specs.md)。
 
 ## 本篇適合誰讀
 
@@ -37,7 +37,7 @@ completed snapshot 的完整讀法，再讀
 
 ## 前情提要
 
-上一篇 [〈Walkthrough 03 — `/dflow:new-phase` 在同一 feature 內新增主管審核〉](walkthrough-03-new-phase.zh-TW.md) 中，
+上一篇 [〈Walkthrough 03 — `/dflow:new-phase` 在同一 feature 內新增主管審核〉](walkthrough-03-new-phase.md) 中，
 Alice 用 `/dflow:new-phase` 在同一個 feature 內加入 supervisor approval phase。
 
 到本篇開始時，這個 active feature 已經有兩個 phase：
@@ -691,7 +691,7 @@ phase ceremony 壓垮。
 
 ## 下一個 walkthrough
 
-下一個 Greenfield walkthrough 可接 [〈Walkthrough 05 — `/dflow:bug-fix` 修正 reject reason emoji 截斷〉](walkthrough-05-bug-fix.zh-TW.md)：
+下一個 Greenfield walkthrough 可接 [〈Walkthrough 05 — `/dflow:bug-fix` 修正 reject reason emoji 截斷〉](walkthrough-05-bug-fix.md)：
 Alice 回到 office 後處理 `金額對不上👍` 被錯誤拒絕的 bug。那一篇會展示
 `/dflow:bug-fix` 如何掛回同一個 active feature、使用 `BUG-001` 命名，並說明為什麼
 BR-007 wording 不變時，Current BR Snapshot 不應 regenerate。

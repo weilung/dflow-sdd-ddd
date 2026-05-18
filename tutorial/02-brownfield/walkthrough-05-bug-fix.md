@@ -21,7 +21,7 @@ Bob 這次不是新增業務規則，不是建立新 bounded context，也不是
 最終狀態；本步驟當下，BUG-001 仍掛在 active feature 底下，並在後續 closeout 後隨整個
 feature 移到 `features/completed/`。只讀本篇也能看懂 BUG-001 的歸屬；若想看 active /
 completed snapshot 的完整讀法，再讀
-[〈如何閱讀 Dflow 規格與完整文件範例〉](../how-to-read-dflow-specs.zh-TW.md)。
+[〈如何閱讀 Dflow 規格與完整文件範例〉](../how-to-read-dflow-specs.md)。
 
 ## 本篇適合誰讀
 
@@ -37,13 +37,13 @@ completed snapshot 的完整讀法，再讀
 
 到本篇開始時，Bob 已經完成幾個重要步驟：
 
-1. [〈Walkthrough 02 — `/dflow:modify-existing` 從 WebForms 抽出第一段 Order Domain logic〉](walkthrough-02-modify-existing.zh-TW.md)
+1. [〈Walkthrough 02 — `/dflow:modify-existing` 從 WebForms 抽出第一段 Order Domain logic〉](walkthrough-02-modify-existing.md)
    建立 `SPEC-20260430-001-order-discount-calculation`，把第一批折扣規則抽到
    Order BC。
-2. [〈Walkthrough 03 — baseline capture 跨頁面折扣顯示行為〉](walkthrough-03-baseline-capture.zh-TW.md)
+2. [〈Walkthrough 03 — baseline capture 跨頁面折扣顯示行為〉](walkthrough-03-baseline-capture.md)
    baseline-only 讀 `OrderList` / `OrderDetail`，發現跨頁 rounding inconsistency，
    但當天不修，先記到 `tech-debt.md`。
-3. [〈Walkthrough 04 — `/dflow:new-feature` 在既有 Order BC 上新增 VIP discount policy〉](walkthrough-04-new-feature.zh-TW.md)
+3. [〈Walkthrough 04 — `/dflow:new-feature` 在既有 Order BC 上新增 VIP discount policy〉](walkthrough-04-new-feature.md)
    新增 `SPEC-20260505-002-vip-discount-policy`，讓 Order BC 擴張 VIP 合約折扣。
 
 `walkthrough-03` 當時已經留下這個 debt：
@@ -715,7 +715,7 @@ VIP feature，也不需要猜為什麼 BR Snapshot 沒變。
 
 ## 下一個 walkthrough
 
-下一個 Brownfield walkthrough 可接 [〈Walkthrough 06 — `/dflow:finish-feature` 收尾第一個 Order feature〉](walkthrough-06-finish-feature.zh-TW.md)：
+下一個 Brownfield walkthrough 可接 [〈Walkthrough 06 — `/dflow:finish-feature` 收尾第一個 Order feature〉](walkthrough-06-finish-feature.md)：
 Bob 收尾 `SPEC-20260430-001`，確認 phase 1 與 BUG-001 都已穩定，然後用
 `/dflow:finish-feature` 把第一個 Order feature archive 到 completed，同時保留仍 active
 的 `SPEC-20260505-002-vip-discount-policy`。

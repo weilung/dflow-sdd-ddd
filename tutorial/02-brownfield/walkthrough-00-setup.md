@@ -7,7 +7,7 @@
 Bob 面對的是什麼樣的既有系統，
 以及 Dflow 為什麼不能一開始就要求大重構或完整 DDD model。
 
-如果直接從 [〈Walkthrough 02 — `/dflow:modify-existing` 從 WebForms 抽出第一段 Order Domain logic〉](walkthrough-02-modify-existing.zh-TW.md)
+如果直接從 [〈Walkthrough 02 — `/dflow:modify-existing` 從 WebForms 抽出第一段 Order Domain logic〉](walkthrough-02-modify-existing.md)
 開始讀，讀者會看到 Dflow 從 `OrderEntry.aspx.cs` 抽出第一段 Order Domain logic；
 但不一定知道 Bob 為什麼先用 `/dflow:modify-existing`，也不一定知道 baseline capture
 為什麼比「先改乾淨」更重要。本篇補的是這個入口上下文。
@@ -127,7 +127,7 @@ Senior 客戶滿 NT$50,000 的訂單，
 4. 它可以把部分計算從 Code-Behind 抽成 pure C#。
 5. 它不需要重寫整個 WebForms application。
 
-這會在 [〈Walkthrough 02 — `/dflow:modify-existing` 從 WebForms 抽出第一段 Order Domain logic〉](walkthrough-02-modify-existing.zh-TW.md)
+這會在 [〈Walkthrough 02 — `/dflow:modify-existing` 從 WebForms 抽出第一段 Order Domain logic〉](walkthrough-02-modify-existing.md)
 中發生。
 
 ## 本段沒有產出 Dflow 文件
@@ -154,6 +154,6 @@ Walkthrough 00 是 setup context，因此沒有新增 `outputs/` 檔案。讀者
 
 ## 下一個劇情段
 
-→ [〈Walkthrough 01 — `dflow init` 建立 Brownfield baseline〉](walkthrough-01-init-project.zh-TW.md)：Bob
+→ [〈Walkthrough 01 — `dflow init` 建立 Brownfield baseline〉](walkthrough-01-init-project.md)：Bob
 在 OrderManager repo root 執行 `dflow init`，建立 Brownfield Dflow baseline，
 但不搬動 production code。

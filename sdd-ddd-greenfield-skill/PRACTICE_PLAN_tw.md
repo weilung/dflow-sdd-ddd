@@ -12,6 +12,8 @@
 
 選這個題目的原因：跟你實際的費用報表系統高度相似，學到的東西可以直接搬過去。
 
+> **詞彙提示**：本檔以下的 `Phase 1`–`Phase 7` 是**本練習計畫的章節編號**（tutorial milestones），與 Dflow workflow 詞彙中的 `phase-spec` / `/dflow:new-phase`（feature 內一次循環）或 `Activity 1-5`（SDD 概念活動）都**無關**。閱讀時請依各自的局部 scope 理解。後續若要與 Dflow 詞彙完全對齊，可考慮另起 proposal 重新命名（例如 `Module 1` 或 `Practice Session 1`）。
+
 ---
 
 ## Phase 1：建立基礎（預估 2-3 小時）

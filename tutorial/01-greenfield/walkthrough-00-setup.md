@@ -7,7 +7,7 @@
 Alice 為什麼適合從 Greenfield track 開始，以及第一個 feature 還沒出現前，哪些
 技術與 domain 判斷已經影響後續 Dflow 對話。
 
-如果直接從 [〈Walkthrough 02 — `/dflow:new-feature` 建立第一個 Expense feature〉](walkthrough-02-new-feature.zh-TW.md)
+如果直接從 [〈Walkthrough 02 — `/dflow:new-feature` 建立第一個 Expense feature〉](walkthrough-02-new-feature.md)
 開始讀，讀者會看到 Dflow 建立 Expense BC、Aggregate 與 feature spec；但不一定知道
 為什麼 Alice 沒有 baseline capture、沒有 legacy regression risk、也沒有先處理
 主管審核或財務核銷。本篇補的是這個入口上下文。
@@ -110,7 +110,7 @@ Alice 和團隊已經拍板這些 baseline 假設：
 | Spec prose language | `zh-TW` |
 
 這些不是全部都會在 setup file 裡變成最終文件。真正的 Dflow baseline 會在
-[〈Walkthrough 01 — `dflow init` 建立 Greenfield baseline〉](walkthrough-01-init-project.zh-TW.md) 中由
+[〈Walkthrough 01 — `dflow init` 建立 Greenfield baseline〉](walkthrough-01-init-project.md) 中由
 `dflow init` 詢問、確認並寫入 `_overview.md`、`_conventions.md`、
 Git principles 與 AI agent guide。
 
@@ -153,5 +153,5 @@ Walkthrough 00 是 setup context，因此沒有新增 `outputs/` 檔案。讀者
 
 ## 下一個劇情段
 
-→ [〈Walkthrough 01 — `dflow init` 建立 Greenfield baseline〉](walkthrough-01-init-project.zh-TW.md)：Alice
+→ [〈Walkthrough 01 — `dflow init` 建立 Greenfield baseline〉](walkthrough-01-init-project.md)：Alice
 在 repo root 執行 `dflow init`，建立 ExpenseTracker 的 Dflow baseline。

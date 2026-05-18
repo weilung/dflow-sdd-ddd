@@ -2,20 +2,25 @@
 
 [繁體中文](README.md) | **English**
 
+> **AI collaboration without DDD = accelerated chaos; with DDD = AI constrained inside the domain model upfront.**
+> A Rich Domain Model (business rules encoded into domain objects themselves, not scattered across services or prompts) puts invariants, business rules, and Aggregate boundaries inside the objects — every line of code the AI writes must pass through that contract. Dflow treats DDD as the semantic backbone of SDD.
+
 Dflow is a spec-first workflow kit for AI-assisted software development. It gives your AI coding agent a concrete process for turning change requests into structured specs, domain language, implementation plans, drift checks, and reviewable code instead of jumping straight from prompt to code.
 
-AI makes delivery faster, but it also makes ambiguous domain knowledge more dangerous. Dflow uses DDD ideas such as ubiquitous language, bounded contexts, domain rules, and model ownership as the semantic backbone of SDD, so the AI has constraints before it generates code. The goal is not ceremony for its own sake; the goal is repeatable software change with clearer meaning, fewer scattered rules, and less prompt-dependent behavior.
+The goal is not the process itself, but repeatable software change with clearer meaning, fewer scattered rules, and less prompt-dependent behavior.
 
 ## Key Features
 
 | Feature | What it gives engineering teams |
 |---|---|
-| **Spec-first development** | Every meaningful change starts from an explicit spec, acceptance behavior, and implementation plan before code changes begin. |
-| **Greenfield and Brownfield tracks** | Start clean in a new project, or introduce Dflow into an existing codebase through progressive domain extraction and safer incremental change. |
-| **Hybrid workflow control** | Command-first entry points for intentional work, auto-trigger checks as a safety net, and transparent phase gates so developers stay in control. |
-| **DDD semantic backbone** | Captures domain language, context boundaries, business rules, and model decisions so AI output is constrained by project meaning. |
-| **Three-layer documentation model** | Keeps short-lived phase deltas, feature snapshots, and system-level state separate, so specs stay useful instead of becoming one large document dump. |
-| **Drift verification** | Checks whether specs, domain documents, implementation, tests, and technical debt records still describe the same system. |
+| **Spec-first development** | Pushes alignment to before implementation — avoids the round-trip where AI jumps from an ambiguous prompt straight to code, then has to be redirected after the wrong direction lands. |
+| **Greenfield and Brownfield tracks** | Not limited to new projects; an existing codebase doesn't need a big-bang refactor first — you can change behavior while progressively extracting scattered domain rules. |
+| **Hybrid workflow control** | Not autopilot, not pure manual — commands for explicit entry, AI nudges when you forget to start a flow, and pauses at key decisions to confirm direction. The three layers together keep AI from running off-track without turning every step into bureaucratic overhead. |
+| **DDD semantic backbone** | AI is most likely to invent plausible-but-wrong business rules (when a discount is valid, what an account can or cannot do) — review rarely catches this. Write the domain language, boundaries, and rules down first, and AI fills in details under project constraints instead of by guess. |
+| **Three-layer documentation model** | Matches how feature branches actually evolve: phase (one propose-implement-archive cycle) / feature (the whole branch's running state and resume pointer) / system (cross-feature long-term knowledge). Many spec tools only ship phase + system, which breaks down when a feature branch spans multiple phases. Detailed below. |
+| **Change-depth-based tiers (T1/T2/T3)** | AI scales specification and verification by change depth: color/typo gets one inline row in `_index.md`; bug fixes get a lightweight spec plus focused verification; new features or bounded-context-level changes go through a full phase-spec plus layer-by-layer implementation planning / verification. Small changes don't get dragged down by the process. |
+| **Drift verification** | `/dflow:verify` cross-checks specs, domain documents, implementation, tests, and tech-debt records to surface the "documentation still describes the old behavior" drift that PR review by eye usually misses. |
+| **Multi-AI-tool rule sharing** | A canonical project guide plus thin tool-specific shims (`CLAUDE.md` / `AGENTS.md` / `GEMINI.md` / Copilot instructions) — teams switching between Claude, Codex, Gemini, and Copilot don't have to maintain multiple copies of workflow rules. |
 
 ## Get Started
 
@@ -61,6 +66,8 @@ When using this path, all commands in the same session must also use the full
 `npx dflow-sdd-ddd <subcommand>` form. The bare `dflow` alias is only
 available after a global install.
 
+### Check legacy artifacts (optional)
+
 To check whether the project still has legacy or pre-V1 artifacts (such as
 a top-level `specs/` directory or a `_共用/` directory left over from older
 Dflow forms), run:
@@ -70,7 +77,10 @@ dflow doctor
 ```
 
 `doctor` is a read-only health check. It never modifies files; it only
-reports findings and points at the migration guide.
+reports findings and points at the migration guide. Freshly initialized
+projects won't have legacy artifacts and can skip this step.
+
+### Start using the Dflow workflow
 
 After init, start work through the Dflow workflow in your AI coding agent:
 
@@ -92,7 +102,7 @@ workflow into an active codebase.
 
 For a guided evaluation walk-through — what `init` creates, AI tool support,
 track choice, and a 30-minute sample-project playbook — see [Evaluating
-Dflow](docs/evaluating-dflow.md). For end-to-end scenario walk-throughs of
+Dflow](docs/evaluating-dflow.en.md). For end-to-end scenario walk-throughs of
 Greenfield and Brownfield workflows with worked spec outputs, see the
 [`tutorial/`](tutorial/README.md) index.
 
@@ -105,37 +115,66 @@ Greenfield and Brownfield workflows with worked spec outputs, see the
 
 These tracks describe adoption style, not framework branding. Dflow should be read as a workflow system for software teams that want AI assistance without giving up domain clarity.
 
+### Track Choice and Migration
+
+> The "rewrite to ASP.NET Core" path below is the default migration story baked into the current Dflow templates (reflecting Dflow's initial C# / ASP.NET use case), but the design itself is language- and framework-agnostic — the workflow, tier system, and documentation model work for any stack.
+
+Track is fixed at `dflow init` time and **cannot be switched in-place** (there is no `/dflow:switch-to-greenfield` command). Brownfield is by design a preparation path toward Greenfield: pure C# code extracted into `src/Domain/` and the domain documents under `dflow/specs/domain/` (glossary, rules, models, events) are all migration-ready assets — at the eventual rewrite (new ASP.NET Core project + fresh `dflow init` with Greenfield track), they can be lifted directly. `dflow/specs/migration/tech-debt.md` is the brownfield-specific migration debt log.
+
+Per-BC migration is also supported — once a Bounded Context's logic is fully extracted into `src/Domain/` and the Code-Behind is reduced to UI binding, that BC is already in a Clean Architecture state; the whole system doesn't have to switch in one go. The brownfield `/dflow:modify-existing`'s "assess Code-Behind" step becomes a no-op for that BC naturally.
+
 ## Workflow Model
 
-Dflow uses a hybrid design:
+Dflow uses a hybrid design with three layers of user-AI interaction:
 
 | Layer | Purpose |
 |---|---|
 | **Command-first entry** | Developers intentionally start work with commands such as `/dflow:new-feature` or `/dflow:modify-existing`. |
 | **Auto-trigger safety net** | When the conversation clearly implies a feature, phase, bug fix, verification, or review, the AI should suggest the matching Dflow flow. |
-| **Transparency gates** | The AI announces flow entry, phase transitions, and important internal steps so the developer can approve direction before work expands. |
+| **Transparent decision checkpoints** | At key moments (flow entry, Step Gates between major steps, important internal steps), the AI stops to announce what it is about to do and waits for the developer to approve direction, preventing autopilot drift. |
 
-Dflow also scales ceremony by change risk:
+### Workflow Internal Structure
+
+Each time you issue a `/dflow:xxx` command, a **Workflow run** starts. Inside a Workflow run there are numbered **Step**s (e.g. `/dflow:new-feature` has 8 Steps). Step-to-Step boundaries come in two kinds:
+
+- **Step Gate** — AI must stop, announce the upcoming Step, and wait for the developer to confirm direction. Confirmation can be `/dflow:next`, natural-language "OK / continue", or implicit (developer just provides the data the next Step needs).
+- **Step-internal transition** — AI announces "Step N complete, entering Step N+1" and proceeds without waiting.
+
+Step Gates are not placed between every Step. In `/dflow:new-feature`'s 8 Steps, only 4 are Step Gates; the rest are step-internal transitions.
+
+### Change-depth-based tiers
+
+Dflow scales specification, implementation planning, and verification by the depth of the change (T1 / T2 / T3 tiers):
 
 | Tier | Typical use | Expected weight |
 |---|---|---|
-| **T1 Lightweight** | Small bug fixes or narrow edits. | Minimal spec, focused verification. |
-| **T2 Standard** | Normal feature work. | Feature spec, behavior examples, implementation plan, finish checks. |
-| **T3 Full** | Cross-cutting changes, new bounded contexts, risky architecture work. | Full domain modeling, phase planning, broader drift verification, stronger review gates. |
+| **T1 Heavy** | New feature, new phase, new Aggregate / Bounded Context, architectural change, new business rule | Full phase-spec, domain modeling, behavior examples, implementation plan, verification and completion checks |
+| **T2 Light** | Bug fix (logic error), UI input validation tweak, narrow change with a BR (business rule) delta | Lightweight spec, focused verification, confirm the fix lands in the correct architectural layer |
+| **T3 Trivial** | Button color, copy/text fix, typo, pure formatting — **no business rule change, no Domain concept change, no data structure change** | One inline row in `_index.md`, no separate spec file |
 
-The transparency gates and T1/T2/T3 tiers are related but separate: transparency controls how the AI communicates the workflow; tiers control how much specification and verification the change needs.
+Tier choice is not always up to the developer — `/dflow:new-feature` and `/dflow:new-phase` always default to T1, while `/dflow:modify-existing` and `/dflow:bug-fix` let the AI judge T1/T2/T3 based on the actual change.
+
+**Not every change goes through Dflow**: pure typo / pure formatting commits (e.g. `prettier` / `dotnet format` autoruns) don't even need a T3 inline row — `git commit` directly. Dflow is for changes that carry business meaning or structural impact, not for tooling-driven noise.
+
+Transparent decision checkpoints and the Tier system are related but separate: checkpoints govern how the AI communicates the workflow; tiers govern how much specification, implementation planning, and verification the change needs.
 
 ## Documentation Model
 
-Dflow separates documents by lifecycle:
+In practice a feature branch usually goes through several propose → implement → complete cycles before it fully finishes — multiple milestones, multiple iterations, multiple commits. Dflow's three-layer documentation model matches that rhythm:
 
-| Layer | Shape | Purpose |
-|---|---|---|
-| **Phase Delta** | Short-lived phase spec. | Captures what this phase changes, why, and how it will be verified. |
-| **Feature Snapshot** | Feature-level summary and behavior. | Preserves the accepted behavior and implementation decisions after phases complete. |
-| **System State** | Shared domain and architecture documents. | Maintains durable knowledge such as glossary, context map, rules, models, conventions, and technical debt. |
+| Layer | File | Purpose | git analogue |
+|---|---|---|---|
+| **Phase Delta** | `phase-spec-{date}-{slug}.md` (or a lightweight spec) | Records what this cycle changes, why, and how it will be implemented and verified | A milestone slice inside a feature branch |
+| **Feature Snapshot** | `_index.md` (one per feature directory) | Feature-level dashboard: phase list, cumulative BR Snapshot, Resume Pointer | The feature branch's own "current state" |
+| **System State** | `rules.md` / `behavior.md` / `glossary.md` / `context-map.md` | Cross-feature long-term knowledge: glossary, business rules, models, conventions, tech debt | The accumulated "what the system actually is right now" on main / trunk |
 
-This keeps AI collaboration grounded. The phase layer gives the agent immediate execution context, the feature layer records what was delivered, and the system layer becomes the long-term source of truth for future prompts and reviews.
+`_index.md` is the key middle layer. Many spec tools only ship phase + system, but feature branches that span multiple phases are the norm, and without a middle layer three problems show up:
+
+- You have to read every phase-spec to know "what has this feature accumulated so far"
+- Picking up the work in a new conversation means rebuilding context — you can't tell where the previous session left off
+- The archival granularity is either too fine or too coarse — archive each phase individually and you lose the feature-level view, or fold everything into the system layer and you lose the phase trail
+
+Dflow solves these with `_index.md`: the Current BR Snapshot regenerates after each completed phase, the Resume Pointer carries continuation instructions, and the whole feature directory is the natural archival unit. At `/dflow:finish-feature`, Dflow reconciles the BR Snapshot into `rules.md` / `behavior.md` (promoting the feature layer into the system layer) and then `git mv`s the whole feature directory to `completed/`.
 
 ## Files Created by Init
 
@@ -162,7 +201,8 @@ Dflow also creates or provides a mergeable project instruction file for your AI 
 
 When you select AI agent setup during init, Dflow writes
 `dflow/specs/shared/AI-AGENT-GUIDE.md` as the canonical project guide, then
-creates small tool-specific shims that point back to it:
+creates small tool-specific **pointer files** (often called "shims" — short
+files whose only job is to redirect the tool to the canonical guide):
 
 | Tool target | Generated file |
 |---|---|
@@ -183,10 +223,10 @@ For tool-specific walk-throughs of what `init` writes and how Dflow's
 workflow commands appear in a given AI tool, see the per-tool guides under
 `docs/`:
 
-- [Using Dflow with Claude Code](docs/using-with-claude-code.md)
-- [Using Dflow with Codex CLI](docs/using-with-codex.md)
-- [Using Dflow with Gemini CLI](docs/using-with-gemini-cli.md)
-- [Using Dflow with GitHub Copilot](docs/using-with-github-copilot.md)
+- [Using Dflow with Claude Code](docs/using-with-claude-code.en.md)
+- [Using Dflow with Codex CLI](docs/using-with-codex.en.md)
+- [Using Dflow with Gemini CLI](docs/using-with-gemini-cli.en.md)
+- [Using Dflow with GitHub Copilot](docs/using-with-github-copilot.en.md)
 
 Init does not copy the `tutorial/` directory into your project. The
 [`tutorial/`](tutorial/README.md) directory lives in this source repository
@@ -195,20 +235,64 @@ Brownfield scenarios.
 
 ## Main Flows
 
+Dflow commands fall into four categories by role. A "what should I run?" cheat sheet appears at the end.
+
+### Entry commands (start a workflow)
+
+Start a Workflow run; can be invoked without any pre-existing feature. The three are independent — none is a prerequisite for the others.
+
 | Flow | When to use it | Typical outputs |
 |---|---|---|
-| `/dflow:new-feature` | A new user-visible capability or business behavior. | Feature spec, behavior examples, phase plan, domain updates. |
-| `/dflow:modify-existing` | A change to behavior already present in the system. | Impact analysis, updated specs, adjusted domain rules, migration notes when needed. |
-| `/dflow:bug-fix` | A defect where expected behavior can be stated narrowly. | Lightweight spec, reproduction, fix plan, regression check. |
-| `/dflow:new-phase` | A feature needs another implementation slice. | Phase delta, acceptance checks, focused implementation plan. |
-| `/dflow:finish-feature` | The implementation is done and needs closure. | Drift verification, feature snapshot, technical debt update, review checklist. |
-| `/dflow:verify` | You need confidence that docs and code still match. | Drift report across spec, domain docs, implementation, tests, and debt records. |
-| `/dflow:pr-review` | A change is ready for review. | SDD/DDD compliance review with risks, gaps, and follow-up items. |
-| `/dflow:report-dflow-feedback` | You or the AI found a Dflow issue or improvement while using the workflow. | Sanitized local feedback draft for a GitHub issue or future PR; nothing is submitted automatically. |
+| `/dflow:new-feature` | A completely new feature, or a new piece of business logic the system needs to support | Feature directory + `_index.md` + first phase-spec (always T1) |
+| `/dflow:modify-existing` | Change to existing behavior — **when you're not sure which category the change belongs to**, AI dispatches internally | T1 → escalates to new-phase / new-feature; T2 → lightweight-spec; T3 → inline row in `_index.md` |
+| `/dflow:bug-fix` | A defect where expected behavior can be stated narrowly | AI judges tier (typically T2 lightweight-spec). Orphan bugs build a minimal feature directory automatically |
+
+### Feature-internal commands (active feature only)
+
+Usable only inside an already-started active feature. Targets pointing at `completed/` are refused.
+
+| Flow | When to use it | Typical outputs |
+|---|---|---|
+| `/dflow:new-phase` | An active feature needs another implementation slice | New `phase-spec-{date}-{slug}.md` + Implementation Tasks + implementation / verification + phase marked completed (always T1) |
+| `/dflow:finish-feature` | All phases of a feature are done and need closure | `git mv` the whole feature directory to `completed/`, sync BR Snapshot into the BC layer, emit an Integration Summary (does not auto-merge) |
+
+### Workflow control (manage an in-progress workflow run)
+
+| Flow | When to use it |
+|---|---|
+| `/dflow:status` | See which workflow / Step / progress you are at |
+| `/dflow:next` | Confirm to pass a Step Gate (equivalent to natural-language "OK" / "continue") |
+| `/dflow:cancel` | Abort the current workflow run and return to free conversation. Artifacts created so far are kept |
+
+### Standalone tools (callable any time, not tied to any feature or workflow)
+
+| Flow | When to use it | Typical outputs |
+|---|---|---|
+| `/dflow:verify` | Need to confirm docs, code, tests, and tech-debt records are still in sync | Drift report across spec, domain docs, implementation, tests, and debt records |
+| `/dflow:pr-review` | A change is ready for review | SDD/DDD compliance review checklist with risks, gaps, and follow-up items |
+| `/dflow:report-dflow-feedback` | You or the AI found a Dflow issue or improvement while using it | Sanitized local feedback draft; nothing is submitted automatically |
+
+### What should I run? (rule of thumb)
+
+| What I want to do | Run |
+|---|---|
+| Completely new feature (unrelated to any existing feature) | `/dflow:new-feature` |
+| Add the next planned phase to an active feature | `/dflow:new-phase` |
+| Fix a specific bug | `/dflow:bug-fix` |
+| **Not sure** what category — just changing existing behavior | `/dflow:modify-existing` |
+| All phases of a feature are done, need closure | `/dflow:finish-feature` |
+| Run a change review | `/dflow:pr-review` |
+| Check doc vs code drift | `/dflow:verify` |
+
+### Completed features are frozen history
+
+Once `/dflow:finish-feature` moves a feature directory into `completed/`, **no direct writes are allowed** — not new phase-specs, not lightweight-specs, not even inline rows in `_index.md`. To change anything later, you build a **follow-up feature**: a new feature directory with a fresh SPEC-ID and `follow-up-of: {original SPEC-ID}` metadata pointing back to the original.
+
+Why: "completed = frozen history" is a core Dflow guarantee. Accepting post-completion edits would erase the feature-lifecycle endpoint and make `_index.md`'s BR Snapshot unreliable. `/dflow:modify-existing` detects when the target is a completed feature and prompts the developer with three choices: A — follow-up; B — independent new feature via `/dflow:new-feature`; C (refused, re-directed to A).
 
 ## Why DDD Matters More with AI
 
-AI agents are strong at filling gaps. That is useful when the missing detail is mechanical, but risky when the missing detail is business meaning. If a prompt does not define the language, boundaries, and allowed behavior, the model may invent plausible rules that are hard to notice in review.
+AI agents are strong at filling in missing details. When the missing detail is something the AI can derive from rules or patterns (naming conventions, boilerplate syntax), that is useful. When the missing detail is **business meaning** — what a "valid" discount looks like, what an account should not be allowed to do — the AI can invent plausible rules that pass review by looking reasonable but are actually wrong.
 
 Dflow treats DDD as the semantic structure behind the spec. Ubiquitous language keeps names consistent. Bounded contexts keep meanings from leaking across areas. Domain rules define what is correct, allowed, or forbidden before implementation starts.
 
@@ -218,7 +302,7 @@ In a code-first workflow, design often appears after the fact in classes, handle
 Domain meaning -> Structured spec -> AI implementation -> Code as output
 ```
 
-For a longer explanation, see [Why DDD Matters More with AI](docs/why-ddd-for-ai.md).
+For a longer explanation, see [Why DDD Matters More with AI](docs/why-ddd-for-ai.en.md).
 
 ## Repository Layout
 
@@ -242,12 +326,15 @@ Publish Checklist](docs/npm-publish-checklist.md).
 ## Status
 
 Dflow is currently published as `dflow-sdd-ddd` on npm. The latest published
-npm package is `0.2.0`, covering project initialization, workflow
-documentation, multi-AI agent setup, AI-agent-readable SDD/DDD guidance,
-public migration tooling (manual migration guide and `dflow doctor`
-read-only health check), public onboarding (evaluator guide and per-tool
-walkthroughs for Claude Code and Codex CLI), and a verification-only CI
-workflow.
+npm package is `0.2.0`, covering:
+
+- Project initialization (`dflow init`)
+- Workflow documentation (the `/dflow:*` flows)
+- Multi-AI agent setup (CLAUDE.md / AGENTS.md / GEMINI.md / Copilot instructions shims)
+- AI-agent-readable SDD/DDD guidance
+- Public migration tooling: manual migration guide plus `dflow doctor` read-only health check
+- Public onboarding: evaluator guide and per-tool walkthroughs for Claude Code and Codex CLI
+- A verification-only CI workflow (it does not execute publish)
 
 The GitHub source may include post-`0.2.0` repository changes before the
 next npm release is published. See [CHANGELOG.md](CHANGELOG.md) for full

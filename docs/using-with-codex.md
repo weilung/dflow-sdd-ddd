@@ -1,45 +1,42 @@
-# Using Dflow with Codex CLI
+# 在 Codex CLI 中使用 Dflow
 
-A walk-through of what Dflow looks like when your AI coding agent is
-[Codex CLI](https://developers.openai.com/codex/cli). About 10 minutes to
-read.
+> **繁體中文** | [English](using-with-codex.en.md)
 
-This guide focuses on the Codex CLI experience specifically. For the
-tool-neutral evaluation flow, see
-[`docs/evaluating-dflow.md`](evaluating-dflow.md). For the full Get Started
-and feature list, see [`README.md`](../README.md).
+當你的 AI 程式設計助理是 [Codex CLI](https://developers.openai.com/codex/cli) 時，Dflow 的使用體驗 walk-through。閱讀約需 10 分鐘。
 
-## Who This Guide Is For
+本指南專注於 Codex CLI 的具體使用體驗。工具中立的評估流程請見
+[`docs/evaluating-dflow.md`](evaluating-dflow.md)。完整的 Get Started
+與功能列表請見 [`README.md`](../README.md)。
 
-You are using or evaluating Dflow with Codex CLI as your AI coding agent.
-This guide covers what Codex sees after `init`, how the `AGENTS.md` shim
-points to the canonical Dflow guide, and the Codex-specific command and
-permission patterns worth knowing.
+## 本指南的適用對象
 
-You do not need to read this before running `init`. It is most useful after
-you have run `init` once and want to understand what Codex CLI is actually
-loading.
+你正在使用或評估以 Codex CLI 作為 AI 程式設計助理的 Dflow。
+本指南說明 `init` 之後 Codex 看到了什麼、`AGENTS.md` 薄 shim 是如何指向
+canonical Dflow 指南的，以及幾個值得了解的 Codex 專屬指令與權限模式。
 
-## Prerequisites
+你不需要在執行 `init` 之前先讀本指南。它最適合在你執行過一次 `init` 之後、
+想了解 Codex CLI 實際載入什麼內容時閱讀。
 
-- Codex CLI installed and authenticated (see
-  [developers.openai.com/codex/cli](https://developers.openai.com/codex/cli)).
-- Node.js / npm available (Dflow ships through npm). Install globally with
-  `npm install -g dflow-sdd-ddd`, or use `npx dflow-sdd-ddd` for the no-install path.
-- A project directory you are comfortable initializing in. A branch or a
-  disposable sample project is recommended for first contact; see the
-  [evaluator guide playbook](evaluating-dflow.md#a-30-minute-evaluation-playbook).
-- Codex started from the initialized project root, or with `codex --cd` set
-  to that root, so Codex's `AGENTS.md` discovery includes the Dflow shim.
+## 前置條件
 
-Running Dflow workflows does not require a separate Dflow service or API key.
-The workflows are Markdown-based instructions and project files.
+- 已安裝並完成認證的 Codex CLI（見
+  [developers.openai.com/codex/cli](https://developers.openai.com/codex/cli)）。
+- 已具備 Node.js / npm 環境（Dflow 透過 npm 發佈）。以
+  `npm install -g dflow-sdd-ddd` 全域安裝，或用 `npx dflow-sdd-ddd` 走免安裝路徑。
+- 有一個你願意在其中執行 init 的專案目錄。首次嘗試建議先用 branch 或
+  可拋棄的範例專案；見
+  [評估者指南 Playbook](evaluating-dflow.md#30-分鐘評估-playbook)。
+- Codex 從已初始化的專案根目錄啟動，或以 `codex --cd` 指向該根目錄，
+  確保 Codex 的 `AGENTS.md` 探索範圍包含 Dflow shim。
 
-## What Codex CLI Sees After `init`
+執行 Dflow workflow 不需要獨立的 Dflow 服務或 API 金鑰。
+這些 workflow 是 Markdown-based 的指示與專案檔案。
 
-Running `dflow init` (or `npx dflow-sdd-ddd init` on the no-install path) and
-selecting `AGENTS.md - Codex / Copilot coding agent` as a target tool creates
-a thin shim at the project root:
+## `init` 之後 Codex CLI 看到了什麼
+
+執行 `dflow init`（或免安裝路徑的 `npx dflow-sdd-ddd init`）並選擇
+`AGENTS.md - Codex / Copilot coding agent` 作為目標工具後，會在專案根目錄
+建立一個薄 shim：
 
 ```markdown
 # AGENTS.md - Dflow Project Instructions
@@ -55,64 +52,58 @@ single source of truth for project workflow rules, slash-command behavior,
 spec locations, and SDD/DDD constraints.
 ```
 
-Two things matter when Codex starts in this project:
+Codex 在這個專案中啟動時，有兩件事值得注意：
 
-1. Codex CLI reads `AGENTS.md` as project instructions. This is Codex's
-   standard repository-instruction mechanism.
-2. The Dflow shim does not include a Markdown import line. Unlike the
-   Claude Code and Gemini shims, generated `AGENTS.md` does not contain
-   `@dflow/specs/shared/AI-AGENT-GUIDE.md`.
+1. Codex CLI 將 `AGENTS.md` 作為專案指示讀取。這是 Codex 的
+   標準 repository 指示機制。
+2. Dflow shim 不含 Markdown import 那一行。與 Claude Code 和 Gemini 的
+   shim 不同，產生的 `AGENTS.md` 不含 `@dflow/specs/shared/AI-AGENT-GUIDE.md`。
 
-That means Codex sees the pointer immediately, but the canonical Dflow guide
-is not auto-inlined by the shim. Before planning or editing, Codex should
-follow the pointer and read `dflow/specs/shared/AI-AGENT-GUIDE.md`. If Codex
-starts answering a Dflow request without mentioning that file, steer it
-explicitly: "Before continuing, read and follow
-`dflow/specs/shared/AI-AGENT-GUIDE.md`."
+這意味著 Codex 能立即看到指標，但 canonical Dflow 指南不會由 shim 自動 inline 嵌入。
+在規劃或編輯之前，Codex 應跟著指標讀取 `dflow/specs/shared/AI-AGENT-GUIDE.md`。
+若 Codex 在回應 Dflow 請求時沒有提到該檔案，請明確引導它：「Before continuing,
+read and follow `dflow/specs/shared/AI-AGENT-GUIDE.md`.」
 
-The canonical guide is where the real workflow rules live: project context
-(track, tech stack, prose language), the Dflow workflow table,
-source-of-truth file paths, and core SDD/DDD rules. The `AGENTS.md` shim
-stays small so the same canonical guide can serve Codex CLI, Claude Code,
-Gemini CLI, GitHub Copilot, and other tools.
+canonical 指南是實際 workflow 規則的所在：專案上下文（track、技術棧、
+文章語言）、Dflow workflow 表、source-of-truth 檔案路徑，以及核心 SDD/DDD 規則。
+`AGENTS.md` shim 刻意保持精簡，這樣 canonical 指南就能同時服務 Codex CLI、
+Claude Code、Gemini CLI、GitHub Copilot 與其他工具。
 
-If an `AGENTS.md` already existed in the project, `init` does not overwrite
-it. If the existing file does not already point to
-`dflow/specs/shared/AI-AGENT-GUIDE.md`, `init` writes a merge snippet under
-`dflow/specs/shared/AGENTS-md-snippet.md` that you can merge manually. This
-avoids destroying custom project instructions you already had.
+如果專案中已有 `AGENTS.md`，`init` 不會覆蓋它。若既有檔案尚未指向
+`dflow/specs/shared/AI-AGENT-GUIDE.md`，`init` 會在
+`dflow/specs/shared/AGENTS-md-snippet.md` 下寫入 merge snippet，
+讓你手動合併。這樣可以避免破壞你已有的自訂專案指示。
 
-## Using Dflow Workflow Commands in Codex CLI
+## 在 Codex CLI 中使用 Dflow Workflow 指令
 
-Codex CLI has its own built-in slash command layer for controlling the CLI
-session. Commands such as `/permissions`, `/model`, `/status`, `/diff`,
-`/review`, and `/init` are Codex CLI controls, not Dflow workflows.
+Codex CLI 有自己的內建 slash command 層，用來控制 CLI session。
+`/permissions`、`/model`、`/status`、`/diff`、`/review`、`/init` 等指令
+都是 Codex CLI 控制項，不是 Dflow workflow。
 
-Dflow's `/dflow:*` entries are workflow names recognized by the AI through
-`AI-AGENT-GUIDE.md`, not registered Codex CLI commands. Raw
-`/dflow:new-feature` passthrough behavior in Codex CLI should be verified
-with the maintainer for the supported Codex version. The reliable form is to
-name the workflow as a plain chat instruction:
+Dflow 的 `/dflow:*` 項目是 AI 透過 `AI-AGENT-GUIDE.md` 識別的 workflow
+名稱，不是已註冊的 Codex CLI 指令。`/dflow:new-feature` 在 Codex CLI 中
+能否直接傳遞到模型，需依所用的 Codex 版本向 maintainer 確認。
+最可靠的方式是以普通對話指示輸入 workflow 名稱：
 
 ```text
 Run the Dflow /dflow:new-feature workflow.
 ```
 
-If your Codex CLI version passes unknown slash-prefixed input through to the
-model, this shorter form may also work (verify with maintainer):
+若你的 Codex CLI 版本會將未知的 slash 前綴輸入傳遞到模型，也可嘗試以下
+較短形式（請先向 maintainer 確認）：
 
 ```text
 /dflow:new-feature
 ```
 
-If Codex reports an unknown slash command, re-send the request in prose:
+若 Codex 回報未知 slash command，改以純文字重新送出：
 
 ```text
 Treat /dflow:new-feature as a Dflow workflow name, not as a Codex CLI
 command. Read dflow/specs/shared/AI-AGENT-GUIDE.md and start that workflow.
 ```
 
-A typical conversation looks like:
+典型的對話如下：
 
 ```text
 You: Run the Dflow /dflow:new-feature workflow.
@@ -128,119 +119,106 @@ Codex CLI: I'll start by drafting a feature spec under
 dflow/specs/features/active/. Before I do, I have a few clarifying questions.
 ```
 
-The workflow then walks you through spec drafting, behavior examples,
-implementation planning, and finish-feature drift checks. The exact
-sequence depends on which workflow you entered (`/dflow:new-feature`,
-`/dflow:modify-existing`, `/dflow:bug-fix`, etc.).
+接著這個 workflow 會引導你完成 spec 起草、行為範例、實作計畫，以及
+finish-feature 漂移（drift）檢查。確切的流程取決於你進入的是哪個 workflow
+（`/dflow:new-feature`、`/dflow:modify-existing`、`/dflow:bug-fix` 等）。
 
-Available workflow entry points:
+可用的 workflow 入口：
 
-| Workflow | Use when |
+| 指令 | 適用情境 |
 |---|---|
-| `/dflow:new-feature` | A new user-visible capability or business behavior is requested. |
-| `/dflow:modify-existing` | Existing behavior needs to change. |
-| `/dflow:bug-fix` | A defect can be described with expected vs actual behavior. |
-| `/dflow:new-phase` | An active feature needs another implementation slice. |
-| `/dflow:finish-feature` | Implementation is complete and needs drift closure. |
-| `/dflow:verify` | Specs, domain docs, implementation, and tests need consistency checks. |
-| `/dflow:pr-review` | A change is ready for SDD/DDD review. |
-| `/dflow:report-dflow-feedback` | You found a Dflow issue or improvement and want a sanitized upstream feedback draft. |
+| `/dflow:new-feature` | 需要新增一個使用者可見的功能或業務行為。 |
+| `/dflow:modify-existing` | 需要修改現有行為。 |
+| `/dflow:bug-fix` | 可以用預期行為 vs 實際行為描述的缺陷。 |
+| `/dflow:new-phase` | 進行中的 feature 需要另一個實作 slice。 |
+| `/dflow:finish-feature` | 實作完成後需要進行漂移（drift）收尾。 |
+| `/dflow:verify` | 需要對 spec、領域文件、實作與測試進行一致性檢查。 |
+| `/dflow:pr-review` | 變更已準備好進行 SDD/DDD review。 |
+| `/dflow:report-dflow-feedback` | 你發現了 Dflow 的問題或改進點，想要一份清理過的上游回饋草稿。 |
 
-If you forget a workflow name, ask Codex to read
-`dflow/specs/shared/AI-AGENT-GUIDE.md` and list the available Dflow
-workflows.
+如果你忘了 workflow 名稱，請 Codex 讀取 `dflow/specs/shared/AI-AGENT-GUIDE.md`
+並列出可用的 Dflow workflow 即可。
 
-## Differences vs Other AI Tools
+## 與其他 AI 工具的差異
 
-The canonical guide (`dflow/specs/shared/AI-AGENT-GUIDE.md`) is identical
-across tools. Only the root-level shim differs:
+canonical 指南（`dflow/specs/shared/AI-AGENT-GUIDE.md`）在各工具之間是相同的。
+只有根目錄層的 shim 有所不同：
 
-| Tool | Generated shim | Loads canonical guide via |
+| 工具 | 產生的 shim | 載入 canonical 指南的方式 |
 |---|---|---|
 | Claude Code | `CLAUDE.md` | `@dflow/specs/shared/AI-AGENT-GUIDE.md` Markdown import |
-| Codex / Copilot coding agent | `AGENTS.md` | Project instructions load the shim; Codex must follow the pointer and read the guide |
+| Codex / Copilot coding agent | `AGENTS.md` | 專案指示載入 shim；Codex 須跟著指標讀取指南 |
 | Gemini CLI | `GEMINI.md` | `@dflow/specs/shared/AI-AGENT-GUIDE.md` Markdown import |
-| GitHub Copilot | `.github/copilot-instructions.md` | Reads repository instructions directly |
+| GitHub Copilot | `.github/copilot-instructions.md` | 直接讀取 repository 指示 |
 
-You can run `dflow configure-agents` later to add another tool's shim
-without re-running `init`. Multiple tools can be active in the same project
-and stay synchronized via the canonical guide.
+你可以之後執行 `dflow configure-agents` 來新增另一個工具的 shim，而不需要重跑
+`init`。同一個專案可以同時啟用多個工具，並透過 canonical 指南保持同步。
 
-Codex also has its own project-instruction layering. It can read global
-instructions from Codex home and project instructions from `AGENTS.md` files
-between the project root and the current working directory. For Dflow, the
-important practical rule is simple: start Codex at the initialized project
-root, and keep the Dflow pointer in the nearest relevant `AGENTS.md`.
+Codex 也有自己的專案指示分層機制。它可以從 Codex home 讀取全域指示、
+從專案根目錄到當前工作目錄之間的 `AGENTS.md` 檔案讀取專案指示。
+對 Dflow 而言，關鍵的實務規則很簡單：從已初始化的專案根目錄啟動 Codex，
+並將 Dflow 指標保留在最近一層相關的 `AGENTS.md` 中。
 
-If your team uses both Claude Code and Codex CLI on the same project, no
-extra Dflow coordination is needed. Both tools use the same canonical guide;
-only the shim file and loading mechanism differ.
+如果你的團隊在同一個專案中同時使用 Claude Code 和 Codex CLI，
+不需要額外的 Dflow 協調。兩個工具都讀取相同的 canonical 指南；
+只有 shim 檔案與載入機制不同。
 
-## Common Patterns and Gotchas
+## 常見模式與注意事項
 
-**Keep `AGENTS.md` thin.** If you find yourself adding workflow rules, spec
-locations, or SDD constraints to `AGENTS.md`, those belong in
-`dflow/specs/shared/AI-AGENT-GUIDE.md` instead. The shim stays small so that
-other tools' shims do not drift away from it.
+**保持 `AGENTS.md` 精簡。** 如果你發現自己在把 workflow 規則、spec 路徑或
+SDD 約束加入 `AGENTS.md`，這些內容應該放到
+`dflow/specs/shared/AI-AGENT-GUIDE.md`。shim 保持精簡，其他工具的 shim 才不會
+與它產生漂移（drift）。
 
-**Codex does not inline the Dflow guide from `AGENTS.md`.** The generated
-Codex shim has a normal Markdown bullet pointing to the canonical guide, not
-an `@...` import. Ask Codex to read `AI-AGENT-GUIDE.md` if it appears to be
-working from the shim alone.
+**Codex 不會從 `AGENTS.md` inline 嵌入 Dflow 指南。** 產生的 Codex shim
+是以普通的 Markdown bullet 指向 canonical 指南，而非 `@...` import。
+若 Codex 看起來只從 shim 工作，請要求它讀取 `AI-AGENT-GUIDE.md`。
 
-**`/dflow:*` is not a Codex CLI built-in slash command.** Codex slash
-commands control the Codex session itself. Use Dflow workflow names as plain
-chat instructions when raw slash input is intercepted or rejected. Raw
-`/dflow:*` passthrough behavior should be verified with the maintainer for
-the supported Codex version.
+**`/dflow:*` 不是 Codex CLI 的內建 slash command。** Codex slash command 控制
+的是 Codex session 本身。當 slash 輸入被攔截或拒絕時，改用普通對話指示
+輸入 Dflow workflow 名稱。`/dflow:*` 的直通行為需依所用的 Codex 版本向
+maintainer 確認。
 
-**Do not confuse Codex `/init` with Dflow `init`.** Codex `/init` creates a
-generic `AGENTS.md` scaffold for Codex. Dflow setup is `dflow init` (or
-`npx dflow-sdd-ddd init` on the no-install path), and adding later tool shims
-is `dflow configure-agents`.
+**不要混淆 Codex `/init` 與 Dflow `init`。** Codex `/init` 為 Codex 建立
+通用的 `AGENTS.md` scaffold。Dflow 的設定是 `dflow init`（或免安裝路徑的
+`npx dflow-sdd-ddd init`），之後新增工具 shim 則是 `dflow configure-agents`。
 
-**Permission gates and Dflow workflow gates are separate.** Codex may ask
-permission to run a command, edit outside the workspace, or access network
-depending on its sandbox and approval settings. Dflow workflows have their
-own approval gates, such as confirming a spec before implementation. Both
-can appear in the same session; this is expected.
+**Permission gates 與 Dflow workflow gates 是分開的。** Codex 可能會依其
+sandbox 與 approvals 設定，詢問執行指令、workspace 外編輯或存取網路的權限。
+Dflow workflow 有自己的審核關卡，例如在實作前確認 spec。兩者可能在同一個
+session 中同時出現；這是預期行為。
 
-**The common Codex local-work preset is workspace write plus on-request
-approvals.** In current Codex CLI terminology this is
-`--sandbox workspace-write --ask-for-approval on-request`. In that mode,
-Codex can work inside the project and asks before going beyond the sandbox,
-such as writing outside the workspace or accessing network.
+**Codex 本機工作的常見預設是 workspace write 加上 on-request approvals。**
+以目前 Codex CLI 的術語為 `--sandbox workspace-write --ask-for-approval on-request`。
+在這個模式下，Codex 可在專案內工作，並在超出 sandbox 範圍（例如 workspace
+外寫入或存取網路）前先詢問。
 
-**Existing `AGENTS.md` files are preserved.** If Dflow cannot safely write
-the root shim because the file already exists, look under
-`dflow/specs/shared/` for the merge snippet and merge the Dflow pointer into
-your existing project instructions manually.
+**既有的 `AGENTS.md` 會被保留。** 若 Dflow 因檔案已存在而無法安全寫入
+根目錄 shim，請到 `dflow/specs/shared/` 下找 merge snippet，
+手動將 Dflow 指標合併進你現有的專案指示。
 
-**Nested `AGENTS.md` files can change what Codex sees.** Codex layers project
-instructions along the path to the current working directory. If a subfolder
-has its own `AGENTS.md` or `AGENTS.override.md`, make sure it does not hide
-or contradict the Dflow pointer you expect Codex to follow.
+**巢狀 `AGENTS.md` 可能改變 Codex 看到的內容。** Codex 沿著到當前工作目錄
+的路徑分層讀取專案指示。若某個子目錄有自己的 `AGENTS.md` 或
+`AGENTS.override.md`，請確認它不會遮蓋或矛盾你預期 Codex 遵循的 Dflow 指標。
 
-## Where to Go Next
+## 下一步
 
-If you have not run `init` yet:
+如果你還沒有執行 `init`：
 
-- Follow the [evaluator guide playbook](evaluating-dflow.md#a-30-minute-evaluation-playbook)
-  to try it on a disposable sample project.
+- 按照[評估者指南 Playbook](evaluating-dflow.md#30-分鐘評估-playbook)
+  在可拋棄的範例專案中試用。
 
-If you have run `init` and want to see end-to-end workflow examples:
+如果你已執行 `init` 且想查看端到端的 workflow 範例：
 
-- Read [`tutorial/01-greenfield/`](../tutorial/01-greenfield/walkthrough-00-setup.zh-TW.md) or
-  [`tutorial/02-brownfield/`](../tutorial/02-brownfield/walkthrough-00-setup.zh-TW.md). The
-  tutorial walk-throughs show conversation flows and the resulting
-  `dflow/specs/` outputs.
+- 閱讀 [`tutorial/01-greenfield/`](../tutorial/01-greenfield/walkthrough-00-setup.md) 或
+  [`tutorial/02-brownfield/`](../tutorial/02-brownfield/walkthrough-00-setup.md)。
+  tutorial walk-through 展示了對話流程與產生的 `dflow/specs/` 輸出。
 
-If you want to understand the design rationale:
+如果你想了解設計理念：
 
-- Read [`docs/why-ddd-for-ai.md`](why-ddd-for-ai.md).
+- 閱讀[為什麼 AI 時代 DDD 更重要](why-ddd-for-ai.md)。
 
-If something does not work as described:
+如果有任何行為與描述不符：
 
-- File a docs feedback issue (see [`CONTRIBUTING.md`](../CONTRIBUTING.md)).
-  Per-tool documentation is new and feedback specifically about Codex CLI
-  behavior is valuable.
+- 開一個 docs feedback issue（見 [`CONTRIBUTING.md`](../CONTRIBUTING.md)）。
+  Per-tool 文件是新內容，有關 Codex CLI 行為的具體回饋非常有價值。

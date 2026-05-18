@@ -19,7 +19,7 @@
 閱讀提示：本篇會連到完整文件範例（目前存放在本 tutorial 的 `outputs/` 目錄）。這些範例代表 Brownfield 劇情跑完後的
 最終狀態；本篇內嵌 code block 則代表本步驟結束當下的重點片段。只讀本篇也能看懂
 第一段 Order Domain logic 如何被抽出；若想看完整文件家族的讀法，再讀
-[〈如何閱讀 Dflow 規格與完整文件範例〉](../how-to-read-dflow-specs.zh-TW.md)。
+[〈如何閱讀 Dflow 規格與完整文件範例〉](../how-to-read-dflow-specs.md)。
 
 ## 本篇適合誰讀
 
@@ -768,6 +768,6 @@ Dflow 記錄的意思是：
 
 ## 下一個 walkthrough
 
-下一個 Brownfield walkthrough 可接 [〈Walkthrough 03 — baseline capture 跨頁面折扣顯示行為〉](walkthrough-03-baseline-capture.zh-TW.md)：
+下一個 Brownfield walkthrough 可接 [〈Walkthrough 03 — baseline capture 跨頁面折扣顯示行為〉](walkthrough-03-baseline-capture.md)：
 同一個 Order BC 後續需要跨頁面確認 rounding / display 行為，這會展示 Brownfield
 baseline capture 如何在不立即改 code 的情況下，先建立跨頁面的 confirmed behavior。

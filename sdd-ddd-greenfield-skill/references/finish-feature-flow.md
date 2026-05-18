@@ -21,7 +21,7 @@ state, archives the feature directory, and emits a Git-strategy-neutral
   5.3 / 8.3 out of the per-phase checklist and run it once at feature
   closeout, with the `_index.md` Current BR Snapshot as input."
 
-**Phase Gates** in this flow (stop-and-confirm before proceeding):
+**Step Gates** in this flow (stop-and-confirm before proceeding):
 - Step 1 → Step 2 (validation passed → flip status)
 - Step 3 → Step 4 (BC sync done → archive)
 - Step 5 → Step 6 (Integration Summary emitted → optional follow-up reverse-link)
@@ -62,7 +62,7 @@ If any check fails:
 > Address these (run `/dflow:new-phase` to add missing work, or fix the
 > stale status manually), then re-run `/dflow:finish-feature`."
 
-**→ Phase Gate: Step 1 → Step 2**
+**→ Step Gate: Step 1 → Step 2**
 
 If all checks pass:
 > "All {N} phase-specs are completed and `_index.md` is internally
@@ -147,8 +147,8 @@ double-check the net result; the Snapshot is the SSOT but the per-phase
 Deltas are the audit trail.
 
 > Note: this step does NOT read individual phase-specs to re-derive the BR
-> set — that work was already done by `/dflow:new-phase` Step 5 each time
-> a phase finalised. We trust `_index.md` Current BR Snapshot as the
+> set — that work was already reconciled by `/dflow:new-phase` Step 7 each
+> time a phase completed. We trust `_index.md` Current BR Snapshot as the
 > feature-level truth here. If the developer finds drift between Snapshot
 > and the phase-specs, fix `_index.md` first, then re-run
 > `/dflow:finish-feature`.
@@ -158,7 +158,7 @@ discovered during the feature (the same items listed in
 `new-feature-flow.md` Step 8.3) — these may have been touched per phase
 already; this is the closeout sweep.
 
-**→ Phase Gate: Step 3 → Step 4**
+**→ Step Gate: Step 3 → Step 4**
 
 > "BC `{context}` synced — `rules.md` updated ({n_added} added,
 > {n_modified} modified, {n_removed} removed), `behavior.md` anchors
@@ -242,7 +242,7 @@ Next Steps (developer):
 Print the summary to the conversation; do not write it to a file (it is
 ephemeral closeout output).
 
-**→ Phase Gate: Step 5 → Step 6**
+**→ Step Gate: Step 5 → Step 6**
 
 If the feature has `follow-up-of: {原 SPEC-ID}` in its Metadata, prompt
 the developer:

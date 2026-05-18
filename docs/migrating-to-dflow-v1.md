@@ -52,7 +52,7 @@ independent.
 - Open these V1 reference files for cross-checking:
   - `TEMPLATE-LANGUAGE-GLOSSARY.md` — canonical English headings.
   - `TEMPLATE-COVERAGE.md` — V1 file layout and parity matrix.
-  - `docs/evaluating-dflow.md` — what a fresh V1 `init` produces, if
+  - `docs/evaluating-dflow.en.md` — what a fresh V1 `init` produces, if
     you want to spin up a sample project to compare against.
 - For an on-demand read-only summary of legacy artifacts in your
   project, run `dflow doctor` (or `npx dflow-sdd-ddd doctor` on the
@@ -217,11 +217,11 @@ them, only to keep V1 a clean cut.
 
 ## Where To Go Next
 
-- `docs/evaluating-dflow.md` for what a fresh V1 `init` produces, in
+- `docs/evaluating-dflow.en.md` for what a fresh V1 `init` produces, in
   case you want to compare against your migrated project.
 - Per-tool walkthroughs under `docs/` for the AI tool you use:
-  - `docs/using-with-claude-code.md`
-  - `docs/using-with-codex.md`
+  - `docs/using-with-claude-code.en.md`
+  - `docs/using-with-codex.en.md`
 - `TEMPLATE-COVERAGE.md` for the V1 logical / generated file parity
   between Greenfield and Brownfield tracks.
 
