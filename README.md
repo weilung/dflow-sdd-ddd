@@ -83,24 +83,22 @@ dflow doctor
 
 第一次採用建議用 branch 或一次性試用專案，讓團隊先檢視產生的 `dflow/specs/` 工作區，再把流程引入正式程式碼。
 
-完整評估流程（init 產生哪些檔案、AI 工具支援、track 選擇、30 分鐘試用 playbook）見 [評估 Dflow](docs/evaluating-dflow.md)。Greenfield 與 Brownfield 端到端劇情走完與規格範例見 [`tutorial/`](tutorial/README.md) 索引。
+完整評估流程（init 產生哪些檔案、AI 工具支援、模式選擇、30 分鐘試用 playbook）見 [評估 Dflow](docs/evaluating-dflow.md)。Greenfield 與 Brownfield 端到端劇情走完與規格範例見 [`tutorial/`](tutorial/README.md) 索引。
 
-## 專案 Track
+## 專案模式
 
-| Track | 何時用 | 主要產出 |
+| 模式 | 何時用 | 主要產出 |
 |---|---|---|
 | **Greenfield** | 新系統或新 bounded area，有空間早期塑形架構與領域模型 | 乾淨的規格 baseline、領域模型歸屬、feature-by-feature SDD 實作 |
 | **Brownfield** | 在既有 codebase 增加或修改行為，業務規則可能已散落各處 | 漸進的領域抽出、更安全的變更規劃、可遷移的領域知識 |
 
-兩條 track 描述的是採用風格，不是 framework 品牌。Dflow 本質是給「希望 AI 協助、又不願放棄領域清晰度」的軟體團隊使用的 workflow 系統。
+兩種模式區分的是專案起始狀態（新建 vs 既有 codebase），不是 framework 品牌；Dflow 對語言與 stack 不做假設，workflow、tier 制與文件模型可套用任何技術組合。本質是給「希望 AI 協助、又不願放棄領域清晰度」的軟體團隊使用的 workflow 系統。
 
-### Track 選擇與遷移
+### 模式選擇與遷移
 
-> 以下「rewrite 到 ASP.NET Core」是目前 Dflow 模板的預設遷移路徑（出於主要使用者背景），但設計本身與語言 / framework 無關 — workflow、ceremony tier、文件模型都可套用其他 stack。
+模式在 `dflow init` 時選定、之後**不能 in-place 切換**（沒有 `/dflow:switch-to-greenfield` 之類的指令）。Brownfield 設計上是 Greenfield 的前置準備：抽出到專案 domain 層（例如 `src/Domain/`）的領域程式碼，與 `dflow/specs/domain/` 內的領域文件（術語、規則、模型、事件），都是 migration-ready 資產 — 未來要 rewrite 時（建新專案 + 新 `dflow init` 選 Greenfield），可以直接搬過去。`dflow/specs/migration/tech-debt.md` 是 brownfield 專用的遷移債紀錄。
 
-Track 在 `dflow init` 時選定、之後**不能 in-place 切換**（沒有 `/dflow:switch-to-greenfield` 之類的指令）。Brownfield 設計上是 Greenfield 的前置準備：抽出到 `src/Domain/` 的純 C# 程式碼與 `dflow/specs/domain/` 內的領域文件（術語、規則、模型、事件）都是 migration-ready 資產，未來 rewrite 時（建新 ASP.NET Core 專案 + 新 `dflow init` 選 Greenfield）可以直接搬過去。`dflow/specs/migration/tech-debt.md` 是 brownfield 專用的遷移債紀錄。
-
-也支援「逐 BC（Bounded Context）遷移」— 某個 BC 已純化到 `src/Domain/`、Code-Behind 已純為 UI 綁定後，這個 BC 就已是 Clean Architecture 狀態，不必整個 system 一次性切。brownfield 的 `/dflow:modify-existing` 內「assess Code-Behind」步驟對該 BC 自然會變 no-op。
+也支援「逐 BC（Bounded Context）遷移」— 某個 BC 的業務邏輯已純化到 domain 層、表現層只剩 UI 綁定後，這個 BC 就已是 Clean Architecture 狀態，不必整個 system 一次性切。Brownfield 的 `/dflow:modify-existing` 內「評估表現層業務邏輯」步驟對該 BC 自然會變 no-op。
 
 ## Workflow 模型
 
