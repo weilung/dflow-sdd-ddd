@@ -6,7 +6,7 @@
 
 ---
 
-## Unreleased — Language-agnostic templates and skill source
+## 0.4.0 — 2026-05-19 — Language-agnostic templates and skill source
 
 **Proposals**：PROPOSAL-030（language-agnostic templates and skill source；
 post-v0.3.0 follow-up; cross-model reviewed with Codex CLI）
