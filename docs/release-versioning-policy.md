@@ -44,6 +44,19 @@ Examples:
 - Changing command behavior in a way that invalidates existing docs.
 - Replacing a workflow contract that AI agents rely on.
 
+Counter-examples (NOT breaking):
+
+- Replacing stack-specific framing with stack-neutral umbrella terms when
+  the architectural meaning is unchanged (e.g., "Code-Behind" →
+  "delivery/entrypoint code") — adopter's existing files are not
+  rewritten by Dflow.
+- Renaming an init placeholder if the previous name still resolves via a
+  backward-compat alias and the substituted value is identical (e.g.,
+  `{ASP.NET Core version}` continuing to resolve while `{Framework version}`
+  becomes canonical).
+- Adding a new optional placeholder; existing templates that don't use it
+  are unaffected.
+
 ## Release Ownership
 
 Dflow currently has four release surfaces:

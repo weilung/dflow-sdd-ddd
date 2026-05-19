@@ -1,4 +1,4 @@
-# Project: {系統名稱} — ASP.NET WebForms
+# Project: {系統名稱} — {Framework}
 
 **重要：所有開發工作都必須遵循本文件定義的流程。**
 
@@ -10,15 +10,15 @@
 
 ### Background
 
-這是一個運行中的 ASP.NET WebForms 系統，目前持續新增與修改功能。
-未來將遷移至 ASP.NET Core。目前採用 SDD 流程，同時為 DDD 做準備。
+這是一個運行中的既有系統，使用 {Framework} / {Language}，目前持續新增與修改功能。
+目前採用 SDD 流程，同時為 DDD 與 target architecture 做準備。
 
 ### Project Structure
 
 ```
 dflow/specs/
 ├── shared/                   # 專案級治理文件（由 dflow init 寫入）
-│   ├── _overview.md          # 系統現況與遷移策略
+│   ├── _overview.md          # 系統現況與 target architecture
 │   └── _conventions.md       # 規格撰寫慣例與模板
 ├── domain/                   # 領域知識
 │   ├── glossary.md           # 術語表（Ubiquitous Language）
@@ -40,15 +40,23 @@ dflow/specs/
     └── tech-debt.md          # 技術債與遷移備忘
 
 src/
-├── Domain/                   # 抽離的領域邏輯（純 C#）
+├── Domain/                   # 抽離的領域邏輯（framework-pure）
 │   ├── {Context}/
 │   │   ├── Entities/
 │   │   ├── ValueObjects/
 │   │   ├── Services/
 │   │   └── Interfaces/
 │   └── SharedKernel/
-└── Pages/                    # 既有 WebForms 頁面
+└── Delivery/                 # delivery-layer code（entrypoints, controllers, handlers）
 ```
+
+> **目錄命名說明**：上方 `src/Domain/` / `src/Delivery/` 是 Clean
+> Architecture 通用示意，不限 stack。請依專案實際慣例對應（例：Java/Spring 用
+> `src/main/java/com/example/domain/`、Node/TS 用 `src/domain/` /
+> `src/routes/`、Python 用 `domain/` package、Go 用 `internal/domain/` /
+> `internal/handler/`、.NET 用 `src/{Project}.Domain/` + `.csproj` 分層）。
+> 完整 per-stack 範例見 `docs/examples-by-stack.md`。重點是
+> `src/Domain/`（或對應命名）保持與 delivery/entrypoint code 獨立。
 
 ---
 
@@ -58,9 +66,9 @@ src/
 
 ### Core Principles
 1. **Spec Before Code** — 沒有規格就不寫實作
-2. **Domain Extraction** — 業務邏輯屬於 `src/Domain/`，不屬於 Code-Behind
+2. **Domain Extraction** — 業務邏輯屬於 `src/Domain/`，不屬於 delivery/entrypoint code（presentation/UI layer、controllers、handlers、jobs、message consumers、data pipelines、stored procedures）
 3. **Ubiquitous Language** — 使用 `dflow/specs/domain/glossary.md` 中定義的術語
-4. **Migration Awareness** — 每個決策都要考慮未來 ASP.NET Core 遷移
+4. **Migration Awareness** — 每個決策都要考慮 target architecture
 
 ### Three Ceremony Tiers
 
@@ -81,8 +89,8 @@ src/
 1. 建 feature 目錄 `dflow/specs/features/active/{SPEC-ID}-{slug}/`
 2. 建 `_index.md`（feature dashboard）+ 第一份 `phase-spec-YYYY-MM-DD-{slug}.md`
 3. 識別涉及的領域概念，更新 `dflow/specs/domain/` 下的對應文件
-4. 盡可能將業務邏輯實作在 `src/Domain/` 中（純 C# class，不依賴 WebForms）
-5. Code-Behind 僅負責 UI 綁定，呼叫 Domain 層處理邏輯
+4. 盡可能將業務邏輯實作在 `src/Domain/` 中（語言純粹的 class，不依賴 delivery framework）
+5. Delivery/entrypoint code 僅負責輸入解析、協調流程與輸出綁定，呼叫 Domain 層處理邏輯
 6. 撰寫測試驗證 Domain 層行為符合規格
 
 ### New Phase
@@ -95,7 +103,7 @@ src/
 2. 若偵測到改動與 completed feature 相關，主動詢問是否為 follow-up
    （follow-up 走新建 feature + `follow-up-of` 鏈回原 feature；不把 T2/T3
    寫回 completed 目錄）
-3. 如果該功能的邏輯還在 Code-Behind 中，評估是否值得先抽離到 Domain 層
+3. 如果該功能的邏輯還在 delivery/entrypoint code 中，評估是否值得先抽離到 Domain 層
 4. 在 `dflow/specs/migration/tech-debt.md` 記錄發現的技術債
 
 ### Bug Fix
@@ -136,12 +144,12 @@ bugfix/{BUG-ID}-{short-description}      # Bug 修復（SDD 必須）
 ### Domain Layer Rules (`src/Domain/`)
 
 此目錄中的程式碼必須遵守：
-- ❌ 不可引用 `System.Web` 或任何 WebForms 命名空間
+- ❌ 不可引用任何 delivery-framework 命名空間（例：HTTP 請求/回應物件、Session/Cookie context、job runner context、CLI flag parser、ViewState 類等）
 - ❌ 不可直接存取資料庫（使用 interface + Repository pattern）
-- ❌ 不可使用 `HttpContext`、`Session`、`ViewState`
-- ❌ 不可有 UI 相關邏輯（格式化顯示、Page 引用）
-- ✅ 純 C# 類別，可直接搬到 ASP.NET Core 專案
-- ✅ 所有公開行為都能在沒有 Web 基礎設施的情況下測試
+- ❌ 不可使用 delivery-framework runtime context（例：HTTP request/response、session/cookie、job runner state、CLI args）
+- ❌ 不可有 UI / entrypoint 相關邏輯（格式化顯示、controller/page/handler 引用）
+- ✅ 語言純粹的 class（不依賴 delivery framework），可直接搬到 target architecture
+- ✅ 所有公開行為都能在沒有 delivery infrastructure 的情況下測試
 
 ### Glossary
 
@@ -152,6 +160,6 @@ bugfix/{BUG-ID}-{short-description}      # Bug 修復（SDD 必須）
 
 - 開發者提出任何功能需求時，先引導建立 spec
 - 在回答 Domain 相關問題時，優先參考 `dflow/specs/domain/` 中的文件
-- 發現 Code-Behind 中的業務邏輯時，建議抽離到 `src/Domain/`
+- 發現 delivery/entrypoint code 中的業務邏輯時，建議抽離到 `src/Domain/`
 - 每次開發循環結束時，提醒更新術語表和技術債記錄
 - 建立分支前，確認命名符合規範且對應 spec 存在

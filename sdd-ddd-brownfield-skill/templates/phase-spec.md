@@ -131,9 +131,11 @@ Then {新的預期結果}
 
 ## Implementation Notes <!-- Fill timing: Activity 4: Implementation Planning -->
 
-### Current WebForms Implementation
+### Current Delivery-Layer Implementation
 
-> 在現有架構下如何實作？哪些 Code-Behind 會被修改？
+> 在現有架構下如何實作？哪些 business logic embedded in delivery/entrypoint code
+> （presentation/UI layer、controllers、handlers、jobs、message consumers、data
+> pipelines、stored procedures）會被修改？
 
 ### Domain Layer Design
 
@@ -143,13 +145,13 @@ Then {新的預期結果}
 // 關鍵 Domain 類別草稿
 ```
 
-### Keep Code-Behind Thin
+### Keep Delivery/Entrypoint Code Thin
 
-> Code-Behind 只負責：解析 UI 輸入 -> 呼叫 Domain 層 -> 顯示結果
+> Delivery/entrypoint code 只負責：解析輸入 -> 呼叫 Domain 層 -> 回傳或顯示結果
 
-### Future ASP.NET Core Migration Considerations
+### Target Architecture Considerations
 
-> 遷移時需要注意的事項，或者現在的設計如何幫助未來遷移。
+> target architecture 需要注意的事項，或者現在的設計如何幫助後續演進。
 
 ## Data Structure Changes <!-- Fill timing: Activity 4: Implementation Planning -->
 
@@ -178,13 +180,13 @@ Then {新的預期結果}
 > 格式：`[LAYER]-[NUMBER]: 任務描述`
 > 分類標籤（Brownfield track）：
 >   - `DOMAIN`  — Domain 層類別、VO、Service、Interface
->   - `PAGE`    — Code-Behind / ASPX 變更
+>   - `DELIVERY` — Delivery-layer code（entrypoints, controllers, handlers, UI/API adapters）
 >   - `DATA`    — 資料表 schema 或 Repository 實作
 >   - `TEST`    — 測試案例
 > 本段在 spec 歸檔（搬到 `completed/`）前應確認全部勾選，或明確標註未完成項的 follow-up。
 
 - [ ] DOMAIN-1: {任務描述}
 - [ ] DOMAIN-2: {任務描述}
-- [ ] PAGE-1: {任務描述}
+- [ ] DELIVERY-1: {任務描述}
 - [ ] DATA-1: {任務描述}
 - [ ] TEST-1: {任務描述}

@@ -36,4 +36,4 @@
 
 ## Code Mapping Notes
 
-- {domain concept} maps to `{existing WebForms / EF / service code}`.
+- {domain concept} maps to `{existing delivery/entrypoint, persistence, or service code}`.

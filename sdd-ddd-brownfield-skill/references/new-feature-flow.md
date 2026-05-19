@@ -180,7 +180,7 @@ Specifically ask about:
 **→ Step Gate: Step 4 → Step 5**
 
 Announce to developer:
-> "Spec is drafted — behavior scenarios, business rules, and edge cases are captured. Ready to plan the implementation (Domain layer design, interfaces, thin Code-Behind)? `/dflow:next` or reply 'OK' to continue, or tell me if the spec needs another iteration first."
+> "Spec is drafted — behavior scenarios, business rules, and edge cases are captured. Ready to plan the implementation (Domain layer design, interfaces, thin delivery/entrypoint code — presentation/UI layer, controllers, handlers, jobs, message consumers, data pipelines, or stored procedures)? `/dflow:next` or reply 'OK' to continue, or tell me if the spec needs another iteration first."
 
 Wait for confirmation (`/dflow:next`, verbal OK, or implicit — see SKILL.md § Confirmation Signals) before entering Step 5.
 
@@ -195,14 +195,14 @@ Identify what goes into `src/Domain/`:
 //  - A new Value Object: Money(Amount, Currency)
 //  - A new interface: IExchangeRateService
 //  - A Domain Service: ExpenseCalculationService
-//  All pure C#, no WebForms dependencies."
+//  All framework-pure, no delivery-framework dependencies."
 ```
 
-### Code-Behind Thin Layer
-Plan how the WebForms page will call the Domain layer:
+### Delivery/Entrypoint Thin Layer
+Plan how the current delivery/entrypoint layer will call the Domain layer:
 
 ```csharp
-// Ideal Code-Behind pattern:
+// Ideal delivery/entrypoint pattern:
 protected void btnSubmit_Click(object sender, EventArgs e)
 {
     // 1. Parse UI inputs
@@ -234,7 +234,7 @@ public interface IExpenseRepository
 After the plan is agreed, AI generates a concrete task list and writes it into the spec's `Implementation Tasks` section (see `templates/phase-spec.md`). Each task follows the format `[LAYER]-[NUMBER]：description`:
 
 - `DOMAIN` — Domain classes, VOs, Services, Interfaces
-- `PAGE`    — Code-Behind / ASPX changes
+- `DELIVERY` — Delivery-layer code (entrypoints, controllers, handlers, UI/API adapters)
 - `DATA`    — Table schema or Repository impl
 - `TEST`    — Test cases
 
@@ -243,7 +243,7 @@ Example seed (replace with feature-specific tasks):
 ```markdown
 - [ ] DOMAIN-1：Create Money value object with currency conversion
 - [ ] DOMAIN-2：Define IExchangeRateService interface
-- [ ] PAGE-1：Thin ExpenseForm.aspx.cs to call domain service
+- [ ] DELIVERY-1：Thin the relevant delivery/entrypoint code to call the domain service
 - [ ] DATA-1：Add ExchangeRate table + Repository
 - [ ] TEST-1：Money equality and conversion unit tests
 ```
@@ -277,9 +277,9 @@ Wait for confirmation before entering Step 7.
 ## Step 7: Implementation
 
 During implementation, continuously check:
-- [ ] Is business logic going into src/Domain/ (not Code-Behind)?
+- [ ] Is business logic going into src/Domain/ (not delivery/entrypoint code)?
 - [ ] Are new terms in the glossary?
-- [ ] Does Code-Behind only do UI binding?
+- [ ] Does delivery/entrypoint code only do input parsing, orchestration, and output binding?
 - [ ] Are interfaces used for external dependencies?
 - [ ] Did we discover any tech debt? → Record in tech-debt.md
 
@@ -302,7 +302,7 @@ AI reports `✓` / `✗` for every item before touching docs. Items marked *(pos
 - [ ] Every `Given/When/Then` scenario in the spec is covered by implementation or tests
 - [ ] Every `BR-*` business rule is covered by implementation or tests
 - [ ] Every `EC-*` edge case is handled
-- [ ] Domain layer has **no** `System.Web` references (grep `src/Domain/`)
+- [ ] Domain layer has **no** delivery-framework references (grep `src/Domain/`)
 - [ ] *(post-8.3)* `dflow/specs/domain/{context}/behavior.md` contains a section anchor for every `BR-*` introduced by this spec (mechanical input for `/dflow:verify`)
 - [ ] *(post-8.3)* `dflow/specs/domain/{context}/behavior.md` `last-updated` is later than this spec's `created` date (mechanical drift guard)
 

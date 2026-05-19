@@ -21,7 +21,7 @@ when merging into an existing `CLAUDE.md`.
 ## Snippet to merge into `CLAUDE.md`
 
 ```markdown
-# Project: {系統名稱} — ASP.NET WebForms
+# Project: {系統名稱} — {Framework}
 
 **重要：所有開發工作都必須遵循本文件定義的流程。**
 
@@ -33,10 +33,12 @@ when merging into an existing `CLAUDE.md`.
 
 ### Background
 
-這是一個運行中的 ASP.NET WebForms 系統，{一句話描述業務領域：例如
+這是一個運行中的既有系統，使用 {Framework} / {Language}，{一句話描述業務領域：例如
 「提供員工費用報銷」/「處理 HR 人事流程」/「訂單管理」}。採用 Dflow
-（SDD/DDD workflow guardian skill）引導開發流程，同時為未來遷移到
-ASP.NET Core 做準備。
+（SDD/DDD workflow guardian skill）引導開發流程，逐步將 business logic
+embedded in delivery/entrypoint code（presentation/UI layer、controllers、
+handlers、jobs、message consumers、data pipelines、stored procedures）抽離，
+並朝 target architecture 前進。
 
 {選填：補上團隊規模、使用者規模、主要 stakeholders 等 context，
 1-3 行即可。完整內容放在 `dflow/specs/shared/_overview.md`。}
@@ -46,7 +48,7 @@ ASP.NET Core 做準備。
 ```
 dflow/specs/
 ├── shared/                   # 專案級治理文件（由 Dflow CLI init 寫入）
-│   ├── _overview.md          # 系統現況與遷移策略
+│   ├── _overview.md          # 系統現況與 target architecture
 │   ├── _conventions.md       # 規格撰寫慣例
 │   └── Git-principles-*.md   # Git 規範（gitflow 或 trunk 版）
 ├── domain/                   # 領域知識
@@ -68,11 +70,19 @@ dflow/specs/
     └── tech-debt.md
 
 src/
-├── Domain/                   # 抽離的領域邏輯（純 C#）
+├── Domain/                   # 抽離的領域邏輯（framework-pure）
 │   ├── {BoundedContext}/
 │   └── SharedKernel/
-└── Pages/                    # 既有 WebForms 頁面
+└── Delivery/                 # delivery-layer code（entrypoints, controllers, handlers）
 ```
+
+> **目錄命名說明**：上方 `src/Domain/` / `src/Delivery/` 是 Clean
+> Architecture 通用示意，不限 stack。請依專案實際慣例對應（例：Java/Spring 用
+> `src/main/java/com/example/domain/`、Node/TS 用 `src/domain/` /
+> `src/routes/`、Python 用 `domain/` package、Go 用 `internal/domain/` /
+> `internal/handler/`、.NET 用 `src/{Project}.Domain/` + `.csproj` 分層）。
+> 完整 per-stack 範例見 `docs/examples-by-stack.md`。重點是
+> `src/Domain/`（或對應命名）保持與 delivery/entrypoint code 獨立。
 
 ---
 
@@ -83,9 +93,9 @@ src/
 ### Core Principles
 
 1. **Spec Before Code** — 沒有規格就不寫實作（依 Ceremony Scaling 調整嚴謹度）
-2. **Domain Extraction** — 業務邏輯屬於 `src/Domain/`，不屬於 Code-Behind
+2. **Domain Extraction** — 業務邏輯屬於 `src/Domain/`，不屬於 delivery/entrypoint code
 3. **Ubiquitous Language** — 使用 `dflow/specs/domain/glossary.md` 中定義的術語
-4. **Migration Awareness** — 每個決策都要考慮未來 ASP.NET Core 遷移
+4. **Migration Awareness** — 每個決策都要考慮 target architecture
 
 ### Dflow Skill — Canonical Decision Logic Lives in the Skill
 
@@ -114,7 +124,7 @@ AI 的完整決策樹、Workflow Transparency、Ceremony Scaling 三層判準
 
 - **Git 分支策略**：見 `dflow/specs/shared/Git-principles-{gitflow|trunk}.md`
 - **規格撰寫慣例**：見 `dflow/specs/shared/_conventions.md`
-- **系統現況與遷移**：見 `dflow/specs/shared/_overview.md`
+- **系統現況與 target architecture**：見 `dflow/specs/shared/_overview.md`
 - {其他專案特有規則，例如「JPY 金額必須以最小貨幣單位（yen）儲存」/
   「所有費用報銷需主管審核」/「跨時區行程以 UTC 記錄」}
 
@@ -122,18 +132,18 @@ AI 的完整決策樹、Workflow Transparency、Ceremony Scaling 三層判準
 
 此目錄中的程式碼必須遵守（與 Dflow skill 的 Domain Layer Rules 一致）：
 
-- ❌ 不可引用 `System.Web` 或任何 WebForms 命名空間
+- ❌ 不可引用任何 delivery-framework 命名空間（例：HTTP 請求/回應物件、Session/Cookie context、job runner context、CLI flag parser、ViewState 類等）
 - ❌ 不可直接存取資料庫（使用 interface + Repository pattern）
-- ❌ 不可使用 `HttpContext`、`Session`、`ViewState`
+- ❌ 不可使用 delivery-framework runtime context（例：HTTP request/response、session/cookie、job runner state、CLI args）
 - ❌ 不可有 UI 相關邏輯
-- ✅ 純 C# 類別，可直接搬到 ASP.NET Core 專案
-- ✅ 所有公開行為都能在沒有 Web 基礎設施的情況下測試
+- ✅ 語言純粹的 class（不依賴 delivery framework），可直接搬到 target architecture
+- ✅ 所有公開行為都能在沒有 delivery infrastructure 的情況下測試
 
 ### AI Collaboration Notes
 
 - 遇到開發需求時，優先引導使用 `/dflow:` 命令
 - 回答 Domain 相關問題時，優先參考 `dflow/specs/domain/` 中的文件
-- 發現 Code-Behind 中的業務邏輯時，建議抽離到 `src/Domain/`
+- 發現 delivery/entrypoint code 中的業務邏輯時，建議抽離到 `src/Domain/`
 - 建立分支前，確認命名符合規範且對應 spec 存在
 - 詳細 Git 操作規則見 `dflow/specs/shared/Git-principles-{gitflow|trunk}.md`
 ```

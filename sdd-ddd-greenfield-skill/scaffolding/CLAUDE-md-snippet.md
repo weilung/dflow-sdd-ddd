@@ -29,7 +29,7 @@ keeps every project's `CLAUDE.md` scannable for AI in the same shape.
 ## Snippet to merge into `CLAUDE.md`
 
 ```markdown
-# Project: {系統名稱} — ASP.NET Core + DDD
+# Project: {系統名稱} — Clean Architecture + DDD
 
 **重要：所有開發工作都必須遵循本文件定義的流程。**
 
@@ -45,8 +45,8 @@ keeps every project's `CLAUDE.md` scannable for AI in the same shape.
 - **Users / Customers**: {使用者 / 客戶描述}
 - **Team**: {團隊組成；e.g. "全端工程團隊，3-5 人；DDD 經驗中等"}
 - **Dflow Adoption Context**: {新專案 greenfield / 既有系統導入 / 遷移等}
-- **Tech Stack**: ASP.NET Core {版本}；EF Core / MediatR / {其他};
-  .NET {版本}
+- **Tech Stack**: {Framework} {Framework version}；{ORM / persistence} {ORM version} / {Mediator} / {其他};
+  {Language}
 
 ### Architecture (Clean Architecture)
 
@@ -60,7 +60,7 @@ Presentation → Application → Domain ← Infrastructure
 |---|---|---|
 | Domain | 業務規則、Aggregate、Value Object、Domain Event | 依賴外部套件、存取資料庫、處理 HTTP |
 | Application | 編排領域操作、CQRS、驗證、DTO | 包含業務邏輯、直接存取資料庫 |
-| Infrastructure | EF Core、外部 API、檔案存取 | 包含業務邏輯 |
+| Infrastructure | {ORM / persistence}、外部 API、檔案存取 | 包含業務邏輯 |
 | Presentation | HTTP 端點、Request/Response | 包含業務邏輯、直接操作 Domain 物件 |
 
 ### Project Structure
@@ -120,7 +120,7 @@ AI 的完整決策樹、Workflow Transparency、Ceremony Scaling 三層判準
 
 ### Domain Layer Rules (Hard Invariants)
 
-- ❌ 不可有任何 NuGet 套件依賴（純 .NET 類型）
+- ❌ 不可有任何外部套件依賴（語言純粹 types）
 - ❌ 不可有 ORM 屬性（`[Table]`、`[Column]` 等）
 - ❌ 不可有序列化屬性（`[JsonProperty]` 等）
 - ❌ 不可有 `DbContext`、`IConfiguration`、`HttpClient`
@@ -133,7 +133,7 @@ AI 的完整決策樹、Workflow Transparency、Ceremony Scaling 三層判準
 
 {此段由專案自行填入。例如：}
 
-- **本專案使用 MediatR 做 Command / Query dispatch**，Application 層
+- **本專案使用 {Mediator} 做 Command / Query dispatch（若適用）**，Application 層
   Command / Query Handler 命名為 `{Name}CommandHandler` /
   `{Name}QueryHandler`
 - **整合測試使用 {Testcontainers / WebApplicationFactory / 其他}**；

@@ -69,7 +69,9 @@ Template note (for AI):
 
 > Keep T2 Light tasks concise. If the fix scope starts to expand, AI should pause and ask the developer whether to keep this as T2 or upgrade it to T1. Do not auto-upgrade based on task count alone.
 >
-> Recommended layer tags (WebForms): `DOMAIN` / `PAGE` / `DATA` / `TEST` / `DOC`
+> Recommended layer tags (Brownfield): `DOMAIN` / `DELIVERY` / `DATA` / `TEST` / `DOC`
+> (`DELIVERY` covers delivery/entrypoint code: presentation/UI layer, controllers,
+> handlers, jobs, message consumers, data pipelines, or stored procedures)
 
 - [ ] {LAYER}-1: {minimal required change}
 - [ ] TEST-1: {minimal verification / regression test}

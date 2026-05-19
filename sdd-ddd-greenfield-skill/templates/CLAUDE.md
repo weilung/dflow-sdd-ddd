@@ -1,4 +1,4 @@
-# Project: {系統名稱} — ASP.NET Core + DDD
+# Project: {系統名稱} — Clean Architecture + DDD
 
 **重要：所有開發工作都必須遵循本文件定義的流程。**
 
@@ -10,7 +10,7 @@
 
 ### Background
 
-這是一個使用 Clean Architecture 和 Domain-Driven Design 的 ASP.NET Core 系統。
+這是一個遵循 Clean Architecture 與 Domain-Driven Design 的新建專案；具體 stack 詳見 `dflow/specs/shared/_overview.md`。
 採用 SDD 流程，所有開發工作必須遵循本文件定義的流程。
 
 ### Architecture (Clean Architecture)
@@ -27,7 +27,7 @@ Presentation → Application → Domain ← Infrastructure
 |---|---|---|
 | Domain | 業務規則、Aggregate、Value Object、Domain Event | 依賴外部套件、存取資料庫、處理 HTTP |
 | Application | 編排領域操作、CQRS、驗證、DTO | 包含業務邏輯、直接存取資料庫 |
-| Infrastructure | EF Core、外部 API、檔案存取 | 包含業務邏輯 |
+| Infrastructure | {ORM / persistence}、外部 API、檔案存取 | 包含業務邏輯 |
 | Presentation | HTTP 端點、Request/Response | 包含業務邏輯、直接操作 Domain 物件 |
 
 ### Project Structure
@@ -35,7 +35,7 @@ Presentation → Application → Domain ← Infrastructure
 ```
 dflow/specs/
 ├── shared/                   # 專案級治理文件（由 dflow init 寫入）
-│   ├── _overview.md          # 系統現況與遷移策略
+│   ├── _overview.md          # 系統概覽與架構方向
 │   └── _conventions.md       # 規格撰寫慣例
 ├── domain/
 │   ├── glossary.md
@@ -154,7 +154,7 @@ bugfix/{BUG-ID}-{short-description}      # Bug 修復（SDD 必須）
 
 ### Domain Layer Rules
 
-- ❌ 不可有任何 NuGet 套件依賴（純 .NET 類型）
+- ❌ 不可有任何外部套件依賴（語言純粹 types）
 - ❌ 不可有 ORM 屬性（[Table], [Column] 等）
 - ❌ 不可有序列化屬性（[JsonProperty] 等）
 - ❌ 不可有 DbContext、IConfiguration、HttpClient

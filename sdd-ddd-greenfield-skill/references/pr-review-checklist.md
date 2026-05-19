@@ -1,4 +1,4 @@
-# PR Review Checklist — ASP.NET Core
+# PR Review Checklist — Greenfield Clean Architecture
 
 `/dflow:pr-review` enters this checklist starting from **Step 0**. Do not skip Step 0 — reviewing code without first understanding spec intent breaks the SDD feedback loop (all the upstream spec work loses its verification mechanism).
 
@@ -83,7 +83,7 @@ If the closeout commit is in this PR (`/dflow:finish-feature` was run):
 
 ## Domain Layer Quality
 
-- [ ] **Zero external dependencies** — check .csproj, no NuGet beyond base .NET
+- [ ] **Zero external dependencies** — check the Domain package/module manifest; no external dependencies beyond the language/runtime baseline
 - [ ] **No ORM attributes** — no [Table], [Column], [Key] on domain classes
 - [ ] **No serialization attributes** — no [JsonProperty], [JsonIgnore]
 - [ ] **Private setters** — state changes through methods only

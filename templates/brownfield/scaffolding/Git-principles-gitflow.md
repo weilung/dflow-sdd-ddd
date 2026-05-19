@@ -170,7 +170,7 @@ before making key Git operations:
       `behavior.md` reflect the feature's net BR changes
 - [ ] `dflow/specs/domain/glossary.md` updated with any new terms
 - [ ] `dflow/specs/migration/tech-debt.md` updated with any debt discovered
-- [ ] Domain layer (`src/Domain/`) has no `System.Web` references
+- [ ] Domain layer (`src/Domain/`) has no delivery-framework references
 
 ---
 

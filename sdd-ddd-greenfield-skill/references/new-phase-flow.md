@@ -1,4 +1,4 @@
-# New Phase Workflow — ASP.NET Core
+# New Phase Workflow — Greenfield Clean Architecture
 
 Step-by-step guide for when a developer triggers `/dflow:new-phase` —
 adding a new phase-spec to an **active** feature directory.

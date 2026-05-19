@@ -49,9 +49,9 @@ created: {YYYY-MM-DD}
 
 ## Code Mapping
 
-### Current WebForms
-- Pages: `src/Pages/{相關頁面}.aspx`
+### Current Delivery/Entrypoint Mapping
+- Delivery/entrypoint code: `{project/path/or/namespace}`
 - Domain: `src/Domain/{Context}/`
 
-### Future ASP.NET Core
-- 預計作為獨立模組/專案
+### Target Architecture
+- 預計作為 target architecture 中的獨立模組、服務、套件或 bounded context

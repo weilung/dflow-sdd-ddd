@@ -251,11 +251,11 @@ AI should verify:
       (`rules.md` / `behavior.md`) — typically by `/dflow:finish-feature`
 - [ ] Whole feature directory ready to `git mv` to `dflow/specs/features/completed/`
       (or already moved if `/dflow:finish-feature` ran)
-- [ ] All new business logic is in `src/Domain/` (not Code-Behind only)
+- [ ] All new business logic is in `src/Domain/` (not delivery/entrypoint code — presentation/UI layer, controllers, handlers, jobs, message consumers, data pipelines, or stored procedures)
 - [ ] New terms added to `glossary.md`
 - [ ] `rules.md` and `models.md` updated if applicable
 - [ ] Tech debt recorded for any shortcuts taken
-- [ ] Domain layer code has no System.Web references
+- [ ] Domain layer code has no delivery-framework references
 
 ### bugfix/ branch — Before Creating
 
@@ -302,9 +302,9 @@ Examples:
 
 3. During development
    AI: Answer questions referencing dflow/specs/domain/ knowledge
-       → Flag if business logic is going into Code-Behind
+       → Flag if business logic is going into delivery/entrypoint code
        → Suggest Domain layer patterns when appropriate
-       → Help maintain thin Code-Behind
+       → Help maintain thin delivery/entrypoint code
 
 4. Before PR/merge
    AI: Run through merge checklist
@@ -319,7 +319,7 @@ Examples:
 ## Integration with CI/CD (Future Enhancement)
 
 These checks could eventually be automated in CI:
-- Verify no `using System.Web` in `src/Domain/` directory
+- Verify no delivery-framework references in `src/Domain/` directory
 - Verify spec file exists for any branch with feature/ or bugfix/ prefix
 - Verify glossary.md and rules.md were updated when Domain/ files change
 - Lint commit messages for spec ID format

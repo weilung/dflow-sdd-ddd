@@ -30,19 +30,18 @@ delivers. Keep it non-technical enough that a new hire can skim it in
 
 ## Technical Architecture
 
-This project is an ASP.NET Core application built with **Clean
-Architecture** and **Domain-Driven Design (DDD)**. Dependencies flow
-inward only — the Domain layer is the core and depends on nothing.
+This project follows **Clean Architecture** and **Domain-Driven Design
+(DDD)**. Dependencies flow inward only — the Domain layer is the core
+and depends on nothing.
 
 ### Stack
 
 | Item | Choice |
 |------|--------|
-| Runtime | .NET {version, e.g. 8} |
-| Language | C# {version, e.g. 12} |
-| Web framework | ASP.NET Core (Web API / Minimal API — {which}) |
-| ORM | Entity Framework Core {version} |
-| Mediator | {e.g. MediatR, internal CQRS dispatcher, or none} |
+| Language | {Language} |
+| Framework | {Framework} {Framework version} |
+| ORM / persistence | {ORM / persistence} {ORM version} |
+| Mediator | {Mediator} (or none) |
 | Validation | {e.g. FluentValidation} |
 | Database | {e.g. PostgreSQL 16, SQL Server 2022} |
 | Auth | {e.g. JWT bearer, OIDC via Azure AD, cookie auth} |
@@ -57,12 +56,31 @@ Presentation  →  Application  →  Domain  ←  Infrastructure
 
 | Layer | Responsibilities | Must NOT |
 |-------|------------------|----------|
-| Domain | Aggregates, Entities, Value Objects, Domain Events, Domain Services, repository interfaces | Depend on any NuGet package outside allowed list; know about EF Core, HTTP, DI containers |
+| Domain | Aggregates, Entities, Value Objects, Domain Events, Domain Services, repository interfaces | Depend on package-manager libraries outside the project's allow-list; know about ORM/persistence frameworks, HTTP, DI containers |
 | Application | Commands / Queries (CQRS), Validators, DTOs, Event Handlers, orchestration | Contain business logic; access database directly |
-| Infrastructure | EF Core `DbContext` + configurations, repository implementations, external API clients | Contain business logic |
+| Infrastructure | ORM / persistence configuration, repository implementations, external API clients | Contain business logic |
 | Presentation | HTTP endpoints, Request / Response mapping, auth + middleware | Contain business logic; expose Domain objects directly |
 
 ### Project Layout
+
+> **Note**: The project layout below uses .NET/C# conventions —
+> project-level namespaces like `{Project}.Domain` and a separate `.csproj`
+> per layer. This is shown as a concrete example so you can see "what a
+> real Clean Architecture layout looks like".
+>
+> If this project's stack is **not** .NET, this layout does **not**
+> literally apply — translate to the conventions of your stack:
+>
+> - Java/Spring: `com.example.domain` / `com.example.application` packages, often a multi-module Maven/Gradle build
+> - Node/TypeScript: `src/domain/` / `src/application/` folders, monorepo workspaces optional
+> - Python: `domain/` / `application/` packages
+> - Go: `internal/domain/` / `internal/application/`
+> - PHP/Laravel: `app/Domain/` / `app/Application/`
+>
+> For full per-stack examples, see `docs/examples-by-stack.md`. If the
+> convention for your stack is unclear, consult authoritative sources
+> for the stack (e.g., its official project structure guide) or ask the
+> developer before placing code.
 
 ```
 src/
@@ -147,7 +165,7 @@ format / MADR / other}.
 Initial ADRs that typically exist:
 
 - **ADR-0001** — Choice of ORM / persistence approach
-- **ADR-0002** — CQRS + MediatR vs direct handlers
+- **ADR-0002** — CQRS + mediator/dispatcher vs direct handlers
 - **ADR-0003** — Auth strategy
 
 ---

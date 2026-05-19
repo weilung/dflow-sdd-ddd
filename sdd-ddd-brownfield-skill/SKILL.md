@@ -27,9 +27,11 @@ cleaner platform or architecture.
 
 ## Why This Matters
 
-This project has business logic scattered across Code-Behind files, direct SQL in page handlers,
-and duplicated calculations across multiple pages. Every feature developed without specs makes
-migration harder. Every spec written and every domain concept extracted makes migration easier.
+This project has business logic embedded in delivery/entrypoint code (presentation/UI layer,
+controllers, handlers, jobs, message consumers, data pipelines, or stored procedures), direct
+SQL in entrypoints, and duplicated calculations across multiple flows. Every feature developed
+without specs makes the target architecture harder to reach. Every spec written and every domain
+concept extracted makes the target architecture easier to reach.
 
 Your role is not to lecture — it's to ask the right questions at the right time so developers
 naturally produce three assets with every change:
@@ -37,6 +39,26 @@ naturally produce three assets with every change:
 1. **Spec documents** — future requirements documentation
 2. **Domain layer code** — portable to a cleaner future architecture
 3. **Tech debt records** — migration guide entries
+
+## Scope: When Dflow Brownfield Applies
+
+Dflow Brownfield is designed for existing systems where:
+
+- **Business rules and domain concepts** can be extracted and re-expressed
+  as portable code (entities, value objects, services, repository interfaces)
+- **Business logic is currently embedded in delivery/entrypoint code** —
+  presentation/UI layer, controllers, handlers, jobs, message consumers,
+  data pipelines, or stored procedures — making changes risky and slow
+- The team wants to **gradually move toward a cleaner architecture** without
+  a full rewrite
+
+It is **not** a fit for:
+
+- Pure infrastructure scripts (deployment, monitoring) without a stable
+  domain model
+- Data pipelines or batch jobs that are purely transformational with no
+  business-rule complexity
+- Greenfield projects (use `sdd-ddd-greenfield-skill` instead)
 
 ## Decision Tree: What To Do When Developer Input Arrives
 
@@ -160,7 +182,7 @@ new-phase-flow (7 steps):
 - Step 6 → 7 (implementation done → complete the phase)
 
 modify-existing-flow (6 steps):
-- Step 2 → 3 (baseline captured → analyze code-behind)
+- Step 2 → 3 (baseline captured → analyze delivery/entrypoint layer)
 - Step 4 → 5 (extraction decision → start implementation)
 - Step 5 → 6 (implementation done → update artifacts)
 
@@ -173,7 +195,7 @@ The Step 6 → Step 7 Step Gate in new-phase-flow is a separate **phase-level co
 For feature-level completion triggers, execute the checklist in strict order:
 
 1. **AI-independent verification** (Section 8.1 / 6.1): run every item without asking the developer; report `✓` / `✗` as a single list. Items fall into two timing categories:
-   - **Pre-merge** (default): verified before touching any docs — Given/When/Then and BR/EC coverage, Domain purity (no `System.Web`), `Implementation Tasks` completeness.
+   - **Pre-merge** (default): verified before touching any docs — Given/When/Then and BR/EC coverage, Domain purity (no delivery-framework references), `Implementation Tasks` completeness.
    - **Post-8.3 / Post-6.3** (marked `*(post-...)*`): re-verified after the 8.3 / 6.3 merge step lands — `behavior.md` BR-* anchor correspondence and `last-updated` date (mechanical input for `/dflow:verify`).
    If any item fails, pause and fix before continuing.
 2. **Developer-confirmation verification** (Section 8.2 / 6.2): ask one question at a time; wait for the developer's judgment before moving to the next. Do **not** dump all questions at once. Questions cover intent fit, edge-case handling, missed tech debt, and (added in P005b) whether the merged `behavior.md` scenarios faithfully express the intended behavior and whether the spec's `Implementation Tasks` section should be collapsed / removed per team convention.
@@ -224,9 +246,9 @@ If no workflow is active, reply: "No active workflow. Use `/dflow:new-feature`, 
 ## Core Principles
 
 1. **Spec Before Code** — No implementation without at least a lightweight spec
-2. **Domain Extraction** — Business logic belongs in src/Domain/, not Code-Behind
+2. **Domain Extraction** — Business logic belongs in src/Domain/, not delivery/entrypoint code
 3. **Ubiquitous Language** — Use terms from dflow/specs/domain/glossary.md consistently
-4. **Migration Awareness** — Every decision should consider future ASP.NET Core migration
+4. **Migration Awareness** — Every decision should consider the project's target architecture
 5. **Pragmatic, Not Dogmatic** — A quick hotfix doesn't need a 50-line spec. Scale ceremony to impact.
 
 ## Template Language
@@ -272,8 +294,24 @@ The instantiated file is placed inside the feature directory (see
 
 ## Project Structure Reference
 
+> **Note on directory naming**: The tree below uses generic Clean
+> Architecture folder names (`src/Domain/`, `src/Delivery/`). These are
+> conventions, not requirements — adapt to your stack's idioms:
+>
+> - Java/Spring: `src/main/java/com/example/domain/` package, controllers in `com.example.web`
+> - Node/TypeScript: `src/domain/` / `src/delivery/` (or `src/routes/`, `src/controllers/`)
+> - Python (Django/Flask): `domain/` package; views/templates as entrypoints
+> - Go: `internal/domain/` / `internal/handler/`
+> - PHP/Laravel: `app/Domain/` / `app/Http/`
+> - .NET: `src/{Project}.Domain/` / `src/{Project}.WebAPI/` (separate `.csproj` per layer)
+>
+> For full per-stack examples, see `docs/examples-by-stack.md`. If unsure,
+> consult your stack's official project-structure guide or ask the
+> developer. The important boundary is that `src/Domain/` (or its
+> equivalent) stays independent from delivery/entrypoint code.
+
 ```
-WebFormsProject/
+{System Name}/
 ├── CLAUDE.md                         # AI workflow rules
 ├── dflow/specs/
 │   ├── shared/                       # Project-level governance docs (seeded by npx dflow-sdd-ddd init)
@@ -301,14 +339,14 @@ WebFormsProject/
 │   └── migration/
 │       └── tech-debt.md              # Issues to fix in new system
 ├── src/
-│   ├── Domain/                       # Extracted domain logic (pure C#)
+│   ├── Domain/                       # Extracted domain logic (framework-pure)
 │   │   ├── {BoundedContext}/         # e.g., Expense/
 │   │   │   ├── Entities/
 │   │   │   ├── ValueObjects/
 │   │   │   ├── Services/
 │   │   │   └── Interfaces/           # Repository interfaces, etc.
 │   │   └── SharedKernel/             # Cross-context shared concepts
-│   └── Pages/                        # Existing WebForms pages
+│   └── Delivery/                     # Delivery-layer code (entrypoints, controllers, handlers)
 ```
 
 ## Behavior Source of Truth (rules.md + behavior.md)
@@ -350,26 +388,26 @@ Note: phase-spec template HTML comments cover Activity 1-4; Activity 5 (Tech Deb
 - Identify edge cases and business rule interactions
 
 ### Activity 4: Implementation Planning (How to build it)
-- Can the business logic live in src/Domain/ as pure C#?
+- Can the business logic live in src/Domain/ as framework-pure code?
 - What interfaces are needed? (Repository, external services)
-- How thin can the Code-Behind be? (Ideally: parse input → call Domain → display result)
+- How thin can the delivery/entrypoint code be? (Ideally: parse input → call Domain → return or display result)
 
 ### Activity 5: Tech Debt Awareness (What did we find?)
 - Did we discover scattered business logic? → Record in tech-debt.md
 - Are there duplicated calculations? → Record
-- Direct SQL in Code-Behind? → Record
+- Direct SQL in delivery/entrypoint code? → Record
 - Magic numbers or undocumented statuses? → Record and add to glossary
 
 ## Domain Layer Rules (src/Domain/)
 
 Code in src/Domain/ must follow these constraints. These are non-negotiable because this code
-will be directly migrated to ASP.NET Core:
+should remain portable to the target architecture:
 
-- **No System.Web references** — zero WebForms dependencies
+- **No delivery-framework references** — no HTTP request/response objects, session/cookie context, job-runner context, CLI flag parsers, or ViewState equivalents
 - **No direct database access** — use interfaces (Repository pattern)
-- **No HttpContext, Session, ViewState** — pure business logic only
-- **No UI concerns** — no formatting for display, no Page references
-- All public behavior should be testable without any web infrastructure
+- **No delivery-framework runtime context** — pure business logic only
+- **No UI or entrypoint concerns** — no formatting for display, no controller/page/handler references
+- All public behavior should be testable without any delivery infrastructure
 
 ## Glossary Maintenance
 
@@ -414,13 +452,13 @@ These are the feature-/spec-level building blocks that the flows instantiate dur
 | `templates/glossary.md` | Living document template for project/domain terminology |
 | `templates/models.md` | Living document template for bounded-context domain model catalog |
 | `templates/rules.md` | Living document template for BR-ID rule index |
-| `templates/context-map.md` | Living document template for bounded-context relationships (optional/emergent in WebForms) |
+| `templates/context-map.md` | Living document template for bounded-context relationships (optional/emergent in Brownfield discovery) |
 | `templates/tech-debt.md` | Living document template for migration debt backlog |
 | `templates/behavior.md` | Consolidated behavior spec for a Bounded Context |
 | `templates/CLAUDE.md` | Project-level CLAUDE.md to place in repo root |
 
 Maintenance contracts at repo root:
-- `TEMPLATE-COVERAGE.md` — review reference + maintenance contract for WebForms/Greenfield template parity and section-anchor coverage.
+- `TEMPLATE-COVERAGE.md` — review reference + maintenance contract for Brownfield/Greenfield template parity and section-anchor coverage.
 - `TEMPLATE-LANGUAGE-GLOSSARY.md` — canonical English template terms with Traditional Chinese mapping for human reading.
 
 These two files are not runtime inputs for workflows; use them during review, maintenance, and when adding new templates.

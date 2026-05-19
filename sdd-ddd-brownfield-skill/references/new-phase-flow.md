@@ -144,8 +144,10 @@ here. The Delta section uses the same ADDED / MODIFIED / REMOVED / RENAMED
 + optional UNCHANGED format defined in `references/modify-existing-flow.md`.
 
 After the spec body is drafted, generate the `Implementation Tasks` section
-(format `[LAYER]-[NUMBER]：description` with WebForms layer tags
-DOMAIN / PAGE / DATA / TEST — see `new-feature-flow.md` Step 5 for the
+(format `[LAYER]-[NUMBER]：description` with Brownfield layer tags
+DOMAIN / DELIVERY / DATA / TEST. `DELIVERY` covers delivery/entrypoint code:
+presentation/UI layer, controllers, handlers, jobs, message consumers, data
+pipelines, or stored procedures. See `new-feature-flow.md` Step 5 for the
 detailed list).
 
 **→ Step Gate: Step 4 → Step 5**
@@ -198,8 +200,8 @@ Wait for confirmation before entering Step 6.
 
 ## Step 6: Implement and Verify the Phase
 
-Follow the phase-spec's `Implementation Tasks` using the WebForms layer tags:
-DOMAIN / PAGE / DATA / TEST.
+Follow the phase-spec's `Implementation Tasks` using the Brownfield layer tags:
+DOMAIN / DELIVERY / DATA / TEST.
 
 During implementation, continuously verify:
 
@@ -209,9 +211,9 @@ During implementation, continuously verify:
       implementation or tests
 - [ ] Every affected `BR-*` business rule is covered by implementation or tests
 - [ ] Every affected Given/When/Then scenario is covered by implementation or tests
-- [ ] Business logic stays in `src/Domain/`, not Code-Behind
-- [ ] Code-Behind remains UI binding / orchestration only
-- [ ] Domain code has no `System.Web` dependency
+- [ ] Business logic stays in `src/Domain/`, not delivery/entrypoint code
+- [ ] Delivery/entrypoint code remains input parsing, orchestration, and output binding only
+- [ ] Domain code has no delivery-framework dependency
 - [ ] Data access changes do not introduce business rules into infrastructure
 - [ ] Test failures have been resolved or explicitly recorded as follow-up
 

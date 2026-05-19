@@ -2,7 +2,7 @@
 
 # Context Map
 
-> Optional bounded context relationship map for WebForms brownfield discovery.
+> Optional bounded context relationship map for Brownfield discovery.
 
 ## Context List
 

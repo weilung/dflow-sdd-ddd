@@ -213,6 +213,49 @@ try {
   assert.match(rootClaude, /^# CLAUDE\.md - Dflow Project Instructions/);
   assert.match(rootClaude, /@dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/);
 
+  // Non-.NET init e2e — Java/Spring Boot greenfield project.
+  // Verifies that:
+  // - extractTechStackPlaceholders recognizes non-.NET stack version strings
+  // - generated _overview.md / AI-AGENT-GUIDE.md / CLAUDE.md do not leak .NET-specific literals
+  // - canonical placeholders (Framework version / ORM / persistence / Test framework) resolve correctly
+  const javaRoot = join(tempRoot, 'java-spring');
+  await mkdir(javaRoot, { recursive: true });
+
+  const javaInput = [
+    '1',
+    'Java 21, Spring Boot 3.3, Spring Data JPA, JUnit 5',
+    'none',
+    '2',
+    '1,2',
+    '1,2,3,4',
+    'y'
+  ].join('\n') + '\n';
+
+  const java = await runDflow(javaRoot, javaInput);
+  assert.equal(java.code, 0, `non-.NET init failed\nSTDOUT:\n${java.stdout}\nSTDERR:\n${java.stderr}`);
+
+  const javaOverview = await readFile(join(javaRoot, 'dflow/specs/shared/_overview.md'), 'utf8');
+  const javaAiGuide = await readFile(join(javaRoot, 'dflow/specs/shared/AI-AGENT-GUIDE.md'), 'utf8');
+  const javaConventions = await readFile(join(javaRoot, 'dflow/specs/shared/_conventions.md'), 'utf8');
+  const javaClaude = await readFile(join(javaRoot, 'CLAUDE.md'), 'utf8');
+  const javaAgents = await readFile(join(javaRoot, 'AGENTS.md'), 'utf8');
+
+  for (const [name, content] of Object.entries({ javaOverview, javaAiGuide, javaConventions, javaClaude, javaAgents })) {
+    assert.doesNotMatch(content, /\{ASP\.NET Core version\}/, `${name} should not contain unresolved {ASP.NET Core version}`);
+    assert.doesNotMatch(content, /\{EF Core version\}/, `${name} should not contain unresolved {EF Core version}`);
+    assert.doesNotMatch(content, /\{MediatR version\}/, `${name} should not contain unresolved {MediatR version}`);
+    assert.doesNotMatch(content, /\{Framework version\}/, `${name} should not contain unresolved {Framework version}`);
+    assert.doesNotMatch(content, /\{ORM version\}/, `${name} should not contain unresolved {ORM version}`);
+    assert.doesNotMatch(content, /\{Test framework\}/, `${name} should not contain unresolved {Test framework}`);
+  }
+
+  // tech-stack-summary should be preserved verbatim somewhere (sanity check for substitution)
+  assert.match(javaAiGuide, /Spring Boot 3\.3/, 'AI guide should retain Java/Spring Boot tech-stack-summary');
+
+  // unresolvedInitPlaceholders warning should not fire for canonical placeholder fallbacks
+  // (Codex review note: "unresolved fallback 要保留原 token，否則 warning 會誤導")
+  assert.doesNotMatch(java.stdout, /Unresolved placeholders remain.*\{ASP\.NET Core version\}/);
+
   console.log(`Smoke test passed in ${tempRoot}`);
 } finally {
   if (process.env.DFLOW_KEEP_SMOKE_TMP !== '1') {

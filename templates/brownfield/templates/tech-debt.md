@@ -2,13 +2,13 @@
 
 # Migration Tech Debt
 
-> WebForms migration debt backlog discovered during SDD/DDD work.
+> Target-architecture debt backlog discovered during SDD/DDD work.
 
 ## Debt Items
 
 | Item | Location | Description | Severity | Migration impact | Status |
 |---|---|---|---|---|---|
-| {Debt item} | `{file/path/or/namespace}` | {問題描述} | {Low/Medium/High/Critical} | {對 WebForms -> Core 遷移的影響} | {open/planned/in-progress/done} |
+| {Debt item} | `{file/path/or/namespace}` | {問題描述} | {Low/Medium/High/Critical} | {對 target architecture 的影響} | {open/planned/in-progress/done} |
 
 ## Follow-up Notes
 

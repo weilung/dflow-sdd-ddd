@@ -108,7 +108,7 @@ situations.
 |------------------------------|--------------------|-----|
 | {e.g. Year-end reporting tweak without BR change} | T2 | Touches logic path even though no new BR; extract to `lightweight-spec.md` for trace |
 | {e.g. Pure label / display text translation} | T3 | No BR change; inline row in `_index.md` |
-| {e.g. UI refresh across multiple pages} | T1 (project convention) | We treat multi-page UI refresh as T1 for this project even though Dflow default would be T2, because our WebForms UI changes often leak into Code-Behind |
+| {e.g. UI refresh across multiple entrypoints} | T1 (project convention) | We treat multi-entrypoint UI/API refresh as T1 for this project even though Dflow default would be T2, because these changes often leak into business logic embedded in delivery/entrypoint code (presentation/UI layer, controllers, handlers, jobs, message consumers, data pipelines, or stored procedures) |
 
 If the team disagrees on tier classification for a specific change,
 run through the T3 four-criteria checklist (in the Dflow skill) and

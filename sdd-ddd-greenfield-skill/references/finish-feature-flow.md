@@ -1,4 +1,4 @@
-# Finish Feature Workflow — ASP.NET Core
+# Finish Feature Workflow — Greenfield Clean Architecture
 
 Step-by-step guide for when a developer triggers `/dflow:finish-feature` —
 the feature closeout ceremony.

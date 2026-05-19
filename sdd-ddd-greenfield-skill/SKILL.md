@@ -45,15 +45,16 @@ This project uses Clean Architecture with four layers. Dependencies flow inward 
 │  Depends on: NOTHING                        │
 ├─────────────────────────────────────────────┤
 │  Infrastructure Layer                       │
-│  EF Core DbContext, Repository Impl,        │
+│  ORM/persistence adapter, Repository Impl,  │
 │  External API clients, Message Queue,       │
 │  Email, File Storage                        │
 │  Depends on: Domain, Application            │
 └─────────────────────────────────────────────┘
 ```
 
-**Critical Rule**: Domain layer has ZERO external dependencies. No NuGet packages except
-pure .NET types. No EF Core attributes, no JSON serialization attributes, no framework concerns.
+**Critical Rule**: Domain layer has ZERO external dependencies except explicitly
+allowed domain-only contracts. No ORM/persistence mapping attributes, no JSON
+serialization attributes, no framework concerns.
 
 ## Decision Tree: What To Do When Developer Input Arrives
 
@@ -174,7 +175,7 @@ new-phase-flow (7 steps):
 - Step 5 → 6 (`_index.md` refreshed → start implementation)
 - Step 6 → 7 (implementation done → complete the phase)
 
-modify-existing-flow (5 steps — Core version condenses extraction/analysis into one step since layers are already separated):
+modify-existing-flow (5 steps — Greenfield edition condenses the Brownfield extraction/analysis split into one step because Clean Architecture layers are already separated):
 - Step 2 → 3 (baseline captured → assess DDD impact)
 - Step 3 → 4 (DDD impact decision → implement)
 - Step 4 → 5 (implementation done → update documentation)
@@ -188,7 +189,7 @@ The Step 6 → Step 7 Step Gate in new-phase-flow is a separate **phase-level co
 For feature-level completion triggers, execute the checklist in strict order:
 
 1. **AI-independent verification** (Section 8.1 / 5.1): run every item without asking the developer; report `✓` / `✗` as a single list. Items fall into two timing categories:
-   - **Pre-merge** (default): verified before touching any docs — Given/When/Then and BR/EC coverage, Domain Events raised, Domain project purity (zero external NuGet), Aggregate invariants preserved, EF Fluent API only, `Implementation Tasks` section completeness.
+   - **Pre-merge** (default): verified before touching any docs — Given/When/Then and BR/EC coverage, Domain Events raised, Domain project purity (zero external package-manager dependencies), Aggregate invariants preserved, persistence mapping outside Domain, `Implementation Tasks` section completeness.
    - **Post-8.3 / Post-5.3** (marked `*(post-...)*`): re-verified after the 8.3 / 5.3 merge step lands — `behavior.md` BR-* anchor correspondence (incl. deletions for REMOVED deltas) and `last-updated` date (mechanical input for `/dflow:verify`).
    If any item fails, pause and fix before continuing.
 2. **Developer-confirmation verification** (Section 8.2 / 5.2): ask one question at a time (intent fit, Aggregate boundary sanity, Domain Event placements, missed tech debt); wait for the developer's judgment. Do **not** dump all questions at once. P005b adds two questions: whether the scenarios merged into `behavior.md` (incl. Aggregate transitions + Events) faithfully express the intended behavior, and whether the spec's `Implementation Tasks` section should be collapsed / removed per team convention.
@@ -354,7 +355,7 @@ ExpenseTracker/
 │   ├── ExpenseTracker.Infrastructure/   # Infrastructure Layer
 │   │   ├── Persistence/
 │   │   │   ├── AppDbContext.cs
-│   │   │   ├── Configurations/         # EF Core entity configs
+│   │   │   ├── Configurations/         # ORM/persistence entity configs
 │   │   │   └── Repositories/
 │   │   ├── ExternalServices/
 │   │   └── DependencyInjection.cs
@@ -373,7 +374,7 @@ ExpenseTracker/
 ## Layer Rules (Non-negotiable)
 
 ### Domain Layer
-- ZERO NuGet packages (except MediatR.Contracts for IDomainEvent if used)
+- ZERO package-manager dependencies (except explicitly allowed domain-only contracts)
 - No `[Table]`, `[Column]`, `[JsonProperty]` or any ORM/serialization attributes
 - No `DbContext`, `IConfiguration`, `HttpClient`
 - No `async/await` (domain logic is synchronous; async belongs in Application/Infra)
@@ -390,7 +391,7 @@ ExpenseTracker/
 
 ### Infrastructure Layer
 - Implements Domain interfaces (repositories, external services)
-- EF Core configuration lives here, NOT in Domain
+- ORM / persistence configuration lives here, NOT in Domain
 - No business logic — purely technical implementation
 
 ### Presentation Layer
@@ -449,7 +450,7 @@ Note: phase-spec template HTML comments cover Activity 1-4; Activity 5 (Testing 
 
 ## Glossary Maintenance
 
-Same as WebForms version — `dflow/specs/domain/glossary.md` is the single source of truth.
+Same as Brownfield edition — `dflow/specs/domain/glossary.md` is the single source of truth.
 Format: `| Term | Definition | Bounded Context | Code Mapping |`
 
 ## Reference Files
@@ -490,7 +491,7 @@ These are the feature-/spec-level building blocks that the flows instantiate dur
 | `templates/CLAUDE.md` | Project-level CLAUDE.md |
 
 Maintenance contracts at repo root:
-- `TEMPLATE-COVERAGE.md` — review reference + maintenance contract for WebForms/Greenfield template parity and section-anchor coverage.
+- `TEMPLATE-COVERAGE.md` — review reference + maintenance contract for Brownfield/Greenfield template parity and section-anchor coverage.
 - `TEMPLATE-LANGUAGE-GLOSSARY.md` — canonical English template terms with Traditional Chinese mapping for human reading.
 
 These two files are not runtime inputs for workflows; use them during review, maintenance, and when adding new templates.

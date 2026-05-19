@@ -1,4 +1,4 @@
-# New Feature Workflow — ASP.NET Core
+# New Feature Workflow — Greenfield Clean Architecture
 
 Step-by-step guide for adding a new feature with full DDD and Clean Architecture.
 
@@ -56,7 +56,8 @@ If it crosses contexts:
 
 ## Step 3: Domain Modeling
 
-This is where ASP.NET Core workflow diverges significantly from WebForms.
+This is where the Greenfield Clean Architecture workflow diverges
+significantly from the Brownfield edition.
 Read `references/ddd-modeling-guide.md` for detailed patterns.
 
 Walk through:
@@ -168,7 +169,7 @@ dflow/specs/features/active/{SPEC-ID}-{slug}/
    is filled with "首 phase，無前置 Delta" (first phase has nothing to
    delta against).
 
-Key additions compared to WebForms version:
+Key additions compared to Brownfield edition:
 - **Aggregate State Transitions**: Document how Aggregate state changes
 - **Domain Events**: List events produced and expected handlers
 - **CQRS Split**: Identify which parts are Commands (write) vs Queries (read)
@@ -212,7 +213,7 @@ Wait for confirmation (`/dflow:next`, verbal OK, or implicit — see SKILL.md §
 
 ### Infrastructure Layer (implement third)
 ```
-1. EF Core entity configuration (Fluent API, NOT attributes)
+1. ORM / persistence configuration (mapping configuration, NOT Domain attributes/annotations)
 2. Repository implementation
 3. External service adapters
 4. Migration script
@@ -281,7 +282,7 @@ During implementation, continuously verify:
 - [ ] State changes only through methods (no public setters)
 - [ ] Value Objects are immutable with validation
 - [ ] Domain Events raised for significant state changes
-- [ ] Zero external dependencies (check .csproj)
+- [ ] Zero external dependencies (check the Domain package/module manifest)
 - [ ] Unit tests cover invariants and business rules
 
 **Application Layer**
@@ -320,9 +321,9 @@ AI reports `✓` / `✗` for every item before touching docs. Items marked *(pos
 - [ ] Every `BR-*` business rule is covered by implementation or tests
 - [ ] Every `EC-*` edge case is handled
 - [ ] Every Domain Event listed in the spec is raised in the implementation
-- [ ] Domain layer project has **no** external NuGet dependencies (check `*.Domain.csproj`)
+- [ ] Domain layer/package has **no** external package-manager dependencies beyond the language/runtime baseline
 - [ ] Aggregate invariants still hold after the change (all state changes go through methods, no public setters)
-- [ ] EF Core configuration uses Fluent API only (no `[Table]`/`[Column]` on Domain entities)
+- [ ] ORM / persistence mapping is kept outside Domain entities (no persistence attributes/annotations on Domain entities)
 - [ ] *(post-8.3)* `dflow/specs/domain/{context}/behavior.md` contains a section anchor for every `BR-*` introduced by this spec (mechanical input for `/dflow:verify`)
 - [ ] *(post-8.3)* `dflow/specs/domain/{context}/behavior.md` `last-updated` is later than this spec's `created` date (mechanical drift guard)
 

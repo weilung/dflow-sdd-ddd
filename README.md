@@ -94,6 +94,8 @@ dflow doctor
 
 兩種模式區分的是專案起始狀態（新建 vs 既有 codebase），不是 framework 品牌；Dflow 對語言與 stack 不做假設，workflow、tier 制與文件模型可套用任何技術組合。本質是給「希望 AI 協助、又不願放棄領域清晰度」的軟體團隊使用的 workflow 系統。
 
+各 stack（.NET / Java-Spring / Node-TS / Python / Go / PHP-Laravel）的填好範例見 [`docs/examples-by-stack.md`](./docs/examples-by-stack.md)。
+
 ### 模式選擇與遷移
 
 模式在 `dflow init` 時選定、之後**不能 in-place 切換**（沒有 `/dflow:switch-to-greenfield` 之類的指令）。Brownfield 設計上是 Greenfield 的前置準備：抽出到專案 domain 層（例如 `src/Domain/`）的領域程式碼，與 `dflow/specs/domain/` 內的領域文件（術語、規則、模型、事件），都是 migration-ready 資產 — 未來要 rewrite 時（建新專案 + 新 `dflow init` 選 Greenfield），可以直接搬過去。`dflow/specs/migration/tech-debt.md` 是 brownfield 專用的遷移債紀錄。

@@ -90,18 +90,18 @@ has backlog issues to document).
 ### Q2. Tech stack confirmation
 
 > "Confirm the tech stack so I populate the right scaffolding
-> variables: ASP.NET WebForms version? .NET Framework version?
-> Database / ORM (EF / Dapper / ADO.NET)?"
+> variables: current presentation framework or entrypoint stack?
+> language? database / ORM / persistence approach?"
 
-Used to substitute `{ASP.NET WebForms version}` / `{.NET Framework
-version}` / `{ORM / Data Access}` placeholders in `_overview.md`.
+Used to substitute `{Framework}` / `{Framework version}` / `{Language}` /
+`{ORM / persistence}` / `{ORM version}` placeholders in `_overview.md`.
 
 ### Q3. Migration plan
 
 > "Is there an existing plan to migrate this Brownfield project to
-> ASP.NET Core (or another stack)?"
+> a target architecture?"
 
-If yes → `_overview.md` "Migration Strategy" section is emphasised and
+If yes → `_overview.md` "Target Architecture Strategy" section is emphasised and
 `migration/tech-debt.md` is prioritised. If no → the scaffolding still
 mentions the principles (Migration Awareness / Domain Extraction /
 Dual-Track Parallel / Pragmatic First) but framed as forward-option.
@@ -284,9 +284,11 @@ captured in Step 2:
 | `{YYYY-MM-DD}` | Today's date (ISO format) |
 | `{System Name}` / `{系統名稱}` | From Step 2 or repo folder name |
 | `{業務領域}` | From Step 2 Q1 / Q2 context |
-| `{ASP.NET WebForms version}` | From Step 2 Q2 |
-| `{.NET Framework version}` | From Step 2 Q2 |
-| `{ORM / Data Access}` | From Step 2 Q2 |
+| `{Language}` | From Step 2 Q2 |
+| `{Framework}` | From Step 2 Q2 |
+| `{Framework version}` | From Step 2 Q2 |
+| `{ORM / persistence}` | From Step 2 Q2 |
+| `{ORM version}` | From Step 2 Q2 |
 | `{prose-language}` | From Step 2 Q4 |
 
 For placeholders the developer did not provide, keep the `{placeholder}`

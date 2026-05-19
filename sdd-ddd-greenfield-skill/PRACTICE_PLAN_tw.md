@@ -1,5 +1,17 @@
 # DDD 模擬練習計畫：員工費用報銷系統（ExpenseTracker）
 
+> **練習以 .NET 為示例，Dflow 本身 language-agnostic**
+>
+> 本練習計畫使用 ASP.NET Core + EF Core + MediatR 作為範例 stack 以提供
+> 具體可執行的步驟。Dflow 工作流程（SDD/DDD guardian skill）本身
+> language- and framework-agnostic — 換成 Spring Boot / NestJS / Django /
+> FastAPI / Gin / Laravel 等 stack 都同樣適用，只需在 `dflow init` 時填
+> 對應 stack 字串、由 `lib/init.js` extractor 替換 `{Language}` /
+> `{Framework}` / `{Framework version}` / `{ORM / persistence}` /
+> `{ORM version}` / `{Test framework}` 等 canonical placeholders 即可。
+>
+> 完整 stack-by-stack 範例見 `docs/examples-by-stack.md`（v0.4.0+）。
+
 ## 目標
 
 透過模擬專案，在 Claude Code 引導下實際操作 DDD 的核心概念，

@@ -6,6 +6,98 @@
 
 ---
 
+## Unreleased — Language-agnostic templates and skill source
+
+**Proposals**：PROPOSAL-030（language-agnostic templates and skill source；
+post-v0.3.0 follow-up; cross-model reviewed with Codex CLI）
+
+**變更**：
+
+- **`lib/init.js` canonical placeholders + backward-compat aliases**（PROPOSAL-030 Group 1）：
+  - 新增 canonical placeholders：`{Language}` / `{Framework}` /
+    `{Framework version}` / `{ORM / persistence}` / `{ORM version}` /
+    `{Mediator}`（與既有 `{Test framework}` 對齊）
+  - 既有 .NET-specific placeholder（`{ASP.NET Core version}` /
+    `{EF Core version}` / `{MediatR version}` / `{ASP.NET WebForms version}` /
+    `{.NET Framework version}` / `{ORM / Data Access}`）保留為 backward-compat
+    alias，substitute 同 canonical 值
+  - `extractTechStackPlaceholders` regex 擴充：Spring Boot / NestJS /
+    Fastify / Express / Django / FastAPI / Flask / Gin / Echo / Laravel
+    framework；EF Core / Hibernate / Spring Data JPA / SQLAlchemy /
+    Prisma / TypeORM / MikroORM / GORM / Eloquent / Doctrine ORM；JUnit /
+    Vitest / Jest / Mocha / pytest / unittest / go test / PHPUnit / Pest
+    test framework；C# / TypeScript / JavaScript / Kotlin / Java /
+    Python / Go / PHP / Ruby language
+  - `detectProjectSignals` 加 `stackHints`（從 `pom.xml` / `package.json` /
+    `pyproject.toml` / `go.mod` / `Cargo.toml` / `composer.json` / `Gemfile`
+    fingerprint）— **不**自動推 `trackHint`，user 選擇仍主導
+  - `printNextSteps` 加 `docs/examples-by-stack.md` pointer
+- **Brownfield skill source + templates language-agnostic**（Group 2 + Group 2 follow-up）：
+  - `Code-Behind` → umbrella `business logic embedded in delivery/entrypoint
+    code`，context 簡寫 `presentation-layer logic` (web/UI/API) 或
+    `entrypoint-layer logic` (CLI/batch/pipeline)
+  - `ASP.NET Core migration` / `future ASP.NET Core migration` →
+    `target architecture`
+  - `No System.Web references` → `No delivery-framework references`，明列
+    HTTP req/resp、session/cookie、job-runner context、CLI flag parser、
+    ViewState equivalents 等多 stack 示例
+  - `純 C# class` → `framework-pure class`
+  - Layer tag `PAGE` → `DELIVERY`（含 lightweight-spec 的 layer tags
+    說明擴及 web/CLI/job/pipeline）
+  - SKILL.md 新增 `## Scope: When Dflow Brownfield Applies` 段，明標適用
+    business-rule-bearing legacy systems / 不適用純 infra script 或無
+    domain model pipeline
+  - 目錄樹 `src/Pages/` → `src/Delivery/`（與 umbrella term 對齊）
+  - SKILL.md / templates/CLAUDE.md / scaffolding/CLAUDE-md-snippet.md /
+    scaffolding/_overview.md 在 directory tree 前加 stack-adapt callout
+- **Greenfield skill source + templates language-agnostic**（Group 3 + Group 3 follow-up）：
+  - 檔案標題 `# Project — ASP.NET Core + DDD` →
+    `# Project — Clean Architecture + DDD`
+  - `# X Workflow — ASP.NET Core` → `# X Workflow — Greenfield Clean Architecture`
+  - Cross-edition `Same as WebForms version` → `Same as Brownfield edition`
+  - `_overview.md` stack table 全用 canonical placeholders
+  - `init-project-flow.md` Q2 prompt + substitution table 改 canonical
+  - Project Layout `{Project}.Domain` `.NET` 慣例保留 + 加詳細 callout
+    列 Java/Spring、Node/TS、Python、Go、PHP/Laravel 對應
+  - `PRACTICE_PLAN_tw.md` 開頭加 disclaimer：練習以 .NET 為示例、
+    Dflow 本身 language-agnostic
+  - Git-principles-{gitflow,trunk} 的 `NuGet dependencies` →
+    `external package dependencies`
+- **`docs/examples-by-stack.md` 新增**（Group 4）：520 行 public
+  appendix，列 7 stack 段（.NET ASP.NET Core greenfield / .NET WebForms
+  brownfield / Java Spring Boot / Node TypeScript NestJS / Python FastAPI /
+  Go Gin / PHP Laravel），每段：substituted stack table + project
+  layout + per-stack domain purity check + test framework + run
+  command。`README.md` / `README.en.md` 在 Project Tracks 段加 link。
+- **`planning/init-contract-spec.md` 同步**（Group 1）：placeholder
+  inventory + alias table + detectProjectSignals stackHints 文件對齊
+
+**Breaking / migration notes**：
+
+- **無 runtime API 破壞**：v0.3.0 寫入 user project 的 `CLAUDE.md` /
+  `_overview.md` 等檔案 Dflow 不會自動覆蓋；backward-compat alias 只保護
+  future init 動作的 placeholder 替換不破壞，不主動 migrate 既有檔案
+- 若要對齊新風格，請參考 `docs/examples-by-stack.md` 對既有 init 產出的
+  檔案手動修改
+- AI agent 對話中讀 skill source 會自動切到新術語（Code-Behind →
+  delivery/entrypoint code、ASP.NET Core migration → target architecture）；
+  若 user 有自製 prompt / shortcut 用到舊術語，建議同步更新但**不強制**
+
+**驗證**：
+
+- `npm test`（含新增 Java/Spring Boot greenfield init e2e，assert 不殘留 .NET literals）
+- `scripts/check-repo-consistency.sh`（source ↔ packaged mirror diff clean）
+- 全 repo grep `Code-Behind` / `ASP.NET` / `WebForms` / `NuGet` 在 active skill / template surface 範圍內無殘留（archive/ 與 test fixture 刻意保留）
+
+**邊界**：
+
+- Tutorial 目錄 `tutorial/**` scenario prose 為教學劇情 artifact，明確
+  out of scope（PROPOSAL-030 §影響範圍 已宣告）
+- `test/smoke.mjs` 既有 .NET fixture 保留作為 brownfield init 測試輸入
+- Dist projection 在所有 Group merge 完後一次性 export（Director-only）
+
+---
+
 ## 0.3.0 — 2026-05-18 — Workflow flow completion, terminology disambiguation, bilingual public docs
 
 **Proposals**：PROPOSAL-022（CLI install 推薦路徑）、PROPOSAL-023（line-ending normalization）、PROPOSAL-024（README zh-TW + migration reframing）、PROPOSAL-025（Phase 術語拆解：Step Gate / Activity）、PROPOSAL-026（`/dflow:new-phase` 補 implementation / verification）、PROPOSAL-027（handoff lifecycle，dev-only）、PROPOSAL-028（`docs/*.md` 雙語化）、PROPOSAL-029（tutorial 檔名 align）。

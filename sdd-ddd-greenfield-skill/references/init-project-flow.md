@@ -97,17 +97,21 @@ choose the Greenfield track for a new bounded area.
 ### Q2. Tech stack confirmation
 
 > "Confirm the tech stack so I populate the right scaffolding
-> variables: ASP.NET Core version? ORM (EF Core / Dapper / other)?
-> MediatR / other mediator? Test framework (xUnit / NUnit / MSTest)?"
+> variables: Framework + version (e.g. ASP.NET Core 9 / Spring Boot 3.3 /
+> NestJS 10 / Django 5 / FastAPI 0.115)? Persistence layer (e.g.
+> EF Core / Hibernate/JPA / Prisma / SQLAlchemy / GORM / Eloquent)?
+> Mediator (e.g. MediatR / pipeline behavior — optional)? Test framework
+> (e.g. xUnit / NUnit / JUnit / Jest / pytest / go test / PHPUnit)?"
 
-Used to substitute `{ASP.NET Core version}` / `{EF Core version}` /
-`{MediatR version}` / `{Test framework}` placeholders in `_overview.md`.
+Used to substitute `{Framework version}` / `{ORM version}` /
+`{Mediator}` / `{Test framework}` placeholders in `_overview.md`.
 
 ### Q3. Migration background
 
-> "Was this project ported / migrated from a prior stack (e.g. ASP.NET
-> WebForms), or is it new-build on ASP.NET Core? If migrated, is there
-> any legacy concern you'd like the overview to flag?"
+> "Was this project ported / migrated from a prior stack (e.g. legacy
+> presentation framework, monolith), or is it new-build on the chosen
+> framework? If migrated, is there any legacy concern you'd like the
+> overview to flag?"
 
 If migrated → `_overview.md` can carry a short migration-context note.
 Otherwise skip. In the Greenfield track, migration is not the first-class
@@ -299,9 +303,12 @@ captured in Step 2:
 | `{YYYY-MM-DD}` | Today's date (ISO format) |
 | `{System Name}` / `{系統名稱}` | From Step 2 or repo folder name |
 | `{業務領域}` | From Step 2 Q1 / Q2 context |
-| `{ASP.NET Core version}` | From Step 2 Q2 |
-| `{EF Core version}` | From Step 2 Q2 |
-| `{MediatR version}` | From Step 2 Q2 |
+| `{Language}` | From Step 2 Q2 |
+| `{Framework}` | From Step 2 Q2 |
+| `{Framework version}` | From Step 2 Q2 |
+| `{ORM / persistence}` | From Step 2 Q2 |
+| `{ORM version}` | From Step 2 Q2 |
+| `{Mediator}` | From Step 2 Q2 |
 | `{Test framework}` | From Step 2 Q2 |
 | `{prose-language}` | From Step 2 Q4 |
 

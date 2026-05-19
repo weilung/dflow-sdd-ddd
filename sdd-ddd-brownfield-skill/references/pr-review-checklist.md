@@ -80,27 +80,26 @@ If the spec is missing or incomplete:
 ```
 "I notice this PR doesn't have a matching feature directory / _index.md.
 Let's create one retroactively — it'll help with documentation and
-future migration. Can you describe what this change does?"
+the target architecture. Can you describe what this change does?"
 ```
 
 ## Domain Layer Quality
 
-- [ ] **No System.Web in Domain** — `src/Domain/` must have zero WebForms dependencies
+- [ ] **No delivery-framework references in Domain** — `src/Domain/` must have zero dependencies on HTTP request/response objects, session/cookie context, job-runner context, CLI flag parsers, or ViewState equivalents
 - [ ] **No direct DB access in Domain** — All data access through interfaces
-- [ ] **No HttpContext/Session/ViewState in Domain** — Pure business logic only
-- [ ] **Testable without web infrastructure** — Could you unit test this without IIS?
+- [ ] **No delivery-framework runtime context in Domain** — Pure business logic only
+- [ ] **Testable without delivery infrastructure** — Could you unit test this without the web server, job runner, message broker, or CLI runtime?
 
 Common violations to flag:
-```csharp
-// BAD: Domain code depending on WebForms
-using System.Web;
-using System.Web.UI;
-HttpContext.Current.Session["key"]
-Page.ViewState["key"]
+```text
+// BAD: Domain code depending on delivery framework runtime
+deliveryFramework.request.currentUser
+deliveryFramework.session["key"]
+jobRunnerContext.retryState
+cliFlags["mode"]
 
 // BAD: Direct DB in Domain
-using System.Data.SqlClient;
-new SqlConnection(connectionString)
+databaseClient.openConnection(connectionString)
 
 // GOOD: Interface-based
 public class ExpenseService
@@ -110,16 +109,18 @@ public class ExpenseService
 }
 ```
 
-## Code-Behind Thickness
+## Delivery/Entrypoint Thickness
 
-Evaluate whether Code-Behind files are appropriately thin:
+Evaluate whether business logic embedded in delivery/entrypoint code
+(presentation/UI layer, controllers, handlers, jobs, message consumers, data
+pipelines, or stored procedures) has been kept appropriately thin:
 
-**Acceptable Code-Behind responsibilities:**
-- Parse UI inputs (TextBox → typed values)
+**Acceptable delivery/entrypoint responsibilities:**
+- Parse inputs (UI controls, HTTP payloads, message payloads, job parameters, CLI args)
 - Call Domain layer services
-- Bind results to UI controls
-- Handle UI-specific events (page load, button click)
-- UI validation (RequiredFieldValidator, etc.)
+- Bind or return results
+- Handle delivery-specific events (page load, route handler, message received, job started)
+- Delivery-level validation (required fields, request shape, command syntax)
 
 **Should be in Domain layer instead:**
 - Calculations (math, conversions, aggregations)
@@ -127,9 +128,9 @@ Evaluate whether Code-Behind files are appropriately thin:
 - State transitions (status changes, workflow steps)
 - Data transformations (business meaning, not UI formatting)
 
-If Code-Behind is too thick:
+If delivery/entrypoint code is too thick:
 ```
-"This Code-Behind has [calculation/validation/transformation] logic
+"This delivery/entrypoint code has [calculation/validation/transformation] logic
 that could be extracted to src/Domain/{Context}/. Since we're already
 reviewing this, should we extract it now or record it in tech-debt.md
 for later?"
@@ -165,14 +166,14 @@ Rate the PR on a quick migration readiness scale:
 
 - **A**: New business logic entirely in Domain layer, fully testable, spec complete
 - **B**: Mostly in Domain layer, some minor coupling, spec exists
-- **C**: Mixed — some extraction done, some logic still in Code-Behind
-- **D**: All logic in Code-Behind, but at least documented in spec/tech-debt
+- **C**: Mixed — some extraction done, some logic still in delivery/entrypoint code
+- **D**: All logic in delivery/entrypoint code, but at least documented in spec/tech-debt
 - **F**: No spec, no extraction, no documentation — push back
 
 Share the score with the developer constructively:
 ```
 "This PR is a solid B — the exchange rate logic is cleanly extracted
 to Domain, and the spec covers the key scenarios. One thing that would
-make it an A: the date parsing logic in the Code-Behind could move to
-a DateRange value object. Want to do that now or add it to tech-debt?"
+make it an A: the date parsing logic in the delivery/entrypoint layer could
+move to a DateRange value object. Want to do that now or add it to tech-debt?"
 ```

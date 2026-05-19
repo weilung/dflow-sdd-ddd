@@ -3,7 +3,7 @@
 # System Overview — {System Name}
 
 > Created: {YYYY-MM-DD}
-> Scope: current state and migration direction of {System Name}
+> Scope: current state and target-architecture direction of {System Name}
 > Audience: team members onboarding to the system + AI assistants reading
 > `dflow/specs/` for context.
 
@@ -30,33 +30,44 @@ delivers. Keep it non-technical enough that a new hire can skim it in
 
 ## Technical Architecture (Current)
 
-This project runs on ASP.NET WebForms. The SDD/DDD workflow is used to
-progressively prepare for migration (see "Migration Strategy" below).
+This project runs on {Framework}. The SDD/DDD workflow is used to
+progressively extract domain logic and prepare for the target architecture
+(see "Target Architecture Strategy" below).
 
 | Item | Current |
 |------|---------|
-| Framework | ASP.NET WebForms ({.NET Framework version}) |
-| Language | C# {version} |
+| Framework | {Framework} ({Framework version}) |
+| Language | {Language} |
 | Database | {e.g. SQL Server 2019, MySQL 8.0} |
-| ORM / data access | {e.g. Entity Framework 6, ADO.NET, stored procedures} |
-| UI | WebForms Pages + Code-Behind + {CSS framework if any} |
-| Auth | {e.g. Forms authentication, Windows auth} |
-| Hosting | {e.g. IIS on-prem, Azure App Service} |
+| ORM / persistence | {ORM / persistence} ({ORM version}) |
+| Delivery / entrypoint | {Framework} |
+| Auth | {e.g. session auth, OAuth/OIDC, API key, internal SSO} |
+| Hosting | {e.g. on-prem VM, container platform, managed app platform} |
 
 ### Code Layout (High Level)
 
+> **Note on directory naming**: The tree below uses generic Clean
+> Architecture folder names (`src/Domain/`, `src/Delivery/`). Adapt to your
+> stack's conventions — for example, Java/Spring `src/main/java/com/example/domain/`,
+> Node/TS `src/domain/` + `src/routes/`, Python `domain/` package, Go
+> `internal/domain/` + `internal/handler/`, PHP/Laravel `app/Domain/` +
+> `app/Http/`, .NET `src/{Project}.Domain/` + `src/{Project}.WebAPI/`
+> (separate `.csproj` per layer). For full per-stack examples see
+> `docs/examples-by-stack.md`.
+
 ```
 src/
-├── Domain/        # Extracted domain logic (pure C#; migration target)
+├── Domain/        # Extracted domain logic (framework-pure; target architecture)
 │   ├── {BoundedContext}/
 │   └── SharedKernel/
-└── Pages/         # WebForms pages (.aspx + Code-Behind)
+└── Delivery/      # delivery-layer code (entrypoints, controllers, handlers)
 ```
 
 The `src/Domain/` directory is where business logic lives **as it is
-extracted** from Code-Behind. Everything in `src/Domain/` must be pure
-C# with no `System.Web` dependencies (see `CLAUDE.md` and the Dflow
-skill for the full rule set).
+extracted** from delivery/entrypoint code (presentation/UI layer, controllers,
+handlers, jobs, message consumers, data pipelines, or stored procedures).
+Everything in `src/Domain/` must be framework-pure with no delivery-framework
+dependencies (see `CLAUDE.md` and the Dflow skill for the full rule set).
 
 ---
 
@@ -66,34 +77,34 @@ skill for the full rule set).
 top 3–5 known issues the team wants to address as part of migration.
 Link each to `migration/tech-debt.md` entries if they exist.}
 
-1. {e.g. Business logic scattered across Code-Behind; duplicated
-   calculations in multiple pages}
-2. {e.g. Direct SQL in Code-Behind; inconsistent error handling}
+1. {e.g. Business logic embedded in delivery/entrypoint code; duplicated
+   calculations across multiple flows}
+2. {e.g. Direct SQL in delivery/entrypoint code; inconsistent error handling}
 3. {e.g. Magic numbers / undocumented statuses}
 
 ---
 
-## Migration Strategy
+## Target Architecture Strategy
 
-This system is being prepared for migration to ASP.NET Core. The
-migration follows four principles; expand / adapt each to this project:
+This system is being prepared for the project's target architecture. The
+strategy follows four principles; expand / adapt each to this project:
 
-- **Migration Awareness** — Every feature decision considers future
-  migration. We ask "does this make the migration harder or easier?"
+- **Migration Awareness** — Every feature decision considers the target
+  architecture. We ask "does this make the target architecture harder or easier?"
 - **Domain Extraction** — Business logic gradually moves from
-  Code-Behind to `src/Domain/`. Each feature is an opportunity to
-  extract a little more.
+  delivery/entrypoint code to `src/Domain/`. Each feature is an
+  opportunity to extract a little more.
 - **Dual-Track Parallel** — We do not force-rewrite existing code; new
-  development preferentially uses the Domain layer, and legacy pages
+  development preferentially uses the Domain layer, and legacy entrypoints
   get touched only when they are being modified.
-- **Pragmatic First** — Migration does not block feature delivery. If
+- **Pragmatic First** — Target-architecture work does not block feature delivery. If
   a deadline is tight, record the debt in `migration/tech-debt.md`
   and continue.
 
-### Target Architecture (Post-Migration)
+### Target Architecture
 
-{1-2 sentences describing where this system is heading: e.g. "ASP.NET
-Core 8 + Clean Architecture + EF Core, deployed to Azure App Service."
+{1-2 sentences describing where this system is heading: e.g. "{Framework}
++ Clean Architecture + {ORM / persistence}, deployed to {hosting platform}."
 Link to any ADR or migration plan doc if one exists.}
 
 ---

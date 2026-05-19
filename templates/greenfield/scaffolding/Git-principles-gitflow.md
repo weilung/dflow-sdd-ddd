@@ -174,7 +174,7 @@ Before making key Git operations:
       `context-map.md` reflect the feature's net changes
 - [ ] `dflow/specs/domain/glossary.md` updated with any new terms
 - [ ] `dflow/specs/architecture/tech-debt.md` updated with any debt discovered
-- [ ] Domain project has zero external NuGet dependencies
+- [ ] Domain project has zero external package dependencies
 - [ ] No ORM / serialization attributes on Domain entities
 - [ ] Domain unit tests pass (invariants + value object equality)
 
@@ -334,7 +334,7 @@ exists, e.g. `.github/workflows/ci.yml` or `azure-pipelines.yml`.}
 
 ### Suggested CI gates for Clean Architecture
 
-- Verify Domain project has zero (or allow-listed) NuGet deps
+- Verify Domain project has zero (or allow-listed) external package deps
 - Run Domain unit tests + Application tests on every PR
 - Run Integration tests on `develop` and `release/*` branches
 - Verify EF migrations build cleanly

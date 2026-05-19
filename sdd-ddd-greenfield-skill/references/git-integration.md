@@ -1,10 +1,11 @@
-# Git Integration with SDD/DDD — ASP.NET Core
+# Git Integration with SDD/DDD — Greenfield Clean Architecture
 
-Same minimal Git coupling as the WebForms version. Key difference: gate
-checks validate Clean Architecture layer rules instead of WebForms-specific
-checks. Dflow remains agnostic about the project's Git *branching strategy*
-(Git Flow, GitHub Flow, trunk-based, etc.) — it only prescribes the
-feature-branch-per-feature convention that SDD traceability depends on.
+Same minimal Git coupling as the Brownfield edition. Key difference: gate
+checks validate Clean Architecture layer rules instead of brownfield
+delivery/entrypoint extraction checks. Dflow remains agnostic about the
+project's Git *branching strategy* (Git Flow, GitHub Flow, trunk-based,
+etc.) — it only prescribes the feature-branch-per-feature convention
+that SDD traceability depends on.
 
 > If your project adopts Git Flow specifically, see the optional
 > `scaffolding/Git-principles-gitflow.md` template (provided by PROPOSAL-010)
@@ -13,7 +14,7 @@ feature-branch-per-feature convention that SDD traceability depends on.
 > **File history note**: This file was renamed from
 > `references/git-flow-integration.md` in commit `bf5bb85` (R7 Wave 1,
 > PROPOSAL-011). `git mv` was used, but the same commit also rewrote the
-> content more aggressively than the WebForms version (18% similarity),
+> content more aggressively than the Brownfield edition (18% similarity),
 > which falls below git's default rename-detection threshold (`-M50`). To
 > trace the rename history use `git log --follow -M10 <this file>`. See
 > CHANGELOG "R7 Implement Review F-02 後記" for details and the
@@ -272,7 +273,7 @@ with the rule.
 
 [EXP-001] Define ExpenseReport Aggregate with submission invariants
 [EXP-001] Add CreateExpenseReport command and handler
-[EXP-001] Implement EF Core configuration for ExpenseReport
+[EXP-001] Implement persistence configuration for ExpenseReport
 [BUG-042] Fix rounding in Money value object
 ```
 
@@ -290,7 +291,7 @@ with the rule.
 ## Integration with CI/CD (Future Enhancement)
 
 These checks could eventually be automated in CI:
-- Verify Domain project has zero external NuGet dependencies (beyond allowed list)
+- Verify Domain project has zero external package-manager dependencies (beyond allowed list)
 - Verify no ORM/serialization attributes on Domain entities
 - Verify spec file exists for any branch with feature/ or bugfix/ prefix
 - Verify glossary.md / rules.md / events.md updated when Domain/ files change

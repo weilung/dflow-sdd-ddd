@@ -3,7 +3,7 @@
 Step-by-step guide for when a developer triggers `/dflow:modify-existing` or `/dflow:bug-fix` (or natural language implying a modification task — see SKILL.md § Workflow Transparency for the auto-trigger safety net).
 
 **Step Gates** in this flow (stop-and-confirm before proceeding):
-- Step 2 → Step 3 (baseline captured → analyze code-behind)
+- Step 2 → Step 3 (baseline captured → analyze business logic embedded in delivery/entrypoint code: presentation/UI layer, controllers, handlers, jobs, message consumers, data pipelines, or stored procedures)
 - Step 4 → Step 5 (extraction decision → start implementation)
 - Step 5 → Step 6 (implementation done → update artifacts)
 
@@ -16,8 +16,8 @@ All other step transitions are **step-internal**: announce "Step N complete, ent
 Modifying existing features is your best opportunity to progressively extract domain knowledge
 and business logic. Treat every modification as a chance to:
 1. Document what currently exists (if no spec exists yet)
-2. Extract business logic from Code-Behind to Domain layer
-3. Record tech debt for future migration
+2. Extract business logic from delivery/entrypoint code to Domain layer
+3. Record tech debt for the target architecture
 
 ## Step 1: Assess the Change — Ceremony Tier + Feature Linkage
 
@@ -163,7 +163,7 @@ This way we have a baseline and the change is traceable."
 
 Create a spec with status `in-progress` that includes:
 - Current behavior description
-- Current business rules (extracted from Code-Behind)
+- Current business rules (extracted from delivery/entrypoint code)
 - The proposed change clearly marked — use the **Delta** format below
 
 If baseline domain docs are missing, create them from templates before filling content:
@@ -216,7 +216,7 @@ Then {新的預期結果}
 
 When the feature being modified has no existing spec, take the opportunity to do a broader baseline capture — not just the single behavior being changed. Proactively:
 
-1. Read the related Code-Behind files (the page being modified + pages that share logic)
+1. Read the related presentation-layer or entrypoint-layer code (the modified entrypoint plus nearby entrypoints that share logic)
 2. Extract all business rules found (if/else conditions, calculations, validations)
 3. Identify domain concepts (potential Entities, Value Objects, Services)
 4. Check for duplicated logic across pages
@@ -226,9 +226,9 @@ This is an **opportunistic** strategy — "capture while we're already here." Do
 
 ```
 "Since there's no spec for this feature yet, I took a broader look at
-the related Code-Behind. I found:
-- 3 business rules in {PageName}.aspx.cs (documented in rules.md)
-- Duplicated validation logic shared with {OtherPage}.aspx.cs (recorded in tech-debt.md)
+the related delivery/entrypoint code. I found:
+- 3 business rules in {entrypoint file} (documented in rules.md)
+- Duplicated validation logic shared with {other entrypoint} (recorded in tech-debt.md)
 - A potential Money value object hiding in the calculation at line {N}
 This gives us a better baseline before we make our change."
 ```
@@ -236,13 +236,13 @@ This gives us a better baseline before we make our change."
 **→ Step Gate: Step 2 → Step 3**
 
 Announce to developer:
-> "Baseline captured — current behavior is documented and the proposed change is marked. Ready to analyze the Code-Behind to identify business logic and tech debt? `/dflow:next` or reply 'OK' to continue."
+> "Baseline captured — current behavior is documented and the proposed change is marked. Ready to analyze the delivery/entrypoint layer to identify business logic and tech debt? `/dflow:next` or reply 'OK' to continue."
 
 Wait for confirmation before entering Step 3.
 
-## Step 3: Analyze the Code-Behind
+## Step 3: Analyze the Delivery/Entrypoint Layer
 
-Read the existing Code-Behind and identify:
+Read the existing presentation-layer or entrypoint-layer code and identify:
 
 ### Business Logic to Extract
 Look for:
@@ -253,10 +253,10 @@ Look for:
 
 ### Tech Debt to Record
 Look for:
-- Direct SQL queries in Code-Behind
+- Direct SQL queries in delivery/entrypoint code
 - Business logic duplicated across multiple pages
 - Magic numbers (e.g., `if (status == 3)`)
-- Session/ViewState storing business state
+- Delivery-framework runtime context storing business state (e.g., HTTP session/cookie, job runner state, CLI args)
 - Try/catch blocks swallowing exceptions silently
 - String concatenation for SQL (SQL injection risk)
 
@@ -265,19 +265,19 @@ Record each finding in `dflow/specs/migration/tech-debt.md` with:
 - [ ] {File}:{Line} — {Description} — Severity: {High|Medium|Low}
 ```
 
-**→ Transition (step-internal)**: Step 3 complete. Announce "Step 3 complete (code-behind analyzed, tech debt recorded). Entering Step 4: Evaluate Extraction Opportunity." and continue.
+**→ Transition (step-internal)**: Step 3 complete. Announce "Step 3 complete (delivery/entrypoint layer analyzed, tech debt recorded). Entering Step 4: Evaluate Extraction Opportunity." and continue.
 
 ## Step 4: Evaluate Extraction Opportunity
 
 For the code being modified, ask:
 
 ```
-"The business logic for [X] is currently in {PageName}.aspx.cs.
+"The business logic for [X] is currently in {entrypoint file}.
 Since we're already touching this code, should we extract it to
 src/Domain/{Context}/? This would:
 - Make it testable
 - Make it reusable
-- Make it ready for ASP.NET Core migration"
+- Make it ready for the target architecture"
 ```
 
 Decision framework:
@@ -288,7 +288,7 @@ Decision framework:
 
 ### Generate Implementation Tasks List
 
-For a phase-spec modification, AI generates a concrete task list and writes it into the spec's `Implementation Tasks` section using `[LAYER]-[NUMBER]：description` (DOMAIN / PAGE / DATA / TEST).
+For a phase-spec modification, AI generates a concrete task list and writes it into the spec's `Implementation Tasks` section using `[LAYER]-[NUMBER]：description` (DOMAIN / DELIVERY / DATA / TEST).
 
 For a lightweight-spec (T2), AI still generates a concise `Implementation Tasks` checklist instead of skipping task generation.
 
@@ -306,7 +306,7 @@ Wait for confirmation before entering Step 5.
 If extracting to Domain layer:
 
 ```csharp
-// BEFORE (Code-Behind)
+// BEFORE (delivery/entrypoint code)
 protected void Calculate()
 {
     decimal amount = decimal.Parse(txtAmount.Text);
@@ -326,7 +326,7 @@ public record Money(decimal Amount, Currency Currency)
     }
 }
 
-// Code-Behind becomes thin:
+// Delivery/entrypoint code becomes thin:
 protected void Calculate()
 {
     var money = new Money(decimal.Parse(txtAmount.Text), selectedCurrency);
@@ -352,8 +352,8 @@ Triggered by the Step 5 → Step 6 Step Gate. AI runs the completion checklist i
 Items marked *(post-6.3)* are re-verified after the documentation merge in 6.3 lands:
 
 - [ ] Every ADDED / MODIFIED / REMOVED / RENAMED entry in the Delta section is covered by implementation or tests
-- [ ] Domain layer has **no** `System.Web` references (grep `src/Domain/`)
-- [ ] Extracted logic (if Step 4 decided "extract now") lives under `src/Domain/` with pure C# only
+- [ ] Domain layer has **no** delivery-framework references (grep `src/Domain/`)
+- [ ] Extracted logic (if Step 4 decided "extract now") lives under `src/Domain/` as framework-pure code
 - [ ] `Implementation Tasks` section (`phase-spec.md` or `lightweight-spec.md`): all tasks checked, or unchecked items explicitly labelled as follow-up
 - [ ] *(post-6.3)* `dflow/specs/domain/{context}/behavior.md` has a section anchor for every `BR-*` in ADDED / MODIFIED entries; REMOVED entries' anchors have been deleted (mechanical input for `/dflow:verify`)
 - [ ] *(post-6.3)* `dflow/specs/domain/{context}/behavior.md` `last-updated` is later than this spec's `created` date (mechanical drift guard)
@@ -427,13 +427,13 @@ created: 2025-02-12
 ---
 
 ## Problem
-Page A uses Math.Round(amount, 0, MidpointRounding.AwayFromZero) (四捨五入)
-Page B uses Math.Floor(amount) (無條件捨去)
+Entrypoint A uses Math.Round(amount, 0, MidpointRounding.AwayFromZero) (四捨五入)
+Entrypoint B uses Math.Floor(amount) (無條件捨去)
 They should both use the same rounding rule.
 
 ## Expected Behavior
 Given an expense amount of 123.5 TWD
-When displayed on any page
+When displayed or returned by any entrypoint
 Then it should show 124 (四捨五入 per accounting standard)
 
 ## Root Cause

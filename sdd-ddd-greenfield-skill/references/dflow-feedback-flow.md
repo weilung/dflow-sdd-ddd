@@ -73,7 +73,7 @@ Allowed evidence:
 - Dflow command name
 - Dflow version if known
 - Template or reference file name
-- Generic project type, such as "existing ASP.NET WebForms app"
+- Generic project type, such as "existing legacy presentation-framework app"
 - Minimal paraphrased symptom
 - Short sanitized snippets from Dflow-owned files
 

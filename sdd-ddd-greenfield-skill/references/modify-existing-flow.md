@@ -1,4 +1,4 @@
-# Modify Existing Feature Workflow — ASP.NET Core
+# Modify Existing Feature Workflow — Greenfield Clean Architecture
 
 Step-by-step guide for changing or fixing existing functionality.
 
@@ -11,7 +11,9 @@ Triggered by `/dflow:modify-existing` or `/dflow:bug-fix` (or natural language i
 
 All other step transitions are **step-internal**: announce "Step N complete, entering Step N+1" and proceed without waiting. See SKILL.md § Workflow Transparency for the full transparency protocol and confirmation signals.
 
-**Note on step count**: Core version has 5 steps (WebForms has 6) because Clean Architecture's layered structure already separates concerns — there's no "extract from Code-Behind" step to perform.
+**Note on step count**: Greenfield edition has 5 steps (Brownfield has
+6) because Clean Architecture's layered structure already separates
+concerns — there's no delivery/entrypoint extraction step to perform.
 
 **Ceremony adjustment when triggered by `/dflow:bug-fix`**: treat as lightweight — use the Lightweight Spec Template (see `templates/lightweight-spec.md`) instead of the full spec, and Step 3 may default to "no DDD impact, fix in place" unless the bug itself is in Domain logic. T2 still generates a concise `Implementation Tasks` checklist (see Step 3).
 
@@ -293,10 +295,10 @@ Items marked *(post-5.3)* are re-verified after the documentation merge in 5.3 l
 
 - [ ] Every ADDED / MODIFIED / REMOVED / RENAMED entry in the Delta section is covered by implementation or tests
 - [ ] The fix is in the correct layer (Domain / Application / Infrastructure / Presentation)
-- [ ] Domain layer project has **no** external NuGet dependencies (check `*.Domain.csproj`)
+- [ ] Domain layer/package has **no** external package-manager dependencies beyond the language/runtime baseline
 - [ ] Aggregate invariants still hold; state changes go through methods
 - [ ] Any new / changed Domain Events are raised in the implementation
-- [ ] EF Core configuration uses Fluent API only (no attributes on Domain entities)
+- [ ] ORM / persistence mapping is kept outside Domain entities (no persistence attributes/annotations on Domain entities)
 - [ ] `Implementation Tasks` section (`phase-spec.md` or `lightweight-spec.md`): all tasks checked, or unchecked items explicitly labelled as follow-up
 - [ ] *(post-5.3)* `dflow/specs/domain/{context}/behavior.md` has a section anchor for every `BR-*` in ADDED / MODIFIED entries; REMOVED entries' anchors have been deleted (mechanical input for `/dflow:verify`)
 - [ ] *(post-5.3)* `dflow/specs/domain/{context}/behavior.md` `last-updated` is later than this spec's `created` date (mechanical drift guard)
