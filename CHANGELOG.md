@@ -6,11 +6,29 @@
 
 ---
 
-## Unreleased — 2026-05-20 — Remove Gemini support
+## 0.5.0 — 2026-05-20 — Guide control commands、opt-in command adapters、移除 Gemini
+
+**Proposals**：PROPOSAL-032（AI-AGENT-GUIDE 補 status/next/cancel 行為語義 +
+scaffolding 單一來源化）、PROPOSAL-033（npm 版 installed 入口 + opt-in command
+adapters）、PROPOSAL-034（移除 Gemini 支援）
 
 **變更**：
 
-- 移除 Gemini 支援：`dflow init` / `dflow configure-agents` 不再提供 `GEMINI.md` 選項，並刪除 Gemini CLI per-tool docs 與 tutorial shim fixture。
+- **`/dflow:status` / `/dflow:next` / `/dflow:cancel` 行為語義進入 canonical guide**
+  （PROPOSAL-032）：四份 scaffolding `AI-AGENT-GUIDE.md`（brownfield / greenfield，
+  發佈用 templates 與 skill 副本）的 workflow 表補上這三個控制指令及其行為語義
+  （status 回報格式、next 確認語義、cancel 中止語義）。先前這些定義只存在於不被
+  npm 發佈的 `SKILL.md`，npm-installed 專案的 host AI 拿不到，導致 `/dflow:status`
+  形同失效。
+- **`dflow configure-agents --command-adapters`**（PROPOSAL-033）：新增 opt-in
+  選項，除 thin shim 外額外產生各工具原生的薄 command adapter（Claude
+  `.claude/commands/dflow/dflow-*.md`、Copilot `.github/prompts/dflow-*.prompt.md`，
+  Codex 取得 AGENTS.md command-adapters snippet），讓 `/dflow-*` 指令出現在工具
+  選單。預設不產生；canonical `/dflow:*` 名稱仍以 `AI-AGENT-GUIDE.md` 為準。
+  `docs/using-with-*` 同步更新。
+- **移除 Gemini 支援**（PROPOSAL-034）：`dflow init` / `dflow configure-agents`
+  不再提供 `GEMINI.md` 選項，並刪除 Gemini CLI per-tool docs 與 tutorial shim
+  fixture。
 
 ---
 
