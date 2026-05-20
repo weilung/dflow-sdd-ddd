@@ -62,7 +62,7 @@ Two things matter when Codex starts in this project:
 1. Codex CLI reads `AGENTS.md` as project instructions. This is Codex's
    standard repository-instruction mechanism.
 2. The Dflow shim does not include a Markdown import line. Unlike the
-   Claude Code and Gemini shims, generated `AGENTS.md` does not contain
+   Claude Code shim, generated `AGENTS.md` does not contain
    `@dflow/specs/shared/AI-AGENT-GUIDE.md`.
 
 That means Codex sees the pointer immediately, but the canonical Dflow guide
@@ -76,7 +76,7 @@ The canonical guide is where the real workflow rules live: project context
 (track, tech stack, prose language), the Dflow workflow table,
 source-of-truth file paths, and core SDD/DDD rules. The `AGENTS.md` shim
 stays small so the same canonical guide can serve Codex CLI, Claude Code,
-Gemini CLI, GitHub Copilot, and other tools.
+GitHub Copilot, and other tools.
 
 If an `AGENTS.md` already existed in the project, `init` does not overwrite
 it. If the existing file does not already point to
@@ -161,7 +161,6 @@ across tools. Only the root-level shim differs:
 |---|---|---|
 | Claude Code | `CLAUDE.md` | `@dflow/specs/shared/AI-AGENT-GUIDE.md` Markdown import |
 | Codex / Copilot coding agent | `AGENTS.md` | Project instructions load the shim; Codex must follow the pointer and read the guide |
-| Gemini CLI | `GEMINI.md` | `@dflow/specs/shared/AI-AGENT-GUIDE.md` Markdown import |
 | GitHub Copilot | `.github/copilot-instructions.md` | Reads repository instructions directly |
 
 You can run `dflow configure-agents` later to add another tool's shim

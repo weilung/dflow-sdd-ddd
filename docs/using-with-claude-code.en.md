@@ -140,7 +140,6 @@ across tools. Only the root-level shim differs:
 |---|---|---|
 | Claude Code | `CLAUDE.md` | `@dflow/specs/shared/AI-AGENT-GUIDE.md` Markdown import |
 | Codex / Copilot coding agent | `AGENTS.md` | Reads file content directly when starting |
-| Gemini CLI | `GEMINI.md` | `@dflow/specs/shared/AI-AGENT-GUIDE.md` Markdown import |
 | GitHub Copilot | `.github/copilot-instructions.md` | Reads file content directly |
 
 You can run `dflow configure-agents` later to add another tool's shim without

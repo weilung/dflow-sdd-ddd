@@ -78,7 +78,7 @@ dflow/specs/
   domain/
   architecture/
   features/
-AGENTS.md / CLAUDE.md / GEMINI.md / .github/copilot-instructions.md
+AGENTS.md / CLAUDE.md / .github/copilot-instructions.md
 ```
 
 它不會做的事：
@@ -109,7 +109,7 @@ dflow configure-agents
 | 情境 | 例子 |
 |---|---|
 | 一開始只用 Codex，後來加 Claude Code | 新增或提供 `CLAUDE.md` shim。 |
-| 一開始只用 Claude Code，後來加 Gemini CLI | 新增或提供 `GEMINI.md` shim。 |
+| 一開始只用 Claude Code，後來加 Codex | 新增或提供 `AGENTS.md` shim。 |
 | 公司開始要求 GitHub Copilot instructions | 新增或提供 `.github/copilot-instructions.md`。 |
 
 ### `dflow doctor`

@@ -141,7 +141,6 @@ one).
 >
 >   - [ ] `AGENTS.md` — Codex / Copilot coding agent
 >   - [ ] `CLAUDE.md` — Claude Code
->   - [ ] `GEMINI.md` — Gemini CLI
 >   - [ ] `.github/copilot-instructions.md` — GitHub Copilot
 >
 > If you select any agent, Dflow will create
@@ -210,7 +209,7 @@ destination path:
 | `scaffolding/Git-principles-gitflow.md` | `dflow/specs/shared/Git-principles-gitflow.md` |
 | `scaffolding/Git-principles-trunk.md` | `dflow/specs/shared/Git-principles-trunk.md` |
 | `scaffolding/AI-AGENT-GUIDE.md` | `dflow/specs/shared/AI-AGENT-GUIDE.md` when at least one AI agent is selected |
-| generated tool shim | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, or `.github/copilot-instructions.md` when selected and missing |
+| generated tool shim | `AGENTS.md`, `CLAUDE.md`, or `.github/copilot-instructions.md` when selected and missing |
 | generated merge snippet | `dflow/specs/shared/*-snippet.md` when the selected tool file already exists |
 
 ### 3.3 Present the preview
@@ -306,7 +305,7 @@ If the developer selected any AI coding agent in Q6, create
 guide.
 
 For each selected tool-specific file (`AGENTS.md`, `CLAUDE.md`,
-`GEMINI.md`, `.github/copilot-instructions.md`):
+`.github/copilot-instructions.md`):
 
 - if the target file does not exist, create a small shim at the target
   path that points to `dflow/specs/shared/AI-AGENT-GUIDE.md`

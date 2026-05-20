@@ -20,7 +20,7 @@ The goal is not the process itself, but repeatable software change with clearer 
 | **Three-layer documentation model** | Matches how feature branches actually evolve: phase (one propose-implement-archive cycle) / feature (the whole branch's running state and resume pointer) / system (cross-feature long-term knowledge). Many spec tools only ship phase + system, which breaks down when a feature branch spans multiple phases. Detailed below. |
 | **Change-depth-based tiers (T1/T2/T3)** | AI scales specification and verification by change depth: color/typo gets one inline row in `_index.md`; bug fixes get a lightweight spec plus focused verification; new features or bounded-context-level changes go through a full phase-spec plus layer-by-layer implementation planning / verification. Small changes don't get dragged down by the process. |
 | **Drift verification** | `/dflow:verify` cross-checks specs, domain documents, implementation, tests, and tech-debt records to surface the "documentation still describes the old behavior" drift that PR review by eye usually misses. |
-| **Multi-AI-tool rule sharing** | A canonical project guide plus thin tool-specific shims (`CLAUDE.md` / `AGENTS.md` / `GEMINI.md` / Copilot instructions) — teams switching between Claude, Codex, Gemini, and Copilot don't have to maintain multiple copies of workflow rules. |
+| **Multi-AI-tool rule sharing** | A canonical project guide plus thin tool-specific shims (`CLAUDE.md` / `AGENTS.md` / Copilot instructions) — teams switching between Claude, Codex, and Copilot don't have to maintain multiple copies of workflow rules. |
 
 ## Get Started
 
@@ -208,7 +208,6 @@ files whose only job is to redirect the tool to the canonical guide):
 |---|---|
 | Codex / Copilot coding agent | `AGENTS.md` |
 | Claude Code | `CLAUDE.md` |
-| Gemini CLI | `GEMINI.md` |
 | GitHub Copilot | `.github/copilot-instructions.md` |
 
 If one of those files already exists, Dflow leaves it unchanged and writes a
@@ -225,7 +224,6 @@ workflow commands appear in a given AI tool, see the per-tool guides under
 
 - [Using Dflow with Claude Code](docs/using-with-claude-code.en.md)
 - [Using Dflow with Codex CLI](docs/using-with-codex.en.md)
-- [Using Dflow with Gemini CLI](docs/using-with-gemini-cli.en.md)
 - [Using Dflow with GitHub Copilot](docs/using-with-github-copilot.en.md)
 
 Init does not copy the `tutorial/` directory into your project. The
@@ -330,7 +328,7 @@ npm package is `0.2.0`, covering:
 
 - Project initialization (`dflow init`)
 - Workflow documentation (the `/dflow:*` flows)
-- Multi-AI agent setup (CLAUDE.md / AGENTS.md / GEMINI.md / Copilot instructions shims)
+- Multi-AI agent setup (CLAUDE.md / AGENTS.md / Copilot instructions shims)
 - AI-agent-readable SDD/DDD guidance
 - Public migration tooling: manual migration guide plus `dflow doctor` read-only health check
 - Public onboarding: evaluator guide and per-tool walkthroughs for Claude Code and Codex CLI

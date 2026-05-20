@@ -6,6 +6,14 @@
 
 ---
 
+## Unreleased — 2026-05-20 — Remove Gemini support
+
+**變更**：
+
+- 移除 Gemini 支援：`dflow init` / `dflow configure-agents` 不再提供 `GEMINI.md` 選項，並刪除 Gemini CLI per-tool docs 與 tutorial shim fixture。
+
+---
+
 ## 0.4.0 — 2026-05-19 — Language-agnostic templates and skill source
 
 **Proposals**：PROPOSAL-030（language-agnostic templates and skill source；

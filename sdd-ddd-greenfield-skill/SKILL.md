@@ -133,6 +133,8 @@ manual reference for environments without Node.js/npm.
 - `/dflow:next` — confirm proceeding to the next step (equivalent to "OK" / "continue")
 - `/dflow:cancel` — abort current workflow, return to free conversation (artifacts created so far are kept as-is)
 
+Status fields, `/dflow:next` validity, `/dflow:cancel` behavior, and no-active-workflow replies are defined by the installed/runtime canonical contract in `scaffolding/AI-AGENT-GUIDE.md` § "Status / Control Commands". Keep this file as a summary; do not maintain a separate response format here.
+
 **Standalone commands** — run independently of any workflow:
 - `/dflow:verify [<bc>]` — run drift verification on rules.md ↔ behavior.md
 - `/dflow:report-dflow-feedback` — draft sanitized feedback for Dflow upstream; never submits automatically
@@ -210,30 +212,9 @@ Any of these count as "proceed to next step" — pick whichever the developer us
 
 The implicit-confirmation rule is important — avoid turning every transition into a ceremony where the developer must say "OK" before every sentence.
 
-### `/dflow:status` Response Format
+### Status / Control Commands Contract
 
-When the developer types `/dflow:status` or asks in NL ("where are we?", "current status?"), report in this format:
-
-```
-Current workflow: new-feature-flow
-Current step: Step 3 — Domain Modeling
-
-Completed:
-- [x] Step 1: Intake — requirements understood
-- [x] Step 2: Identify BC — assigned to Expense context
-
-In progress:
-- [ ] Step 3: Domain Modeling — identifying Aggregate / VO / Events
-
-Remaining:
-- [ ] Step 4: Write Spec
-- [ ] Step 5: Plan Implementation
-- [ ] Step 6: Git Branch
-- [ ] Step 7: Implementation
-- [ ] Step 8: Completion
-```
-
-If no workflow is active, reply: "No active workflow. Use `/dflow:new-feature`, `/dflow:modify-existing`, `/dflow:bug-fix`, or `/dflow:pr-review` to start one. Use `/dflow:report-dflow-feedback` only when you want to draft feedback about Dflow itself."
+For `/dflow:status`, `/dflow:next`, and `/dflow:cancel`, use the installed/runtime canonical contract in `scaffolding/AI-AGENT-GUIDE.md` § "Status / Control Commands". Do not maintain a separate response format in this file.
 
 ---
 

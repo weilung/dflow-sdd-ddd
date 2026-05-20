@@ -32,7 +32,7 @@ function printConfigureAgentsHelp() {
   dflow configure-agents
 
 Adds AI agent instruction files to an existing Dflow project.
-The command can create AGENTS.md, CLAUDE.md, GEMINI.md, and
+The command can create AGENTS.md, CLAUDE.md, and
 .github/copilot-instructions.md shims that point to the canonical
 dflow/specs/shared/AI-AGENT-GUIDE.md file.
 `);

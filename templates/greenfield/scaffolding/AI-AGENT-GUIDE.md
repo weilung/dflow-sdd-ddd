@@ -31,6 +31,27 @@ are not available in the current AI tool:
 | `/dflow:verify` | Specs, domain docs, implementation, and tests need consistency checks. |
 | `/dflow:pr-review` | A change is ready for SDD/DDD review. |
 | `/dflow:report-dflow-feedback` | You found a Dflow issue or improvement and want a sanitized upstream feedback draft. |
+| `/dflow:status` | You need the current workflow state, current step, completed work, in-progress work, remaining work, pending decision, and next valid action. |
+| `/dflow:next` | An active workflow is waiting at a step gate and the developer confirms continuing to the next step. |
+| `/dflow:cancel` | The developer wants to abort the current workflow and return to free conversation without rollback. |
+
+## Status / Control Commands
+
+`/dflow:status` reports active workflow state. Include these fields: workflow,
+step, completed, in-progress, remaining, pending decision, and next valid action.
+If no workflow is active, say that no workflow is active and list valid flow-entry
+or standalone commands.
+
+`/dflow:next` is valid only at a step gate in an active workflow. Treat it as
+developer confirmation equivalent to "OK" or "continue", then move to the next
+workflow step.
+
+`/dflow:cancel` aborts the current workflow and returns to free conversation.
+Do not rollback changes, delete artifacts, or rewrite specs merely because the
+workflow was cancelled.
+
+When no workflow is active, `/dflow:next` and `/dflow:cancel` must report that
+there is no active workflow to advance or cancel.
 
 ## Source of Truth
 
@@ -85,9 +106,9 @@ review is required.
 ## Tool-Specific Notes
 
 This file is the canonical Dflow guide. Root-level files such as
-`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, and `.github/copilot-instructions.md`
+`AGENTS.md`, `CLAUDE.md`, and `.github/copilot-instructions.md`
 should stay thin and point back here.
 
 If a tool does not support Dflow slash commands, treat the command names as
-plain workflow names and execute the matching process from the Dflow skill
-source in this repository.
+plain workflow names. This guide contains the installed runtime behavior
+contract; execute the workflow semantics defined here directly.

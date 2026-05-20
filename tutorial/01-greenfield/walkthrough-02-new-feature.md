@@ -70,7 +70,6 @@ ExpenseTracker/
 │       └── backlog/
 ├── AGENTS.md
 ├── CLAUDE.md
-├── GEMINI.md
 └── .github/copilot-instructions.md
 ```
 

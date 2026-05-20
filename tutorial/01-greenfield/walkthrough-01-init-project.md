@@ -73,7 +73,7 @@ Repo inventory:
 - dflow/specs/: not yet present
 - src/: Clean Architecture layout detected
 - tests/: Domain / Application / Integration test projects detected
-- AGENTS.md / CLAUDE.md / GEMINI.md / .github/copilot-instructions.md: not present
+- AGENTS.md / CLAUDE.md / .github/copilot-instructions.md: not present
 
 判定：Greenfield Dflow setup。
 ```
@@ -98,7 +98,7 @@ Dflow 接著問六類問題。這不是表單填寫，而是用來決定 baselin
 | migration context | 純新 build | 不加 migration note。 |
 | prose language | `zh-TW` | `_conventions.md` 記錄 `## Prose Language`。 |
 | optional starter | `_overview.md`、`Git-principles-trunk.md` | 建 project overview 與 trunk-based Git guide。 |
-| AI agents | AGENTS、CLAUDE、GEMINI、GitHub Copilot 全選 | 建 canonical AI guide 與四個 thin shims。 |
+| AI agents | AGENTS、CLAUDE、GitHub Copilot 全選 | 建 canonical AI guide 與三個 thin shims。 |
 
 Alice 特別選 trunk-based，不選 gitflow。Dflow 會重新確認這個二擇一：
 
@@ -129,7 +129,6 @@ Will create (15 files):
 - dflow/specs/shared/AI-AGENT-GUIDE.md
 - AGENTS.md
 - CLAUDE.md
-- GEMINI.md
 - .github/copilot-instructions.md
 
 Will skip (0 files already present)
@@ -191,7 +190,6 @@ Alice 確認後，Dflow 寫入 baseline。重要分組如下。
 |---|---|
 | [`outputs/AGENTS.md`](outputs/AGENTS.md) | Codex / coding agent shim。 |
 | [`outputs/CLAUDE.md`](outputs/CLAUDE.md) | Claude Code shim，指向 canonical guide。 |
-| [`outputs/GEMINI.md`](outputs/GEMINI.md) | Gemini CLI shim，指向 canonical guide。 |
 | [`outputs/.github/copilot-instructions.md`](outputs/.github/copilot-instructions.md) | GitHub Copilot repository instruction shim。 |
 
 ## 為什麼有些檔故意不建

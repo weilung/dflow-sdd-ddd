@@ -37,9 +37,8 @@ in your project's `dflow/specs/` directory and AI instruction files.
   for the full tree.
 - A canonical project guide at `dflow/specs/shared/AI-AGENT-GUIDE.md`.
 - Mergeable AI agent instruction files for the tools you select (e.g.,
-  `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`,
-  `.github/copilot-instructions.md`). Each is a thin pointer to the
-  canonical guide.
+  `CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`). Each is a
+  thin pointer to the canonical guide.
 
 `init` does **not**:
 
@@ -58,7 +57,6 @@ or more tools and Dflow writes the corresponding shim:
 |---|---|
 | Codex / Copilot coding agent | `AGENTS.md` |
 | Claude Code | `CLAUDE.md` |
-| Gemini CLI | `GEMINI.md` |
 | GitHub Copilot | `.github/copilot-instructions.md` |
 
 Each shim points back to the canonical
@@ -81,7 +79,6 @@ commands appear in conversation, see the per-tool guides:
 
 - [Using Dflow with Claude Code](using-with-claude-code.en.md)
 - [Using Dflow with Codex CLI](using-with-codex.en.md)
-- [Using Dflow with Gemini CLI](using-with-gemini-cli.en.md)
 - [Using Dflow with GitHub Copilot](using-with-github-copilot.en.md)
 
 ## Greenfield or Brownfield: Choosing a Track

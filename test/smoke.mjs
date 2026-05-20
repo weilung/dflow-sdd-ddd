@@ -51,7 +51,7 @@ try {
     'none',
     '1',
     '1,2',
-    '1,2,3,4',
+    '1,2,3',
     'y'
   ].join('\n') + '\n';
 
@@ -74,7 +74,6 @@ try {
     'dflow/specs/architecture/decisions/README.md',
     'AGENTS.md',
     'CLAUDE.md',
-    'GEMINI.md',
     '.github/copilot-instructions.md'
   ];
 
@@ -100,14 +99,15 @@ try {
   assert.match(aiGuide, /\| Dflow track \| greenfield \|/);
   assert.match(aiGuide, /\| Prose language \| zh-TW \|/);
   assert.match(aiGuide, /\/dflow:report-dflow-feedback/);
+  assert.match(aiGuide, /\/dflow:status/);
+  assert.match(aiGuide, /\/dflow:next/);
+  assert.match(aiGuide, /\/dflow:cancel/);
 
   const agentsGuide = await readFile(join(tempRoot, 'AGENTS.md'), 'utf8');
   const claudeGuide = await readFile(join(tempRoot, 'CLAUDE.md'), 'utf8');
-  const geminiGuide = await readFile(join(tempRoot, 'GEMINI.md'), 'utf8');
   const copilotGuide = await readFile(join(tempRoot, '.github/copilot-instructions.md'), 'utf8');
   assert.match(agentsGuide, /dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/);
   assert.match(claudeGuide, /@dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/);
-  assert.match(geminiGuide, /@dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/);
   assert.match(copilotGuide, /dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/);
 
   const second = await runDflow(tempRoot);
@@ -148,7 +148,7 @@ try {
 
   await writeFile(join(legacyRoot, 'AGENTS.md'), '# Existing agent rules\n');
   const configureInput = [
-    '1,2,4',
+    '1,2,3',
     'y'
   ].join('\n') + '\n';
   const configured = await runDflow(legacyRoot, configureInput, ['configure-agents']);
@@ -227,7 +227,7 @@ try {
     'none',
     '2',
     '1,2',
-    '1,2,3,4',
+    '1,2,3',
     'y'
   ].join('\n') + '\n';
 

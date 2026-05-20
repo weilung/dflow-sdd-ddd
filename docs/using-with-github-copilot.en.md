@@ -107,11 +107,10 @@ The canonical guide (`dflow/specs/shared/AI-AGENT-GUIDE.md`) is the same across 
 |---|---|---|
 | GitHub Copilot | `.github/copilot-instructions.md` | Reads repository instructions directly |
 | Claude Code | `CLAUDE.md` | `@dflow/specs/shared/AI-AGENT-GUIDE.md` Markdown import |
-| Gemini CLI | `GEMINI.md` | `@dflow/specs/shared/AI-AGENT-GUIDE.md` Markdown import |
 | Codex / Copilot coding agent | `AGENTS.md` | Reads file content directly when starting |
 
 - Shim path: Copilot uses `.github/copilot-instructions.md` (not `AGENTS.md` or `CLAUDE.md`).
-- Markdown import: Copilot shim has NO `@dflow/specs/shared/AI-AGENT-GUIDE.md` import. This contrasts with Claude/Gemini CLI shims which inline via `@` imports.
+- Markdown import: Copilot shim has NO `@dflow/specs/shared/AI-AGENT-GUIDE.md` import. This contrasts with the Claude Code shim, which inlines via an `@` import.
 - Tool model: Copilot is IDE-based (chat panel + inline completions); Codex/Claude Code are CLI-based agents. Copilot interacts through the editor UI rather than a command-line session.
 - Workflow invocation: With CLI agents you may type `/dflow:*` to the agent process; with Copilot prefer plain-chat phrasing in the Copilot Chat or editor comments.
 - Permission model: Copilot relies on the IDE's permission and extension sandbox. It may prompt for or be governed by editor-level approvals; CLI tools often have explicit sandbox flags and separate permission gates.
