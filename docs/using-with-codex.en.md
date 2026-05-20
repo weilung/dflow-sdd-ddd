@@ -152,6 +152,26 @@ If you forget a workflow name, ask Codex to read
 `dflow/specs/shared/AI-AGENT-GUIDE.md` and list the available Dflow
 workflows.
 
+### Codex Behavior With Optional Command Adapters
+
+For Codex, `dflow configure-agents --command-adapters` strengthens text
+triggers only. It does not create Codex command files and it does not add
+`.agents/skills/dflow/SKILL.md`. Codex v1 has no Dflow command-file adapter
+equivalent to Claude `.claude/commands` or Copilot `.github/prompts`.
+
+When you select `AGENTS.md - Codex / Copilot coding agent` in
+`--command-adapters` mode and Dflow can create a new `AGENTS.md` shim, the
+shim includes a trigger list generated from the canonical command registry.
+Those triggers are still plain text prompts, for example:
+
+```text
+Run the Dflow /dflow:new-feature workflow.
+```
+
+If the project already has a custom `AGENTS.md`, Dflow still preserves that
+file; merge the Dflow pointer manually from the generated snippet or the
+documentation guidance.
+
 ## Differences vs Other AI Tools
 
 The canonical guide (`dflow/specs/shared/AI-AGENT-GUIDE.md`) is identical
@@ -164,8 +184,10 @@ across tools. Only the root-level shim differs:
 | GitHub Copilot | `.github/copilot-instructions.md` | Reads repository instructions directly |
 
 You can run `dflow configure-agents` later to add another tool's shim
-without re-running `init`. Multiple tools can be active in the same project
-and stay synchronized via the canonical guide.
+without re-running `init`. If you need tool-native wrappers for Claude or
+Copilot, opt in with `dflow configure-agents --command-adapters`. Codex
+remains text-trigger-only in that mode. Multiple tools can be active in the
+same project and stay synchronized via the canonical guide.
 
 Codex also has its own project-instruction layering. It can read global
 instructions from Codex home and project instructions from `AGENTS.md` files
@@ -194,6 +216,11 @@ commands control the Codex session itself. Use Dflow workflow names as plain
 chat instructions when raw slash input is intercepted or rejected. Raw
 `/dflow:*` passthrough behavior should be verified with the maintainer for
 the supported Codex version.
+
+**Codex does not generate command files.** Even with `--command-adapters`,
+Codex only strengthens text-trigger guidance in `AGENTS.md` / merge
+snippets. Do not expect Codex-specific files under `.claude/commands`,
+`.github/prompts`, or `.agents/skills/dflow/SKILL.md`.
 
 **Do not confuse Codex `/init` with Dflow `init`.** Codex `/init` creates a
 generic `AGENTS.md` scaffold for Codex. Dflow setup is `dflow init` (or

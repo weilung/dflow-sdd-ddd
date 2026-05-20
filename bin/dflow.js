@@ -29,12 +29,15 @@ optional starter files, and AI coding agents before showing a full file preview.
 
 function printConfigureAgentsHelp() {
   process.stdout.write(`Usage:
-  dflow configure-agents
+  dflow configure-agents [--command-adapters]
 
 Adds AI agent instruction files to an existing Dflow project.
 The command can create AGENTS.md, CLAUDE.md, and
 .github/copilot-instructions.md shims that point to the canonical
 dflow/specs/shared/AI-AGENT-GUIDE.md file.
+
+Options:
+  --command-adapters  Also generate tool-native thin wrappers for supported tools.
 `);
 }
 
@@ -91,8 +94,10 @@ async function main() {
       return 0;
     }
 
-    if (args.length > 1) {
-      process.stderr.write(`Unsupported configure-agents option: ${args.slice(1).join(' ')}\n`);
+    const configureOptions = args.slice(1);
+    const unsupportedConfigureOptions = configureOptions.filter((arg) => arg !== '--command-adapters');
+    if (unsupportedConfigureOptions.length > 0) {
+      process.stderr.write(`Unsupported configure-agents option: ${unsupportedConfigureOptions.join(' ')}\n`);
       return 1;
     }
 
@@ -100,7 +105,8 @@ async function main() {
       cwd: process.cwd(),
       stdin: process.stdin,
       stdout: process.stdout,
-      stderr: process.stderr
+      stderr: process.stderr,
+      commandAdapters: configureOptions.includes('--command-adapters')
     });
   }
 

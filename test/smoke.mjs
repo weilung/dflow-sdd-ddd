@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -160,6 +160,46 @@ try {
   const existingAgents = await readFile(join(legacyRoot, 'AGENTS.md'), 'utf8');
   assert.match(existingAgents, /^# Existing agent rules/);
 
+  const adapterConfigured = await runDflow(legacyRoot, configureInput, ['configure-agents', '--command-adapters']);
+  assert.equal(
+    adapterConfigured.code,
+    0,
+    `configure-agents --command-adapters failed\nSTDOUT:\n${adapterConfigured.stdout}\nSTDERR:\n${adapterConfigured.stderr}`
+  );
+
+  const claudeCommandFiles = (await readdir(join(legacyRoot, '.claude/commands/dflow'))).sort();
+  assert.equal(claudeCommandFiles.length, 11, 'Claude command adapter count');
+  assert.deepEqual(
+    claudeCommandFiles.slice(0, 3),
+    ['dflow-bug-fix.md', 'dflow-cancel.md', 'dflow-finish-feature.md'],
+    'Claude command adapter file names should be adapter-native'
+  );
+  assert.equal(claudeCommandFiles.includes('dflow-status.md'), true, 'Claude status command adapter should exist');
+
+  const copilotPromptFiles = (await readdir(join(legacyRoot, '.github/prompts'))).sort();
+  assert.equal(copilotPromptFiles.length, 11, 'Copilot prompt adapter count');
+  assert.equal(
+    copilotPromptFiles.includes('dflow-new-feature.prompt.md'),
+    true,
+    'Copilot new-feature prompt adapter should exist'
+  );
+  assert.equal(copilotPromptFiles.includes('dflow-next.prompt.md'), true, 'Copilot next prompt adapter should exist');
+
+  const claudeWrapper = await readFile(join(legacyRoot, '.claude/commands/dflow/dflow-new-feature.md'), 'utf8');
+  const copilotWrapper = await readFile(join(legacyRoot, '.github/prompts/dflow-new-feature.prompt.md'), 'utf8');
+  for (const [name, content] of Object.entries({ claudeWrapper, copilotWrapper })) {
+    assert.match(content, /^# \/dflow-new-feature$/m, `${name} should use adapter-native command name`);
+    assert.match(content, /Execute the canonical `\/dflow:new-feature` Dflow workflow or control command\./);
+    assert.match(content, /Definition: `dflow\/specs\/shared\/AI-AGENT-GUIDE\.md`/);
+    assert.match(content, /Argument hint: feature request\./);
+    assert.doesNotMatch(content, /Do not jump|Status \/ Control Commands|Source of Truth|Spec before code|Step Gate/);
+  }
+
+  assert.equal(await exists(join(legacyRoot, '.agents/skills/dflow/SKILL.md')), false, 'Codex skill adapter should not be created');
+  assert.equal(await exists(join(legacyRoot, '.codex/commands/dflow-new-feature.md')), false, 'Codex command adapter should not be created');
+  const existingAgentsSnippet = await readFile(join(legacyRoot, 'dflow/specs/shared/AGENTS-md-snippet.md'), 'utf8');
+  assert.match(existingAgentsSnippet, /## Dflow Text Triggers/, 'Codex merge snippet should include text trigger guidance');
+
   const reconfigured = await runDflow(legacyRoot, '2\ny\n', ['configure-agents']);
   assert.equal(reconfigured.code, 0, `second configure-agents failed\nSTDOUT:\n${reconfigured.stdout}\nSTDERR:\n${reconfigured.stderr}`);
   assert.equal(await exists(join(legacyRoot, 'dflow/specs/shared/CLAUDE-md-snippet.md')), false, 'configured CLAUDE.md should skip instead of creating a duplicate snippet');
@@ -212,6 +252,19 @@ try {
   const rootClaude = await readFile(join(webformsRoot, 'CLAUDE.md'), 'utf8');
   assert.match(rootClaude, /^# CLAUDE\.md - Dflow Project Instructions/);
   assert.match(rootClaude, /@dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/);
+
+  const codexAdapterConfigured = await runDflow(webformsRoot, '1\ny\n', ['configure-agents', '--command-adapters']);
+  assert.equal(
+    codexAdapterConfigured.code,
+    0,
+    `Codex configure-agents --command-adapters failed\nSTDOUT:\n${codexAdapterConfigured.stdout}\nSTDERR:\n${codexAdapterConfigured.stderr}`
+  );
+  const webformsAgents = await readFile(join(webformsRoot, 'AGENTS.md'), 'utf8');
+  assert.match(webformsAgents, /## Dflow Text Triggers/);
+  assert.match(webformsAgents, /`\/dflow:new-feature` as text/);
+  assert.match(webformsAgents, /`\/dflow:cancel` as text/);
+  assert.equal(await exists(join(webformsRoot, '.agents/skills/dflow/SKILL.md')), false, 'Codex skill adapter should not be created for Codex-only configuration');
+  assert.equal(await exists(join(webformsRoot, '.claude/commands/dflow/dflow-new-feature.md')), false, 'Codex-only command-adapters should not create Claude files');
 
   // Non-.NET init e2e — Java/Spring Boot greenfield project.
   // Verifies that:

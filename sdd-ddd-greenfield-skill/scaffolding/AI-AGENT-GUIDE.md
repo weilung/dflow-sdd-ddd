@@ -35,6 +35,24 @@ are not available in the current AI tool:
 | `/dflow:next` | An active workflow is waiting at a step gate and the developer confirms continuing to the next step. |
 | `/dflow:cancel` | The developer wants to abort the current workflow and return to free conversation without rollback. |
 
+Machine-readable source for rendering tool-specific thin wrappers:
+
+<!-- dflow-command-registry:start -->
+| id | label | description | arg-hint | scope |
+|---|---|---|---|---|
+| new-feature | /dflow:new-feature | Start a new user-visible feature or business behavior. | feature request | workflow |
+| modify-existing | /dflow:modify-existing | Change existing behavior. | change request | workflow |
+| bug-fix | /dflow:bug-fix | Investigate a defect described by expected vs actual behavior. | expected vs actual | workflow |
+| new-phase | /dflow:new-phase | Add another implementation slice to an active feature. | feature id or phase goal | workflow |
+| finish-feature | /dflow:finish-feature | Close implementation with drift checks and archived feature state. | feature id | workflow |
+| verify | /dflow:verify | Check specs, domain docs, implementation, and tests for consistency. | area or feature id | workflow |
+| pr-review | /dflow:pr-review | Review a ready change for SDD/DDD alignment. | change or branch | workflow |
+| report-dflow-feedback | /dflow:report-dflow-feedback | Draft sanitized upstream feedback about Dflow. | issue or improvement | workflow |
+| status | /dflow:status | Report current workflow state and next valid action. | - | control |
+| next | /dflow:next | Confirm the active step gate and continue. | - | control |
+| cancel | /dflow:cancel | Abort the active workflow and return to free conversation. | - | control |
+<!-- dflow-command-registry:end -->
+
 ## Status / Control Commands
 
 `/dflow:status` reports active workflow state. Include these fields: workflow,
