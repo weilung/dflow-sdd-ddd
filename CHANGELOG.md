@@ -6,6 +6,35 @@
 
 ---
 
+## 0.6.0 — 2026-05-21 — Command-adapter 命名修正
+
+**Proposals**：PROPOSAL-036（修正 command-adapter 命名 + 各工具叫用現實對齊）
+
+**變更**：
+
+- **修正 opt-in command adapter 命名 bug**（PROPOSAL-036）：0.5.0 的
+  `dflow configure-agents --command-adapters` 在 Claude 產生
+  `.claude/commands/dflow/dflow-<id>.md`；因 Claude Code 把子目錄 `dflow/`
+  當 namespace、再加上檔名的 `dflow-` 前綴，註冊出的指令名變成重複的
+  `/dflow:dflow-<id>`。改為產生 `.claude/commands/dflow/<id>.md`，指令名
+  回正為 `/dflow:<id>`。
+- **各工具叫用方式對齊實測現實**：command adapter wrapper 與
+  `configure-agents` next-steps 文字改為說明三工具實際叫用名 —— Claude Code
+  `/dflow:<id>`、GitHub Copilot 選單 `/dflow-<id>`（或 canonical `/dflow:<id>`
+  純文字）、Codex CLI 不帶斜線的純文字（如 `dflow:status`）。Codex AGENTS.md
+  command-adapters snippet 補上「CLI 攔截斜線指令時改送不帶斜線文字」的指引。
+  `README` / `docs/using-with-*` / `docs/evaluating-dflow` / `tutorial`
+  同步更新。
+
+**⚠️ Breaking change / 遷移**：
+
+- 生成路徑重新命名。**從 0.5.0 升級、且曾跑過 `configure-agents
+  --command-adapters` 的專案**，須手動刪除舊的
+  `.claude/commands/dflow/dflow-*.md`，否則 Claude Code 會同時顯示新舊兩組
+  指令名。未使用 command adapters 的專案不受影響。
+
+---
+
 ## 0.5.0 — 2026-05-20 — Guide control commands、opt-in command adapters、移除 Gemini
 
 **Proposals**：PROPOSAL-032（AI-AGENT-GUIDE 補 status/next/cancel 行為語義 +
