@@ -140,7 +140,7 @@ Walkthrough 00 是 setup context，因此沒有新增 `outputs/` 檔案。讀者
 | `dflow/specs/` | 尚未存在。 |
 | `dflow/specs/domain/Order/` | 尚未存在；第一個修改需求確認 boundary 後才建立。 |
 | `src/Domain/` | 尚未存在；init 不建立 production code。 |
-| root AI tool files | 尚未存在；Bob 會在 init 中選擇 `CLAUDE.md`。 |
+| root AI tool files | 尚未存在；Bob 會在 init 中選擇 `CLAUDE.md`，並可在 init 後用 `dflow configure-agents --command-adapters` 補 Claude `/dflow:<id>` 命令 wrapper。 |
 
 ## Dflow feature / benefit mapping
 

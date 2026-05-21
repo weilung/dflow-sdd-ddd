@@ -64,13 +64,17 @@ Each shim points back to the canonical
 
 - Multiple tools can be active in the same project without diverging
   workflow rules.
-- Switching or adding tools later does not require re-running `init`; use
-  run `dflow configure-agents` to add another shim.
+- Switching or adding tools later does not require re-running `init`; run
+  `dflow configure-agents` to add another shim, or
+  `dflow configure-agents --command-adapters` to opt in to tool-native command
+  entries.
 - The project guide stays the single source of truth for Dflow workflow
   behavior.
 
-If your tool does not support custom slash commands, use the same command
-names (e.g., `/dflow:new-feature`) as plain instructions in chat. Dflow is
+`/dflow:*` is the canonical shared vocabulary, but each tool's `/` parser
+behaves differently: Claude Code command adapters use `/dflow:<id>`, the
+GitHub Copilot prompt menu uses `/dflow-<id>` (chat text can still name
+`/dflow:<id>`), and Codex CLI uses no-slash text `dflow:<id>`. Dflow is
 Markdown-based workflow material; it works with any AI agent that can read
 project instructions and repository context.
 
@@ -144,8 +148,10 @@ real codebase.
    - Brownfield: [`tutorial/02-brownfield/`](../tutorial/02-brownfield/walkthrough-00-setup.md)
 
 5. **Optional: try one workflow command**. Open the sample project in your
-   AI tool and ask it to run `/dflow:new-feature` (or paste the equivalent
-   instruction in chat). Inspect what it writes to `dflow/specs/`.
+   AI tool and ask it to run the new-feature workflow using that tool's
+   invocation form (`/dflow:new-feature` in Claude Code with adapters,
+   `/dflow-<id>` from the Copilot prompt menu, or `dflow:new-feature` in
+   Codex CLI). Inspect what it writes to `dflow/specs/`.
 
 6. **Decide and clean up**. If Dflow does not fit, delete the sample
    directory. There is no global state to clean; nothing was installed

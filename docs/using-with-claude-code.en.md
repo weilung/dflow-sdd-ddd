@@ -81,17 +81,19 @@ custom project instructions you already had.
 
 ## Using Dflow Slash Commands in Claude Code
 
-By default, Dflow's canonical `/dflow:*` slash commands are workflow names
-recognized by the AI through the workflow table in `AI-AGENT-GUIDE.md`, not
-Claude Code's built-in slash command system. You type them as plain chat:
+Dflow's canonical `/dflow:*` names are the shared workflow vocabulary across
+tools. Each tool has different `/` parser behavior, and Claude Code accepts
+`/dflow:<id>` only when that slash command has been registered. Install the
+command adapters below, then invoke the Claude Code registered name:
 
 ```text
 /dflow:new-feature
 ```
 
-Claude Code treats this as input. Because it has the workflow table loaded
-via `CLAUDE.md` import, it recognizes the prefix and enters the matching
-workflow. A typical conversation looks like:
+After adapters are installed, Claude Code registers
+`.claude/commands/dflow/<id>.md` as `/dflow:<id>`. The wrapper points back to
+the canonical workflow in `AI-AGENT-GUIDE.md`. A typical conversation looks
+like:
 
 ```text
 You: /dflow:new-feature
@@ -131,6 +133,11 @@ If you forget a command name, ask Claude Code "what dflow workflows are
 available?" — the answer comes from the workflow table it already has
 loaded.
 
+If command adapters are not installed yet, or if Claude Code treats a
+slash-prefixed input as an unknown command, resend it as plain text, for
+example `dflow:new-feature` or `Run the Dflow /dflow:new-feature workflow.`,
+so the model can follow the canonical guide.
+
 ### Optional Command Adapters
 
 If you want Claude Code to expose tool-native command entries, run this in an
@@ -143,14 +150,16 @@ dflow configure-agents --command-adapters
 After you select Claude Code, Dflow projects thin wrappers from the command
 registry inside the canonical guide:
 
-- `.claude/commands/dflow/dflow-<id>.md`
+- `.claude/commands/dflow/<id>.md`
 
-These wrappers use adapter-native names, for example `/dflow-new-feature`.
-Their body only points to the canonical `/dflow:new-feature` workflow and
-`dflow/specs/shared/AI-AGENT-GUIDE.md`; it does not copy workflow steps.
-Dflow v1 does not promise that Claude Code's menu will expose the exact
-colon form `/dflow:new-feature`. The canonical name remains in the guide and
-wrapper body.
+These wrappers use Claude Code's directory namespace names, for example
+`/dflow:new-feature`. Their body only points to the canonical
+`/dflow:new-feature` workflow and `dflow/specs/shared/AI-AGENT-GUIDE.md`; it
+does not copy workflow steps. Projects upgraded from Dflow 0.5.0 may still
+have old `.claude/commands/dflow/dflow-*.md` files. Dflow does not delete user
+files automatically; remove those old wrappers manually so Claude Code does
+not show both the old `/dflow:dflow-<id>` names and the new `/dflow:<id>`
+names.
 
 ## Differences vs Other AI Tools
 
@@ -178,10 +187,10 @@ spec locations, or SDD constraints to `CLAUDE.md`, those belong in
 `dflow/specs/shared/AI-AGENT-GUIDE.md` instead. The shim stays small so
 that other tools' shims don't drift away from it.
 
-**Default `/dflow:*` is not a Claude Code Skill installation.** `init` does
-not install anything into Claude Code's skill system. The slash commands are
-plain text patterns the AI recognizes from the workflow table. If you later
-run `dflow configure-agents --command-adapters`, the added files are thin
+**`/dflow:*` is not a Claude Code Skill installation.** `init` does not
+install anything into Claude Code's skill system. Without command adapters,
+Dflow names are text triggers the AI recognizes from the workflow table. After
+you run `dflow configure-agents --command-adapters`, the added files are thin
 command wrappers, not a second workflow definition.
 
 **Choose either legacy Claude skills or the installed adapter.** If the

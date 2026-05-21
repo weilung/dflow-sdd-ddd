@@ -14,7 +14,7 @@ workflow control 如何串起來。
 
 | 入口 | 何時讀 |
 |---|---|
-| [Dflow 命令表面導讀](dflow-command-surface.md) | 第一次讀 Dflow tutorial，先釐清 `dflow init`（全域安裝後）或 `npx dflow-sdd-ddd init`（no-install 路徑）、`/dflow:*` workflow commands、verify / review / control commands 的分工。 |
+| [Dflow 命令表面導讀](dflow-command-surface.md) | 第一次讀 Dflow tutorial，先釐清 `dflow init`（全域安裝後）或 `npx dflow-sdd-ddd init`（no-install 路徑）、`--command-adapters`、各工具 `/` parser 叫法、verify / review / control commands 的分工。 |
 | [如何閱讀 Dflow 規格與完整文件範例](how-to-read-dflow-specs.md) | 讀 walkthrough 前，先理解 feature `_index.md`、phase / BUG specs、BC layer、完整文件範例的分工。 |
 | [給資深工程師的 DDD 觀念翻轉指南](DDD_MINDSET_SHIFT.md) | 想先理解 DDD 對 AI 協作的價值：為什麼 Dflow 要先談 bounded context、Aggregate、business rules，再讓 AI 寫 code。 |
 

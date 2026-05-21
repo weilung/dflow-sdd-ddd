@@ -149,7 +149,7 @@ Walkthrough 00 是 setup context，因此沒有新增 `outputs/` 檔案。讀者
 | Clean Architecture 目錄已存在 | `/dflow:new-feature` 可把 Aggregate / tests 對到合理層級。 |
 | 第一個業務入口是 expense submission | first feature 自然長出 Expense BC。 |
 | `zh-TW` 是團隊需求討論語言 | `_conventions.md` 會記錄 prose language，避免文件語言漂移。 |
-| 多 AI tool 團隊 | init 可建立 canonical AI guide 與多 tool shim。 |
+| 多 AI tool 團隊 | init 可建立 canonical AI guide 與多 tool shim；init 後可用 `dflow configure-agents --command-adapters` 補 Claude `/dflow:<id>`、Copilot `/dflow-<id>`、Codex `dflow:<id>` 的工具叫法。 |
 
 ## 下一個劇情段
 

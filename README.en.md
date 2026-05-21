@@ -47,8 +47,14 @@ tool, run:
 dflow configure-agents
 ```
 
-This command only configures AI instruction files. It does not rerun project
-initialization or touch existing specs.
+If you also want tool-native command / prompt wrappers, use the opt-in mode:
+
+```bash
+dflow configure-agents --command-adapters
+```
+
+This command only configures AI instruction files and optional command
+adapters. It does not rerun project initialization or touch existing specs.
 
 ### Alternative: try without installing
 
@@ -94,7 +100,19 @@ After init, start work through the Dflow workflow in your AI coding agent:
 /dflow:pr-review
 ```
 
-If your tool does not support custom slash commands, use the same command names as plain instructions in chat. Dflow is Markdown-based workflow material plus a scaffolding CLI, so it can be used with AI coding agents that can read project instructions and repository context.
+`/dflow:*` is Dflow's canonical shared vocabulary; each AI tool's `/` parser
+behaves differently. Use these practical invocation forms:
+
+| Tool | Recommended invocation |
+|---|---|
+| Claude Code after `--command-adapters` | `/dflow:<id>`, for example `/dflow:new-feature` |
+| GitHub Copilot | `/dflow:<id>` as chat text; `/dflow-<id>` in the VS Code prompt menu |
+| Codex CLI | no-slash plain text `dflow:<id>`, for example `dflow:new-feature` |
+
+If your tool does not support custom slash commands, use the workflow name as
+a plain instruction in chat. Dflow is Markdown-based workflow material plus a
+scaffolding CLI, so it can be used with AI coding agents that can read project
+instructions and repository context.
 
 For the first adoption pass, use a branch or disposable sample project so your
 team can inspect the generated `dflow/specs/` workspace before bringing the
@@ -216,7 +234,8 @@ single source of truth, so teams can use multiple AI tools without maintaining
 multiple copies of the workflow rules.
 
 You can run `dflow configure-agents` later to add more tool shims as the team
-adopts additional AI coding agents.
+adopts additional AI coding agents. If you need Claude / Copilot tool-native
+command entries, use `dflow configure-agents --command-adapters`.
 
 For tool-specific walk-throughs of what `init` writes and how Dflow's
 workflow commands appear in a given AI tool, see the per-tool guides under

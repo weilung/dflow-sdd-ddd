@@ -83,33 +83,31 @@ Codex CLI 有自己的內建 slash command 層，用來控制 CLI session。
 `/permissions`、`/model`、`/status`、`/diff`、`/review`、`/init` 等指令
 都是 Codex CLI 控制項，不是 Dflow workflow。
 
-Dflow 的 `/dflow:*` 項目是 AI 透過 `AI-AGENT-GUIDE.md` 識別的 workflow
-名稱，不是已註冊的 Codex CLI 指令。`/dflow:new-feature` 在 Codex CLI 中
-能否直接傳遞到模型，需依所用的 Codex 版本向 maintainer 確認。
-最可靠的方式是以普通對話指示輸入 workflow 名稱：
+Dflow 的 canonical `/dflow:*` 項目是 AI 透過 `AI-AGENT-GUIDE.md` 識別的
+workflow 名稱，不是已註冊的 Codex CLI 指令。Codex 會先處理 `/` 前綴，因此
+最可靠的方式是移除開頭斜線，把同一個名稱當普通文字輸入：
 
 ```text
-Run the Dflow /dflow:new-feature workflow.
+dflow:new-feature
 ```
 
-若你的 Codex CLI 版本會將未知的 slash 前綴輸入傳遞到模型，也可嘗試以下
-較短形式（請先向 maintainer 確認）：
+或用一句普通對話指示：
 
 ```text
-/dflow:new-feature
+Run the Dflow dflow:new-feature workflow.
 ```
 
-若 Codex 回報未知 slash command，改以純文字重新送出：
+若 Codex 回報未知 slash command，改以不帶斜線的純文字重新送出：
 
 ```text
-Treat /dflow:new-feature as a Dflow workflow name, not as a Codex CLI
-command. Read dflow/specs/shared/AI-AGENT-GUIDE.md and start that workflow.
+Treat dflow:new-feature as the canonical /dflow:new-feature Dflow workflow
+name. Read dflow/specs/shared/AI-AGENT-GUIDE.md and start that workflow.
 ```
 
 典型的對話如下：
 
 ```text
-You: Run the Dflow /dflow:new-feature workflow.
+You: dflow:new-feature
 
 Codex CLI: I'll read dflow/specs/shared/AI-AGENT-GUIDE.md first, then use the
 new-feature workflow. Please describe the user-visible capability or business
@@ -124,20 +122,21 @@ dflow/specs/features/active/. Before I do, I have a few clarifying questions.
 
 接著這個 workflow 會引導你完成 spec 起草、行為範例、實作計畫，以及
 finish-feature 漂移（drift）檢查。確切的流程取決於你進入的是哪個 workflow
-（`/dflow:new-feature`、`/dflow:modify-existing`、`/dflow:bug-fix` 等）。
+（`dflow:new-feature`、`dflow:modify-existing`、`dflow:bug-fix` 等；canonical
+guide 中記為 `/dflow:*`）。
 
 可用的 workflow 入口：
 
-| 指令 | 適用情境 |
+| Codex 輸入 | 適用情境 |
 |---|---|
-| `/dflow:new-feature` | 需要新增一個使用者可見的功能或業務行為。 |
-| `/dflow:modify-existing` | 需要修改現有行為。 |
-| `/dflow:bug-fix` | 可以用預期行為 vs 實際行為描述的缺陷。 |
-| `/dflow:new-phase` | 進行中的 feature 需要另一個實作 slice。 |
-| `/dflow:finish-feature` | 實作完成後需要進行漂移（drift）收尾。 |
-| `/dflow:verify` | 需要對 spec、領域文件、實作與測試進行一致性檢查。 |
-| `/dflow:pr-review` | 變更已準備好進行 SDD/DDD review。 |
-| `/dflow:report-dflow-feedback` | 你發現了 Dflow 的問題或改進點，想要一份清理過的上游回饋草稿。 |
+| `dflow:new-feature` | 需要新增一個使用者可見的功能或業務行為。 |
+| `dflow:modify-existing` | 需要修改現有行為。 |
+| `dflow:bug-fix` | 可以用預期行為 vs 實際行為描述的缺陷。 |
+| `dflow:new-phase` | 進行中的 feature 需要另一個實作 slice。 |
+| `dflow:finish-feature` | 實作完成後需要進行漂移（drift）收尾。 |
+| `dflow:verify` | 需要對 spec、領域文件、實作與測試進行一致性檢查。 |
+| `dflow:pr-review` | 變更已準備好進行 SDD/DDD review。 |
+| `dflow:report-dflow-feedback` | 你發現了 Dflow 的問題或改進點，想要一份清理過的上游回饋草稿。 |
 
 如果你忘了 workflow 名稱，請 Codex 讀取 `dflow/specs/shared/AI-AGENT-GUIDE.md`
 並列出可用的 Dflow workflow 即可。
@@ -154,7 +153,7 @@ adapter。
 registry 產生的 trigger 清單。這些 trigger 仍是文字提示，例如：
 
 ```text
-Run the Dflow /dflow:new-feature workflow.
+dflow:new-feature
 ```
 
 如果專案已有自訂 `AGENTS.md`，Dflow 仍會保留既有檔案；請依產生的 merge snippet
@@ -200,9 +199,9 @@ SDD 約束加入 `AGENTS.md`，這些內容應該放到
 若 Codex 看起來只從 shim 工作，請要求它讀取 `AI-AGENT-GUIDE.md`。
 
 **`/dflow:*` 不是 Codex CLI 的內建 slash command。** Codex slash command 控制
-的是 Codex session 本身。當 slash 輸入被攔截或拒絕時，改用普通對話指示
-輸入 Dflow workflow 名稱。`/dflow:*` 的直通行為需依所用的 Codex 版本向
-maintainer 確認。
+的是 Codex session 本身。當 slash 輸入被攔截或拒絕時，改用不帶斜線的普通文字
+`dflow:<id>`，例如 `dflow:status`。模型會依 `AI-AGENT-GUIDE.md` 把它視為
+canonical `/dflow:<id>` workflow。
 
 **Codex 不產生命令檔。** 即使使用 `--command-adapters`，Codex 也只強化
 `AGENTS.md` / merge snippet 中的文字 trigger 說明。不要期待 `.claude/commands`、

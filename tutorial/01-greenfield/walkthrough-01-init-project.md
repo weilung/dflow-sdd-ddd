@@ -192,6 +192,26 @@ Alice 確認後，Dflow 寫入 baseline。重要分組如下。
 | [`outputs/CLAUDE.md`](outputs/CLAUDE.md) | Claude Code shim，指向 canonical guide。 |
 | [`outputs/.github/copilot-instructions.md`](outputs/.github/copilot-instructions.md) | GitHub Copilot repository instruction shim。 |
 
+**optional command adapters**
+
+`dflow init` 先建立 canonical guide 與 root shims；若團隊想讓工具 UI 顯示 Dflow
+命令入口，Alice 會在 init 後再執行 opt-in 設定：
+
+```bash
+dflow configure-agents --command-adapters
+```
+
+選擇 AGENTS、Claude Code、GitHub Copilot 後，叫法依工具不同：
+
+| 工具 | 產生 / 使用方式 |
+|---|---|
+| Claude Code | 產生 `.claude/commands/dflow/<id>.md`，在 Claude 中輸入 `/dflow:<id>`，例如 `/dflow:new-feature`。 |
+| GitHub Copilot | 產生 `.github/prompts/dflow-<id>.prompt.md`；chat 文字可說 `/dflow:<id>`，VS Code prompt 選單用 `/dflow-<id>`。 |
+| Codex CLI | 不產生命令檔；在 `AGENTS.md` / snippet 中強化文字 trigger，實際輸入不帶斜線的 `dflow:<id>`。 |
+
+這個差異是因為各工具 `/` parser 行為不同；canonical `/dflow:*` 仍是
+`AI-AGENT-GUIDE.md` 中的共同詞彙。
+
 ## 為什麼有些檔故意不建
 
 Dflow 在 preview 階段明說不建立兩類檔：

@@ -93,34 +93,32 @@ Codex CLI has its own built-in slash command layer for controlling the CLI
 session. Commands such as `/permissions`, `/model`, `/status`, `/diff`,
 `/review`, and `/init` are Codex CLI controls, not Dflow workflows.
 
-Dflow's `/dflow:*` entries are workflow names recognized by the AI through
-`AI-AGENT-GUIDE.md`, not registered Codex CLI commands. Raw
-`/dflow:new-feature` passthrough behavior in Codex CLI should be verified
-with the maintainer for the supported Codex version. The reliable form is to
-name the workflow as a plain chat instruction:
+Dflow's canonical `/dflow:*` entries are workflow names recognized by the AI
+through `AI-AGENT-GUIDE.md`, not registered Codex CLI commands. Codex handles
+the leading `/` first, so the reliable form is to remove the leading slash and
+send the same name as plain text:
 
 ```text
-Run the Dflow /dflow:new-feature workflow.
+dflow:new-feature
 ```
 
-If your Codex CLI version passes unknown slash-prefixed input through to the
-model, this shorter form may also work (verify with maintainer):
+Or use a plain chat instruction:
 
 ```text
-/dflow:new-feature
+Run the Dflow dflow:new-feature workflow.
 ```
 
-If Codex reports an unknown slash command, re-send the request in prose:
+If Codex reports an unknown slash command, re-send it without the slash:
 
 ```text
-Treat /dflow:new-feature as a Dflow workflow name, not as a Codex CLI
-command. Read dflow/specs/shared/AI-AGENT-GUIDE.md and start that workflow.
+Treat dflow:new-feature as the canonical /dflow:new-feature Dflow workflow
+name. Read dflow/specs/shared/AI-AGENT-GUIDE.md and start that workflow.
 ```
 
 A typical conversation looks like:
 
 ```text
-You: Run the Dflow /dflow:new-feature workflow.
+You: dflow:new-feature
 
 Codex CLI: I'll read dflow/specs/shared/AI-AGENT-GUIDE.md first, then use the
 new-feature workflow. Please describe the user-visible capability or business
@@ -135,21 +133,22 @@ dflow/specs/features/active/. Before I do, I have a few clarifying questions.
 
 The workflow then walks you through spec drafting, behavior examples,
 implementation planning, and finish-feature drift checks. The exact
-sequence depends on which workflow you entered (`/dflow:new-feature`,
-`/dflow:modify-existing`, `/dflow:bug-fix`, etc.).
+sequence depends on which workflow you entered (`dflow:new-feature`,
+`dflow:modify-existing`, `dflow:bug-fix`, etc.; the canonical guide records
+these as `/dflow:*`).
 
 Available workflow entry points:
 
-| Workflow | Use when |
+| Codex input | Use when |
 |---|---|
-| `/dflow:new-feature` | A new user-visible capability or business behavior is requested. |
-| `/dflow:modify-existing` | Existing behavior needs to change. |
-| `/dflow:bug-fix` | A defect can be described with expected vs actual behavior. |
-| `/dflow:new-phase` | An active feature needs another implementation slice. |
-| `/dflow:finish-feature` | Implementation is complete and needs drift closure. |
-| `/dflow:verify` | Specs, domain docs, implementation, and tests need consistency checks. |
-| `/dflow:pr-review` | A change is ready for SDD/DDD review. |
-| `/dflow:report-dflow-feedback` | You found a Dflow issue or improvement and want a sanitized upstream feedback draft. |
+| `dflow:new-feature` | A new user-visible capability or business behavior is requested. |
+| `dflow:modify-existing` | Existing behavior needs to change. |
+| `dflow:bug-fix` | A defect can be described with expected vs actual behavior. |
+| `dflow:new-phase` | An active feature needs another implementation slice. |
+| `dflow:finish-feature` | Implementation is complete and needs drift closure. |
+| `dflow:verify` | Specs, domain docs, implementation, and tests need consistency checks. |
+| `dflow:pr-review` | A change is ready for SDD/DDD review. |
+| `dflow:report-dflow-feedback` | You found a Dflow issue or improvement and want a sanitized upstream feedback draft. |
 
 If you forget a workflow name, ask Codex to read
 `dflow/specs/shared/AI-AGENT-GUIDE.md` and list the available Dflow
@@ -168,7 +167,7 @@ shim includes a trigger list generated from the canonical command registry.
 Those triggers are still plain text prompts, for example:
 
 ```text
-Run the Dflow /dflow:new-feature workflow.
+dflow:new-feature
 ```
 
 If the project already has a custom `AGENTS.md`, Dflow still preserves that
@@ -217,11 +216,11 @@ Codex shim has a normal Markdown bullet pointing to the canonical guide, not
 an `@...` import. Ask Codex to read `AI-AGENT-GUIDE.md` if it appears to be
 working from the shim alone.
 
-**`/dflow:*` is not a Codex CLI built-in slash command.** Codex slash
-commands control the Codex session itself. Use Dflow workflow names as plain
-chat instructions when raw slash input is intercepted or rejected. Raw
-`/dflow:*` passthrough behavior should be verified with the maintainer for
-the supported Codex version.
+**`/dflow:*` is not a Codex CLI built-in slash command.** Codex slash commands
+control the Codex session itself. When raw slash input is intercepted or
+rejected, use the no-slash text form `dflow:<id>`, for example
+`dflow:status`. The model should treat it as the canonical `/dflow:<id>`
+workflow by reading `AI-AGENT-GUIDE.md`.
 
 **Codex does not generate command files.** Even with `--command-adapters`,
 Codex only strengthens text-trigger guidance in `AGENTS.md` / merge

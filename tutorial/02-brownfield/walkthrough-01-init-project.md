@@ -173,6 +173,21 @@ Bob 確認後，Dflow 寫入 baseline。
 |---|---|
 | [`outputs/CLAUDE.md`](outputs/CLAUDE.md) | Claude Code shim，指向 canonical AI guide。 |
 
+**optional command adapters**
+
+`dflow init` 只建立 root shim。若 Bob 想在 Claude Code 中看到工具原生 Dflow
+命令入口，可以在 init 後執行：
+
+```bash
+dflow configure-agents --command-adapters
+```
+
+選擇 Claude Code 後，Dflow 會產生 `.claude/commands/dflow/<id>.md`，Claude Code
+中的叫法是 `/dflow:<id>`，例如 `/dflow:modify-existing`。若同一專案也啟用其他
+工具，GitHub Copilot 的 prompt 選單是 `/dflow-<id>`，Codex CLI 則使用不帶斜線的
+`dflow:<id>`。這些都指回 `AI-AGENT-GUIDE.md` 的 canonical `/dflow:*` workflow；
+差別只在各工具 `/` parser 行為。
+
 ## 為什麼 init 不建 `Order` BC
 
 Order 是最可能先處理的候選，但 init 仍不建立 `dflow/specs/domain/Order/`。
