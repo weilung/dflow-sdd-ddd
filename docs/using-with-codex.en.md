@@ -84,6 +84,9 @@ it. If the existing file does not already point to
 `dflow/specs/shared/AGENTS-md-snippet.md` that you can merge manually. This
 avoids destroying custom project instructions you already had.
 
+In the `dflow configure-agents --command-adapters` case, the corresponding
+snippet path is `dflow/specs/shared/AGENTS-md-command-adapters-snippet.md`.
+
 ## Using Dflow Workflow Commands in Codex CLI
 
 Codex CLI has its own built-in slash command layer for controlling the CLI
@@ -171,6 +174,9 @@ Run the Dflow /dflow:new-feature workflow.
 If the project already has a custom `AGENTS.md`, Dflow still preserves that
 file; merge the Dflow pointer manually from the generated snippet or the
 documentation guidance.
+
+In this mode, the Codex-target merge snippet filename is
+`dflow/specs/shared/AGENTS-md-command-adapters-snippet.md`.
 
 ## Differences vs Other AI Tools
 

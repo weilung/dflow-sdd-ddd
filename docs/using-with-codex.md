@@ -74,6 +74,9 @@ Claude Code、GitHub Copilot 與其他工具。
 `dflow/specs/shared/AGENTS-md-snippet.md` 下寫入 merge snippet，
 讓你手動合併。這樣可以避免破壞你已有的自訂專案指示。
 
+若是 `dflow configure-agents --command-adapters` 情境，對應檔名為
+`dflow/specs/shared/AGENTS-md-command-adapters-snippet.md`。
+
 ## 在 Codex CLI 中使用 Dflow Workflow 指令
 
 Codex CLI 有自己的內建 slash command 層，用來控制 CLI session。
@@ -156,6 +159,9 @@ Run the Dflow /dflow:new-feature workflow.
 
 如果專案已有自訂 `AGENTS.md`，Dflow 仍會保留既有檔案；請依產生的 merge snippet
 或文件指引手動合併 Dflow 指標。
+
+在這個模式下，Codex 目標的 merge snippet 檔名是
+`dflow/specs/shared/AGENTS-md-command-adapters-snippet.md`。
 
 ## 與其他 AI 工具的差異
 
