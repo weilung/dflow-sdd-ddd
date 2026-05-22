@@ -6,6 +6,45 @@
 
 ---
 
+## 0.7.0 — 2026-05-22 — Opt-in Claude skill adapter、自動清理舊 command adapter、發布前 lifecycle 機檢
+
+**Proposals**：PROPOSAL-037（generated adapter commit 政策與升級流程）、PROPOSAL-038（選配 skill adapter）、PROPOSAL-035（lifecycle drift forcing-functions）
+
+**新功能**：
+
+- **`dflow configure-agents --skills`**（PROPOSAL-038）：在已初始化的專案投影一個
+  edition-neutral 的「thin」skill 到 `.claude/skills/dflow/SKILL.md`，指向專案內既有
+  guide（不打包 SKILL.md 模板）。auto-trigger 描述刻意收窄，採 suggest-and-wait
+  契約；wrapper 帶 `<!-- dflow-generated: skill-adapter -->` 供覆寫保護。`--skills`
+  在未鎖定 Claude 時 warn 並 no-op。Claude skill 與 command adapter（`dflow:<id>`）
+  名稱不衝突，可共存（已於 real Claude Code 實測）。Codex 維持 AGENTS.md 文字觸發，
+  不提供 user-level skill。
+
+**行為改善**：
+
+- **`init` 自動移除前一版 stale command adapter**（PROPOSAL-037 Segment B）：透過既有
+  plan / preview / confirm pipeline，依明確的 `LEGACY_COMMAND_ADAPTERS` 表（目前僅
+  v0.5.0）與 CRLF-normalized 精確指紋比對，apply 時再次 re-check；對使用者改過或
+  非 Dflow 產生的檔案 warn-but-keep，絕不使用 glob。**這把 0.6.0 需手動刪除舊
+  `.claude/commands/dflow/dflow-*.md` 的遷移步驟自動化了**。新生成的 wrapper 帶
+  `<!-- dflow-generated: command-adapter -->`。
+
+**文件**：
+
+- **generated adapter 的版控政策**（PROPOSAL-037 Segment A）：README（zh + en）與各工具
+  guide 補上建議預設（gitignore + 重新生成）與「追蹤 adapter」的替代做法、條件式
+  `.gitignore` 片段與 glob 注意事項、`git rm --cached` 指引，並區分 adapter-refresh
+  與 canonical-guide-migration、加入 CLI 版本 pinning 說明。
+
+**維護者工具**（不影響套件使用者）：
+
+- **lifecycle drift 機檢**（PROPOSAL-035）：新增 `scripts/check-lifecycle.mjs`（dev-only，
+  不隨套件發布），硬斷言「`proposals/` 內無 terminal-status proposal」與「`archive/proposals/`
+  內皆為 terminal status」，並對引用已歸檔 proposal 的 active handoff 發出 warning；
+  接入 CI 與 npm 發布前 checklist。
+
+---
+
 ## 0.6.0 — 2026-05-21 — Command-adapter 命名修正
 
 **Proposals**：PROPOSAL-036（修正 command-adapter 命名 + 各工具叫用現實對齊）
