@@ -29,7 +29,7 @@ optional starter files, and AI coding agents before showing a full file preview.
 
 function printConfigureAgentsHelp() {
   process.stdout.write(`Usage:
-  dflow configure-agents [--command-adapters]
+  dflow configure-agents [--command-adapters] [--skills]
 
 Adds AI agent instruction files to an existing Dflow project.
 The command can create AGENTS.md, CLAUDE.md, and
@@ -38,6 +38,7 @@ dflow/specs/shared/AI-AGENT-GUIDE.md file.
 
 Options:
   --command-adapters  Also generate tool-native thin wrappers for supported tools.
+  --skills            Also generate a supported tool's skill adapter (currently Claude Code project skill, restores natural-language auto-trigger).
 `);
 }
 
@@ -95,7 +96,9 @@ async function main() {
     }
 
     const configureOptions = args.slice(1);
-    const unsupportedConfigureOptions = configureOptions.filter((arg) => arg !== '--command-adapters');
+    const unsupportedConfigureOptions = configureOptions.filter(
+      (arg) => arg !== '--command-adapters' && arg !== '--skills'
+    );
     if (unsupportedConfigureOptions.length > 0) {
       process.stderr.write(`Unsupported configure-agents option: ${unsupportedConfigureOptions.join(' ')}\n`);
       return 1;
@@ -106,7 +109,8 @@ async function main() {
       stdin: process.stdin,
       stdout: process.stdout,
       stderr: process.stderr,
-      commandAdapters: configureOptions.includes('--command-adapters')
+      commandAdapters: configureOptions.includes('--command-adapters'),
+      skills: configureOptions.includes('--skills')
     });
   }
 

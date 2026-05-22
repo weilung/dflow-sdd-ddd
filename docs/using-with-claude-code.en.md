@@ -200,6 +200,66 @@ re-projects adapters from the **new registry**, but an existing
 adapters" is not the same as "migrating the canonical guide." Re-project with
 the **same dflow CLI version** to avoid a registry / guide version mismatch.
 
+### Optional Skill Adapter (Restore Natural-Language Auto-Trigger)
+
+Command adapters give you a `/` menu entry, but they **do not auto-trigger** —
+you have to invoke the command yourself. If you want to restore the "say 'I want
+to add a feature' and it shows up automatically" experience, run this in an
+initialized project:
+
+```bash
+dflow configure-agents --skills
+```
+
+After you select Claude Code, Dflow generates a thin skill:
+
+- `.claude/skills/dflow/SKILL.md`
+
+This skill does not copy workflow steps; its body only points to the canonical
+`dflow/specs/shared/AI-AGENT-GUIDE.md`, which carries the real workflow content.
+Its behavior:
+
+- **Auto-triggers on** feature / bug-fix workflows, product/domain behavior
+  changes, new requirements, and spec-impacting architecture / domain-model
+  decisions.
+- **Does not trigger on** pure refactors, infrastructure chores, formatting, or
+  general code questions.
+- When engaged by natural language it **does not enter a workflow directly**: it
+  judges the intent, **suggests the matching `/dflow:` command, and waits for
+  your confirmation** before proceeding.
+
+**The four combinations** (command adapters and the skill are each independently
+opt-in):
+
+| Installed | Entry behavior |
+|---|---|
+| Neither | Root shim only (CLAUDE.md points to the guide); no `/` menu, no auto-trigger |
+| Command adapters only | `/dflow:*` appears in the `/` menu; no natural-language auto-trigger |
+| Skill only | Natural-language auto-trigger (suggest-and-wait); no `/` menu |
+| Both | `/` menu + natural-language safety net **may coexist** |
+
+**Both may coexist with no mutex needed** (validated in a real Claude Code
+environment): the skill name `dflow` does not collide with the command adapters'
+`dflow:<id>` names, explicit commands load their own adapter precisely with no
+double-fire; the skill acts as a natural-language safety net while command
+adapters provide the `/` menu.
+
+After installing, verify with `/skills` or by asking "What skills are
+available?". Note: adding a new top-level skills directory may require
+**restarting Claude Code** before it is watched. Also, a personal / enterprise
+skill at `~/.claude/skills/dflow` can **override** the project skill (per the
+Claude docs); use `/skills` to check which one is active.
+
+**Version-control policy**: `.claude/skills/dflow/SKILL.md` is a **generated
+artifact**, just like the command adapters, and follows the same default — do
+not version-control it and regenerate it after clone with
+`dflow configure-agents --skills` (`.claude/skills/dflow/` is already in the
+recommended gitignore set); clone-ready teams may version-control it instead.
+Re-running `--skills` is idempotent: an existing marker-stamped skill is
+rewritten cleanly. If `.claude/skills/dflow/SKILL.md` is **not** Dflow-generated
+(no `<!-- dflow-generated: skill-adapter -->` marker), Dflow leaves it unchanged
+and prints a warning asking you to remove or rename it.
+
 ## Differences vs Other AI Tools
 
 The canonical guide (`dflow/specs/shared/AI-AGENT-GUIDE.md`) is identical

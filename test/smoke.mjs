@@ -266,6 +266,77 @@ try {
   assert.equal(reconfigured.code, 0, `second configure-agents failed\nSTDOUT:\n${reconfigured.stdout}\nSTDERR:\n${reconfigured.stderr}`);
   assert.equal(await exists(join(legacyRoot, 'dflow/specs/shared/CLAUDE-md-snippet.md')), false, 'configured CLAUDE.md should skip instead of creating a duplicate snippet');
 
+  // PROPOSAL-038: --skills thin Claude skill adapter
+  const skillPath = join(legacyRoot, '.claude/skills/dflow/SKILL.md');
+  const skillsConfigured = await runDflow(legacyRoot, '2\ny\n', ['configure-agents', '--skills']);
+  assert.equal(
+    skillsConfigured.code,
+    0,
+    `configure-agents --skills failed\nSTDOUT:\n${skillsConfigured.stdout}\nSTDERR:\n${skillsConfigured.stderr}`
+  );
+  assert.equal(await exists(skillPath), true, '--skills with Claude should create the skill adapter');
+  const skillContent = await readFile(skillPath, 'utf8');
+  assert.match(skillContent, /<!-- dflow-generated: skill-adapter -->/, 'skill adapter should include the generated skill marker');
+  assert.match(skillContent, /^name: dflow$/m, 'skill adapter frontmatter should name the skill dflow');
+  assert.match(skillContent, /dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/, 'skill adapter should point to the canonical guide');
+
+  // Idempotent re-run: marker-stamped skill is rewritten cleanly.
+  const skillsRerun = await runDflow(legacyRoot, '2\ny\n', ['configure-agents', '--skills']);
+  assert.equal(
+    skillsRerun.code,
+    0,
+    `configure-agents --skills re-run failed\nSTDOUT:\n${skillsRerun.stdout}\nSTDERR:\n${skillsRerun.stderr}`
+  );
+  assert.equal(await readFile(skillPath, 'utf8'), skillContent, 're-running --skills should rewrite the same marker-stamped skill');
+
+  // Overwrite protection: a user's own non-generated skill is left unchanged + warned.
+  const userSkill = '# My own dflow skill\n\nHand-written, not generated.\n';
+  await writeFile(skillPath, userSkill);
+  const skillsProtected = await runDflow(legacyRoot, '2\ny\n', ['configure-agents', '--skills']);
+  assert.equal(
+    skillsProtected.code,
+    0,
+    `configure-agents --skills (overwrite protection) failed\nSTDOUT:\n${skillsProtected.stdout}\nSTDERR:\n${skillsProtected.stderr}`
+  );
+  assert.equal(await readFile(skillPath, 'utf8'), userSkill, 'non-generated skill should be left unchanged');
+  assert.match(
+    skillsProtected.stdout,
+    /Existing \.claude\/skills\/dflow\/SKILL\.md is not a Dflow-generated skill; left unchanged/,
+    'overwrite protection should warn about the non-generated skill'
+  );
+  assert.doesNotMatch(
+    skillsProtected.stdout,
+    /\.claude\/skills\/dflow\/SKILL\.md \| (create|update) \|/,
+    'non-generated skill should not be in the created/updated set'
+  );
+
+  // --skills without Claude selected: warn + no skill file (use a fresh project).
+  const noClaudeRoot = join(tempRoot, 'skills-no-claude');
+  await mkdir(noClaudeRoot, { recursive: true });
+  const noClaudeInit = [
+    '1',
+    'ASP.NET Core 9, EF Core 8',
+    'none',
+    '1',
+    '1,2',
+    'none',
+    'y'
+  ].join('\n') + '\n';
+  const noClaudeInitRun = await runDflow(noClaudeRoot, noClaudeInit, ['init']);
+  assert.equal(noClaudeInitRun.code, 0, `no-claude init failed\nSTDOUT:\n${noClaudeInitRun.stdout}\nSTDERR:\n${noClaudeInitRun.stderr}`);
+  const noClaudeSkills = await runDflow(noClaudeRoot, '1\ny\n', ['configure-agents', '--skills']);
+  assert.equal(
+    noClaudeSkills.code,
+    0,
+    `configure-agents --skills (no claude) failed\nSTDOUT:\n${noClaudeSkills.stdout}\nSTDERR:\n${noClaudeSkills.stderr}`
+  );
+  assert.match(
+    noClaudeSkills.stdout,
+    /--skills flag currently supports Claude Code only/,
+    '--skills without Claude should warn'
+  );
+  assert.equal(await exists(join(noClaudeRoot, '.claude/skills/dflow/SKILL.md')), false, '--skills without Claude should not create a skill file');
+
   const webformsRoot = join(tempRoot, 'webforms-custom');
   await mkdir(webformsRoot, { recursive: true });
 

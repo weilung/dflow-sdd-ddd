@@ -177,6 +177,54 @@ git rm --cached -r .claude/commands/dflow/
 重投影；但既有 `dflow/specs/shared/AI-AGENT-GUIDE.md` **不會**被覆寫——「重投影 adapter」不等於
 「升級 canonical guide」。請以**相同的 dflow CLI 版本**重投影，避免 registry 與 guide 版本錯位。
 
+### 選配 Skill Adapter（找回自然語言自動觸發）
+
+Command adapter 提供 `/` 選單入口，但**不會自動觸發**——你得主動打命令。若想找回
+「講『我要加一個功能』就自動現身」的體驗，可在已初始化的專案中執行：
+
+```bash
+dflow configure-agents --skills
+```
+
+選擇 Claude Code 後，Dflow 會產生一份薄 skill：
+
+- `.claude/skills/dflow/SKILL.md`
+
+這份 skill 不複製 workflow 步驟，body 只指向 canonical
+`dflow/specs/shared/AI-AGENT-GUIDE.md`，由 guide 承載真正的 workflow 內容。
+它的行為：
+
+- **自動觸發於** feature / bug-fix workflow、product/domain behavior 變更、新需求、
+  spec-impacting 的 architecture / domain-model 決策。
+- **不會觸發於** 純 refactor、infra chore、formatting、一般 code 問題。
+- 由自然語言觸發時，**不會直接進 workflow**：它會判斷意圖、**建議對應的 `/dflow:`
+  命令並等待你確認**，再進入流程。
+
+**四種組合**（command adapter 與 skill 各自獨立 opt-in）：
+
+| 安裝組合 | 入口行為 |
+|---|---|
+| 都不裝 | 只有根目錄 shim（CLAUDE.md 指向 guide）；無 `/` 選單、無自動觸發 |
+| 只裝 command adapters | `/dflow:*` 出現在 `/` 選單；無自然語言自動觸發 |
+| 只裝 skill | 自然語言自動觸發（suggest-and-wait）；無 `/` 選單 |
+| 兩者都裝 | `/` 選單 + 自然語言 safety net **可共存** |
+
+**兩者可共存、無需互斥**（已在真實 Claude Code 環境驗證）：skill 名稱 `dflow` 與
+command adapter 的 `dflow:<id>` 不撞名，明確命令各自精準載入、不會雙觸發；skill 當
+自然語言 safety net，command adapters 當 `/` 選單。
+
+安裝後用 `/skills` 或詢問「What skills are available?」確認 skill 已被探索到。注意：
+新增頂層 skills 目錄可能需**重啟 Claude Code** 才會被 watch 到。另外，位於
+`~/.claude/skills/dflow` 的 personal / enterprise skill 可能會 **override** 專案層級
+skill（依 Claude 官方文件），用 `/skills` 可檢查目前生效的是哪一份。
+
+**版控政策**：`.claude/skills/dflow/SKILL.md` 與 command adapter 一樣是**衍生物**，
+沿用相同預設——不版控、由 clone 後重跑 `dflow configure-agents --skills` 重生成
+（`.claude/skills/dflow/` 已列入建議的 gitignore 集合）；clone-ready 團隊也可選擇版控。
+重跑 `--skills` 是 idempotent 的：帶 marker 的既有 skill 會被乾淨重寫；若 `.claude/skills/dflow/SKILL.md`
+**不是** Dflow 產生的（無 `<!-- dflow-generated: skill-adapter -->` marker），Dflow 不會覆蓋它，
+只會印出 warning 提示你移除或改名。
+
 ## 與其他 AI 工具的差異
 
 canonical 指南（`dflow/specs/shared/AI-AGENT-GUIDE.md`）在各工具之間是相同的。
