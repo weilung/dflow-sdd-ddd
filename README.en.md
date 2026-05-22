@@ -237,6 +237,36 @@ You can run `dflow configure-agents` later to add more tool shims as the team
 adopts additional AI coding agents. If you need Claude / Copilot tool-native
 command entries, use `dflow configure-agents --command-adapters`.
 
+### Version-Control Policy for Generated Artifacts (recommended default)
+
+The command / prompt wrappers produced by `dflow configure-agents
+--command-adapters` are **generated artifacts** projected from the canonical
+guide. Dflow's **recommended default** is to treat them as regenerable output:
+version-control the source, not the generated artifacts.
+
+| File | Role | Recommended default |
+|---|---|---|
+| `dflow/` (canonical guide, specs, merge snippet) | source | **version-control** |
+| Thin shims (`CLAUDE.md` / `AGENTS.md` / `.github/copilot-instructions.md`) | source | **version-control** |
+| `.claude/commands/dflow/`, `.github/prompts/dflow-*.prompt.md` | generated | **recommended: do not version-control (gitignore)**; regenerate after clone with `configure-agents --command-adapters` |
+
+This is a **recommendation**, not the only valid policy. If your team wants a
+native `/` menu immediately after clone, or your CI / dev environment does not
+install npm, **version-controlling the adapters** is a reasonable choice — the
+trade-off is that when an upgrade renames commands you must re-project and
+commit the removal of the old files. The key rule: **use one consistent policy
+across all tools in a project**, rather than ignoring adapters for one tool and
+tracking them for another.
+
+After upgrading Dflow, re-running `dflow configure-agents --command-adapters`
+re-projects adapters from the **new command registry**, but it does **not**
+overwrite an existing `dflow/specs/shared/AI-AGENT-GUIDE.md` (an existing
+canonical guide is kept). "Re-projecting adapters" and "migrating the canonical
+guide" are two different things; re-project with the **same dflow CLI version**
+to avoid a registry / guide version mismatch. Per-tool `.gitignore` snippets,
+glob side effects, the `git rm --cached` switch-over step, and upgrade details
+are covered in the per-tool guides.
+
 For tool-specific walk-throughs of what `init` writes and how Dflow's
 workflow commands appear in a given AI tool, see the per-tool guides under
 `docs/`:

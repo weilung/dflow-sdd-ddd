@@ -83,6 +83,42 @@ does not copy workflow steps. Copilot's `/` parser behavior differs from
 Claude and Codex: the prompt menu entry is `/dflow-<id>`, while chat text may
 still name the canonical `/dflow:<id>` workflow.
 
+### Version Control and Upgrades for Generated Adapters
+
+`.github/prompts/dflow-<id>.prompt.md` is a **generated artifact** projected
+from the canonical guide. Dflow's **recommended default** is to not
+version-control it and regenerate it after clone with `dflow configure-agents
+--command-adapters`; teams that want a native prompt menu immediately after
+clone may instead **version-control** it. Use one consistent policy across all
+tools in a project (policy overview in
+[README "Files Created by Init"](../README.en.md#files-created-by-init)).
+
+When using the gitignore default, add this to the project `.gitignore` (**mind
+the glob side effect**):
+
+```gitignore
+.github/prompts/dflow-*.prompt.md
+```
+
+This glob also ignores any of your own prompt files named with a `dflow-`
+prefix. If you have custom prompts with the same prefix, use a more specific
+rule or rename your custom files. If these prompts are **already
+version-controlled**, adding the ignore rule does not remove them
+automatically; first run:
+
+```bash
+git rm --cached .github/prompts/dflow-*.prompt.md
+```
+
+(`--cached` removes them from version control while keeping the working-tree
+files.)
+
+After upgrading Dflow, re-running `dflow configure-agents --command-adapters`
+re-projects prompt adapters from the **new registry**, but an existing
+`dflow/specs/shared/AI-AGENT-GUIDE.md` is **not** overwritten — "re-projecting
+adapters" is not the same as "migrating the canonical guide." Re-project with
+the **same dflow CLI version**.
+
 ### Sample Conversation Flow
 
 A typical Copilot Chat workflow looks like this:

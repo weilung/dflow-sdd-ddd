@@ -156,10 +156,49 @@ These wrappers use Claude Code's directory namespace names, for example
 `/dflow:new-feature`. Their body only points to the canonical
 `/dflow:new-feature` workflow and `dflow/specs/shared/AI-AGENT-GUIDE.md`; it
 does not copy workflow steps. Projects upgraded from Dflow 0.5.0 may still
-have old `.claude/commands/dflow/dflow-*.md` files. Dflow does not delete user
-files automatically; remove those old wrappers manually so Claude Code does
-not show both the old `/dflow:dflow-<id>` names and the new `/dflow:<id>`
-names.
+have old `.claude/commands/dflow/dflow-*.md` files, which make Claude Code show
+both the old `/dflow:dflow-<id>` names and the new `/dflow:<id>` names. When you
+re-run `dflow configure-agents --command-adapters`, Dflow **automatically
+detects and removes** these 0.5.0-generated stale wrappers: the files to remove
+are listed in the confirmation preview (marked `remove`) and deleted only after
+you confirm. Dflow removes only files whose content **exactly matches** the
+0.5.0 generated output; if you have edited the file, or it is one you placed in
+the same namespace yourself, Dflow leaves it in place and prints a warning so
+you can review it manually.
+
+### Version Control and Upgrades for Generated Adapters
+
+`.claude/commands/dflow/<id>.md` is a **generated artifact** projected from the
+canonical guide. Dflow's **recommended default** is to not version-control it
+and regenerate it after clone with `dflow configure-agents --command-adapters`;
+teams that want a native command menu immediately after clone may instead
+**version-control** it. Use one consistent policy across all tools in a project
+(see the policy overview and ignore-vs-track trade-off in
+[README "Files Created by Init"](../README.en.md#files-created-by-init)).
+
+When using the gitignore default, add this to the project `.gitignore` (**only
+if you reserve the `.claude/commands/dflow/` namespace for Dflow**):
+
+```gitignore
+.claude/commands/dflow/
+```
+
+Note: this rule also ignores any custom commands you place in the same
+directory. If the directory is **already version-controlled**, adding the
+ignore rule does not remove it from version control automatically; first run:
+
+```bash
+git rm --cached -r .claude/commands/dflow/
+```
+
+(`--cached` removes it from version control while keeping the working-tree
+files.)
+
+After upgrading Dflow, re-running `dflow configure-agents --command-adapters`
+re-projects adapters from the **new registry**, but an existing
+`dflow/specs/shared/AI-AGENT-GUIDE.md` is **not** overwritten — "re-projecting
+adapters" is not the same as "migrating the canonical guide." Re-project with
+the **same dflow CLI version** to avoid a registry / guide version mismatch.
 
 ## Differences vs Other AI Tools
 

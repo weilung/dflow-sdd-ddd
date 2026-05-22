@@ -44,6 +44,25 @@ function runDflow(cwd, input = '', args = ['init']) {
   };
 }
 
+function legacyV050Wrapper(id, label, argHint) {
+  const argHintLine = argHint === '-'
+    ? 'Argument hint: none.'
+    : `Argument hint: ${argHint}.`;
+
+  return `# /dflow-${id}
+
+Execute the canonical \`${label}\` Dflow workflow or control command.
+
+Definition: \`dflow/specs/shared/AI-AGENT-GUIDE.md\`
+
+${argHintLine}
+`;
+}
+
+function toCrlf(content) {
+  return content.replace(/\n/g, '\r\n');
+}
+
 try {
   const input = [
     '1',
@@ -198,6 +217,7 @@ try {
   assert.match(claudeWrapper, /^# \/dflow:new-feature$/m, 'Claude wrapper should use Claude command namespace name');
   assert.match(copilotWrapper, /^# \/dflow-new-feature$/m, 'Copilot wrapper should use prompt menu name');
   for (const [name, content] of Object.entries({ claudeWrapper, copilotWrapper })) {
+    assert.match(content, /<!-- dflow-generated: command-adapter -->/, `${name} should include generated adapter marker`);
     assert.match(content, /Execute the canonical `\/dflow:new-feature` Dflow workflow or control command\./);
     assert.match(content, /Definition: `dflow\/specs\/shared\/AI-AGENT-GUIDE\.md`/);
     assert.match(content, /Argument hint: feature request\./);
@@ -209,6 +229,38 @@ try {
   const existingAgentsSnippet = await readFile(join(legacyRoot, 'dflow/specs/shared/AGENTS-md-snippet.md'), 'utf8');
   assert.match(existingAgentsSnippet, /## Dflow Text Triggers/, 'Codex merge snippet should include text trigger guidance');
   assert.match(existingAgentsSnippet, /resend it without the slash, for example\s+`dflow:status`/, 'Codex merge snippet should explain no-slash text fallback');
+
+  await mkdir(join(legacyRoot, '.claude/commands/dflow'), { recursive: true });
+  await mkdir(join(legacyRoot, '.claude/commands/other'), { recursive: true });
+  const legacyStatusPath = join(legacyRoot, '.claude/commands/dflow/dflow-status.md');
+  const legacyNextPath = join(legacyRoot, '.claude/commands/dflow/dflow-next.md');
+  const customizedLegacyCancelPath = join(legacyRoot, '.claude/commands/dflow/dflow-cancel.md');
+  const nonRegistryDflowPath = join(legacyRoot, '.claude/commands/dflow/dflow-local.md');
+  const nonDflowPath = join(legacyRoot, '.claude/commands/other/foo.md');
+  await writeFile(legacyStatusPath, legacyV050Wrapper('status', '/dflow:status', '-'));
+  await writeFile(legacyNextPath, toCrlf(legacyV050Wrapper('next', '/dflow:next', '-')));
+  await writeFile(
+    customizedLegacyCancelPath,
+    `${legacyV050Wrapper('cancel', '/dflow:cancel', '-')}\nCustom local note.\n`
+  );
+  await writeFile(nonRegistryDflowPath, '# /dflow-local\n\nLocal project command.\n');
+  await writeFile(nonDflowPath, '# /other:foo\n\nOutside Dflow command namespace.\n');
+
+  const staleCleanup = await runDflow(legacyRoot, '2\ny\n', ['configure-agents', '--command-adapters']);
+  assert.equal(
+    staleCleanup.code,
+    0,
+    `stale cleanup configure-agents failed\nSTDOUT:\n${staleCleanup.stdout}\nSTDERR:\n${staleCleanup.stderr}`
+  );
+  assert.match(staleCleanup.stdout, /\.claude\/commands\/dflow\/dflow-status\.md \| remove \|/, 'LF v0.5.0 stale adapter should be listed for removal');
+  assert.match(staleCleanup.stdout, /\.claude\/commands\/dflow\/dflow-next\.md \| remove \|/, 'CRLF v0.5.0 stale adapter should be listed for removal');
+  assert.match(staleCleanup.stdout, /Found legacy Dflow command adapter with non-generated content; not removed: \.claude\/commands\/dflow\/dflow-cancel\.md/, 'customized legacy adapter should warn and remain');
+  assert.doesNotMatch(staleCleanup.stdout, /\.claude\/commands\/dflow\/dflow-local\.md \| remove \|/, 'non-registry dflow-local adapter should not be removed');
+  assert.equal(await exists(legacyStatusPath), false, 'exact LF v0.5.0 stale adapter should be removed');
+  assert.equal(await exists(legacyNextPath), false, 'exact CRLF v0.5.0 stale adapter should be removed');
+  assert.equal(await exists(customizedLegacyCancelPath), true, 'customized legacy adapter should remain');
+  assert.equal(await exists(nonRegistryDflowPath), true, 'same-namespace non-registry adapter should remain');
+  assert.equal(await exists(nonDflowPath), true, 'non-dflow command file should remain untouched');
 
   const reconfigured = await runDflow(legacyRoot, '2\ny\n', ['configure-agents']);
   assert.equal(reconfigured.code, 0, `second configure-agents failed\nSTDOUT:\n${reconfigured.stdout}\nSTDERR:\n${reconfigured.stderr}`);

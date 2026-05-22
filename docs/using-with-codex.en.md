@@ -177,6 +177,20 @@ documentation guidance.
 In this mode, the Codex-target merge snippet filename is
 `dflow/specs/shared/AGENTS-md-command-adapters-snippet.md`.
 
+### Version-Control Policy for Generated Artifacts (Codex)
+
+Codex does not generate command files, so there is **no derived adapter to
+gitignore**. On the Codex side, what you version-control is the `AGENTS.md`
+shim and `dflow/` (the canonical guide and specs); the merge helper
+`dflow/specs/shared/AGENTS-md-command-adapters-snippet.md` is part of `dflow/`
+and is **version-controlled along with `dflow/`**. `--command-adapters` only
+strengthens the text triggers in `AGENTS.md` for Codex; it adds no `.claude/`,
+`.github/`, or `.agents/` command files, so the Claude / Copilot
+"version-control the generated adapter or not" trade-off does not apply on the
+Codex side. The adapter version-control policy for other tools is covered in
+[README "Files Created by Init"](../README.en.md#files-created-by-init) and the
+per-tool guides.
+
 ## Differences vs Other AI Tools
 
 The canonical guide (`dflow/specs/shared/AI-AGENT-GUIDE.md`) is identical

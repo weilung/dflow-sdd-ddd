@@ -162,6 +162,16 @@ dflow:new-feature
 在這個模式下，Codex 目標的 merge snippet 檔名是
 `dflow/specs/shared/AGENTS-md-command-adapters-snippet.md`。
 
+### 產生物的版控政策（Codex）
+
+Codex 不產生 command 檔，所以**沒有需要 gitignore 的衍生 adapter**。Codex 端要版控的是
+`AGENTS.md` shim 與 `dflow/`（canonical guide + 規格）；其中
+`dflow/specs/shared/AGENTS-md-command-adapters-snippet.md` 這個 merge helper 屬 `dflow/` 的一部分，
+**隨 `dflow/` 一起版控**。`--command-adapters` 對 Codex 只強化 `AGENTS.md` 的文字 trigger，
+不新增任何 `.claude/`、`.github/`、`.agents/` 命令檔，因此 Claude / Copilot 那套「衍生 adapter
+要不要版控」的取捨在 Codex 端不適用。其他工具的 adapter 版控政策見
+[README「Init 產生的檔案」](../README.md#init-產生的檔案) 與各 per-tool 指南。
+
 ## 與其他 AI 工具的差異
 
 canonical 指南（`dflow/specs/shared/AI-AGENT-GUIDE.md`）在各工具之間是相同的。

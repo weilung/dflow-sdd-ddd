@@ -143,9 +143,39 @@ dflow configure-agents --command-adapters
 `/dflow:new-feature`。Wrapper 內容只指向 canonical `/dflow:new-feature`
 workflow 與 `dflow/specs/shared/AI-AGENT-GUIDE.md`，不複製 workflow 步驟。
 從 Dflow 0.5.0 升級的專案可能仍保留舊檔
-`.claude/commands/dflow/dflow-*.md`；Dflow 不會擅自刪除 user 檔，請手動刪除
-這些舊 wrapper，避免 Claude Code 同時顯示舊的 `/dflow:dflow-<id>` 與新的
-`/dflow:<id>`。
+`.claude/commands/dflow/dflow-*.md`，會讓 Claude Code 同時顯示舊的
+`/dflow:dflow-<id>` 與新的 `/dflow:<id>`。重跑
+`dflow configure-agents --command-adapters` 時，Dflow 會**自動偵測並清除**這些
+0.5.0 產生的 stale wrapper：待刪檔會列在確認 preview 中（標為 `remove`），由你
+確認後才刪除。Dflow 只會刪除**內容與 0.5.0 產生物完全相符**的檔；若該檔被你改過、
+或是你自己放在同 namespace 的檔，Dflow 不會刪除，只會印出 warning 提示你自行確認。
+
+### 產生物的版控政策與升級
+
+`.claude/commands/dflow/<id>.md` 是從 canonical guide 投影出來的**衍生物**。Dflow 的
+**建議預設**是不版控、由 clone 後重跑 `dflow configure-agents --command-adapters` 重生成；
+團隊若想 clone 後立即有原生命令選單，也可改為**版控**。重點是同一專案對所有工具採一致策略
+（政策總覽與 ignore-vs-track 取捨見 [README「Init 產生的檔案」](../README.md#init-產生的檔案)）。
+
+採 gitignore 預設時，在專案 `.gitignore` 加入（**僅在你保留 `.claude/commands/dflow/`
+namespace 給 Dflow 時**）：
+
+```gitignore
+.claude/commands/dflow/
+```
+
+注意：此規則會一併 ignore 你放在同一目錄下的自訂 command。若該目錄**已被版控**，新增 ignore
+規則不會自動把它移出版控，需先：
+
+```bash
+git rm --cached -r .claude/commands/dflow/
+```
+
+（`--cached` 只移出版控、保留工作目錄檔案。）
+
+升級 dflow 後重跑 `dflow configure-agents --command-adapters`，adapter 會用**新版 registry**
+重投影；但既有 `dflow/specs/shared/AI-AGENT-GUIDE.md` **不會**被覆寫——「重投影 adapter」不等於
+「升級 canonical guide」。請以**相同的 dflow CLI 版本**重投影，避免 registry 與 guide 版本錯位。
 
 ## 與其他 AI 工具的差異
 
