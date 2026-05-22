@@ -27,6 +27,9 @@ jobs:
       - run: npm test
       - run: npm pack --dry-run
       - run: git diff --check
+      - name: Lifecycle invariants
+        if: hashFiles('scripts/check-lifecycle.mjs') != ''
+        run: node scripts/check-lifecycle.mjs
       - name: Repository consistency
         if: >-
           hashFiles('MAINTAINERS.md') != '' &&

@@ -13,6 +13,14 @@ Replace `<version>` with the version being published, for example `0.1.2`.
 - [ ] Confirm `README.md` installation instructions match the release.
 - [ ] Confirm Greenfield and Brownfield common flow changes are synchronized.
 - [ ] Confirm generated templates match skill source where applicable.
+- [ ] Run the lifecycle check in the development repo and confirm it is green,
+      so every proposal this release covers is terminal (`implemented` /
+      `rejected` / `superseded`) and already archived:
+
+```bash
+node scripts/check-lifecycle.mjs
+```
+
 - [ ] Run:
 
 ```bash
