@@ -97,11 +97,15 @@ src/
 3. **Ubiquitous Language** — 使用 `dflow/specs/domain/glossary.md` 中定義的術語
 4. **Migration Awareness** — 每個決策都要考慮 target architecture
 
-### Dflow Skill — Canonical Decision Logic Lives in the Skill
+### Dflow Skill — Canonical Decision Logic Lives in the Project
 
 AI 的完整決策樹、Workflow Transparency、Ceremony Scaling 三層判準
-（T1/T2/T3）、各 `/dflow:` 命令的具體流程，**全部定義於 Dflow skill
-本體**（`sdd-ddd-brownfield-skill/SKILL.md` 與 `references/*.md`）。
+（T1/T2/T3）、各 `/dflow:` 命令的具體流程，**全部定義於本專案內
+的 Dflow 工件**（init 時投影）：
+
+- `dflow/specs/shared/AI-AGENT-GUIDE.md` — 決策樹 + Slash Commands 總表 + 路由規則
+- `dflow/specs/shared/dflow-workflows/references/*.md` — 各 flow 執行步驟定義
+
 本 `CLAUDE.md` 不重述這些內容，避免雙份維護。
 
 當你作為 AI assistant 被呼叫時，若偵測到使用者需要 SDD/DDD 工作流

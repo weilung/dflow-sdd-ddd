@@ -91,14 +91,14 @@ dflow/specs/
 
 > SDD 流程、Git 整合、Domain 層規範、AI 協作
 
-### Dflow Skill — Canonical Decision Logic Lives in the Skill
+### Dflow Skill — Canonical Decision Logic Lives in the Project
 
 AI 的完整決策樹、Workflow Transparency、Ceremony Scaling 三層判準
 （T1 Heavy / T2 Light / T3 Trivial）、所有 slash command 的 step-by-step
-流程 **不在此重述**，請以 Dflow skill 本體為準：
+流程 **不在此重述**，請以本專案內的 Dflow 工件為準（init 時投影）：
 
-- `sdd-ddd-greenfield-skill/SKILL.md`（決策樹 + Slash Commands 總表）
-- `sdd-ddd-greenfield-skill/references/` 內各 flow 文件
+- `dflow/specs/shared/AI-AGENT-GUIDE.md`（決策樹 + Slash Commands 總表 + 路由規則）
+- `dflow/specs/shared/dflow-workflows/references/` 內各 flow 文件（執行步驟定義）
 
 本專案採用的 Dflow entry points：
 - Dflow CLI init command (`dflow init`, or `npx dflow-sdd-ddd init` when using the no-install path) — 專案初始化（一次性，已執行過）

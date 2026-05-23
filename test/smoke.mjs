@@ -407,6 +407,41 @@ try {
   // This is implicitly covered: the legacyRoot brownfield init project's bundle
   // files carry the marker, so re-running would update them (not skip).
 
+  // PROPOSAL-041 C0: configure-agents should idempotently re-project a missing bundle
+  // (simulates a pre-039 project upgrading to a post-041 dflow without re-init).
+  const c0RepairRoot = join(tempRoot, 'c0-repair');
+  await mkdir(c0RepairRoot, { recursive: true });
+  const c0InitInput = [
+    '1',
+    'ASP.NET Core 9, EF Core 8, MediatR 12, xUnit',
+    'none',
+    '1',
+    '1,2',
+    '1,2,3',
+    'y'
+  ].join('\n') + '\n';
+  const c0Init = await runDflow(c0RepairRoot, c0InitInput);
+  assert.equal(c0Init.code, 0, `C0 repair: greenfield init failed\nSTDOUT:\n${c0Init.stdout}\nSTDERR:\n${c0Init.stderr}`);
+
+  const c0BundleDir = join(c0RepairRoot, 'dflow/specs/shared/dflow-workflows');
+  assert.equal(await exists(c0BundleDir), true, `C0 repair: bundle should exist right after init\nSTDOUT:\n${c0Init.stdout}`);
+
+  // Simulate a pre-039 project: rip out the entire bundle dir.
+  await rm(c0BundleDir, { recursive: true, force: true });
+  assert.equal(await exists(c0BundleDir), false, 'C0 repair: bundle should be gone after manual removal');
+
+  // configure-agents should now re-project the bundle (the PROPOSAL-041 C0 fix).
+  const c0Repair = await runDflow(c0RepairRoot, '1,2,3\ny\n', ['configure-agents']);
+  assert.equal(c0Repair.code, 0, `C0 repair: configure-agents failed\nSTDOUT:\n${c0Repair.stdout}\nSTDERR:\n${c0Repair.stderr}`);
+  assert.equal(await exists(c0BundleDir), true, 'C0 repair: configure-agents should re-project the bundle');
+  assert.equal(await exists(join(c0BundleDir, '.dflow-bundle-manifest.json')), true, 'C0 repair: manifest should be back');
+  assert.equal(await exists(join(c0BundleDir, 'references/new-feature-flow.md')), true, 'C0 repair: key flow file should be back');
+
+  // Second run is a true idempotency check: bundle stays valid, no error.
+  const c0Idempotent = await runDflow(c0RepairRoot, '1,2,3\ny\n', ['configure-agents']);
+  assert.equal(c0Idempotent.code, 0, `C0 repair: idempotent re-run failed\nSTDOUT:\n${c0Idempotent.stdout}\nSTDERR:\n${c0Idempotent.stderr}`);
+  assert.equal(await exists(c0BundleDir), true, 'C0 repair: bundle still present after idempotent re-run');
+
   const webformsRoot = join(tempRoot, 'webforms-custom');
   await mkdir(webformsRoot, { recursive: true });
 
