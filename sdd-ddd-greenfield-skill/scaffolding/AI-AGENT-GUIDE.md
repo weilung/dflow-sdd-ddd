@@ -121,12 +121,39 @@ Recommend `docs/migrating-to-dflow-v1.md` for the manual migration
 checklist. Migration affects every spec the team has written; manual
 review is required.
 
+## Workflow Steps
+
+This guide is the **command registry, routing rules, and project context**.
+Executable workflow steps (Step 1→N, step gates, completion checklists) are
+**not** defined here. They live in the vendored workflow bundle projected into
+this project at:
+
+- `dflow/specs/shared/dflow-workflows/`
+
+When executing a `/dflow:*` command, read the matching flow file from that
+directory first. For example:
+
+| Command | Flow file |
+|---|---|
+| `/dflow:new-feature` | `dflow/specs/shared/dflow-workflows/references/new-feature-flow.md` |
+| `/dflow:modify-existing` | `dflow/specs/shared/dflow-workflows/references/modify-existing-flow.md` |
+| `/dflow:bug-fix` | `dflow/specs/shared/dflow-workflows/references/modify-existing-flow.md` (lightweight-ceremony branch) |
+| `/dflow:new-phase` | `dflow/specs/shared/dflow-workflows/references/new-phase-flow.md` |
+| `/dflow:finish-feature` | `dflow/specs/shared/dflow-workflows/references/finish-feature-flow.md` |
+| `/dflow:verify` | `dflow/specs/shared/dflow-workflows/references/drift-verification.md` |
+| `/dflow:pr-review` | `dflow/specs/shared/dflow-workflows/references/pr-review-checklist.md` |
+| `/dflow:report-dflow-feedback` | `dflow/specs/shared/dflow-workflows/references/dflow-feedback-flow.md` |
+
+Supporting files (templates, domain modeling guide, drift checklist) are also
+in `dflow/specs/shared/dflow-workflows/` under the same relative paths used
+by the flow files.
+
 ## Tool-Specific Notes
 
-This file is the canonical Dflow guide. Root-level files such as
-`AGENTS.md`, `CLAUDE.md`, and `.github/copilot-instructions.md`
+This file is the canonical Dflow guide (registry + rules + router). Root-level
+files such as `AGENTS.md`, `CLAUDE.md`, and `.github/copilot-instructions.md`
 should stay thin and point back here.
 
 If a tool does not support Dflow slash commands, treat the command names as
-plain workflow names. This guide contains the installed runtime behavior
-contract; execute the workflow semantics defined here directly.
+plain workflow names and follow the matching flow file from the workflow bundle
+at `dflow/specs/shared/dflow-workflows/`.

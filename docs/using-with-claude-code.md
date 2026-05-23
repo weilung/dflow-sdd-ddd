@@ -62,10 +62,14 @@ Claude Code 在這個專案中啟動時，會發生兩件事：
    Markdown import 語法，將 canonical Dflow 指南 inline 嵌入。因此 Claude Code
    等效於把兩個檔案當成一組指示來讀取。
 
-canonical 指南（`dflow/specs/shared/AI-AGENT-GUIDE.md`）是實際 workflow
-規則的所在：專案上下文（track、技術棧、文章語言）、`/dflow:*` workflow 表、
-source-of-truth 檔案路徑，以及核心 SDD/DDD 規則。`CLAUDE.md` shim 刻意保持精簡，
-這樣 canonical 指南就能在不需要 Claude Code 專屬修改的情況下持續演進。
+canonical 指南（`dflow/specs/shared/AI-AGENT-GUIDE.md`）是**命令登錄表與路由器**：
+專案上下文（track、技術棧、文章語言）、`/dflow:*` workflow 表、source-of-truth
+檔案路徑，以及核心 SDD/DDD 規則。可執行的 workflow 步驟（Step 1→N、step gates、
+completion checklists）則放在 `init` 投影進專案的 **vendored workflow bundle**
+（`dflow/specs/shared/dflow-workflows/`）。兩者都是純 Markdown，隨 repo
+一起 commit，任何 clone 都能直接讀取，不需要 Dflow source 或 package 在本機安裝。
+`CLAUDE.md` shim 刻意保持精簡，這樣 canonical 指南就能在不需要 Claude Code
+專屬修改的情況下持續演進。
 
 如果專案中已有 `CLAUDE.md`，`init` 不會覆蓋它。它改為在
 `dflow/specs/shared/` 下寫入 merge snippet，讓你手動貼入現有的 `CLAUDE.md`。
@@ -103,8 +107,10 @@ dflow/specs/features/active/. Before I do, I need a short answer on:
 接著這個 workflow 會引導你完成 spec 起草、行為範例、實作計畫，以及
 finish-feature 漂移（drift）檢查。確切的流程取決於你進入的是哪個 workflow
 （`/dflow:new-feature`、`/dflow:modify-existing`、`/dflow:bug-fix` 等）。
-所有 workflow 定義都存放在 Dflow skill source 中；Claude Code 在需要時讀取
-skill 檔案來執行它們。
+可執行的步驟定義（Step 1→N、step gates、completion checklists）存放在
+`dflow/specs/shared/dflow-workflows/` 的 vendored bundle 中；`init` 會把這個
+bundle 投影進每個初始化的專案，因此 workflow 步驟是 self-contained 且可達的，
+不需要任何外部 source dependency。
 
 可用的 workflow 入口：
 
@@ -190,8 +196,9 @@ dflow configure-agents --skills
 
 - `.claude/skills/dflow/SKILL.md`
 
-這份 skill 不複製 workflow 步驟，body 只指向 canonical
-`dflow/specs/shared/AI-AGENT-GUIDE.md`，由 guide 承載真正的 workflow 內容。
+這份 skill 不複製 workflow 步驟，body 指向 canonical
+`dflow/specs/shared/AI-AGENT-GUIDE.md`（命令登錄表與路由規則）以及
+`dflow/specs/shared/dflow-workflows/`（含可執行步驟定義的 vendored bundle）。
 它的行為：
 
 - **自動觸發於** feature / bug-fix workflow、product/domain behavior 變更、新需求、

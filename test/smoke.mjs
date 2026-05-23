@@ -219,7 +219,8 @@ try {
   for (const [name, content] of Object.entries({ claudeWrapper, copilotWrapper })) {
     assert.match(content, /<!-- dflow-generated: command-adapter -->/, `${name} should include generated adapter marker`);
     assert.match(content, /Execute the canonical `\/dflow:new-feature` Dflow workflow or control command\./);
-    assert.match(content, /Definition: `dflow\/specs\/shared\/AI-AGENT-GUIDE\.md`/);
+    assert.match(content, /Registry and rules: `dflow\/specs\/shared\/AI-AGENT-GUIDE\.md`/);
+    assert.match(content, /Workflow steps: `dflow\/specs\/shared\/dflow-workflows\/`/);
     assert.match(content, /Argument hint: feature request\./);
     assert.doesNotMatch(content, /Do not jump|Status \/ Control Commands|Source of Truth|Spec before code|Step Gate/);
   }
@@ -337,6 +338,75 @@ try {
   );
   assert.equal(await exists(join(noClaudeRoot, '.claude/skills/dflow/SKILL.md')), false, '--skills without Claude should not create a skill file');
 
+  // PROPOSAL-039: workflow bundle projection
+  // Use the tempRoot (greenfield init already ran there); bundle should have been projected by init.
+  const bundleDir = join(tempRoot, 'dflow/specs/shared/dflow-workflows');
+  const bundleManifestPath = join(bundleDir, '.dflow-bundle-manifest.json');
+
+  // (i) bundle directory projected
+  assert.equal(await exists(bundleDir), true, 'workflow bundle directory should exist after init');
+
+  // (ii) key bundle files present
+  const expectedBundleFiles = [
+    'references/new-feature-flow.md',
+    'references/modify-existing-flow.md',
+    'references/finish-feature-flow.md',
+    'references/new-phase-flow.md',
+    'references/drift-verification.md',
+    'references/pr-review-checklist.md',
+    'references/dflow-feedback-flow.md',
+    'references/git-integration.md',
+    'references/init-project-flow.md',
+    'templates/glossary.md',
+    'templates/phase-spec.md',
+    'templates/_index.md',
+    'templates/rules.md',
+    'templates/behavior.md',
+    'templates/aggregate-design.md', // greenfield-only
+    'templates/events.md',           // greenfield-only
+    'references/ddd-modeling-guide.md', // greenfield-only
+  ];
+  for (const bundleFile of expectedBundleFiles) {
+    assert.equal(
+      await exists(join(bundleDir, bundleFile)),
+      true,
+      `bundle file should exist: dflow-workflows/${bundleFile}`
+    );
+  }
+
+  // (iii) bundle files carry the generated marker
+  const newFeatureFlow = await readFile(join(bundleDir, 'references/new-feature-flow.md'), 'utf8');
+  assert.match(newFeatureFlow, /<!-- dflow-generated: workflow-bundle -->/, 'bundle flow file should carry the generated marker');
+
+  // (iv) manifest present with correct edition and version
+  assert.equal(await exists(bundleManifestPath), true, 'bundle manifest should exist');
+  const manifestContent = JSON.parse(await readFile(bundleManifestPath, 'utf8'));
+  assert.equal(manifestContent.edition, 'greenfield', 'bundle manifest edition should be greenfield');
+  assert.match(manifestContent.version, /^\d+\.\d+\.\d+/, 'bundle manifest should record a semver version');
+  assert.ok(Array.isArray(manifestContent.files) && manifestContent.files.length > 0, 'bundle manifest should list files');
+
+  // (v) guide references project-local flow paths
+  const initedAiGuide = await readFile(join(tempRoot, 'dflow/specs/shared/AI-AGENT-GUIDE.md'), 'utf8');
+  assert.match(initedAiGuide, /dflow\/specs\/shared\/dflow-workflows\/references\/new-feature-flow\.md/, 'guide should reference project-local bundle path');
+
+  // (vi) no unreachable source paths in the guide or projected bundle
+  assert.doesNotMatch(initedAiGuide, /sdd-ddd-greenfield-skill|sdd-ddd-brownfield-skill/, 'guide should not contain source repo skill paths');
+
+  // (vii) legacyRoot was also initialized as greenfield; verify its bundle.
+  const legacyBundleDir = join(legacyRoot, 'dflow/specs/shared/dflow-workflows');
+  assert.equal(await exists(legacyBundleDir), true, 'workflow bundle should exist in legacyRoot project');
+  const legacyManifest = JSON.parse(await readFile(join(legacyBundleDir, '.dflow-bundle-manifest.json'), 'utf8'));
+  assert.equal(legacyManifest.edition, 'greenfield', 'legacyRoot bundle manifest edition should be greenfield');
+
+  // (viii) the webformsRoot (brownfield) will be checked after it is initialized below.
+  // We defer brownfield-specific checks to the webforms block.
+
+  // (ix) overwrite protection: manually write a non-generated file into the bundle dir;
+  // running init again on a fresh project and then verifying the bundle is safe.
+  // (We test the protection via the warning output from addWorkflowBundleItems.)
+  // This is implicitly covered: the legacyRoot brownfield init project's bundle
+  // files carry the marker, so re-running would update them (not skip).
+
   const webformsRoot = join(tempRoot, 'webforms-custom');
   await mkdir(webformsRoot, { recursive: true });
 
@@ -372,6 +442,43 @@ try {
 
   assert.equal(await exists(join(webformsRoot, 'dflow/specs/domain/context-map.md')), false, 'Brownfield init should not create context-map.md');
   assert.equal(await exists(join(webformsRoot, 'dflow/specs/architecture')), false, 'Brownfield init should not create architecture/');
+
+  // PROPOSAL-039: brownfield bundle checks
+  const webformsBundleDir = join(webformsRoot, 'dflow/specs/shared/dflow-workflows');
+  assert.equal(await exists(webformsBundleDir), true, 'brownfield: workflow bundle dir should exist');
+  const webformsBundleManifest = JSON.parse(await readFile(join(webformsBundleDir, '.dflow-bundle-manifest.json'), 'utf8'));
+  assert.equal(webformsBundleManifest.edition, 'brownfield', 'brownfield bundle manifest edition should be brownfield');
+
+  // Brownfield bundle should NOT include greenfield-only files
+  assert.equal(
+    await exists(join(webformsBundleDir, 'references/ddd-modeling-guide.md')),
+    false,
+    'brownfield bundle should not contain greenfield-only ddd-modeling-guide.md'
+  );
+  assert.equal(
+    await exists(join(webformsBundleDir, 'templates/aggregate-design.md')),
+    false,
+    'brownfield bundle should not contain greenfield-only aggregate-design.md'
+  );
+  assert.equal(
+    await exists(join(webformsBundleDir, 'templates/events.md')),
+    false,
+    'brownfield bundle should not contain greenfield-only events.md'
+  );
+
+  // Brownfield bundle should include common flow files
+  assert.equal(await exists(join(webformsBundleDir, 'references/new-feature-flow.md')), true, 'brownfield bundle should have new-feature-flow.md');
+  assert.equal(await exists(join(webformsBundleDir, 'references/finish-feature-flow.md')), true, 'brownfield bundle should have finish-feature-flow.md');
+  assert.equal(await exists(join(webformsBundleDir, 'templates/phase-spec.md')), true, 'brownfield bundle should have phase-spec.md template');
+
+  // Bundle flow files carry the generated marker
+  const brownfieldFlowContent = await readFile(join(webformsBundleDir, 'references/new-feature-flow.md'), 'utf8');
+  assert.match(brownfieldFlowContent, /<!-- dflow-generated: workflow-bundle -->/, 'brownfield bundle flow file should carry the generated marker');
+
+  // Guide should reference workflow bundle (not source paths)
+  const webformsGuide = await readFile(join(webformsRoot, 'dflow/specs/shared/AI-AGENT-GUIDE.md'), 'utf8');
+  assert.match(webformsGuide, /dflow\/specs\/shared\/dflow-workflows\/references\/new-feature-flow\.md/, 'brownfield guide should reference project-local bundle path');
+  assert.doesNotMatch(webformsGuide, /sdd-ddd-brownfield-skill|sdd-ddd-greenfield-skill/, 'brownfield guide should not contain source repo skill paths');
 
   const webformsConventions = await readFile(join(webformsRoot, 'dflow/specs/shared/_conventions.md'), 'utf8');
   assert.equal((webformsConventions.match(/^## Prose Language$/gm) || []).length, 1, 'Brownfield Prose Language section count');

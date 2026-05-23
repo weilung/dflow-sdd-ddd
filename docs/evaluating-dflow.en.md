@@ -35,10 +35,16 @@ in your project's `dflow/specs/` directory and AI instruction files.
   map, architecture/tech-debt, features active/completed). See
   [`README.md` "Files Created by Init"](../README.en.md#files-created-by-init)
   for the full tree.
-- A canonical project guide at `dflow/specs/shared/AI-AGENT-GUIDE.md`.
+- A canonical project guide at `dflow/specs/shared/AI-AGENT-GUIDE.md` —
+  the command registry, routing rules, and project context.
+- A vendored workflow bundle at `dflow/specs/shared/dflow-workflows/` —
+  the executable step definitions for each `/dflow:*` workflow (step gates,
+  completion checklists, templates). This bundle is projected from the npm
+  package at init time so workflows are reachable from any clone without
+  needing the Dflow source or package installed locally.
 - Mergeable AI agent instruction files for the tools you select (e.g.,
   `CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`). Each is a
-  thin pointer to the canonical guide.
+  thin pointer to the canonical guide and workflow bundle.
 
 `init` does **not**:
 
@@ -60,7 +66,9 @@ or more tools and Dflow writes the corresponding shim:
 | GitHub Copilot | `.github/copilot-instructions.md` |
 
 Each shim points back to the canonical
-`dflow/specs/shared/AI-AGENT-GUIDE.md`. Practical implications:
+`dflow/specs/shared/AI-AGENT-GUIDE.md`. The guide acts as the command registry
+and router; executable workflow steps live in the vendored bundle at
+`dflow/specs/shared/dflow-workflows/`. Practical implications:
 
 - Multiple tools can be active in the same project without diverging
   workflow rules.
@@ -68,8 +76,9 @@ Each shim points back to the canonical
   `dflow configure-agents` to add another shim, or
   `dflow configure-agents --command-adapters` to opt in to tool-native command
   entries.
-- The project guide stays the single source of truth for Dflow workflow
-  behavior.
+- The guide and workflow bundle together are the authoritative sources for
+  Dflow workflow behavior; both are plain Markdown committed in your repo and
+  accessible to any clone.
 
 `/dflow:*` is the canonical shared vocabulary, but each tool's `/` parser
 behaves differently: Claude Code command adapters use `/dflow:<id>`, the

@@ -68,11 +68,15 @@ Two things happen when Claude Code starts in this project:
    Code's Markdown import syntax to inline the canonical Dflow guide. So
    Claude Code effectively reads both files as one set of instructions.
 
-The canonical guide (`dflow/specs/shared/AI-AGENT-GUIDE.md`) is where the
-real workflow rules live: project context (track, tech stack, prose
+The canonical guide (`dflow/specs/shared/AI-AGENT-GUIDE.md`) is the
+**command registry and router**: project context (track, tech stack, prose
 language), the `/dflow:*` workflow table, source-of-truth file paths, and
-core SDD/DDD rules. The `CLAUDE.md` shim stays small precisely so the
-canonical guide can evolve without Claude-Code-specific edits.
+core SDD/DDD rules. The executable workflow steps (Step 1→N, step gates,
+completion checklists) live in the **vendored workflow bundle** that `init`
+projects into `dflow/specs/shared/dflow-workflows/`. Both are plain Markdown
+checked into your repo, so they travel with the project when cloned. The
+`CLAUDE.md` shim stays small precisely so the canonical guide can evolve
+without Claude-Code-specific edits.
 
 If a `CLAUDE.md` already existed in the project, `init` does not overwrite
 it. Instead it writes a merge snippet under `dflow/specs/shared/` that you
@@ -112,9 +116,11 @@ dflow/specs/features/active/. Before I do, I need a short answer on:
 The workflow then walks you through spec drafting, behavior examples,
 implementation planning, and finish-feature drift checks. The exact
 sequence depends on which workflow you entered (`/dflow:new-feature`,
-`/dflow:modify-existing`, `/dflow:bug-fix`, etc.). All workflow definitions
-live under the Dflow skill source; Claude Code follows them by reading the
-skill files when needed.
+`/dflow:modify-existing`, `/dflow:bug-fix`, etc.). The executable step
+definitions (Step 1→N, step gates, completion checklists) are in the
+vendored workflow bundle at `dflow/specs/shared/dflow-workflows/`; `init`
+projects this bundle into every initialized project so the workflow steps
+are self-contained and reachable without any external source dependency.
 
 Available workflow entry points:
 
@@ -215,8 +221,10 @@ After you select Claude Code, Dflow generates a thin skill:
 
 - `.claude/skills/dflow/SKILL.md`
 
-This skill does not copy workflow steps; its body only points to the canonical
-`dflow/specs/shared/AI-AGENT-GUIDE.md`, which carries the real workflow content.
+This skill does not copy workflow steps; its body points to the canonical
+`dflow/specs/shared/AI-AGENT-GUIDE.md` (command registry and routing rules) and
+`dflow/specs/shared/dflow-workflows/` (vendored bundle with executable step
+definitions).
 Its behavior:
 
 - **Auto-triggers on** feature / bug-fix workflows, product/domain behavior
