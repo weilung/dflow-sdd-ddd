@@ -110,6 +110,45 @@ When designing a new Aggregate:
 4. **Who modifies this?** How many concurrent users? (Affects Aggregate size)
 5. **What events does this produce?** What other parts of the system need to know?
 
+### Set-Based / Uniqueness Invariants
+
+Some invariants are not about one Aggregate but about a **set selected by a
+business key or status**: "email (normalized) is unique across all Users", "each
+seat holds at most one active booking", "each connector has at most one
+in-progress charging session". A single Aggregate instance cannot see the rest of
+that set, so it cannot enforce the rule on its own.
+
+Handle them the same way **regardless of which Aggregate boundary you choose**:
+
+1. **As separate Aggregates** (e.g. `User` and `Booking` are distinct): the
+   Application layer *orchestrates* the check — via a repository query, a
+   Specification, or a domain service (the rule stays domain-named; it is not an
+   inline `if-else` in the command handler) — and the **database enforces it with
+   a unique / partial (filtered) unique index**. The DB constraint is the real
+   guarantee under concurrency; the orchestrated check just returns a friendlier
+   error first.
+
+2. **Folded into one Aggregate** (e.g. the active session lives *inside* a
+   `Connector` as a child entity): the in-memory check (`if (Status == InUse)
+   throw …`) is logically correct, **but is still not concurrency-safe by
+   itself**. Two concurrent commands can each load the Aggregate, both pass the
+   check, and both save. Close the race with **optimistic concurrency** (a
+   `rowversion` / version token on the Aggregate root) or a DB constraint — but
+   the version check only protects you if every save actually touches the root's
+   token: inserting a child row without bumping the root's version leaves the
+   race open. Translate the resulting concurrency exception / unique violation
+   into a meaningful business conflict (e.g. HTTP 409), not a generic 500.
+
+**Key point:** an in-memory check — at *any* layer — is never the final guarantee
+for a uniqueness / "only one active X" rule under concurrent requests. The durable
+enforcement is a DB unique / filtered index, an optimistic-concurrency token, or
+an equivalent conditional write / compare-and-swap. Pick the Aggregate boundary on
+modeling grounds (does the inner thing have an independent lifecycle / history
+worth querying?), then add the store-level guard either way. (Heavier
+serialization tactics — distributed locks, per-key actors, aggregate-per-key
+sharding — exist but are advanced; reach for a store-level constraint or version
+check first.)
+
 ## Value Objects
 
 ### When to Use Value Objects
@@ -217,6 +256,15 @@ public record ExpenseReportSubmittedEvent(
 - **Same Bounded Context**: Handle synchronously (same transaction OK for read models)
 - **Cross Bounded Context**: Handle asynchronously (eventual consistency)
 - Event handlers should be idempotent (safe to process multiple times)
+- **Dispatch / clear lifecycle**: clear `DomainEvents` at the Repository / Unit
+  of Work **save boundary** — the UoW clears them *after* the save succeeds and
+  the events have been dispatched (or the outbox row persisted, or dispatch
+  explicitly decided to be dropped/deferred). Never clear inside an Aggregate
+  method, and never before the save succeeds. A simple in-process dispatcher
+  (e.g. `IPublisher` / MediatR) is enough for Phase 1; an **outbox /
+  integration-event bridge is the Phase 2+ upgrade** for reliable cross-service
+  delivery. If no dispatcher is wired yet, record it as deferred tech debt — but
+  still clear on a successful save so events cannot accumulate unbounded.
 
 ## Specifications
 
@@ -296,3 +344,8 @@ Document in `dflow/specs/domain/context-map.md`:
 
 5. **Direct cross-Aggregate modification** — One command modifying two Aggregates
    → Use Domain Events for the second Aggregate
+
+6. **Set-based invariant guarded only in memory** — A "unique" / "only one active"
+   rule enforced solely by an in-app check, with no DB unique constraint or
+   optimistic-concurrency token → two concurrent requests can both pass and break it
+   → Back it with a DB constraint / `rowversion`; see "Set-Based / Uniqueness Invariants"
