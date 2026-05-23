@@ -95,7 +95,7 @@ If foundational domain docs are missing, create them from templates before writi
 - `dflow/specs/domain/glossary.md` → `templates/glossary.md`
 - `dflow/specs/domain/{context}/models.md` → `templates/models.md`
 - `dflow/specs/domain/{context}/rules.md` → `templates/rules.md`
-- `dflow/specs/domain/{context}/behavior.md` → `templates/behavior.md`
+- `dflow/specs/domain/{context}/behavior.md` → `templates/behavior.md` — at this step create only the skeleton + one section anchor per `BR-*`; the Given/When/Then scenarios are merged in later at Step 8.3 (finish-feature), not now
 - `dflow/specs/domain/{context}/events.md` (when Domain Events are involved) → `templates/events.md`
 - `dflow/specs/domain/context-map.md` (when cross-context relationships are involved) → `templates/context-map.md`
 
@@ -113,6 +113,12 @@ one message and asks the developer to confirm before any directory or
 branch is created. Slug follows the language of the discussion (中文 or
 English — both are valid; see `references/git-integration.md` for the slug
 language rule).
+
+Before confirming, surface the path-encoding caveat: a non-ASCII (e.g. 中文)
+slug yields non-ASCII feature-directory and branch paths. These work on common
+Git hosts but a handful of CI runners / toolchains mishandle them. If the
+project's pipeline is unknown, offer an ASCII slug as an alternative. See
+`references/git-integration.md` for the full risk note.
 
 Example (中文 discussion):
 
@@ -168,6 +174,12 @@ dflow/specs/features/active/{SPEC-ID}-{slug}/
    using `templates/phase-spec.md`. The "Delta from prior phases" section
    is filled with "首 phase，無前置 Delta" (first phase has nothing to
    delta against).
+4. **If this feature introduces a new Aggregate**, also create an
+   `aggregate-design.md` from `templates/aggregate-design.md` **inside this
+   feature directory** as the per-Aggregate design worksheet. It is a working
+   artifact scoped to the feature; the Aggregate's durable, long-lived catalog
+   entry still lives in `dflow/specs/domain/{context}/models.md`.
+   `aggregate-design.md` complements `models.md`, it does not replace it.
 
 Key additions compared to Brownfield edition:
 - **Aggregate State Transitions**: Document how Aggregate state changes

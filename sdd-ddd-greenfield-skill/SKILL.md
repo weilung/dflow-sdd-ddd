@@ -247,7 +247,7 @@ or `/dflow:bug-fix` decides which tier fits a modification.
 
 | Tier | 情境 | 產出 | 命令 / 觸發 |
 |---|---|---|---|
-| **T1 Heavy** | New feature, new phase, new Aggregate / BC, architectural change, new BR | Independent `phase-spec-YYYY-MM-DD-{slug}.md` placed in the feature directory + `_index.md` Phase Specs row + refresh BR Snapshot. For new Aggregate / BC also use `templates/aggregate-design.md` + update `context-map.md` + `events.md`. | `/dflow:new-feature` / `/dflow:new-phase` |
+| **T1 Heavy** | New feature, new phase, new Aggregate / BC, architectural change, new BR | Independent `phase-spec-YYYY-MM-DD-{slug}.md` placed in the feature directory + `_index.md` Phase Specs row + refresh BR Snapshot. For new Aggregate / BC also create an `aggregate-design.md` from `templates/aggregate-design.md` **in the feature directory** (working worksheet; the durable summary stays in `models.md`) + update `context-map.md` + `events.md`. | `/dflow:new-feature` / `/dflow:new-phase` |
 | **T2 Light** | Bug fix (logic error), UI input validation tweak, flow branch change — has BR Delta | Independent `lightweight-{YYYY-MM-DD}-{slug}.md` (or `BUG-{NUMBER}-{slug}.md`) inside the feature directory + `_index.md` Lightweight Changes row (outbound link) + refresh BR Snapshot. Confirm the fix lands in the correct architectural layer. | `/dflow:bug-fix` or `/dflow:modify-existing` (lightweight branch) |
 | **T3 Trivial** | Button colour, copy/text fix, typo, formatting, pure comments — **no BR change, no Domain concept change, no data structure change** | **Inline row in `_index.md` Lightweight Changes only** (no independent spec file) | `/dflow:modify-existing` (`_index-only` branch) |
 
@@ -264,7 +264,7 @@ typos, pure formatting commits (e.g. `prettier` / `dotnet format` auto-runs).
 You can `git commit` directly without writing even a T3 inline row.
 
 **DDD Modeling Depth (still informs T1 scope)**:
-- New Aggregate / BC → **Full**: use `templates/aggregate-design.md`, update `context-map.md`, define Domain Events in `events.md`
+- New Aggregate / BC → **Full**: create an `aggregate-design.md` from `templates/aggregate-design.md` in the feature directory (durable summary stays in `models.md`), update `context-map.md`, define Domain Events in `events.md`
 - Feature within existing BC → **Standard**: confirm Aggregate ownership, update `models.md` and `rules.md`
 - T2 / T3 → confirm fix lands in the correct architectural layer; no design-level updates required
 
