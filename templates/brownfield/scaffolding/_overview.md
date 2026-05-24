@@ -116,5 +116,5 @@ Link to any ADR or migration plan doc if one exists.}
   branching-strategy-specific file that matches this project
 - [Glossary](../domain/glossary.md)
 - [Tech debt backlog](../migration/tech-debt.md)
-- Dflow skill: see `CLAUDE.md` and the `sdd-ddd-brownfield-skill/` bundle
-  for the full AI workflow guidance.
+- Dflow skill: see `CLAUDE.md` and the in-project bundle at
+  `dflow/specs/shared/dflow-workflows/` for the full AI workflow guidance.

@@ -11,15 +11,6 @@ that SDD traceability depends on.
 > `scaffolding/Git-principles-gitflow.md` template (provided by PROPOSAL-010)
 > for Git-Flow-specific conventions.
 
-> **File history note**: This file was renamed from
-> `references/git-flow-integration.md` in commit `bf5bb85` (R7 Wave 1,
-> PROPOSAL-011). `git mv` was used, but the same commit also rewrote the
-> content more aggressively than the Brownfield edition (18% similarity),
-> which falls below git's default rename-detection threshold (`-M50`). To
-> trace the rename history use `git log --follow -M10 <this file>`. See
-> CHANGELOG "R7 Implement Review F-02 後記" for details and the
-> lesson-learned on splitting large rewrites into separate commits.
-
 ## Branch-to-Workflow Mapping
 
 Dflow only requires that every SDD feature / bug-fix lives on its own branch
@@ -159,14 +150,6 @@ git mv dflow/specs/features/active/{SPEC-ID}-{slug}/phase-spec-2026-04-23-foo.md
 # 4. Lightweight-spec rename inside a feature directory
 git mv dflow/specs/features/active/{SPEC-ID}-{slug}/lightweight-2026-04-15-old.md \
        dflow/specs/features/active/{SPEC-ID}-{slug}/lightweight-2026-04-15-new.md
-
-# 5. Template-level renames (this proposal itself: feature-spec.md → phase-spec.md)
-git mv sdd-ddd-greenfield-skill/templates/feature-spec.md \
-       sdd-ddd-greenfield-skill/templates/phase-spec.md
-
-# 6. Reference file renames (PROPOSAL-011 example)
-git mv sdd-ddd-greenfield-skill/references/git-flow-integration.md \
-       sdd-ddd-greenfield-skill/references/git-integration.md
 ```
 
 ### Commit-message hint for renames

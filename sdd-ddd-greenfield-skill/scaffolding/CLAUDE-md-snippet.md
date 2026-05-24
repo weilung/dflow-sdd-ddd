@@ -5,10 +5,12 @@
 > Source: `scaffolding/CLAUDE-md-snippet.md`
 > Purpose: a minimal block you paste into (or replace with) your
 > project's root `CLAUDE.md` when adopting Dflow.
-> For the Greenfield track, the full reference template lives at
-> `sdd-ddd-greenfield-skill/templates/CLAUDE.md` — if you want the complete
-> legacy Claude-specific version, use that instead. New CLI init output uses
-> `AI-AGENT-GUIDE.md` plus a generated `CLAUDE.md` shim.
+> For the Greenfield track, the full reference template lives in the
+> in-project bundle at
+> `dflow/specs/shared/dflow-workflows/templates/CLAUDE.md` (projected by
+> `dflow init`) — if you want the complete legacy Claude-specific version,
+> use that instead. New CLI init output uses `AI-AGENT-GUIDE.md` plus a
+> generated `CLAUDE.md` shim.
 
 ---
 
@@ -159,10 +161,10 @@ AI 的完整決策樹、Workflow Transparency、Ceremony Scaling 三層判準
 
 ## Notes
 
-- This snippet is intentionally lighter than
-  `sdd-ddd-greenfield-skill/templates/CLAUDE.md`. If you want the full version
-  (with detailed flow descriptions per slash command), use that
-  template instead
+- This snippet is intentionally lighter than the in-project bundle
+  template at `dflow/specs/shared/dflow-workflows/templates/CLAUDE.md`. If
+  you want the full version (with detailed flow descriptions per slash
+  command), use that template instead
 - The snippet does NOT re-copy the Dflow decision tree, Ceremony
   Scaling criteria, or per-flow step details — those live in the
   skill and change when the skill evolves

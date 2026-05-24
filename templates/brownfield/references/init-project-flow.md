@@ -199,8 +199,9 @@ Key Brownfield-track notes:
 
 ### 3.2 Optional files (from Step 2 Q5)
 
-Read from `sdd-ddd-brownfield-skill/scaffolding/` and compute the
-destination path:
+Use the packaged scaffolding templates listed below; their project-local
+outputs are under `dflow/specs/shared/` (the scaffolding root, not the
+vendored workflow bundle). Compute the destination path:
 
 | Scaffolding source | Destination in project |
 |---|---|
@@ -405,10 +406,11 @@ still in them:
 
 ## Notes & references
 
-- Scaffolding templates: `sdd-ddd-brownfield-skill/scaffolding/`
-- `_index.md` feature template: `sdd-ddd-brownfield-skill/templates/_index.md`
+- Scaffolding templates: packaged in the Dflow tarball; project-local
+  outputs land under `dflow/specs/shared/`
+- `_index.md` feature template: `dflow/specs/shared/dflow-workflows/templates/_index.md`
   (used by `/dflow:new-feature`, NOT by this flow)
-- Git integration rules: `sdd-ddd-brownfield-skill/references/git-integration.md`
+- Git integration rules: `dflow/specs/shared/dflow-workflows/references/git-integration.md`
 - F-05 (`behavior.md` not generated at init) origin:
   `archive/reviews/round-7-decisions.md` → finding F-05
 - F-07 (neutral README install wording) origin:
