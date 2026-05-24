@@ -13,8 +13,8 @@ state, archives the feature directory, and emits a Git-strategy-neutral
 **Important boundaries**:
 - This command **does not auto-merge**. It does not push, does not open a
   PR, does not run the project's merge strategy. Those decisions stay
-  with the developer / project's Git principles. (See PROPOSAL-011 for
-  Dflow's Git-strategy decoupling stance.)
+  with the developer / project's Git principles — Dflow keeps merge
+  strategy project-owned.
 - The BC-layer sync in Step 3 **reuses the existing Step 5.3 mechanism**
   from `new-feature-flow` (Step 8.3) and `modify-existing-flow` (Step
   5.3) — it does not introduce a new sync flow. Treat it as "lift Step
@@ -200,7 +200,7 @@ Produce a plain-text summary of what this feature did. The summary is
 developer adapts to whichever merge strategy their project uses
 (merge commit, squash, rebase, fast-forward — Dflow stays neutral).
 
-For projects that adopted the optional PROPOSAL-010 scaffolding, the
+For projects that adopted the optional Dflow Git-principles scaffolding, the
 applicable `scaffolding/Git-principles-{gitflow|trunk}.md` "Integration
 Commit Message Conventions" section explains how to format the actual commit
 message from this summary.
@@ -259,7 +259,7 @@ If no `follow-up-of` field, skip Step 6 and announce closeout complete:
 ## Step 6: Reverse-Update Follow-up Tracking (only if follow-up)
 
 For features that were created as follow-ups of an earlier completed
-feature (decision 18 in PROPOSAL-009), update the original feature's
+feature, update the original feature's
 Follow-up Tracking table.
 
 1. Locate `dflow/specs/features/completed/{原 SPEC-ID}-{原 slug}/_index.md`

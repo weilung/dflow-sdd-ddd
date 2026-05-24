@@ -25,14 +25,14 @@ Semantic verification (LLM reads the one-line summary in `rules.md` vs the Given
 
 ### This command does NOT do (feature-directory aggregation — explicitly excluded)
 
-After PROPOSAL-009 introduced the feature directory layout
+Given the feature directory layout
 (`dflow/specs/features/active/{SPEC-ID}-{slug}/` containing `_index.md` plus
 0..N `phase-spec-*.md` and 0..N `lightweight-*.md`), a tempting but
 **out-of-scope** extension would be: "make `/dflow:verify` aggregate BR
 state across all phase-spec files in a feature, then cross-check against
 `rules.md`." Don't do that here.
 
-Reasons (R7 Review F-03 decision):
+Reasons:
 - Feature-level BR aggregation is already maintained by `_index.md`
   Current BR Snapshot, refreshed by `/dflow:new-phase` Step 5, reconciled
   by `/dflow:new-phase` Step 7, and promoted by `/dflow:finish-feature`
@@ -46,8 +46,8 @@ Reasons (R7 Review F-03 decision):
   during in-progress features
 
 If a future need arises to add an `_index.md` Current BR Snapshot ↔
-`rules.md` cross-check, that belongs in a follow-up PROPOSAL-008
-extension, not in this command's current scope.
+`rules.md` cross-check, that belongs in a future extension,
+not in this command's current scope.
 
 ### Anchor coexistence with `dflow:section`
 
@@ -163,13 +163,12 @@ Recommended trigger points (not enforced — developer's judgment):
   updates from the feature's `_index.md` Current BR Snapshot; verify
   catches any anchor / link drift introduced by the merge
 
-## Path Assumptions (post-PROPOSAL-009)
+## Path Assumptions
 
 This command operates entirely within `dflow/specs/domain/{context}/` files
 (`rules.md` and `behavior.md`). It does **not** read from
 `dflow/specs/features/active/{SPEC-ID}-{slug}/` directories — the feature
-directory layout introduced by PROPOSAL-009 is not part of verify's
-input. The only effect of feature directory layout on this command is
+directory layout is not part of verify's input. The only effect of feature directory layout on this command is
 ensuring `last-updated` dates in `behavior.md` are bumped at
 `/dflow:finish-feature` time (so verify's mechanical drift guard stays
 useful).

@@ -1,4 +1,4 @@
-<!-- Scaffolding template maintained alongside Dflow skill. See archive/proposals/PROPOSAL-010 for origin. -->
+<!-- Seeded by Dflow. -->
 
 # System Overview — {System Name}
 

@@ -64,8 +64,8 @@ Walk through these in order:
    on a standalone bug, see Step 1.5 — `/dflow:bug-fix` will create a
    minimal feature directory to host the lightweight-spec.
 
-> **Why scan completed too?** Decision 17 in PROPOSAL-009: completed
-> features are frozen history and **cannot accept** any T2 / T3 directly
+> **Why scan completed too?** Completed features are frozen history
+> and **cannot accept** any T2 / T3 directly
 > (would break the "completed = frozen" semantic). Reopen routes through
 > a new follow-up feature instead — see Step 1.5.
 

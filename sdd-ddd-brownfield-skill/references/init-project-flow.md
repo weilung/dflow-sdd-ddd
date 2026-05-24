@@ -411,8 +411,3 @@ still in them:
 - `_index.md` feature template: `dflow/specs/shared/dflow-workflows/templates/_index.md`
   (used by `/dflow:new-feature`, NOT by this flow)
 - Git integration rules: `dflow/specs/shared/dflow-workflows/references/git-integration.md`
-- F-05 (`behavior.md` not generated at init) origin:
-  `archive/reviews/round-7-decisions.md` → finding F-05
-- F-07 (neutral README install wording) origin:
-  `archive/reviews/round-7-decisions.md` → finding F-07
-- Proposal origin: `archive/proposals/PROPOSAL-010-dflow-init-and-scaffolding.md`

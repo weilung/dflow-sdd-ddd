@@ -8,7 +8,7 @@ etc.) — it only prescribes the feature-branch-per-feature convention
 that SDD traceability depends on.
 
 > If your project adopts Git Flow specifically, see the optional
-> `scaffolding/Git-principles-gitflow.md` template (provided by PROPOSAL-010)
+> optional `scaffolding/Git-principles-gitflow.md` template
 > for Git-Flow-specific conventions.
 
 ## Branch-to-Workflow Mapping
@@ -246,8 +246,8 @@ with the rule.
 
 > The exact merge strategy (merge commit, squash, rebase, fast-forward)
 > is a project-level decision and sits outside Dflow's scope. See your
-> project's Git-principles document (e.g. the scaffolding template from
-> PROPOSAL-010) for integration commit conventions.
+> project's Git-principles document (e.g. the optional
+> Git-principles scaffolding) for integration commit conventions.
 
 ## Commit Message Convention
 

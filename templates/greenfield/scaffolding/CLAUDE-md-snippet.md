@@ -1,4 +1,4 @@
-<!-- Scaffolding template maintained alongside Dflow skill. See archive/proposals/PROPOSAL-010 for origin. -->
+<!-- Seeded by Dflow. -->
 
 # CLAUDE.md Snippet — Dflow Adoption (Greenfield track)
 

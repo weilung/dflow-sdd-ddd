@@ -1,4 +1,4 @@
-<!-- Scaffolding template maintained alongside Dflow skill. See archive/proposals/PROPOSAL-010 for origin. -->
+<!-- Seeded by Dflow. -->
 
 # CLAUDE.md Snippet — Dflow Adoption
 
@@ -11,10 +11,10 @@
 > - Use this legacy snippet only if you intentionally want the older
 >   Claude-specific two-H2 layout in your project's root `CLAUDE.md`.
 
-The snippet follows the Dflow `templates/CLAUDE.md` H2 segmentation
-(established in PROPOSAL-007c): **System Context** (what the system is)
-and **Development Workflow** (how we work). Keep those two H2 sections as the backbone
-when merging into an existing `CLAUDE.md`.
+The snippet follows the Dflow `templates/CLAUDE.md` H2 segmentation:
+**System Context** (what the system is) and **Development Workflow**
+(how we work). Keep those two H2 sections as the backbone when merging
+into an existing `CLAUDE.md`.
 
 ---
 
