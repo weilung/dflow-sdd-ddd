@@ -6,6 +6,32 @@
 
 ---
 
+## 0.8.0 — 2026-05-24 — DDD set-based invariant 引導擴充、雙軌 skill 殼合一、user-projected bundle 內容 polish
+
+**Proposals**：PROPOSAL-040（CLI papercuts + 文件補洞）、PROPOSAL-041（C0+C1：configure-agents idempotent bundle re-projection + 雙軌 skill 殼合一）、PROPOSAL-042（ddd-modeling-guide 補 set-based invariants 與 Phase-1 event dispatch 段）、PROPOSAL-044（user-projected bundle 內 maintainer-source path 清除）、PROPOSAL-045（user-projected bundle 內 maintainer-only provenance refs 清除）
+
+**新功能 / 新引導內容**：
+
+- **ddd-modeling-guide 補「Set-Based / Uniqueness Invariants」段**（PROPOSAL-042）：明確說明 set-based invariants（「同 X 只能一筆 active」「email 跨 User 唯一」這類）**無論選哪種 aggregate 邊界**，in-memory check 在並發下都不夠保護，需 DB unique / partial index 或 optimistic concurrency token 配合。涵蓋兩種常見 aggregate 切法（拆獨立 + folded 為 child entity）的對策；指出 child entity 寫入需 bump root version；建議將並發衝突 translate 為業務語意 conflict（HTTP 409）。同 update 補 Common Mistakes #6 與 Phase-1 event dispatch lifecycle 段落。
+
+**行為改善**：
+
+- **`configure-agents` 自動補回 bundle**（PROPOSAL-041 C0）：對 pre-039 既有專案再次跑 `configure-agents` 時，自動 re-project 缺失的 `dflow/specs/shared/dflow-workflows/` bundle（idempotent；第二次跑為 no-op）。順手關閉 PROPOSAL-039 follow-up (i)。
+- **雙軌 skill 殼合一**（PROPOSAL-041 C1）：兩份 `sdd-ddd-{green,brown}field-skill/SKILL.md` 統一為 `templates/common/skill/SKILL.md` thin shell；`lib/init.js` 從該檔讀。對 npm 使用者只是裝起來行為一致，無破壞性變更；對 maintainer 是 source-of-truth 收斂。
+- **CLI papercuts 批次修**（PROPOSAL-040 group A）：`init` / `configure-agents` 數個 CLI 摩擦點修補（issues #2/#11/#12）。
+- **`init` 後續 step 文件補洞**（PROPOSAL-040 group B）：slug 命名加 CI 相容性 caveat、`behavior.md` skeleton 註解明確（避免 user 以為 finish-feature 前就該填）、`configure-agents` 自動偵測既有 agent 配置（#13/#7）、`aggregate-design.md` 在 feature 目錄內的存放位置明文釘住。
+
+**文件 / user-facing 內容 polish**：
+
+- **user-projected bundle 內 `sdd-ddd-*-skill/` maintainer-source path 清除**（PROPOSAL-044）：原本 `npm install` 後 user project 內的 flow / template 文件含 `sdd-ddd-greenfield-skill/scaffolding/...` 這類在 user 端不存在的路徑引用——user 讀到會誤判「我裝錯了？」。本 release 把該類引用全部清為 user 端可解析路徑或自足語句。涵蓋 12 個 source + 12 個 mirror。
+- **user-projected bundle 內 maintainer-only provenance refs 清除**（PROPOSAL-045）：原本 user 端會看到的 `<!-- ... PROPOSAL-013 ... -->` HTML 註解、`init-project-flow.md` 末段 `archive/reviews/...` 引用、references body 內 bare `PROPOSAL-NNN` 引用、brownfield `CLAUDE-md-snippet.md` 內 `(established in PROPOSAL-007c)` 標註等——這些是 maintainer-only 歷史佔位、user 看到只會困惑。本 release 全部清除或改寫為自足語句；HTML 註解保留為 `<!-- Seeded by Dflow. -->`（語意精準：user 取到檔後可自行客製化、dflow 並不持續維護該副本）。涵蓋 66 個 unique files。
+
+**維護者工具**（不影響套件使用者）：
+
+- **`scripts/check-repo-consistency.sh` 新增 045 guard**：scoped git grep 對 `sdd-ddd-*-skill/{templates,scaffolding,references}/*.md` + `templates/{green,brown}field/**/*.md` 偵測 `(archive/|planning/|reviews/|proposals/|PROPOSAL-[0-9]{3})` 任一命中即 fail——防未來再引入 maintainer-only provenance refs。Pre-commit hook 不加。
+
+---
+
 ## 0.7.0 — 2026-05-22 — Opt-in Claude skill adapter、自動清理舊 command adapter、發布前 lifecycle 機檢
 
 **Proposals**：PROPOSAL-037（generated adapter commit 政策與升級流程）、PROPOSAL-038（選配 skill adapter）、PROPOSAL-035（lifecycle drift forcing-functions）
