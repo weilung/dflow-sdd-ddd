@@ -6,9 +6,10 @@ agnostic about which Git *branching strategy* your project adopts (Git Flow,
 GitHub Flow, trunk-based, single-`main`, etc.) — it only prescribes the
 feature-branch-per-feature convention that SDD traceability depends on.
 
-> If your project adopts Git Flow specifically, see the optional
-> optional `scaffolding/Git-principles-gitflow.md` template
-> for Git-Flow-specific conventions.
+> Dflow does not pick `gitflow` vs `trunk` for you, but it now requires you to
+> record one at `dflow init` so the runtime branch gate and finish-stage merge
+> guidance can adapt. The selected policy's `Git-principles-{gitflow|trunk}.md`
+> is seeded under `dflow/specs/shared/`.
 
 ## Branch-to-Workflow Mapping
 
@@ -102,6 +103,64 @@ This is the one non-negotiable Git coupling Dflow enforces:
 This requirement is independent of the branching strategy — whether you
 branch off `develop`, `main`, or something else, the feature-per-branch
 convention stays.
+
+## Commit Checkpoints, Branch Gate & AI Commits
+
+Dflow actively helps keep the Git trace aligned with the workflow — the AI
+reminds, can do the work, and leaves policy to the team.
+
+### Branch gate
+
+Before implementation starts (and before the first commit), the AI checks
+whether the current branch is the feature / bugfix branch this work belongs to.
+Both Git policies (`gitflow` / `trunk`, per `dflow/specs/shared/_conventions.md`
+§ Git Policy) use a feature branch, so:
+
+- **Already on the matching `feature/{SPEC-ID}-{slug}` (or
+  `bugfix/{BUG-ID}-{slug}`) branch** — e.g. continuing an active feature with
+  `new-phase`, `modify-existing`, or `bug-fix` — the gate is satisfied; nothing
+  is created or switched.
+- **Not on this work's feature / bugfix branch** (you are on the base branch the
+  project cuts features from — `main` / `develop` / `trunk`, or whatever your
+  policy uses — or on an unrelated branch) — the AI offers to create and switch
+  to the correct branch, switch to an existing matching one, or override and
+  stay (recorded in the feature `_index.md` Checkpoint Log; three consecutive
+  overrides → the AI suggests re-running `dflow init`, never changing the
+  setting on its own).
+
+Dflow does not need to identify your base branch to evaluate the gate — it only
+checks whether you are on the right feature branch. The base branch matters only
+when a new branch is actually created, and which base to cut from is your
+project's decision (GitFlow → `develop`, Trunk / GitHub Flow → `main`).
+
+### Commit checkpoints
+
+At lifecycle milestones the AI offers a commit checkpoint, folded into the
+existing Step Gate prompt (it does not add a separate question):
+
+```
+✓ {milestone} complete
+   Commit here?
+   [Y] Yes — the AI commits with your Git identity (marker per _conventions.md § AI Commit Policy)
+   [N] No — skip this checkpoint
+```
+
+Tier sets how many checkpoints a change has: T1 three (spec / implementation /
+closeout), T2 two (spec+implementation merged / closeout), T3 a single commit.
+Whether you choose Y or N, the AI records one row in the feature `_index.md`
+Checkpoint Log. A commit hash is written only after the commit succeeds; a hook
+rejection or failed commit is recorded as `failed` (never a fake hash). After
+several consecutive skips in a project the AI mentions you can turn checkpoints
+off in config — it does not turn them off for you.
+
+### AI commits
+
+The AI may commit at these checkpoints using your Git identity; you can always
+decline. How AI commits are marked is the `## AI Commit Policy` setting in
+`_conventions.md` (`none` / `co-authored-by` / `prefix`), chosen once at init.
+This is a deliberate reversal of Dflow's earlier "the AI never commits" stance:
+the AI helps at natural break points, while merge / push / PR still follow the
+team's policy and your explicit go-ahead.
 
 ## Directory Moves Must Use `git mv`
 
@@ -255,9 +314,9 @@ AI should verify:
 - [ ] If business logic was touched, evaluate Domain extraction
 
 > The exact merge strategy (merge commit, squash, rebase, fast-forward)
-> is a project-level decision and sits outside Dflow's scope. See your
-> project's Git-principles document (e.g. the optional
-> Git-principles scaffolding) for integration commit conventions.
+> follows the team's selected Git policy. See the seeded
+> `Git-principles-{gitflow|trunk}.md` under `dflow/specs/shared/` for that
+> policy's integration commit conventions.
 
 ## Commit Message Convention
 

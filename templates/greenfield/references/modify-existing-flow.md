@@ -265,6 +265,8 @@ If the lightweight checklist looks larger than a short-fix checklist, AI must pa
 Announce to developer:
 > "DDD impact analysis done — {Aggregate boundary OK / needs redesign}, {no new events / new events needed}. Ready to implement? `/dflow:next` to proceed, or adjust the design first."
 
+> Branch gate (policy-aware): a feature branch is mandatory for every tier (T1 / T2 / T3) under both Git policies (`_conventions.md` § Git Policy). If you are already on this work's `feature/{SPEC-ID}-{slug}` (or `bugfix/{BUG-ID}-{slug}`) branch — e.g. the change belongs to the active feature you are already in — the gate is satisfied and nothing new is created. Otherwise (on the base branch the project cuts from, or an unrelated branch) the AI offers to create/switch to the correct branch, switch to an existing matching one, or override and record it in the `_index.md` Checkpoint Log. Dflow does not need to know which branch is your base. See `references/git-integration.md` § Commit Checkpoints, Branch Gate & AI Commits.
+
 Wait for confirmation before entering Step 4.
 
 ## Step 4: Implement
@@ -282,6 +284,8 @@ Even for bug fixes, verify:
 
 Announce to developer:
 > "Implementation appears complete. Ready to update documentation (spec, models.md, rules.md, events.md, glossary, tech-debt)? `/dflow:next` to proceed."
+
+> Commit checkpoint (per `references/git-integration.md` § Commit Checkpoints, Branch Gate & AI Commits): offer to commit, then record the result in the `_index.md` Checkpoint Log. Tier sets the count — T2 commits the merged spec+implementation here (closeout is the second checkpoint); T3 is a single commit.
 
 Wait for confirmation before entering Step 5. This step gate is where the completion checklist is triggered — do not skip.
 

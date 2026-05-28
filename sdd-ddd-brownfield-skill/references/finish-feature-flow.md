@@ -11,10 +11,18 @@ state, archives the feature directory, and emits a Git-strategy-neutral
 **Integration Summary** for the developer's PR / merge / push step.
 
 **Important boundaries**:
-- This command **does not auto-merge**. It does not push, does not open a
-  PR, does not run the project's merge strategy. Those decisions stay
-  with the developer / project's Git principles — Dflow keeps merge
-  strategy project-owned.
+- This command **does not auto-merge** and never pushes or opens a PR on its
+  own. Merge strategy follows the team's selected Git policy (`gitflow` /
+  `trunk`, recorded in `dflow/specs/shared/_conventions.md` § Git Policy).
+- Closeout is split into two gates so it works offline: a **Local-closeout
+  gate** (Steps 1–4: validation, status flip, BC sync, archive + an optional
+  commit checkpoint — all doable with no network) and an **Integration / PR
+  gate** (Step 5: push / merge / PR — needs network; the AI only runs
+  `git push` / `gh pr create` when you explicitly ask).
+- At the archive checkpoint the AI may offer to commit using your Git identity;
+  you can always decline. The commit marker mode is read from `_conventions.md`
+  § AI Commit Policy. This replaces Dflow's earlier "the AI never commits"
+  stance — the AI helps at natural checkpoints, you keep the final say.
 - The BC-layer sync in Step 3 **reuses the existing Step 8.3 mechanism**
   from `new-feature-flow` — it does not introduce a new sync flow. Treat
   it as "lift Step 8.3 out of the per-phase checklist and run it once at
@@ -41,8 +49,8 @@ AI runs mechanical checks first. Report `✓` / `✗` for every item; if any
 proceeding (do not flip status, do not archive, do not emit summary).
 
 - [ ] Locate the feature directory at `dflow/specs/features/active/{SPEC-ID}-{slug}/`
-- [ ] `_index.md` exists and parses (YAML front matter intact, six required
-      sections present)
+- [ ] `_index.md` exists and parses (YAML front matter intact, seven required
+      sections present, including the Checkpoint Log)
 - [ ] Every row in `_index.md` Phase Specs table has Status = `completed`
 - [ ] Every phase-spec file referenced in the Phase Specs table exists at
       the path the table claims
@@ -88,7 +96,7 @@ Also update the **Resume Pointer** to reflect closeout:
 
 ```
 **Current Progress**: feature completed ({date}); all phase-specs status = completed.
-**Next Action**: merge / push (per project Git-principles).
+**Next Action**: integration — push / merge / PR per the selected Git policy.
 ```
 
 **→ Transition (step-internal)**: Step 2 complete. Announce "Step 2 complete (status flipped). Entering Step 3: Sync BR Snapshot to BC layer." and continue.
@@ -172,11 +180,35 @@ the full rule set.
 
 After the move, also `git add` any modified files from Step 3 (the
 updated `rules.md`, `behavior.md`, `glossary.md`, `tech-debt.md`, etc.)
-into the same stage. AI **does not commit** — the developer commits in
-their own preferred manner (and the project's Git-principles decide
-whether one commit or several).
+into the same stage.
 
-**→ Transition (step-internal)**: Step 4 complete. Announce "Step 4 complete (feature archived to completed/). Entering Step 5: Emit Integration Summary." and continue.
+**Closeout commit checkpoint** (completes the offline Local-closeout gate):
+
+```
+✓ Feature archived to completed/ and closeout files staged
+   Commit this closeout now?
+   [Y] Yes — the AI commits with your Git identity (marker per _conventions.md § AI Commit Policy)
+   [N] No — skip; you commit yourself
+```
+
+Whether you choose Y or N, record one row in the feature `_index.md`
+Checkpoint Log (`closeout | committed ({hash})` or `closeout | skipped`). Only
+write a hash after the commit actually succeeds; if a pre-commit hook rejects it
+or the commit fails, record `failed` and surface the error — never write a fake
+hash.
+
+The Local-closeout gate is satisfied **only when the closeout is committed**:
+closeout complete, Checkpoint Log updated, and the working tree clean (no
+uncommitted changes). If you declined the commit (chose N) or it failed,
+Local-closeout is **not** satisfied yet — commit the staged closeout yourself
+before continuing; do not enter the Integration / PR gate with uncommitted
+changes. Once committed, the gate stands on its own offline; integration happens
+in Step 5 when you have network.
+
+**→ Transition (step-internal)**: Step 4 complete. Branch on whether the closeout commit landed:
+
+- **Closeout commit landed (working tree clean)** → announce "Step 4 complete (feature archived; Local-closeout gate satisfied). Entering Step 5: Integration / PR gate." and continue.
+- **Closeout commit was declined (N) or failed** → **stop here.** Announce "Step 4 complete (feature archived), but the Local-closeout gate is not satisfied yet — the closeout is staged but uncommitted. Commit those changes (or address the failure), then resume to Step 5." Do **not** enter Step 5 with uncommitted closeout changes.
 
 ## Step 5: Emit Integration Summary (Git-strategy-neutral)
 
@@ -185,10 +217,10 @@ Produce a plain-text summary of what this feature did. The summary is
 developer adapts to whichever merge strategy their project uses
 (merge commit, squash, rebase, fast-forward — Dflow stays neutral).
 
-For projects that adopted the optional Dflow Git-principles scaffolding, the
-applicable `scaffolding/Git-principles-{gitflow|trunk}.md` "Integration
-Commit Message Conventions" section explains how to format the actual commit
-message from this summary.
+The selected Git policy's `Git-principles-{gitflow|trunk}.md` (seeded at init
+under `dflow/specs/shared/`) explains, in its "Integration Commit Message
+Conventions" section, how to format the actual commit / merge message from this
+summary.
 
 Format:
 
@@ -212,10 +244,11 @@ Phase List:
 - phase-2 ({date}): {phase-slug} — {1 line}
 - ...
 
-Next Steps (developer):
-- Per the project's Git-principles, choose a merge strategy (merge commit /
-  squash / rebase / fast-forward) and execute
-- Push to remote / open a PR
+Next Steps (developer) — Integration / PR gate (needs network):
+- Per the selected Git policy (`gitflow` / `trunk` in `_conventions.md`), choose
+  a merge strategy (merge commit / squash / rebase / fast-forward) and execute
+- Push to remote / open a PR — the AI can run `git push` / `gh pr create` for
+  you, but only when you explicitly ask; it never pushes on its own
 ```
 
 Print the summary to the conversation; do not write it to a file (it is
@@ -233,7 +266,9 @@ the developer:
 If no `follow-up-of` field, skip Step 6 and announce closeout complete:
 > "`/dflow:finish-feature` complete for `{SPEC-ID}-{slug}`. Feature
 > directory is now at `dflow/specs/features/completed/{SPEC-ID}-{slug}/`.
-> Stage is set; commit / merge / push at your discretion."
+> If you skipped the closeout commit, commit the staged changes first to
+> finish the Local-closeout gate. Then integration — merge / push / PR —
+> follows the selected Git policy, at your discretion."
 
 ## Step 6: Reverse-Update Follow-up Tracking (only if follow-up)
 
@@ -246,7 +281,7 @@ Follow-up Tracking table.
 3. Flip Status → `completed`
 
 ```bash
-# AI does the edit; commits stay with the developer
+# The AI makes the edit and may offer to commit it (Y / N), per the AI commit policy
 ```
 
 After the update:

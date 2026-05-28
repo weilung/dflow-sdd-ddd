@@ -149,18 +149,20 @@ Claude `.claude/commands` 或 Copilot `.github/prompts` 對等的 Dflow command-
 adapter。
 
 當你在 `--command-adapters` 模式下選擇 `AGENTS.md - Codex / Copilot coding agent`
-且 Dflow 可以建立新的 `AGENTS.md` shim 時，shim 會加入從 canonical command
-registry 產生的 trigger 清單。這些 trigger 仍是文字提示，例如：
+時，Dflow 會把從 canonical command registry 產生的 trigger 清單寫進 `AGENTS.md`。
+這些 trigger 仍是文字提示，例如：
 
 ```text
 dflow:new-feature
 ```
 
-如果專案已有自訂 `AGENTS.md`，Dflow 仍會保留既有檔案；請依產生的 merge snippet
-或文件指引手動合併 Dflow 指標。
+只要 `AGENTS.md` 是 Dflow 產生且未經改動的 shim（標準 `init` → `configure-agents
+--command-adapters` 流程就是如此），Dflow 會把帶 marker 的 trigger 段**直接注入**
+`AGENTS.md`，零手動合併；重複執行會就地重投影同一段、不會重複附加。
 
-在這個模式下，Codex 目標的 merge snippet 檔名是
-`dflow/specs/shared/AGENTS-md-command-adapters-snippet.md`。
+如果 `AGENTS.md` 在 Dflow 產生後被改過、或本來就是你自訂的檔案，Dflow 會保留既有
+檔案不動，改把 trigger 段寫到 merge snippet 供你手動合併。此情況下 Codex 目標的
+merge snippet 檔名是 `dflow/specs/shared/AGENTS-md-command-adapters-snippet.md`。
 
 ### 產生物的版控政策（Codex）
 

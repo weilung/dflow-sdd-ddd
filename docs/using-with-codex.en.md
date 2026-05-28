@@ -162,20 +162,24 @@ triggers only. It does not create Codex command files and it does not add
 equivalent to Claude `.claude/commands` or Copilot `.github/prompts`.
 
 When you select `AGENTS.md - Codex / Copilot coding agent` in
-`--command-adapters` mode and Dflow can create a new `AGENTS.md` shim, the
-shim includes a trigger list generated from the canonical command registry.
-Those triggers are still plain text prompts, for example:
+`--command-adapters` mode, Dflow writes a trigger list generated from the
+canonical command registry into `AGENTS.md`. Those triggers are still plain
+text prompts, for example:
 
 ```text
 dflow:new-feature
 ```
 
-If the project already has a custom `AGENTS.md`, Dflow still preserves that
-file; merge the Dflow pointer manually from the generated snippet or the
-documentation guidance.
+As long as `AGENTS.md` is an unmodified Dflow-generated shim — which is exactly
+the case after the standard `init` → `configure-agents --command-adapters`
+flow — Dflow **injects** the trigger section directly into `AGENTS.md`, wrapped
+in markers, with zero manual merge. Re-running re-projects that same section in
+place instead of appending a duplicate.
 
-In this mode, the Codex-target merge snippet filename is
-`dflow/specs/shared/AGENTS-md-command-adapters-snippet.md`.
+If `AGENTS.md` was edited after Dflow generated it, or is your own custom file,
+Dflow leaves it untouched and instead writes the trigger section to a merge
+snippet for you to merge manually. In that case the Codex-target merge snippet
+filename is `dflow/specs/shared/AGENTS-md-command-adapters-snippet.md`.
 
 ### Version-Control Policy for Generated Artifacts (Codex)
 

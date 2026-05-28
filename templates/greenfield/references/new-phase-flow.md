@@ -67,6 +67,17 @@ AI must locate the target feature and load its current state:
      and `behavior.md` if the new phase is likely to touch system-level
      state (BC-level current state lives there, not in `_index.md`)
 
+4. **Branch gate — ensure you are on this feature's branch (before any commit)**
+
+   This phase's commits must land on the active feature's
+   `feature/{SPEC-ID}-{slug}` branch. If you are not already on it (you
+   identified the feature by name, or are on a base / unrelated branch),
+   switch to the existing branch — or override and record it in the
+   `_index.md` Checkpoint Log. **Never create a new feature branch here:**
+   `new-phase` extends an existing active feature, it does not start one. See
+   `references/git-integration.md` § Commit Checkpoints, Branch Gate & AI
+   Commits.
+
 Share what you found:
 
 > "OK — `{SPEC-ID}-{slug}` has {N} prior phases in BC `{context}`. The
@@ -167,6 +178,8 @@ Announce to developer:
 > Ready to refresh `_index.md` (add Phase Specs row, regenerate Current BR
 > Snapshot from the Delta)? `/dflow:next` to proceed."
 
+> Commit checkpoint (per `references/git-integration.md` § Commit Checkpoints, Branch Gate & AI Commits): with the Step 1 branch gate satisfied (you are on the feature's branch), offer to commit the phase-spec baseline and record the result in the `_index.md` Checkpoint Log.
+
 Wait for confirmation before entering Step 5.
 
 ## Step 5: Refresh `_index.md`
@@ -239,6 +252,8 @@ Announce to developer:
 > "Phase implementation appears complete and verified against the phase-spec.
 > Ready to mark this phase completed and update `_index.md`? `/dflow:next`
 > to proceed."
+
+> Commit checkpoint (per `references/git-integration.md` § Commit Checkpoints, Branch Gate & AI Commits): offer to commit the phase implementation, then record the result in the `_index.md` Checkpoint Log.
 
 Wait for confirmation before entering Step 7.
 

@@ -68,8 +68,10 @@ try {
     '1',
     'ASP.NET Core 9, EF Core 8, MediatR 12, xUnit',
     'none',
-    '1',
-    '1,2',
+    '1',       // prose: zh-TW
+    '2',       // Git policy: trunk
+    '1',       // AI commit marker: none
+    '1',       // optional starter files: overview
     '1,2,3',
     'y'
   ].join('\n') + '\n';
@@ -110,6 +112,12 @@ try {
   assert.match(conventions, /\[Glossary\]\(\.\.\/domain\/glossary\.md\)/);
   assert.match(conventions, /^> Dflow Version: \d+\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?$/m, 'Greenfield Dflow Version field present');
 
+  // PROPOSAL-047: mandatory Git policy + AI commit marker recorded in _conventions.md
+  assert.equal((conventions.match(/^## Git Policy$/gm) || []).length, 1, 'Git Policy section count');
+  assert.match(conventions, /Selected Git policy: `trunk`/, 'greenfield Git policy recorded');
+  assert.equal((conventions.match(/^## AI Commit Policy$/gm) || []).length, 1, 'AI Commit Policy section count');
+  assert.match(conventions, /AI commit marker: `none`/, 'greenfield AI commit marker recorded');
+
   const overview = await readFile(join(tempRoot, 'dflow/specs/shared/_overview.md'), 'utf8');
   assert.match(overview, /\[Tech debt backlog\]\(\.\.\/architecture\/tech-debt\.md\)/);
   assert.doesNotMatch(`${conventions}\n${overview}`, /\]\((?:domain|architecture|migration)\//);
@@ -146,9 +154,11 @@ try {
     '1',
     'ASP.NET Core 9, EF Core 8, MediatR 12, xUnit',
     'none',
-    '2',
-    'none',
-    'none',
+    '2',       // prose
+    '2',       // Git policy: trunk
+    '1',       // AI commit marker: none
+    'none',    // optional starter files
+    'none',    // AI agents
     'y'
   ].join('\n') + '\n';
 
@@ -318,9 +328,11 @@ try {
     '1',
     'ASP.NET Core 9, EF Core 8',
     'none',
-    '1',
-    '1,2',
-    'none',
+    '1',       // prose
+    '2',       // Git policy: trunk
+    '1',       // AI commit marker: none
+    '1',       // optional: overview
+    'none',    // AI agents
     'y'
   ].join('\n') + '\n';
   const noClaudeInitRun = await runDflow(noClaudeRoot, noClaudeInit, ['init']);
@@ -378,6 +390,30 @@ try {
   const newFeatureFlow = await readFile(join(bundleDir, 'references/new-feature-flow.md'), 'utf8');
   assert.match(newFeatureFlow, /<!-- dflow-generated: workflow-bundle -->/, 'bundle flow file should carry the generated marker');
 
+  // PROPOSAL-048: feedback flow renders field-by-field for the upstream issue form
+  const feedbackFlow = await readFile(join(bundleDir, 'references/dflow-feedback-flow.md'), 'utf8');
+  assert.match(feedbackFlow, /issues\/new\/choose/, 'feedback flow should point at the upstream issue chooser');
+  assert.match(feedbackFlow, /Upstream Issue Forms/, 'feedback flow should embed the upstream issue-form field map');
+
+  // PROPOSAL-047: the feature _index.md template carries the Checkpoint Log section marker.
+  const indexTemplate = await readFile(join(bundleDir, 'templates/_index.md'), 'utf8');
+  assert.match(indexTemplate, /<!-- dflow:section checkpoint-log -->/, 'PROPOSAL-047: _index.md template should carry the Checkpoint Log section marker');
+  assert.match(indexTemplate, /^## Checkpoint Log$/m, 'PROPOSAL-047: _index.md template should include the Checkpoint Log section');
+
+  // PROPOSAL-047 (review fixes): branch gate precedes the first commit checkpoint;
+  // closeout requires a committed (clean) tree; new-phase never recreates a branch.
+  const nfFlow = await readFile(join(bundleDir, 'references/new-feature-flow.md'), 'utf8');
+  assert.ok(
+    nfFlow.includes('Branch gate (policy-aware)') &&
+      nfFlow.indexOf('Branch gate (policy-aware)') < nfFlow.indexOf('milestone 1 of 3'),
+    'PROPOSAL-047: spec-baseline commit checkpoint must come after the branch gate'
+  );
+  const ffFlow = await readFile(join(bundleDir, 'references/finish-feature-flow.md'), 'utf8');
+  assert.match(ffFlow, /only when the closeout is committed/, 'PROPOSAL-047: Local-closeout requires a committed (clean) tree');
+  assert.doesNotMatch(ffFlow, /clean or intentionally staged/, 'PROPOSAL-047: Local-closeout must not accept merely-staged changes');
+  const npFlow = await readFile(join(bundleDir, 'references/new-phase-flow.md'), 'utf8');
+  assert.match(npFlow, /Never create a new feature branch here/, 'PROPOSAL-047: new-phase must not recreate a feature branch');
+
   // (iv) manifest present with correct edition and version
   assert.equal(await exists(bundleManifestPath), true, 'bundle manifest should exist');
   const manifestContent = JSON.parse(await readFile(bundleManifestPath, 'utf8'));
@@ -415,8 +451,10 @@ try {
     '1',
     'ASP.NET Core 9, EF Core 8, MediatR 12, xUnit',
     'none',
-    '1',
-    '1,2',
+    '1',       // prose
+    '2',       // Git policy: trunk
+    '1',       // AI commit marker: none
+    '1',       // optional: overview
     '1,2,3',
     'y'
   ].join('\n') + '\n';
@@ -451,8 +489,10 @@ try {
     'Future ASP.NET Core migration',
     '4',
     'fr-CA',
-    '1',
-    '2',
+    '1',       // Git policy: gitflow (covers the gitflow projection branch)
+    '3',       // AI commit marker: prefix (covers the prefix mode)
+    '1',       // optional: overview
+    '2',       // AI agents: Claude
     'y'
   ].join('\n') + '\n';
 
@@ -510,6 +550,41 @@ try {
   const brownfieldFlowContent = await readFile(join(webformsBundleDir, 'references/new-feature-flow.md'), 'utf8');
   assert.match(brownfieldFlowContent, /<!-- dflow-generated: workflow-bundle -->/, 'brownfield bundle flow file should carry the generated marker');
 
+  // PROPOSAL-047 (review fixes) — brownfield parity with the greenfield textual / order guards.
+  assert.ok(
+    brownfieldFlowContent.includes('Branch gate (policy-aware)') &&
+      brownfieldFlowContent.indexOf('Branch gate (policy-aware)') < brownfieldFlowContent.indexOf('milestone 1 of 3'),
+    'PROPOSAL-047 (brownfield parity): spec-baseline commit checkpoint must come after the branch gate'
+  );
+  const brownfieldFinishFlow = await readFile(join(webformsBundleDir, 'references/finish-feature-flow.md'), 'utf8');
+  assert.match(brownfieldFinishFlow, /only when the closeout is committed/, 'PROPOSAL-047 (brownfield parity): Local-closeout requires a committed (clean) tree');
+  assert.doesNotMatch(brownfieldFinishFlow, /clean or intentionally staged/, 'PROPOSAL-047 (brownfield parity): Local-closeout must not accept merely-staged changes');
+  const brownfieldNewPhase = await readFile(join(webformsBundleDir, 'references/new-phase-flow.md'), 'utf8');
+  assert.match(brownfieldNewPhase, /Never create a new feature branch here/, 'PROPOSAL-047 (brownfield parity): new-phase must not recreate a feature branch');
+
+  // Fence-integrity guard — exhaustive scan over all Git-principles source + mirror files
+  // (catches any content glued to a closing fence, not just `}```; previous narrower guard
+  // missed trunk integration-example fences in round-2). Pattern \S``` flags non-whitespace
+  // immediately before three backticks at end of line.
+  const gitPrinciplesScanList = [
+    'sdd-ddd-greenfield-skill/scaffolding/Git-principles-trunk.md',
+    'sdd-ddd-greenfield-skill/scaffolding/Git-principles-gitflow.md',
+    'sdd-ddd-brownfield-skill/scaffolding/Git-principles-trunk.md',
+    'sdd-ddd-brownfield-skill/scaffolding/Git-principles-gitflow.md',
+    'templates/greenfield/scaffolding/Git-principles-trunk.md',
+    'templates/greenfield/scaffolding/Git-principles-gitflow.md',
+    'templates/brownfield/scaffolding/Git-principles-trunk.md',
+    'templates/brownfield/scaffolding/Git-principles-gitflow.md',
+  ];
+  for (const rel of gitPrinciplesScanList) {
+    const content = await readFile(join(repoRoot, rel), 'utf8');
+    assert.doesNotMatch(
+      content,
+      /\S```/,
+      `${rel}: closing code fence must be on its own line (no content glued to \`\`\`)`
+    );
+  }
+
   // Guide should reference workflow bundle (not source paths)
   const webformsGuide = await readFile(join(webformsRoot, 'dflow/specs/shared/AI-AGENT-GUIDE.md'), 'utf8');
   assert.match(webformsGuide, /dflow\/specs\/shared\/dflow-workflows\/references\/new-feature-flow\.md/, 'brownfield guide should reference project-local bundle path');
@@ -519,6 +594,12 @@ try {
   assert.equal((webformsConventions.match(/^## Prose Language$/gm) || []).length, 1, 'Brownfield Prose Language section count');
   assert.match(webformsConventions, /Project prose language: `fr-CA`/);
   assert.match(webformsConventions, /^> Dflow Version: \d+\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?$/m, 'Brownfield Dflow Version field present');
+
+  // PROPOSAL-047: gitflow policy projects the gitflow principles file (and not trunk).
+  assert.match(webformsConventions, /Selected Git policy: `gitflow`/, 'brownfield Git policy recorded');
+  assert.match(webformsConventions, /AI commit marker: `prefix`/, 'brownfield AI commit marker recorded (prefix mode)');
+  assert.equal(await exists(join(webformsRoot, 'dflow/specs/shared/Git-principles-gitflow.md')), true, 'gitflow policy should project the gitflow principles file');
+  assert.equal(await exists(join(webformsRoot, 'dflow/specs/shared/Git-principles-trunk.md')), false, 'gitflow policy should not project the trunk principles file');
 
   const webformsOverview = await readFile(join(webformsRoot, 'dflow/specs/shared/_overview.md'), 'utf8');
   assert.match(webformsOverview, /\[Tech debt backlog\]\(\.\.\/migration\/tech-debt\.md\)/);
@@ -542,6 +623,70 @@ try {
   assert.equal(await exists(join(webformsRoot, '.agents/skills/dflow/SKILL.md')), false, 'Codex skill adapter should not be created for Codex-only configuration');
   assert.equal(await exists(join(webformsRoot, '.claude/commands/dflow/new-feature.md')), false, 'Codex-only command-adapters should not create Claude files');
 
+  // PROPOSAL-046: Codex command-trigger injection into a Dflow-generated AGENTS.md.
+  // Happy path — init selects Codex (AGENTS.md shim), then configure-agents
+  // --command-adapters injects the trigger section directly (zero manual merge).
+  const codexRoot = join(tempRoot, 'codex-inject');
+  await mkdir(codexRoot, { recursive: true });
+  const codexInitInput = [
+    '1',                                          // greenfield
+    'ASP.NET Core 9, EF Core 8, MediatR 12, xUnit',
+    'none',
+    '1',                                          // prose language
+    '2',                                          // Git policy: trunk
+    '1',                                          // AI commit marker: none
+    '1',                                          // optional starter files: overview
+    '1',                                          // AI agents: Codex (AGENTS.md) only
+    'y'
+  ].join('\n') + '\n';
+  const codexInit = await runDflow(codexRoot, codexInitInput);
+  assert.equal(codexInit.code, 0, `codex inject: init failed\nSTDOUT:\n${codexInit.stdout}\nSTDERR:\n${codexInit.stderr}`);
+
+  const codexAgentsPath = join(codexRoot, 'AGENTS.md');
+  const codexSnippetPath = join(codexRoot, 'dflow/specs/shared/AGENTS-md-command-adapters-snippet.md');
+  assert.equal(await exists(codexAgentsPath), true, 'codex inject: init should create AGENTS.md shim');
+  const codexAgentsAfterInit = await readFile(codexAgentsPath, 'utf8');
+  assert.doesNotMatch(codexAgentsAfterInit, /## Dflow Text Triggers/, 'codex inject: init shim should not yet carry triggers');
+
+  // configure-agents --command-adapters should inject into the pristine shim.
+  const codexInject = await runDflow(codexRoot, '1\ny\n', ['configure-agents', '--command-adapters']);
+  assert.equal(codexInject.code, 0, `codex inject: configure failed\nSTDOUT:\n${codexInject.stdout}\nSTDERR:\n${codexInject.stderr}`);
+  assert.match(codexInject.stdout, /AGENTS\.md \| update \|/, 'codex inject: AGENTS.md should be updated in place, not parked as a snippet');
+  const codexAgentsInjected = await readFile(codexAgentsPath, 'utf8');
+  assert.match(codexAgentsInjected, /## Dflow Text Triggers/, 'codex inject: trigger section should be injected into AGENTS.md');
+  assert.match(codexAgentsInjected, /dflow-generated: codex-command-triggers START/, 'codex inject: trigger block should be marker-wrapped');
+  assert.equal(await exists(codexSnippetPath), false, 'codex inject: no command-adapters snippet should be written for a pristine shim');
+
+  // Idempotent re-run: the trigger section is re-projected, not duplicated.
+  const codexRerun = await runDflow(codexRoot, '1\ny\n', ['configure-agents', '--command-adapters']);
+  assert.equal(codexRerun.code, 0, `codex inject: idempotent re-run failed\nSTDOUT:\n${codexRerun.stdout}\nSTDERR:\n${codexRerun.stderr}`);
+  const codexAgentsRerun = await readFile(codexAgentsPath, 'utf8');
+  assert.equal((codexAgentsRerun.match(/## Dflow Text Triggers/g) || []).length, 1, 'codex inject: re-run should keep exactly one trigger section');
+  assert.equal((codexAgentsRerun.match(/codex-command-triggers START/g) || []).length, 1, 'codex inject: re-run should keep exactly one trigger block marker');
+
+  // User-modified shim degrades safely to the side snippet + warning; AGENTS.md untouched.
+  await writeFile(codexAgentsPath, `# My own notes\n\n${codexAgentsRerun}`);
+  const codexDegrade = await runDflow(codexRoot, '1\ny\n', ['configure-agents', '--command-adapters']);
+  assert.equal(codexDegrade.code, 0, `codex inject: degrade run failed\nSTDOUT:\n${codexDegrade.stdout}\nSTDERR:\n${codexDegrade.stderr}`);
+  assert.match(codexDegrade.stdout, /modified after Dflow generated it/, 'codex inject: a modified shim should warn');
+  assert.equal(await exists(codexSnippetPath), true, 'codex inject: user-modified AGENTS.md should degrade to a command-adapters snippet');
+  const codexAgentsAfterDegrade = await readFile(codexAgentsPath, 'utf8');
+  assert.match(codexAgentsAfterDegrade, /^# My own notes/, 'codex inject: user-modified AGENTS.md must be left untouched');
+
+  // CRLF / trailing-whitespace reformat of a pristine shim still injects
+  // (normalized template match, not a raw hash that an editor reformat would break).
+  const codexReformatRoot = join(tempRoot, 'codex-reformat');
+  await mkdir(codexReformatRoot, { recursive: true });
+  const codexReformatInit = await runDflow(codexReformatRoot, codexInitInput);
+  assert.equal(codexReformatInit.code, 0, `codex reformat: init failed\nSTDOUT:\n${codexReformatInit.stdout}\nSTDERR:\n${codexReformatInit.stderr}`);
+  const codexReformatAgentsPath = join(codexReformatRoot, 'AGENTS.md');
+  const pristineShim = await readFile(codexReformatAgentsPath, 'utf8');
+  await writeFile(codexReformatAgentsPath, pristineShim.replace(/\n/g, '  \r\n')); // editor: CRLF + trailing spaces
+  const codexReformatInject = await runDflow(codexReformatRoot, '1\ny\n', ['configure-agents', '--command-adapters']);
+  assert.equal(codexReformatInject.code, 0, `codex reformat: configure failed\nSTDOUT:\n${codexReformatInject.stdout}\nSTDERR:\n${codexReformatInject.stderr}`);
+  assert.match(await readFile(codexReformatAgentsPath, 'utf8'), /## Dflow Text Triggers/, 'codex reformat: a reformatted pristine shim should still be injected');
+  assert.equal(await exists(join(codexReformatRoot, 'dflow/specs/shared/AGENTS-md-command-adapters-snippet.md')), false, 'codex reformat: reformatted pristine shim should not degrade to a snippet');
+
   // Non-.NET init e2e — Java/Spring Boot greenfield project.
   // Verifies that:
   // - extractTechStackPlaceholders recognizes non-.NET stack version strings
@@ -554,8 +699,10 @@ try {
     '1',
     'Java 21, Spring Boot 3.3, Spring Data JPA, JUnit 5',
     'none',
-    '2',
-    '1,2',
+    '2',       // prose
+    '2',       // Git policy: trunk
+    '2',       // AI commit marker: co-authored-by (covers the trailer mode)
+    '1',       // optional: overview
     '1,2,3',
     'y'
   ].join('\n') + '\n';
@@ -580,6 +727,7 @@ try {
 
   // tech-stack-summary should be preserved verbatim somewhere (sanity check for substitution)
   assert.match(javaAiGuide, /Spring Boot 3\.3/, 'AI guide should retain Java/Spring Boot tech-stack-summary');
+  assert.match(javaConventions, /AI commit marker: `co-authored-by`/, 'co-authored-by marker mode recorded in _conventions.md');
 
   // unresolvedInitPlaceholders warning should not fire for canonical placeholder fallbacks
   // (Codex review note: "unresolved fallback 要保留原 token，否則 warning 會誤導")

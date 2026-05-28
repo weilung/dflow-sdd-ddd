@@ -12,13 +12,14 @@ Template note (for AI):
   This is the **feature-level dashboard** (`_index.md`) for a feature
   directory. Place at `dflow/specs/features/active/{SPEC-ID}-{slug}/_index.md`.
 
-  Six required sections (see below):
+  Seven required sections (see below):
     1. Metadata (YAML front matter above)
     2. Goals & Scope (prose)
     3. Phase Specs (T1 list)
     4. Current BR Snapshot (feature-level cumulative state)
     5. Lightweight Changes (T2 outbound link + T3 inline)
-    6. Resume Pointer
+    6. Checkpoint Log (commit / skip timeline)
+    7. Resume Pointer
 
   Optional section (append at end if applicable):
     - Follow-up Tracking (when this feature has follow-up features derived)
@@ -94,6 +95,23 @@ Template note (for AI):
 |---|---|---|---|
 | {YYYY-MM-DD} | T2 | bug fix XYZ — 見 [`lightweight-{date}-{slug}.md`](./lightweight-{date}-{slug}.md) | {hash} |
 | {YYYY-MM-DD} | T3 | 按鈕顏色從藍改綠 `[cosmetic]` | {hash} |
+
+<!-- dflow:section checkpoint-log -->
+## Checkpoint Log
+
+> 生命週期 checkpoint 的 commit / skip 時間線（讓三週後回溯不必手動重建）。
+> 每個 checkpoint 無論 commit 或 skip 都記一列。Tier 決定 checkpoint 數：
+> T1 三點（spec 完 / impl 完 / closeout）、T2 兩點（spec+impl 合併 / closeout）、
+> T3 單一 commit。
+>
+> commit hash 只在 commit 實際成功後填入；pre-commit hook reject 或 commit
+> 失敗記 `failed`、不寫假 hash。
+
+| Timestamp | Checkpoint | Result |
+|---|---|---|
+| {YYYY-MM-DD HH:MM} | spec-baseline | committed ({hash}) / skipped / failed |
+| {YYYY-MM-DD HH:MM} | implementation | committed ({hash}) / skipped / failed |
+| {YYYY-MM-DD HH:MM} | closeout | committed ({hash}) / skipped / failed |
 
 ## Resume Pointer
 

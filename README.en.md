@@ -35,8 +35,9 @@ npm install -g dflow-sdd-ddd
 dflow init
 ```
 
-The init flow asks whether the project is greenfield or brownfield, then
-previews the files it will create. Existing files are not overwritten. Init
+The init flow asks whether the project is greenfield or brownfield, which Git
+policy the team follows (GitFlow / Trunk), and how AI-made commits should be
+marked, then previews the files it will create. Existing files are not overwritten. Init
 creates workflow documentation and AI instruction files; it does not inspect,
 refactor, or migrate your application code.
 
@@ -317,7 +318,7 @@ Usable only inside an already-started active feature. Targets pointing at `compl
 |---|---|---|
 | `/dflow:verify` | Need to confirm docs, code, tests, and tech-debt records are still in sync | Drift report across spec, domain docs, implementation, tests, and debt records |
 | `/dflow:pr-review` | A change is ready for review | SDD/DDD compliance review checklist with risks, gaps, and follow-up items |
-| `/dflow:report-dflow-feedback` | You or the AI found a Dflow issue or improvement while using it | Sanitized local feedback draft; nothing is submitted automatically |
+| `/dflow:report-dflow-feedback` | You or the AI found a Dflow issue or improvement while using it | Sanitized local draft rendered field-by-field for the upstream issue form, ready to paste; nothing is submitted automatically |
 
 ### What should I run? (rule of thumb)
 
@@ -389,4 +390,4 @@ release history.
 
 ## License
 
-MIT License. See [LICENSE](LICENSE).
+GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later). See [LICENSE](LICENSE).

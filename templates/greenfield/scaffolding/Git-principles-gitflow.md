@@ -125,8 +125,6 @@ Commits must tie back to a SPEC-ID:
 [{SPEC-ID}] {short description}
 
 {optional detailed body}
-
-Co-Authored-By: Claude <noreply@anthropic.com>   ← suggested, not mandatory
 ```
 
 ### Type prefix (recommended)
@@ -309,19 +307,22 @@ Three categories:
 | `git stash` (local-only) |
 | `git branch` (listing only) |
 
-### AI commit authorship (suggested, not enforced)
+### AI commit authorship
 
-When an AI assists in producing a commit, appending a `Co-Authored-By`
-line is **suggested** but not mandatory. The canonical form for
-Claude is:
+How AI-made commits are marked is chosen once at `dflow init` and recorded in
+`dflow/specs/shared/_conventions.md` § AI Commit Policy:
 
-```
-Co-Authored-By: Claude <noreply@anthropic.com>
-```
+- `none` — AI commits carry no extra marker.
+- `co-authored-by` — a `Co-Authored-By: dflow-ai <noreply@dflow.local>` trailer
+  (teams may customize the name / email).
+- `prefix` — an `[ai-assisted]` commit-subject prefix.
 
-For other AI assistants, use the vendor-documented author line (or omit
-it). This is a project-level transparency convention, not a Dflow
-requirement.
+This recorded setting is authoritative and the runtime does not re-ask. The AI
+offers commits at lifecycle checkpoints (see `references/git-integration.md`
+§ Commit Checkpoints, Branch Gate & AI Commits) using your Git identity, and you
+can always decline. If your team also wants vendor attribution, appending the
+assistant's documented line (e.g. `Co-Authored-By: Claude
+<noreply@anthropic.com>`) is an independent, optional convention on top.
 
 ---
 

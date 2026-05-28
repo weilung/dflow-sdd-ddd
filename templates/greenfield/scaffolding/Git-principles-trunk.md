@@ -77,8 +77,6 @@ recommended but not strictly required:
 {type}({scope}): {short description}
 
 [{SPEC-ID}] {longer description, optional}
-
-Co-Authored-By: Claude <noreply@anthropic.com>   ← suggested, not mandatory
 ```
 
 ### Type prefix (Conventional Commits)
@@ -106,8 +104,6 @@ feat(expense): add ExpenseReport submission invariants
 [SPEC-20260421-001] Introduce ExpenseReport Aggregate with submission
 state machine; enforces non-negative Amounts and requires at least one
 ExpenseItem before submission.
-
-Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
 ---
@@ -183,7 +179,6 @@ Related BR-IDs:
 Domain Events introduced / modified: {Event names, or "(none)"}
 
 Related SPEC-IDs: {SPEC-ID}{, follow-up SPEC-IDs if any}
-Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
 GitHub PR editor can be pre-filled with this body; the merge button
@@ -210,8 +205,6 @@ feat({scope}): {Phase N title} — closes {SPEC-ID}
 Change Scope: ... (as in §4.1)
 Related BR-IDs: ...
 Domain Events: ...
-
-Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
 ### 4.3 Fast-forward (feature has 1 commit total)
@@ -288,19 +281,22 @@ Three categories:
 | `git branch` (listing only) |
 | `gh pr status` / `gh pr view` |
 
-### AI commit authorship (suggested, not enforced)
+### AI commit authorship
 
-When an AI assists in producing a commit, appending a `Co-Authored-By`
-line is **suggested** but not mandatory. The canonical form for
-Claude is:
+How AI-made commits are marked is chosen once at `dflow init` and recorded in
+`dflow/specs/shared/_conventions.md` § AI Commit Policy:
 
-```
-Co-Authored-By: Claude <noreply@anthropic.com>
-```
+- `none` — AI commits carry no extra marker.
+- `co-authored-by` — a `Co-Authored-By: dflow-ai <noreply@dflow.local>` trailer
+  (teams may customize the name / email).
+- `prefix` — an `[ai-assisted]` commit-subject prefix.
 
-For other AI assistants, use the vendor-documented author line (or omit
-it). This is a project-level transparency convention, not a Dflow
-requirement.
+This recorded setting is authoritative and the runtime does not re-ask. The AI
+offers commits at lifecycle checkpoints (see `references/git-integration.md`
+§ Commit Checkpoints, Branch Gate & AI Commits) using your Git identity, and you
+can always decline. If your team also wants vendor attribution, appending the
+assistant's documented line (e.g. `Co-Authored-By: Claude
+<noreply@anthropic.com>`) is an independent, optional convention on top.
 
 ---
 

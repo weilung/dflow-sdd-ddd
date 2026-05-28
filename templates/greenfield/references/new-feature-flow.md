@@ -278,10 +278,23 @@ The slug **must match the slug agreed in Step 3.5** (which is also the
 feature directory name). The SPEC-ID + slug links the branch to its
 feature directory and `_index.md`.
 
+**Branch gate (policy-aware).** A feature branch is mandatory under both Git
+policies (`gitflow` / `trunk`, per `_conventions.md` § Git Policy). The gate
+checks whether you are already on this feature's `feature/{SPEC-ID}-{slug}`
+branch: if so, it is satisfied. If you are not yet on it (still on the base
+branch the project cuts from, or an unrelated branch), the AI offers to create
+and switch to `feature/{SPEC-ID}-{slug}`, switch to an existing matching branch,
+or override and stay (recorded in the `_index.md` Checkpoint Log; three
+consecutive overrides → the AI suggests re-running `dflow init`). Dflow does not
+need to know which branch is your base. See `references/git-integration.md`
+§ Commit Checkpoints, Branch Gate & AI Commits.
+
 **→ Step Gate: Step 6 → Step 7**
 
 Announce to developer:
 > "Branch `feature/{SPEC-ID}-{description}` is created. Ready to start layer-by-layer implementation (Domain first)? `/dflow:next` to proceed, or discuss layer order / scope first."
+
+> Commit checkpoint (T1 milestone 1 of 3 — see `references/git-integration.md` § Commit Checkpoints, Branch Gate & AI Commits): now that the feature branch exists (the branch gate above ran first, so this commit lands on the feature branch — never on a base branch), offer to commit the spec baseline, then record the result (committed / skipped) in the `_index.md` Checkpoint Log. Milestone 2 = implementation (Step 7→8); milestone 3 = closeout (`/dflow:finish-feature`).
 
 Wait for confirmation before entering Step 7.
 
@@ -317,6 +330,8 @@ During implementation, continuously verify:
 
 Announce to developer:
 > "Implementation appears complete across all four layers. Ready to run the completion checklist (verify against spec, update domain docs + context-map, ensure test coverage, archive the spec)? `/dflow:next` to proceed."
+
+> Commit checkpoint (T1 milestone 2 of 3): offer to commit the implementation, then record the result in the `_index.md` Checkpoint Log. Milestone 3 (closeout) is the `/dflow:finish-feature` checkpoint.
 
 Wait for confirmation before entering Step 8. This step gate is where the completion checklist is triggered — do not skip.
 

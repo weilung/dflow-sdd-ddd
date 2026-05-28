@@ -128,25 +128,42 @@ blank input, or prose descriptions such as "Traditional Chinese". Dflow
 templates keep canonical English structural language; this setting controls
 free prose inside generated spec sections.
 
-### Q5. Optional starter files (multi-select)
+### Q5. Git policy (mandatory — pick one)
 
-> "Besides the mandatory baseline, which optional starter files do
-> you want me to seed? You can check as many as apply:
+> "Which Git policy does the team follow? This drives the runtime branch gate
+> and the finish-stage merge guidance, so it is required:
 >
->   - [ ] `dflow/specs/shared/_overview.md` — system overview template
->   - [ ] Git principles — **pick one** if your project has opinions
->         about Git conventions (decision hint: **if you're not sure,
->         pick trunk-based** — that's the default for GitHub / GitLab.
->         Pick Git Flow only if you have a formal release cycle with
->         dedicated release / hotfix branches):
->     - [ ] `dflow/specs/shared/Git-principles-gitflow.md`
->     - [ ] `dflow/specs/shared/Git-principles-trunk.md`"
+>   1. GitFlow — long-lived develop / release branches
+>   2. Trunk / GitHub Flow — short-lived feature branches (lightest; the
+>      default for most GitHub / GitLab teams)"
 
-Wait for answers. If the developer picks both Git-principles flavours,
-confirm once more that they really want both (usually a project picks
-one).
+Required — do not accept a skip. Both policies use feature branches; the choice
+only changes finish-stage merge guidance. The selected policy seeds exactly one
+`dflow/specs/shared/Git-principles-{gitflow|trunk}.md` (**mandatory, not
+optional**) and is recorded in `_conventions.md` under `## Git Policy`.
 
-### Q6. AI coding agents (multi-select)
+### Q6. AI commit marker (mandatory — default None)
+
+> "How should AI-made commits be marked? The AI offers to commit at lifecycle
+> checkpoints (you can always decline); this sets how those commits are tagged:
+>
+>   1. None (default) — AI commits look like any other commit
+>   2. Co-Authored-By trailer (`dflow-ai <noreply@dflow.local>`) — filterable
+>   3. `[ai-assisted]` commit-subject prefix — visible at a glance"
+
+Recorded in `_conventions.md` under `## AI Commit Policy`; the runtime does not
+re-ask.
+
+### Q7. Optional starter files (multi-select)
+
+> "Besides the mandatory baseline, which optional starter files do you want me
+> to seed?
+>
+>   - [ ] `dflow/specs/shared/_overview.md` — system overview template"
+
+Wait for answers.
+
+### Q8. AI coding agents (multi-select)
 
 > "Which AI coding agents should Dflow configure?
 >
@@ -215,7 +232,7 @@ Key Greenfield-track notes:
   moment the first bounded context is established. Creating empty
   `behavior.md` files here would create stale placeholders.
 
-### 3.2 Optional files (from Step 2 Q5)
+### 3.2 Optional files (from Step 2 Q7)
 
 Use the packaged scaffolding templates listed below; their project-local
 outputs are under `dflow/specs/shared/` (the scaffolding root, not the
@@ -251,7 +268,7 @@ skip, and wait for developer confirmation:
 > | `dflow/specs/architecture/tech-debt.md` | `templates/tech-debt.md` (mandatory baseline) |
 > | `dflow/specs/architecture/decisions/README.md` | `scaffolding/architecture-decisions-README.md` (mandatory baseline) |
 > | `dflow/specs/shared/_overview.md` | optional (you picked it) |
-> | `dflow/specs/shared/Git-principles-trunk.md` | optional (you picked it) |
+> | `dflow/specs/shared/Git-principles-trunk.md` | mandatory (selected Git policy) |
 > | `dflow/specs/shared/AI-AGENT-GUIDE.md` | selected AI agent guide |
 > | `CLAUDE.md` | selected tool shim because repo has no CLAUDE.md |
 >
@@ -274,7 +291,7 @@ skip, and wait for developer confirmation:
 **→ Step Gate: Step 3 → Step 4**
 
 Wait for explicit confirmation. If the developer asks to change the
-selection, go back to Step 2 Q5 or Q6 and re-run Step 3.
+selection, go back to the relevant Step 2 question (Q5–Q8) and re-run Step 3.
 
 ---
 
@@ -322,7 +339,7 @@ notice:
 
 ### 4.3 Special case — AI agent instruction files
 
-If the developer selected any AI coding agent in Q6, create
+If the developer selected any AI coding agent in Q8, create
 `dflow/specs/shared/AI-AGENT-GUIDE.md` as the canonical Dflow project
 guide.
 
