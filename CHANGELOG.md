@@ -6,6 +6,53 @@
 
 ---
 
+## 0.9.0 — 2026-05-28 — 執行當下對齊：feedback 逐欄產出、Codex trigger 注入、commit checkpoints + branch gate（含 breaking changes）
+
+**Proposals**：PROPOSAL-048（feedback 輸出對齊目標 issue 表單）、PROPOSAL-046（Codex command-trigger 注入既有 AGENTS.md shim）、PROPOSAL-047（commit checkpoints、branch lifecycle 強制、AI commit 政策翻轉、init Git policy 升必選）
+
+三者共享同一條 design line：**AI 在執行當下直接對齊目標狀態**（目標 issue schema / 目標檔案 / 團隊 Git policy 與良好開發習慣），取代「先產通用版 → 使用者事後手動翻譯 / 補做」的兩層結構。
+
+### ⚠️ Breaking changes（PROPOSAL-047）
+
+1. **AI commit 政策翻轉**：Dflow 既有原則「AI 不 commit、開發者自己 commit」改為「**AI 在生命週期 checkpoint 主動提議 commit，使用者隨時可拒絕（Y / N）**」。AI commit 使用開發者 git identity，標記方式由 init 選擇。翻轉後仍守「不讓 AI 越權」精神——使用者可拒絕、merge / push / PR 仍需明確同意、政策團隊擁有。牽動 `finish-feature-flow.md`、`git-integration.md`、各 flow 與 `Git-principles-*.md` 多檔。
+
+2. **init Git policy 升為必選題**：0.9.0 起 `dflow init` 把 Git policy（GitFlow / Trunk 二選一）改為**必選**，不再是 optional starter file。沒選政策的團隊用不上 047 的 branch gate / commit checkpoint；必選排除此失效情境，且兩個選項對最輕量採用者都不過重（Trunk = GitHub Flow 短命 branch、merge 最自由）。
+
+3. **init 新增 AI commit marker 必問**：None（預設）/ Co-Authored-By `dflow-ai <noreply@dflow.local>` / `[ai-assisted]` prefix 三選一，寫入 `dflow/specs/shared/_conventions.md` 的 `## AI Commit Policy` 段；runtime 不再重複問。
+
+### Migration（0.8.0 → 0.9.0）
+
+既有 0.8.0 專案需補（沒有既有 dflow 專案的新使用者不受影響，首次 `dflow init` 即為 0.9.0 行為）：
+
+- `dflow/specs/shared/Git-principles-{gitflow|trunk}.md`（擇一）——若 0.8.0 init 時未選 git-principles starter。
+- `dflow/specs/shared/_conventions.md` 補 `## Git Policy` 與 `## AI Commit Policy` 兩段（記錄所選 policy 與 marker 模式）。
+
+可手動補，或請 AI 依本 release note 協助補入。Dflow **不提供自動 migration 工具**（早期、採用者少）。
+
+### 📜 授權變更（License Change）
+
+從本 release 起 **`dflow-sdd-ddd` 改採 [AGPL-3.0-or-later](LICENSE)**（原 MIT）。npm 上已發布的 0.8.0 永遠保留 MIT（無法追溯）；AGPL 從 0.9.0 起對新發布生效。Copyright holder 明確化為「Will Chuang」。LICENSE 採 FSF gnu.org 官方 AGPL-3.0 全文。
+
+對一般使用者（學術圈、個人工程師、團隊內部以 dflow 引導開發）**無影響**——你寫的應用程式碼不受 AGPL 約束。AGPL 的 copyleft 約束的是**對 dflow skill / template 本身的修改與再散布**（含 SaaS 部署），目的是擋住「叫 AI 直接複製 skill 內容塞進私有專案規格」這類默默吸收的使用方式。
+
+### 新功能 / 行為改善
+
+- **feedback 輸出逐欄對齊目標 issue 表單**（PROPOSAL-048）：`/dflow:report-dflow-feedback` 從「通用 Markdown 草稿 + 後置 Suggested Issue Body」改為**直接產出 schema-aligned 逐欄填寫稿**，使用者零翻譯逐塊貼上。schema 來源 priority chain（本地 `.github/ISSUE_TEMPLATE/*.yml` → bundled field map → generic fallback）；涵蓋 GitHub Issue Forms 全欄位類型（input / textarea / dropdown / checkboxes / markdown / upload + attributes）、動態 fence escape、submitter 提交前自查 checklist。bundled field map 內嵌 4 份上游 issue form（Bug / Workflow change / Documentation / Question）。
+
+- **Codex command-trigger 注入既有 AGENTS.md shim**（PROPOSAL-046）：標準兩步 onboarding（`dflow init` → `configure-agents --command-adapters`）下，Codex 的 trigger 段原本必然淪為手動併（side snippet）。現在 `configure-agents` 對「未經改動的 dflow 生成 AGENTS.md」**直接注入帶 marker 的 trigger 段**（零手動合併）；偵測用 normalized exact-template match（容忍 CRLF / IDE reformat、非 raw hash），同機制支援 idempotent re-projection；使用者改過的 AGENTS.md 安全降級為 snippet + warning。對齊既有 `SKILL_ADAPTER_GENERATED_MARKER` precedent。
+
+- **commit checkpoints + branch gate + Checkpoint Log**（PROPOSAL-047）：
+  - 生命週期 milestone 折入既有 Step Gate 的 commit checkpoint（選 Y / N 都記一列到 feature `_index.md` 新增的 **Checkpoint Log** 段）；Tier 決定點數（T1 ×3 / T2 ×2 / T3 ×1）；commit hash 僅在成功後寫入、失敗記 `failed`、不寫假 hash。
+  - **branch gate**：實作前檢查當前是否就在這份工作的 feature branch；不在才提議 create / switch（兩個 policy 都用 feature branch）；override 記入 Checkpoint Log、連 3 次提示 reconfig。判斷只看「在不在對的 feature branch」，不需辨識 base branch。
+  - **finish-feature 拆兩段以支援離線**：Local-closeout gate（驗證 / 封存 / 可選 commit，離線可完成）+ Integration / PR gate（push / merge / PR，需 network；AI 只在使用者明確要求時才 `git push` / `gh pr create`）。
+
+### 維護者工具 / 測試
+
+- `test/smoke.mjs`：新增 046 注入矩陣（pristine 注入 / idempotent re-run / user-modified 降級 / CRLF reformat 仍注入 / 冷門路徑）、047 init 必選題（Git policy 兩分支 + AI commit marker）含 `_conventions.md` 政策段與 `_index.md` Checkpoint Log marker 斷言、048 feedback flow schema-aligned 守衛。
+- `MAINTAINERS.md`：新增「Upstream Issue-Form Snapshot」release-time resync 提醒（048 的內嵌 field map 與 dist issue templates 同步）。
+
+---
+
 ## 0.8.0 — 2026-05-24 — DDD set-based invariant 引導擴充、雙軌 skill 殼合一、user-projected bundle 內容 polish
 
 **Proposals**：PROPOSAL-040（CLI papercuts + 文件補洞）、PROPOSAL-041（C0+C1：configure-agents idempotent bundle re-projection + 雙軌 skill 殼合一）、PROPOSAL-042（ddd-modeling-guide 補 set-based invariants 與 Phase-1 event dispatch 段）、PROPOSAL-044（user-projected bundle 內 maintainer-source path 清除）、PROPOSAL-045（user-projected bundle 內 maintainer-only provenance refs 清除）
