@@ -11,10 +11,9 @@
 > - Use this legacy snippet only if you intentionally want the older
 >   Claude-specific two-H2 layout in your project's root `CLAUDE.md`.
 
-The snippet follows the Dflow `templates/CLAUDE.md` H2 segmentation:
-**System Context** (what the system is) and **Development Workflow**
-(how we work). Keep those two H2 sections as the backbone when merging
-into an existing `CLAUDE.md`.
+The snippet uses a two-H2 segmentation: **System Context** (what the
+system is) and **Development Workflow** (how we work). Keep those two H2
+sections as the backbone when merging into an existing `CLAUDE.md`.
 
 ---
 
@@ -159,9 +158,7 @@ AI 的完整決策樹、Workflow Transparency、Ceremony Scaling 三層判準
 When merging this snippet into an existing `CLAUDE.md`:
 
 1. **Keep the two H2 sections** (`System Context` / `Development Workflow`) as the
-   backbone. This alignment with the Dflow skill's
-   `templates/CLAUDE.md` is important — AI assistants navigate by
-   these headings.
+   backbone — AI assistants navigate by these headings.
 2. **Under `System Context`**: merge the background paragraph and the
    directory tree. If your project already documents directory
    structure elsewhere, keep the tree pointing to `dflow/specs/` and

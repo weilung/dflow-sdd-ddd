@@ -386,6 +386,13 @@ try {
     );
   }
 
+  // PROPOSAL-051: templates/CLAUDE.md retired — must NOT be projected into the bundle.
+  assert.equal(
+    await exists(join(bundleDir, 'templates/CLAUDE.md')),
+    false,
+    'PROPOSAL-051: retired templates/CLAUDE.md must not be projected into the workflow bundle'
+  );
+
   // (iii) bundle files carry the generated marker
   const newFeatureFlow = await readFile(join(bundleDir, 'references/new-feature-flow.md'), 'utf8');
   assert.match(newFeatureFlow, /<!-- dflow-generated: workflow-bundle -->/, 'bundle flow file should carry the generated marker');
@@ -539,6 +546,13 @@ try {
     await exists(join(webformsBundleDir, 'templates/events.md')),
     false,
     'brownfield bundle should not contain greenfield-only events.md'
+  );
+
+  // PROPOSAL-051: templates/CLAUDE.md retired — must NOT be projected into the brownfield bundle either.
+  assert.equal(
+    await exists(join(webformsBundleDir, 'templates/CLAUDE.md')),
+    false,
+    'PROPOSAL-051: retired templates/CLAUDE.md must not be projected into the brownfield workflow bundle'
   );
 
   // Brownfield bundle should include common flow files

@@ -5,12 +5,10 @@
 > Source: `scaffolding/CLAUDE-md-snippet.md`
 > Purpose: a minimal block you paste into (or replace with) your
 > project's root `CLAUDE.md` when adopting Dflow.
-> For the Greenfield track, the full reference template lives in the
-> in-project bundle at
-> `dflow/specs/shared/dflow-workflows/templates/CLAUDE.md` (projected by
-> `dflow init`) — if you want the complete legacy Claude-specific version,
-> use that instead. New CLI init output uses `AI-AGENT-GUIDE.md` plus a
-> generated `CLAUDE.md` shim.
+> New CLI init output uses `dflow/specs/shared/AI-AGENT-GUIDE.md` as the
+> canonical guide plus a thin generated `CLAUDE.md` shim. This snippet is
+> only the older Claude-specific two-H2 layout, for when you intentionally
+> want that shape in your project's root `CLAUDE.md`.
 
 ---
 
@@ -23,8 +21,7 @@
   Claude-specific two-H2 layout in your project's root `CLAUDE.md`.
 
 The two-H2 structure (`System Context` / `Development Workflow`) is intentional and must be
-preserved — it matches the Dflow skill's `templates/CLAUDE.md` and
-keeps every project's `CLAUDE.md` scannable for AI in the same shape.
+preserved — it keeps every project's `CLAUDE.md` scannable for AI in the same shape.
 
 ---
 
@@ -161,10 +158,8 @@ AI 的完整決策樹、Workflow Transparency、Ceremony Scaling 三層判準
 
 ## Notes
 
-- This snippet is intentionally lighter than the in-project bundle
-  template at `dflow/specs/shared/dflow-workflows/templates/CLAUDE.md`. If
-  you want the full version (with detailed flow descriptions per slash
-  command), use that template instead
+- This snippet is intentionally minimal — the older Claude-specific two-H2
+  layout, not a full restatement of Dflow's logic
 - The snippet does NOT re-copy the Dflow decision tree, Ceremony
   Scaling criteria, or per-flow step details — those live in
   `AI-AGENT-GUIDE.md` and the workflow bundle, and change as Dflow evolves
