@@ -168,10 +168,7 @@ Recommended trigger points (not enforced — developer's judgment):
 This command operates entirely within `dflow/specs/domain/{context}/` files
 (`rules.md` and `behavior.md`). It does **not** read from
 `dflow/specs/features/active/{SPEC-ID}-{slug}/` directories — the feature
-directory layout is not part of verify's input. The only effect of feature directory layout on this command is
-ensuring `last-updated` dates in `behavior.md` are bumped at
-`/dflow:finish-feature` time (so verify's mechanical drift guard stays
-useful).
+directory layout is not part of verify's input.
 
 ## Interaction with Other Commands
 

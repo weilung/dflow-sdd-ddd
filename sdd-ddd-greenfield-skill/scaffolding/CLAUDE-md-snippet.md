@@ -67,7 +67,7 @@ Presentation → Application → Domain ← Infrastructure
 
 ### Project Structure
 
-完整 specs 目錄結構見 Dflow skill `SKILL.md` § "Project Structure"。
+完整 specs 目錄結構見 `AI-AGENT-GUIDE.md` § Source of Truth。
 以下只列本專案當前狀態（Dflow CLI init 建立後可能還未全填）：
 
 ```
@@ -166,8 +166,8 @@ AI 的完整決策樹、Workflow Transparency、Ceremony Scaling 三層判準
   you want the full version (with detailed flow descriptions per slash
   command), use that template instead
 - The snippet does NOT re-copy the Dflow decision tree, Ceremony
-  Scaling criteria, or per-flow step details — those live in the
-  skill and change when the skill evolves
+  Scaling criteria, or per-flow step details — those live in
+  `AI-AGENT-GUIDE.md` and the workflow bundle, and change as Dflow evolves
 - Re-running the Dflow CLI init command (`dflow init`, or `npx dflow-sdd-ddd init`
   when using the no-install path) will NOT overwrite an existing `CLAUDE.md`;
   if you want to re-sync, merge manually

@@ -20,7 +20,7 @@ adds a new phase to an in-progress feature only.
 - Step 6 → Step 7 (implementation done → complete the phase)
 
 All other step transitions are **step-internal**: announce "Step N complete,
-entering Step N+1" and proceed without waiting. See SKILL.md § Workflow
+entering Step N+1" and proceed without waiting. See AI-AGENT-GUIDE.md § Workflow
 Transparency for the full transparency protocol and confirmation signals.
 
 ## Step 1: Read Active Feature Context

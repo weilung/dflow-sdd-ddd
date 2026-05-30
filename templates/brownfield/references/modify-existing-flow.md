@@ -1,15 +1,15 @@
 # Modify Existing Feature Workflow
 
-Step-by-step guide for when a developer triggers `/dflow:modify-existing` or `/dflow:bug-fix` (or natural language implying a modification task — see SKILL.md § Workflow Transparency for the auto-trigger safety net).
+Step-by-step guide for when a developer triggers `/dflow:modify-existing` or `/dflow:bug-fix` (or natural language implying a modification task — see AI-AGENT-GUIDE.md § Workflow Transparency for the auto-trigger safety net).
 
 **Step Gates** in this flow (stop-and-confirm before proceeding):
 - Step 2 → Step 3 (baseline captured → analyze business logic embedded in delivery/entrypoint code: presentation/UI layer, controllers, handlers, jobs, message consumers, data pipelines, or stored procedures)
 - Step 4 → Step 5 (extraction decision → start implementation)
 - Step 5 → Step 6 (implementation done → update artifacts)
 
-All other step transitions are **step-internal**: announce "Step N complete, entering Step N+1" and proceed without waiting. See SKILL.md § Workflow Transparency for the full transparency protocol and confirmation signals.
+All other step transitions are **step-internal**: announce "Step N complete, entering Step N+1" and proceed without waiting. See AI-AGENT-GUIDE.md § Workflow Transparency for the full transparency protocol and confirmation signals.
 
-**Ceremony adjustment when triggered by `/dflow:bug-fix`**: treat as lightweight — use the Lightweight Spec Template at the end of this file instead of the full spec, and Step 4 (extraction) may default to "defer and record in tech-debt.md" unless the bug itself is in extractable logic. T2 still generates a concise `Implementation Tasks` checklist (see Step 4).
+**Ceremony adjustment when triggered by `/dflow:bug-fix`**: treat as lightweight — use the Lightweight Spec Template (see `templates/lightweight-spec.md`) instead of the full spec, and Step 4 (extraction) may default to "defer and record in tech-debt.md" unless the bug itself is in extractable logic. T2 still generates a concise `Implementation Tasks` checklist (see Step 4).
 
 ## Mindset
 
@@ -31,7 +31,7 @@ This step has two parallel concerns:
 
 **Part A — Determine the Ceremony Tier (T1 / T2 / T3)**
 
-Dflow runs three ceremony tiers (full table in SKILL.md § Ceremony Scaling).
+Dflow runs three ceremony tiers (full table in AI-AGENT-GUIDE.md § Ceremony Scaling).
 For a modification, AI judges which tier fits before deciding what to
 produce:
 
@@ -141,7 +141,7 @@ add a row:
 | {新 SPEC-ID} | {新 slug} | {today} | in-progress |
 ```
 
-This update is **part of the same change set** (the developer commits
+This update is **part of the same change set** (offer to commit
 both at once; commit message should mention "Add follow-up reference to
 `{新 SPEC-ID}`"). The reverse link is a derived index — the new
 feature's `follow-up-of` field is the authoritative source.
@@ -149,8 +149,6 @@ feature's `follow-up-of` field is the authoritative source.
 After the follow-up feature is set up, this flow hands off to the
 `/dflow:new-phase` flow (or stays in this flow at Step 2 for the first
 phase's content).
-
-## Step 2: Document Current Behavior (if no spec exists)
 
 ## Step 2: Document Current Behavior (if no spec exists)
 
@@ -360,7 +358,7 @@ Items marked *(post-6.3)* are re-verified after the documentation merge in 6.3 l
 - [ ] Extracted logic (if Step 4 decided "extract now") lives under `src/Domain/` as framework-pure code
 - [ ] `Implementation Tasks` section (`phase-spec.md` or `lightweight-spec.md`): all tasks checked, or unchecked items explicitly labelled as follow-up
 - [ ] *(post-6.3)* `dflow/specs/domain/{context}/behavior.md` has a section anchor for every `BR-*` in ADDED / MODIFIED entries; REMOVED entries' anchors have been deleted (mechanical input for `/dflow:verify`)
-- [ ] *(post-6.3)* `dflow/specs/domain/{context}/behavior.md` `last-updated` is later than this spec's `created` date (mechanical drift guard)
+- [ ] *(post-6.3)* every ADDED / MODIFIED / RENAMED BR's `Last updated` in `dflow/specs/domain/{context}/rules.md` is later than this spec's `created` date (mechanical drift guard)
 
 If any item fails, report the gap and pause — don't proceed to 6.2.
 
@@ -416,33 +414,3 @@ new follow-up directory; that happens at `/dflow:finish-feature` time.
 
 Only announce "change complete" after the appropriate archival step
 above (or the Step 6.3 docs sweep) is done.
-
-## Lightweight Spec Template (for bug fixes)
-
-For small bug fixes, a lightweight spec is enough:
-
-```markdown
----
-id: BUG-042
-title: Fix rounding inconsistency in expense calculation
-status: in-progress
-bounded-context: Expense
-created: 2025-02-12
----
-
-## Problem
-Entrypoint A uses Math.Round(amount, 0, MidpointRounding.AwayFromZero) (四捨五入)
-Entrypoint B uses Math.Floor(amount) (無條件捨去)
-They should both use the same rounding rule.
-
-## Expected Behavior
-Given an expense amount of 123.5 TWD
-When displayed or returned by any entrypoint
-Then it should show 124 (四捨五入 per accounting standard)
-
-## Root Cause
-Duplicated calculation logic — recorded in tech-debt.md
-
-## Fix
-Extract rounding to Money.Round() in Domain layer, both pages call it.
-```

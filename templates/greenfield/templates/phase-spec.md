@@ -21,7 +21,7 @@ Template note (for AI):
 
   Each section below carries an HTML comment indicating its fill-in activity (Activity 1-4).
   These activity markers let /dflow:status and the completion checklist track progress.
-  Activities correspond to SKILL.md § Guiding Questions by Activity:
+  Activities correspond to AI-AGENT-GUIDE.md § Guiding Questions by Activity:
     Activity 1: Understanding (What & Why)
     Activity 2: Domain Modeling (BC, Aggregate, VO, Events)
     Activity 3: Spec Writing (Behavior + Rules + Edge Cases)

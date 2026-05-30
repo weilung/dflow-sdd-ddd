@@ -2,14 +2,14 @@
 
 Step-by-step guide for changing or fixing existing functionality.
 
-Triggered by `/dflow:modify-existing` or `/dflow:bug-fix` (or natural language implying a modification task — see SKILL.md § Workflow Transparency for the auto-trigger safety net).
+Triggered by `/dflow:modify-existing` or `/dflow:bug-fix` (or natural language implying a modification task — see AI-AGENT-GUIDE.md § Workflow Transparency for the auto-trigger safety net).
 
 **Step Gates** in this flow (stop-and-confirm before proceeding):
 - Step 2 → Step 3 (baseline captured → assess DDD impact)
 - Step 3 → Step 4 (DDD impact decision → implement)
 - Step 4 → Step 5 (implementation done → update documentation)
 
-All other step transitions are **step-internal**: announce "Step N complete, entering Step N+1" and proceed without waiting. See SKILL.md § Workflow Transparency for the full transparency protocol and confirmation signals.
+All other step transitions are **step-internal**: announce "Step N complete, entering Step N+1" and proceed without waiting. See AI-AGENT-GUIDE.md § Workflow Transparency for the full transparency protocol and confirmation signals.
 
 **Note on step count**: Greenfield edition has 5 steps (Brownfield has
 6) because Clean Architecture's layered structure already separates
@@ -29,7 +29,7 @@ This step has three parallel concerns:
 
 **Part A — Determine the Ceremony Tier (T1 / T2 / T3)**
 
-Dflow runs three ceremony tiers (full table in SKILL.md § Ceremony Scaling).
+Dflow runs three ceremony tiers (full table in AI-AGENT-GUIDE.md § Ceremony Scaling).
 For a modification, AI judges which tier fits before deciding what to
 produce:
 
@@ -147,7 +147,7 @@ add a row:
 | {新 SPEC-ID} | {新 slug} | {today} | in-progress |
 ```
 
-This update is **part of the same change set** (the developer commits
+This update is **part of the same change set** (offer to commit
 both at once; commit message should mention "Add follow-up reference to
 `{新 SPEC-ID}`"). The reverse link is a derived index — the new
 feature's `follow-up-of` field is the authoritative source.
@@ -155,8 +155,6 @@ feature's `follow-up-of` field is the authoritative source.
 After the follow-up feature is set up, this flow hands off to the
 `/dflow:new-phase` flow (or stays in this flow at Step 2 for the first
 phase's content).
-
-## Step 2: Check Documentation
 
 ## Step 2: Check Documentation
 
@@ -305,7 +303,7 @@ Items marked *(post-5.3)* are re-verified after the documentation merge in 5.3 l
 - [ ] ORM / persistence mapping is kept outside Domain entities (no persistence attributes/annotations on Domain entities)
 - [ ] `Implementation Tasks` section (`phase-spec.md` or `lightweight-spec.md`): all tasks checked, or unchecked items explicitly labelled as follow-up
 - [ ] *(post-5.3)* `dflow/specs/domain/{context}/behavior.md` has a section anchor for every `BR-*` in ADDED / MODIFIED entries; REMOVED entries' anchors have been deleted (mechanical input for `/dflow:verify`)
-- [ ] *(post-5.3)* `dflow/specs/domain/{context}/behavior.md` `last-updated` is later than this spec's `created` date (mechanical drift guard)
+- [ ] *(post-5.3)* every ADDED / MODIFIED / RENAMED BR's `Last updated` in `dflow/specs/domain/{context}/rules.md` is later than this spec's `created` date (mechanical drift guard)
 
 If any item fails, report the gap and pause — don't proceed to 5.2.
 

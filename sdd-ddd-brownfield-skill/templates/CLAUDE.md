@@ -1,3 +1,9 @@
+<!-- Dflow reference example — legacy full CLAUDE.md layout. NOT an init source:
+     `dflow init` writes a thin CLAUDE.md shim pointing to `AI-AGENT-GUIDE.md`.
+     Kept as a complete-layout example. Canonical workflow logic (decision
+     routing, Ceremony Scaling, per-flow steps) lives in `AI-AGENT-GUIDE.md`
+     and the workflow bundle. -->
+
 # Project: {系統名稱} — {Framework}
 
 **重要：所有開發工作都必須遵循本文件定義的流程。**
@@ -72,18 +78,11 @@ src/
 
 ### Three Ceremony Tiers
 
-不是每次修改都要跑完整流程。AI 依下列判準選 tier：
-
-- **T1 Heavy** — 新功能、新 phase、架構變動、新增 BR → 建獨立 phase-spec，
-  走 `/dflow:new-feature` 或 `/dflow:new-phase`
-- **T2 Light** — bug fix、UI 輸入驗證、流程分支修改（有 BR Delta 但無 Domain /
-  資料結構變動）→ 建獨立 lightweight spec 置於 feature 目錄內
-- **T3 Trivial** — 按鈕顏色、文案修正、typo、排版、純註解（無 BR 變動、
-  無 Domain 概念動、無資料結構動、只改 UI 表層 / 註解 / 格式化）→
-  只在 `_index.md` Lightweight Changes inline 寫一列
-
-純 typo / 純格式化 commit（`dotnet format` / `prettier` 自動整理）**低於 T3**：
-直接 `git commit`，不走 Dflow。
+AI 依 **T1 Heavy / T2 Light / T3 Trivial** 三層判準選擇 ceremony 強度。
+完整判準表與 T3 四條件見 `dflow/specs/shared/AI-AGENT-GUIDE.md` §
+Ceremony Scaling，此處不重述以免與 canonical 定義漂移。純 typo / 純格式化
+commit（`dotnet format` / `prettier` 自動整理）**低於 T3**：直接 `git commit`，
+不走 Dflow。
 
 ### New Feature
 1. 建 feature 目錄 `dflow/specs/features/active/{SPEC-ID}-{slug}/`

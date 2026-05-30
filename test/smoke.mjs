@@ -670,6 +670,9 @@ try {
   assert.equal(codexDegrade.code, 0, `codex inject: degrade run failed\nSTDOUT:\n${codexDegrade.stdout}\nSTDERR:\n${codexDegrade.stderr}`);
   assert.match(codexDegrade.stdout, /modified after Dflow generated it/, 'codex inject: a modified shim should warn');
   assert.equal(await exists(codexSnippetPath), true, 'codex inject: user-modified AGENTS.md should degrade to a command-adapters snippet');
+  const codexCommandAdaptersSnippet = await readFile(codexSnippetPath, 'utf8');
+  assert.match(codexCommandAdaptersSnippet, /## Dflow Text Triggers/, 'codex inject: command-adapters snippet should contain the trigger section');
+  assert.doesNotMatch(codexCommandAdaptersSnippet, /Dflow Project Instructions/, 'codex inject: command-adapters snippet should be trigger-only, not the full shim (the configured AGENTS.md already has the title + guide pointers)');
   const codexAgentsAfterDegrade = await readFile(codexAgentsPath, 'utf8');
   assert.match(codexAgentsAfterDegrade, /^# My own notes/, 'codex inject: user-modified AGENTS.md must be left untouched');
 

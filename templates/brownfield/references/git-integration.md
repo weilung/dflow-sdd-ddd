@@ -181,7 +181,6 @@ diff. That breaks:
 - `git blame` on lines that crossed the rename boundary
 - PR diff quality (reviewers see two unrelated big-blob changes
   instead of one rename + small content diff)
-- `/dflow:verify` and other tools that walk feature history
 
 This is a known weakness of OpenSpec's directory-rename pattern; Dflow
 deliberately avoids it by mandating `git mv`.

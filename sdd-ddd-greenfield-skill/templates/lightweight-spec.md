@@ -11,7 +11,7 @@ branch: bugfix/BUG-{NUMBER}-{short-description}
 Template note (for AI):
   This is the **lightweight-spec** template — it corresponds to T2 Light
   ceremony in the three-tier Ceremony Scaling (T1 Heavy / T2 Light /
-  T3 Trivial; see SKILL.md § Ceremony Scaling for the tier criteria).
+  T3 Trivial; see AI-AGENT-GUIDE.md § Ceremony Scaling for the tier criteria).
 
   - T1 Heavy → use templates/phase-spec.md instead
   - T2 Light → THIS template; produces an independent file

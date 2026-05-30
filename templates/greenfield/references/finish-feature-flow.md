@@ -35,7 +35,7 @@ state, archives the feature directory, and emits a Git-strategy-neutral
 - Step 5 → Step 6 (Integration Summary emitted → optional follow-up reverse-link)
 
 All other step transitions are **step-internal**: announce "Step N complete,
-entering Step N+1" and proceed without waiting. See SKILL.md § Workflow
+entering Step N+1" and proceed without waiting. See AI-AGENT-GUIDE.md § Workflow
 Transparency for the full transparency protocol and confirmation signals.
 
 ## Step 1: Validate Phase Specs and `_index.md`
@@ -127,6 +127,8 @@ For each row in Current BR Snapshot where Status = `active`:
   `rules.md` (REMOVED rule)
 - For any RENAMED BR-ID → rename the BR-ID in `rules.md` and update
   `glossary.md` if the term itself changed
+- For every BR-ID added, modified, or renamed above, set its `Last updated`
+  date in `rules.md`'s Rule Index to today
 
 For `behavior.md`:
 
@@ -136,7 +138,6 @@ For `behavior.md`:
   transitions and Domain Events as appropriate
 - For REMOVED BR-IDs, delete the corresponding scenario section from
   `behavior.md`
-- Update the BR-ID anchor's `last-updated` date in `behavior.md` to today
 
 For `events.md`:
 - Add any new Domain Events introduced by phase-specs in this feature

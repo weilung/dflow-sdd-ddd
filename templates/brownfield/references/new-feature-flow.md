@@ -1,6 +1,6 @@
 # New Feature Workflow
 
-Step-by-step guide for when a developer triggers `/dflow:new-feature` (or natural language implying a new-feature task — see SKILL.md § Workflow Transparency for the auto-trigger safety net behavior).
+Step-by-step guide for when a developer triggers `/dflow:new-feature` (or natural language implying a new-feature task — see AI-AGENT-GUIDE.md § Workflow Transparency for the auto-trigger safety net behavior).
 
 **Step Gates** in this flow (stop-and-confirm before proceeding):
 - Step 3 → Step 3.5 (domain concepts captured → confirm slug + directory + branch names)
@@ -8,9 +8,9 @@ Step-by-step guide for when a developer triggers `/dflow:new-feature` (or natura
 - Step 6 → Step 7 (branch ready → start implementation)
 - Step 7 → Step 8 (implementation done → completion)
 
-All other step transitions are **step-internal**: announce "Step N complete, entering Step N+1" and proceed without waiting. See SKILL.md § Workflow Transparency for the full transparency protocol and confirmation signals.
+All other step transitions are **step-internal**: announce "Step N complete, entering Step N+1" and proceed without waiting. See AI-AGENT-GUIDE.md § Workflow Transparency for the full transparency protocol and confirmation signals.
 
-**Ceremony**: this flow always defaults to **T1 Heavy** — the first phase of a brand-new feature is by definition a full SDD cycle. Tier judgement (T1 / T2 / T3) only applies to `/dflow:modify-existing` (see `references/modify-existing-flow.md` and SKILL.md § Ceremony Scaling).
+**Ceremony**: this flow always defaults to **T1 Heavy** — the first phase of a brand-new feature is by definition a full SDD cycle. Tier judgement (T1 / T2 / T3) only applies to `/dflow:modify-existing` (see `references/modify-existing-flow.md` and AI-AGENT-GUIDE.md § Ceremony Scaling).
 
 ## Step 1: Intake — Understand the Request
 
@@ -188,7 +188,7 @@ Specifically ask about:
 Announce to developer:
 > "Spec is drafted — behavior scenarios, business rules, and edge cases are captured. Ready to plan the implementation (Domain layer design, interfaces, thin delivery/entrypoint code — presentation/UI layer, controllers, handlers, jobs, message consumers, data pipelines, or stored procedures)? `/dflow:next` or reply 'OK' to continue, or tell me if the spec needs another iteration first."
 
-Wait for confirmation (`/dflow:next`, verbal OK, or implicit — see SKILL.md § Confirmation Signals) before entering Step 5.
+Wait for confirmation (`/dflow:next`, verbal OK, or implicit — see AI-AGENT-GUIDE.md § Confirmation Signals) before entering Step 5.
 
 ## Step 5: Plan the Implementation
 
@@ -325,7 +325,7 @@ AI reports `✓` / `✗` for every item before touching docs. Items marked *(pos
 - [ ] Every `EC-*` edge case is handled
 - [ ] Domain layer has **no** delivery-framework references (grep `src/Domain/`)
 - [ ] *(post-8.3)* `dflow/specs/domain/{context}/behavior.md` contains a section anchor for every `BR-*` introduced by this spec (mechanical input for `/dflow:verify`)
-- [ ] *(post-8.3)* `dflow/specs/domain/{context}/behavior.md` `last-updated` is later than this spec's `created` date (mechanical drift guard)
+- [ ] *(post-8.3)* `dflow/specs/domain/{context}/rules.md` `last-updated` is later than this spec's `created` date (mechanical drift guard)
 
 If any item fails, report the gap and pause — don't proceed to 8.2.
 

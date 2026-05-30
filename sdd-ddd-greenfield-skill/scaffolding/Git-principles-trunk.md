@@ -58,7 +58,7 @@ gh pr create --base main --fill
 
 - **Short-lived feature branches**: typically hours to a few days, not
   weeks. Encourage splitting large features into multiple phase-specs
-  and merging each phase to `main` (see Dflow's Ceremony Scaling +
+  and merging each phase to `main` (see `AI-AGENT-GUIDE.md` § Ceremony Scaling +
   `/dflow:new-phase`)
 - **Main is always releasable**: feature flags or dark launches for
   incomplete functionality; CI must be green on `main` at all times

@@ -172,7 +172,7 @@ When merging this snippet into an existing `CLAUDE.md`:
    cross-referenced from the scaffolding `Git-principles-*.md`.
 4. **Avoid duplication**: do not re-inline the Dflow skill's decision
    tree, Workflow Transparency rules, or Ceremony Scaling criteria
-   into `CLAUDE.md`. Let `CLAUDE.md` point to the skill, not
+   into `CLAUDE.md`. Let `CLAUDE.md` point to `AI-AGENT-GUIDE.md` and the workflow bundle, not
    duplicate it.
 
 If you are starting from scratch (no existing `CLAUDE.md`), the

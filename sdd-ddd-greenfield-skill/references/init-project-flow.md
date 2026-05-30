@@ -445,10 +445,9 @@ Remind the developer to review files that have `{placeholder}` tokens
 still in them:
 
 > "A few files still have `{placeholder}` tokens that need your input:
->  - `dflow/specs/shared/_overview.md`: `{業務領域}`, `{團隊}`,
->    `{使用者規模}`
+>  - `dflow/specs/shared/_overview.md`: the Business Domain and Technical
+>    Architecture fields (e.g. primary domain, stakeholders, user scale, stack)
 >  - `dflow/specs/domain/context-map.md`: context list and relationships
->  - `CLAUDE.md`: `{業務領域}`
 >
 >  These are fine to leave for now; fill them in during your next
 >  review pass."

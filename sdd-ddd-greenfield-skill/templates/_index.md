@@ -89,7 +89,7 @@ Template note (for AI):
 > T3 行：inline 完整描述一句話 + 標籤（如 `[cosmetic]` / `[text]` /
 >        `[format]`）；T3 不產獨立 spec 檔
 >
-> Tier 判準見 SKILL.md § Ceremony Scaling 三層表。
+> Tier 判準見 AI-AGENT-GUIDE.md § Ceremony Scaling 三層表。
 
 | Date | Tier | Description | Commit |
 |---|---|---|---|

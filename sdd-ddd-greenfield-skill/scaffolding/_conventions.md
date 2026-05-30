@@ -8,15 +8,16 @@
 > Audience: engineers writing specs; AI assistants producing spec drafts.
 
 This file captures **project-level** conventions only. Template shapes
-and Ceremony criteria are defined by the Dflow skill; here we just
-record how *this* project fills them in.
+and Ceremony criteria are defined by Dflow itself (the Ceremony tier criteria
+live in `AI-AGENT-GUIDE.md` § Ceremony Scaling; template shapes live in the
+workflow bundle); here we just record how *this* project fills them in.
 
 ---
 
 ## Where Specs Live
 
 All spec documents live under `dflow/specs/`. The feature directory pattern
-and file names follow Dflow (see the Dflow skill § "Project Structure"
+and file names follow Dflow (see `AI-AGENT-GUIDE.md` § Source of Truth
 for the full tree):
 
 ```
@@ -119,8 +120,8 @@ Project-specific guidance when filling these templates:
 
 ## Ceremony Scaling (Project Application)
 
-The Dflow skill defines three tiers — **T1 Heavy / T2 Light / T3
-Trivial**. See the Dflow skill § "Ceremony Scaling" for the full
+Dflow defines three tiers — **T1 Heavy / T2 Light / T3
+Trivial**. See `AI-AGENT-GUIDE.md` § Ceremony Scaling for the full
 criteria table. We do not re-define the tier criteria here; this
 section records how *this* project applies them in borderline
 situations.
@@ -132,9 +133,9 @@ situations.
 | {e.g. EF configuration tweak in Infrastructure} | T3 if no Domain change | Infra-only; inline row in `_index.md` |
 | {e.g. Domain Event payload extension} | T1 | Event contract change affects cross-context consumers |
 
-### DDD Modeling Depth (Dflow skill § Ceremony Scaling)
+### DDD Modeling Depth (`AI-AGENT-GUIDE.md` § Ceremony Scaling)
 
-The Dflow skill further distinguishes:
+Dflow further distinguishes:
 
 - **Full** (new Aggregate / new BC): use `templates/aggregate-design.md`
   + update `context-map.md` + define events in `events.md`
@@ -170,7 +171,7 @@ and `/dflow:new-phase` flows; the project-level convention is simply
 - [Git principles](Git-principles-{gitflow|trunk}.md)
 - [Context map](../domain/context-map.md)
 - [Glossary](../domain/glossary.md)
-- Dflow skill `SKILL.md` — canonical source for Ceremony Scaling, flow
+- `AI-AGENT-GUIDE.md` — canonical source for Ceremony Scaling, flow
   selection, and template shapes.
 - Dflow skill `references/ddd-modeling-guide.md` — DDD tactical
   pattern reference.

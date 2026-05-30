@@ -8,16 +8,17 @@
 > Audience: engineers writing specs; AI assistants producing spec drafts.
 
 This file captures **project-level** conventions only. Template shapes
-and Ceremony criteria are defined by the Dflow skill; here we just
-record how *this* project fills them in.
+and Ceremony criteria are defined by Dflow itself (the Ceremony tier criteria
+live in `AI-AGENT-GUIDE.md` § Ceremony Scaling; template shapes live in the
+workflow bundle); here we just record how *this* project fills them in.
 
 ---
 
 ## Where Specs Live
 
 All spec documents live under `dflow/specs/`. The feature directory pattern
-and file names follow Dflow (see the Dflow skill § "Project Structure
-Reference" for the full tree):
+and file names follow Dflow (see `AI-AGENT-GUIDE.md` § Source of Truth
+for the full tree):
 
 ```
 dflow/specs/features/active/{SPEC-ID}-{slug}/
@@ -98,8 +99,8 @@ Project-specific guidance when filling these templates:
 
 ## Ceremony Scaling (Project Application)
 
-The Dflow skill defines three tiers — **T1 Heavy / T2 Light / T3
-Trivial**. See the Dflow skill § "Ceremony Scaling" for the full
+Dflow defines three tiers — **T1 Heavy / T2 Light / T3
+Trivial**. See `AI-AGENT-GUIDE.md` § Ceremony Scaling for the full
 criteria table. We do not re-define the tier criteria here; this
 section records how *this* project applies them in borderline
 situations.
@@ -111,8 +112,8 @@ situations.
 | {e.g. UI refresh across multiple entrypoints} | T1 (project convention) | We treat multi-entrypoint UI/API refresh as T1 for this project even though Dflow default would be T2, because these changes often leak into business logic embedded in delivery/entrypoint code (presentation/UI layer, controllers, handlers, jobs, message consumers, data pipelines, or stored procedures) |
 
 If the team disagrees on tier classification for a specific change,
-run through the T3 four-criteria checklist (in the Dflow skill) and
-record the decision here the first time it arises.
+run through the T3 four-criteria checklist (in `AI-AGENT-GUIDE.md` §
+Ceremony Scaling) and record the decision here the first time it arises.
 
 ---
 
@@ -136,5 +137,5 @@ and `/dflow:new-phase` flows; the project-level convention is simply
 - [System overview](_overview.md)
 - [Git principles](Git-principles-{gitflow|trunk}.md)
 - [Glossary](../domain/glossary.md)
-- Dflow skill SKILL.md — canonical source for Ceremony Scaling, flow
+- `AI-AGENT-GUIDE.md` — canonical source for Ceremony Scaling, flow
   selection, and template shapes.

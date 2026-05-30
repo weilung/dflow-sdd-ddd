@@ -22,9 +22,9 @@ function printInitHelp() {
   dflow init
 
 Initializes Dflow project specs under dflow/specs/.
-The command prompts for project type, tech stack, prose language, Git policy,
-AI commit marker, optional starter files, and AI coding agents before showing a
-full file preview.
+The command prompts for project type, tech stack, migration context, prose
+language, Git policy, AI commit marker, optional starter files, and AI coding
+agents before showing a full file preview.
 `);
 }
 
