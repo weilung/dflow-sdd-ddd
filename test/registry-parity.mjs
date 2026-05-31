@@ -74,7 +74,13 @@ function tableByHeader(content, header) {
     }
     const rows = [];
     for (let j = i + 2; j < lines.length && isTableLine(lines[j]); j += 1) {
-      rows.push(splitRow(lines[j]));
+      const cells = splitRow(lines[j]);
+      assert.equal(
+        cells.length,
+        header.length,
+        `table ${JSON.stringify(header)} has a ${cells.length}-cell row (expected ${header.length}): ${lines[j].trim()}`
+      );
+      rows.push(cells);
     }
     return rows;
   }
@@ -90,6 +96,7 @@ function registryRows(content) {
   const lines = block.split(/\r?\n/).filter(isTableLine);
   return lines.slice(2).map((line) => {
     const c = splitRow(line);
+    assert.equal(c.length, 5, `command-registry row must have 5 cells: ${line}`);
     return {
       id: stripCode(c[0]),
       label: stripCode(c[1]),
@@ -125,8 +132,8 @@ const workflowIds = new Set(canonical.filter((r) => r.scope === 'workflow').map(
 const humanMap = {};
 for (const ed of EDITIONS) {
   const rows = tableByHeader(guide[ed], ['workflow', 'use when']);
-  assert.ok(rows.length >= 1, `[${ed}] human workflow table must not be empty`);
   const labels = new Set(rows.map((r) => stripCode(r[0])));
+  assert.equal(rows.length, labels.size, `[${ed}] human table has duplicate command rows`);
   assert.deepEqual(labels, registryLabels, `[${ed}] human table labels must equal the registry labels`);
   humanMap[ed] = Object.fromEntries(rows.map((r) => [commandId(r[0]), r[1]]));
 }
@@ -141,8 +148,8 @@ assert.deepEqual(
 const routingMap = {};
 for (const ed of EDITIONS) {
   const rows = tableByHeader(guide[ed], ['command', 'flow file']);
-  assert.ok(rows.length >= 1, `[${ed}] routing table must not be empty`);
   routingMap[ed] = Object.fromEntries(rows.map((r) => [commandId(r[0]), r[1]]));
+  assert.equal(rows.length, Object.keys(routingMap[ed]).length, `[${ed}] routing table has duplicate command rows`);
   const ids = new Set(Object.keys(routingMap[ed]));
   assert.deepEqual(ids, workflowIds, `[${ed}] routing commands must equal the workflow-scoped registry ids`);
 }
