@@ -750,6 +750,106 @@ try {
   // (Codex review note: "unresolved fallback 要保留原 token，否則 warning 會誤導")
   assert.doesNotMatch(java.stdout, /Unresolved placeholders remain.*\{ASP\.NET Core version\}/);
 
+  // PROPOSAL-052: generalized same-edition stale-removal (manifest-diff),
+  // R3-03 corrupt-manifest degrade, and (c) doctor orphan scan. Verified for
+  // BOTH editions (the 051 lesson: a GF-only guard missed BF).
+  const BUNDLE_REL = 'dflow/specs/shared/dflow-workflows';
+  const BUNDLE_MARKER = '<!-- dflow-generated: workflow-bundle -->';
+  for (const [edition, editionChoice] of [['greenfield', '1'], ['brownfield', '2']]) {
+    const sRoot = join(tempRoot, `shrink-${edition}`);
+    await mkdir(sRoot, { recursive: true });
+    const sInput = [editionChoice, 'Node 20, Express 4, Jest', 'none', '1', '2', '1', '1', 'none', 'y'].join('\n') + '\n';
+    const sInit = await runDflow(sRoot, sInput);
+    assert.equal(sInit.code, 0, `[${edition}] shrink init failed\nSTDOUT:\n${sInit.stdout}\nSTDERR:\n${sInit.stderr}`);
+
+    // Guarantee configure-agents can infer the edition by structure (independent
+    // of the manifest, which the corrupt-manifest case below destroys).
+    const inferFile = edition === 'greenfield'
+      ? join(sRoot, 'dflow/specs/architecture/tech-debt.md')
+      : join(sRoot, 'dflow/specs/migration/tech-debt.md');
+    await mkdir(dirname(inferFile), { recursive: true });
+    if (!(await exists(inferFile))) await writeFile(inferFile, '# tech debt\n');
+
+    const manifestPath = join(sRoot, BUNDLE_REL, '.dflow-bundle-manifest.json');
+    const retiredRel = `${BUNDLE_REL}/references/retired-052.md`;
+    const userRel = `${BUNDLE_REL}/references/retired-052-user.md`;
+    await writeFile(join(sRoot, retiredRel), `${BUNDLE_MARKER}\n\n# Retired flow\n`);
+    await writeFile(join(sRoot, userRel), '# Hand-edited retired flow, marker stripped\n');
+    const m1 = JSON.parse(await readFile(manifestPath, 'utf8'));
+    m1.files.push(retiredRel, userRel);
+    await writeFile(manifestPath, `${JSON.stringify(m1, null, 2)}\n`);
+
+    // Same-edition re-projection: manifest-diff removes the marker-carrying
+    // retired file, preserves the marker-stripped (user-modified) one.
+    const sReproject = await runDflow(sRoot, '1,2,3\ny\n', ['configure-agents']);
+    assert.equal(sReproject.code, 0, `[${edition}] same-edition reprojection failed\nSTDOUT:\n${sReproject.stdout}\nSTDERR:\n${sReproject.stderr}`);
+    assert.match(sReproject.stdout, /retired-052\.md \| remove \|/, `[${edition}] retired marker-carrying bundle file should be listed for removal`);
+    assert.equal(await exists(join(sRoot, retiredRel)), false, `[${edition}] retired marker-carrying file should be removed on same-edition re-projection`);
+    assert.equal(await exists(join(sRoot, userRel)), true, `[${edition}] marker-stripped (user-modified) retired file should be preserved`);
+    assert.match(sReproject.stdout, /user-modified; left unchanged: [^\n]*retired-052-user\.md/, `[${edition}] user-modified retired file should warn`);
+    const m2 = JSON.parse(await readFile(manifestPath, 'utf8'));
+    assert.equal(m2.files.includes(retiredRel), false, `[${edition}] rebuilt manifest should not list the removed retired file`);
+
+    // A non-normalized manifest entry must NOT be acted on — it must not schedule
+    // removal of the current bundle file it resolves to (canonical-path guard;
+    // regression test for the round-1 implementation-review finding).
+    const currentBundleFile = m2.files.find((f) => f.includes(`${BUNDLE_REL}/references/`));
+    assert.ok(currentBundleFile, `[${edition}] expected a current references bundle file in the manifest`);
+    const traversalEntry = currentBundleFile.replace(`${BUNDLE_REL}/references/`, `${BUNDLE_REL}/references/../references/`);
+    const m3 = JSON.parse(await readFile(manifestPath, 'utf8'));
+    m3.files.push(traversalEntry);
+    await writeFile(manifestPath, `${JSON.stringify(m3, null, 2)}\n`);
+    const sTraversal = await runDflow(sRoot, '1,2,3\ny\n', ['configure-agents']);
+    assert.equal(sTraversal.code, 0, `[${edition}] non-canonical-entry run failed\nSTDOUT:\n${sTraversal.stdout}\nSTDERR:\n${sTraversal.stderr}`);
+    assert.match(`${sTraversal.stdout}${sTraversal.stderr}`, /non-canonical workflow bundle manifest path/i, `[${edition}] non-canonical manifest entry should warn`);
+    assert.equal(await exists(join(sRoot, currentBundleFile)), true, `[${edition}] a current bundle file must NOT be removed via a non-normalized manifest entry`);
+
+    // A canonical-but-directory manifest entry must degrade gracefully (warn +
+    // skip), not crash on readFile/EISDIR (round-2 implementation-review finding).
+    const m4 = JSON.parse(await readFile(manifestPath, 'utf8'));
+    m4.files.push(`${BUNDLE_REL}/references`);
+    await writeFile(manifestPath, `${JSON.stringify(m4, null, 2)}\n`);
+    const sDirEntry = await runDflow(sRoot, '1,2,3\ny\n', ['configure-agents']);
+    assert.equal(sDirEntry.code, 0, `[${edition}] directory-entry run failed\nSTDOUT:\n${sDirEntry.stdout}\nSTDERR:\n${sDirEntry.stderr}`);
+    assert.match(`${sDirEntry.stdout}${sDirEntry.stderr}`, /non-file workflow bundle manifest entry/i, `[${edition}] directory manifest entry should warn (non-file) and not crash`);
+    assert.equal(await exists(join(sRoot, BUNDLE_REL, 'references')), true, `[${edition}] references/ directory must survive a directory manifest entry`);
+
+    // R3-03: a corrupt manifest degrades — warn, skip cleanup, do NOT overwrite
+    // the manifest, still project. An orphan the manifest does not list (true
+    // Case B) is left in place.
+    const orphanRel = `${BUNDLE_REL}/references/orphan-052.md`;
+    await writeFile(join(sRoot, orphanRel), `${BUNDLE_MARKER}\n\n# Orphan flow\n`);
+    const corruptText = '{ not valid json';
+    await writeFile(manifestPath, corruptText);
+    const sDegrade = await runDflow(sRoot, '1,2,3\ny\n', ['configure-agents']);
+    assert.equal(sDegrade.code, 0, `[${edition}] degrade run failed\nSTDOUT:\n${sDegrade.stdout}\nSTDERR:\n${sDegrade.stderr}`);
+    assert.match(`${sDegrade.stdout}${sDegrade.stderr}`, /manifest is unreadable/i, `[${edition}] corrupt manifest should warn`);
+    assert.equal(await exists(join(sRoot, orphanRel)), true, `[${edition}] corrupt manifest should skip cleanup (orphan preserved)`);
+    assert.equal(await readFile(manifestPath, 'utf8'), corruptText, `[${edition}] corrupt manifest should be left untouched (not overwritten)`);
+    assert.equal(await exists(join(sRoot, BUNDLE_REL, 'references')), true, `[${edition}] bundle should still be projected during degrade`);
+
+    // R3-03 schema variant: a parseable-but-invalid manifest (files not an array)
+    // also degrades — warn, skip cleanup, do NOT overwrite, still project.
+    const invalidSchema = `${JSON.stringify({ edition, version: '0.0.0-test', generatedBy: 'dflow-sdd-ddd', files: 'not-an-array' })}\n`;
+    await writeFile(manifestPath, invalidSchema);
+    const sInvalid = await runDflow(sRoot, '1,2,3\ny\n', ['configure-agents']);
+    assert.equal(sInvalid.code, 0, `[${edition}] invalid-schema run failed\nSTDOUT:\n${sInvalid.stdout}\nSTDERR:\n${sInvalid.stderr}`);
+    assert.match(`${sInvalid.stdout}${sInvalid.stderr}`, /manifest is unreadable/i, `[${edition}] invalid-schema manifest should warn (degrade)`);
+    assert.equal(await readFile(manifestPath, 'utf8'), invalidSchema, `[${edition}] invalid-schema manifest should be left untouched`);
+    assert.equal(await exists(join(sRoot, orphanRel)), true, `[${edition}] invalid-schema degrade should skip cleanup (orphan preserved)`);
+
+    // (c) doctor: read-only scan reports the manifest-orphan file. Restore a
+    // valid manifest (files:[] — does not list the orphan) so edition inference
+    // is clean; doctor must still detect the orphan by scanning.
+    await writeFile(manifestPath, `${JSON.stringify({ edition, version: '0.0.0-test', generatedBy: 'dflow-sdd-ddd', files: [] }, null, 2)}\n`);
+    const sDoctor = await runDflow(sRoot, '', ['doctor']);
+    assert.equal(sDoctor.code, 0, `[${edition}] doctor failed\nSTDOUT:\n${sDoctor.stdout}\nSTDERR:\n${sDoctor.stderr}`);
+    assert.match(sDoctor.stdout, /Retired workflow bundle file: [^\n]*orphan-052\.md/, `[${edition}] doctor should report the manifest-orphan retired file`);
+    assert.doesNotMatch(sDoctor.stdout, /Retired workflow bundle file: [^\n]*retired-052-user\.md/, `[${edition}] doctor must NOT report a marker-stripped (user) file`);
+    assert.doesNotMatch(sDoctor.stdout, new RegExp(`Retired workflow bundle file: [^\\n]*${currentBundleFile.split('/').pop().replace(/\./g, '\\.')}`), `[${edition}] doctor must NOT report a current bundle file`);
+    assert.equal(await exists(join(sRoot, orphanRel)), true, `[${edition}] doctor is read-only — orphan must not be deleted`);
+  }
+
   console.log(`Smoke test passed in ${tempRoot}`);
 } finally {
   if (process.env.DFLOW_KEEP_SMOKE_TMP !== '1') {
