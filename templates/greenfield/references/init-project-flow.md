@@ -54,8 +54,8 @@ Report findings plainly:
 >  - `src/`: contains `MyApp.Domain`, `MyApp.Application`,
 >    `MyApp.Infrastructure`, `MyApp.WebAPI` → Clean Architecture layout
 >    detected
->  - `CLAUDE.md`: present → will not overwrite; I'll offer a snippet
->    to merge into it"
+>  - `CLAUDE.md`: present → I'll append a marked Dflow block (shown in
+>    the preview); a merge snippet only if there's a marker conflict"
 
 Or:
 
@@ -173,9 +173,10 @@ Wait for answers.
 >
 > If you select any agent, Dflow will create
 > `dflow/specs/shared/AI-AGENT-GUIDE.md` as the canonical guide. Root-level
-> tool files stay thin and point back to that guide. Existing tool files are
-> never overwritten; Dflow writes merge snippets under `dflow/specs/shared/`
-> instead."
+> tool files stay thin and point back to that guide. Existing user content is
+> never overwritten; Dflow appends a marked Dflow block (shown in the preview)
+> and refreshes it in place on re-run. Merge snippets under
+> `dflow/specs/shared/` are used only if Dflow markers conflict."
 
 **→ Transition (step-internal)**: Step 2 complete. Announce
 > "Step 2 complete (project information captured). Entering Step 3:
@@ -246,16 +247,17 @@ vendored workflow bundle). Compute the destination path:
 | `scaffolding/Git-principles-trunk.md` | `dflow/specs/shared/Git-principles-trunk.md` |
 | `scaffolding/AI-AGENT-GUIDE.md` | `dflow/specs/shared/AI-AGENT-GUIDE.md` when at least one AI agent is selected |
 | generated tool shim | `AGENTS.md`, `CLAUDE.md`, or `.github/copilot-instructions.md` when selected and missing |
-| generated merge snippet | `dflow/specs/shared/*-snippet.md` when the selected tool file already exists |
+| marked Dflow block | appended to a selected existing tool file unless it already points to `AI-AGENT-GUIDE.md`; refreshed in place on re-run |
+| fallback merge snippet | `dflow/specs/shared/*-snippet.md` only when the selected tool file has conflicting or malformed Dflow markers |
 
 ### 3.3 Present the preview
 
-Present the complete file list as two tables, separating create vs
+Present the complete file list as two tables, separating create / update vs
 skip, and wait for developer confirmation:
 
 > "Based on Step 1 inventory + Step 2 answers, here is what I'll do:
 >
-> **Will create ({N} files):**
+> **Will create / update ({N} files):**
 >
 > | Path | Source |
 > |---|---|
@@ -270,7 +272,7 @@ skip, and wait for developer confirmation:
 > | `dflow/specs/shared/_overview.md` | optional (you picked it) |
 > | `dflow/specs/shared/Git-principles-trunk.md` | mandatory (selected Git policy) |
 > | `dflow/specs/shared/AI-AGENT-GUIDE.md` | selected AI agent guide |
-> | `CLAUDE.md` | selected tool shim because repo has no CLAUDE.md |
+> | `CLAUDE.md` | marked Dflow block appended to existing CLAUDE.md (shown in preview) |
 >
 > **Will skip ({M} files — already present):**
 >
@@ -348,9 +350,17 @@ For each selected tool-specific file (`AGENTS.md`, `CLAUDE.md`,
 
 - if the target file does not exist, create a small shim at the target
   path that points to `dflow/specs/shared/AI-AGENT-GUIDE.md`
-- if the target file already exists, do not overwrite it; write a merge
-  snippet under `dflow/specs/shared/` and report that the developer
-  should merge it manually
+- if the target file is an existing Dflow-generated shim, refresh it in place
+- if the target file already references `dflow/specs/shared/AI-AGENT-GUIDE.md`,
+  leave it untouched
+- otherwise preserve the existing content and append a marked Dflow block at
+  the end of the file, keeping the file's dominant line ending; show that
+  block in the preview and refresh the same block on re-run
+- if the developer later deletes that block, a later `init` /
+  `configure-agents` run appends it again
+- if the target file contains conflicting or malformed Dflow markers, write a
+  fallback merge snippet under `dflow/specs/shared/` and report that the
+  developer should merge it manually
 
 ### 4.4 Directory-only entries
 
@@ -380,7 +390,7 @@ Summarise what actually happened and point at the next command.
 ```
 Init complete. Summary:
 
-  Created ({N} files):
+  Created / Updated ({N} files):
     ✓ dflow/specs/features/active/.gitkeep
     ✓ dflow/specs/features/completed/.gitkeep
     ✓ dflow/specs/features/backlog/.gitkeep
@@ -391,7 +401,7 @@ Init complete. Summary:
     ✓ dflow/specs/architecture/decisions/README.md
     ✓ dflow/specs/shared/_overview.md
     ✓ dflow/specs/shared/Git-principles-trunk.md
-    ✓ CLAUDE.md (seeded from scaffolding snippet)
+    ✓ CLAUDE.md (marked Dflow block appended)
 
   Skipped ({M} files already present):
     - (none this run)

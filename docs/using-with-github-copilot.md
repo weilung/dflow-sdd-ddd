@@ -142,12 +142,17 @@ Copilot: Got it. I'll create the feature spec at dflow/specs/features/active/
 
 ### 既有的 Repository 指示
 
-如果你的專案中已有 `.github/copilot-instructions.md`，`init` 不會覆蓋它。
-它改為在 `dflow/specs/shared/` 下寫入 merge snippet，讓你手動審閱後貼入
-既有檔案。這樣可以避免破壞你已有的自訂 Copilot 指示。
+如果你的專案中已有 `.github/copilot-instructions.md`，`init` 不會覆蓋自訂內容。
+已是 Dflow-generated shim 的檔案會原地刷新；其他已指向
+`dflow/specs/shared/AI-AGENT-GUIDE.md` 的檔案會略過。若既有檔案尚未指向 guide，
+Dflow 會在確認 preview 顯示並於檔案末尾附加帶有
+`<!-- dflow-generated: agent-shim START/END -->` markers 的 Dflow block；重跑會
+原地更新同一段，不會重複。這樣可以避免破壞你已有的自訂 Copilot 指示。若你刪除
+該 block，下一次 `init` / `configure-agents` 會再附加它。
 
-到 `dflow/specs/shared/COPILOT-INSTRUCTIONS-MERGE-SNIPPET.md` 找到 merge
-snippet，再把相關段落貼入你現有的 `.github/copilot-instructions.md`。
+只有遇到衝突或 malformed Dflow markers 時，才到
+`dflow/specs/shared/copilot-instructions-snippet.md` 找 fallback merge snippet，
+再手動處理你現有的 `.github/copilot-instructions.md`。
 
 ### Slash Command Passthrough 說明
 

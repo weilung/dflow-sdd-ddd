@@ -216,7 +216,9 @@ dflow/
         └── completed/
 ```
 
-Dflow also creates or provides a mergeable project instruction file for your AI coding agent. The exact file depends on the target tool and existing project setup; Dflow avoids overwriting existing project instructions.
+Dflow also creates or updates a project instruction file for your AI coding
+agent. The exact file depends on the target tool and existing project setup;
+Dflow avoids overwriting custom content in existing project instructions.
 
 When you select AI agent setup during init, Dflow writes
 `dflow/specs/shared/AI-AGENT-GUIDE.md` as the canonical project guide, then
@@ -229,10 +231,16 @@ files whose only job is to redirect the tool to the canonical guide):
 | Claude Code | `CLAUDE.md` |
 | GitHub Copilot | `.github/copilot-instructions.md` |
 
-If one of those files already exists, Dflow leaves it unchanged and writes a
-merge snippet under `dflow/specs/shared/` instead. The project guide stays the
-single source of truth, so teams can use multiple AI tools without maintaining
-multiple copies of the workflow rules.
+If one of those files already exists, Dflow preserves custom content. A
+Dflow-generated shim is refreshed in place; another file that already points to
+`dflow/specs/shared/AI-AGENT-GUIDE.md` is skipped. If the file does not yet
+point to the guide, Dflow shows the change in the confirmation preview and
+appends a marked `<!-- dflow-generated: agent-shim START/END -->` block at the
+end of the file; re-running refreshes that same block in place without
+duplicating it. A fallback merge snippet under `dflow/specs/shared/` is written
+only when the file contains conflicting or malformed Dflow markers. The project
+guide stays the single source of truth, so teams can use multiple AI tools
+without maintaining multiple copies of the workflow rules.
 
 You can run `dflow configure-agents` later to add more tool shims as the team
 adopts additional AI coding agents. If you need Claude / Copilot tool-native
@@ -247,8 +255,8 @@ version-control the source, not the generated artifacts.
 
 | File | Role | Recommended default |
 |---|---|---|
-| `dflow/` (canonical guide, specs, merge snippet) | source | **version-control** |
-| Thin shims (`CLAUDE.md` / `AGENTS.md` / `.github/copilot-instructions.md`) | source | **version-control** |
+| `dflow/` (canonical guide, specs, fallback merge snippets) | source | **version-control** |
+| Thin shims or marked Dflow blocks in existing root agent files (`CLAUDE.md` / `AGENTS.md` / `.github/copilot-instructions.md`) | source | **version-control** |
 | `.claude/commands/dflow/`, `.github/prompts/dflow-*.prompt.md` | generated | **recommended: do not version-control (gitignore)**; regenerate after clone with `configure-agents --command-adapters` |
 
 This is a **recommendation**, not the only valid policy. If your team wants a

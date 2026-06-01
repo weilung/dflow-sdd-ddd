@@ -79,9 +79,14 @@ checked into your repo, so they travel with the project when cloned. The
 without Claude-Code-specific edits.
 
 If a `CLAUDE.md` already existed in the project, `init` does not overwrite
-it. Instead it writes a merge snippet under `dflow/specs/shared/` that you
-can paste into your existing `CLAUDE.md` manually. This avoids destroying
-custom project instructions you already had.
+custom content. A Dflow-generated shim is refreshed in place; another file
+that already points to `dflow/specs/shared/AI-AGENT-GUIDE.md` is skipped
+without adding a second pointer. Otherwise Dflow shows the change in the
+confirmation preview and appends a marked
+`<!-- dflow-generated: agent-shim START/END -->` block at the end of the file;
+re-running refreshes that same block in place without duplicating it. Dflow
+writes a fallback merge snippet under `dflow/specs/shared/` only when the file
+contains conflicting or malformed Dflow markers.
 
 ## Using Dflow Slash Commands in Claude Code
 
@@ -322,9 +327,13 @@ on demand when entering the relevant workflow. This keeps context usage
 proportional to active work.
 
 **A pre-existing `CLAUDE.md` is preserved.** `init` will not overwrite your
-existing project instructions. Look under `dflow/specs/shared/` for the
-merge snippet `init` wrote and paste the relevant sections into your
-existing `CLAUDE.md` manually.
+custom project instructions. Dflow-generated shims are refreshed in place; it
+skips other files that already point to `AI-AGENT-GUIDE.md`. Otherwise it shows
+the marked Dflow block in the confirmation preview, then refreshes that same
+block in place on later runs.
+If you delete the block, the next `init` / `configure-agents` run appends it
+again. Look under `dflow/specs/shared/` for a fallback merge snippet only when
+there is a marker conflict to resolve manually.
 
 **Cross-machine projects work.** `dflow/specs/` is plain Markdown checked
 into your repo. Anyone cloning the repo and using Claude Code in it will

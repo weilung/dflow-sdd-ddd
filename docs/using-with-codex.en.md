@@ -79,13 +79,19 @@ stays small so the same canonical guide can serve Codex CLI, Claude Code,
 GitHub Copilot, and other tools.
 
 If an `AGENTS.md` already existed in the project, `init` does not overwrite
-it. If the existing file does not already point to
-`dflow/specs/shared/AI-AGENT-GUIDE.md`, `init` writes a merge snippet under
-`dflow/specs/shared/AGENTS-md-snippet.md` that you can merge manually. This
-avoids destroying custom project instructions you already had.
+custom content. A Dflow-generated shim is refreshed in place; another file
+that already points to `dflow/specs/shared/AI-AGENT-GUIDE.md` is skipped
+without adding a second pointer. Otherwise Dflow shows the change in the
+confirmation preview and appends a marked
+`<!-- dflow-generated: agent-shim START/END -->` block at the end of the file;
+re-running refreshes that same block in place. Dflow writes the fallback merge
+snippet
+`dflow/specs/shared/AGENTS-md-snippet.md` only when the file contains
+conflicting or malformed Dflow markers.
 
 In the `dflow configure-agents --command-adapters` case, the corresponding
-snippet path is `dflow/specs/shared/AGENTS-md-command-adapters-snippet.md`.
+snippet path is `dflow/specs/shared/AGENTS-md-command-adapters-snippet.md`,
+but it is also used only as the marker-conflict fallback.
 
 ## Using Dflow Workflow Commands in Codex CLI
 
@@ -177,21 +183,25 @@ in markers, with zero manual merge. Re-running re-projects that same section in
 place instead of appending a duplicate.
 
 If `AGENTS.md` was edited after Dflow generated it, or is your own custom file,
-Dflow leaves it untouched and instead writes the trigger section to a merge
-snippet for you to merge manually. In that case the Codex-target merge snippet
-filename is `dflow/specs/shared/AGENTS-md-command-adapters-snippet.md`.
+Dflow still preserves the existing content and appends the trigger section as
+an adjacent marked block in `AGENTS.md` through the same mechanism. The
+confirmation preview shows that block first, and later runs refresh it in
+place. Dflow writes a fallback merge snippet only on a marker conflict; in that
+case the Codex-target filename is
+`dflow/specs/shared/AGENTS-md-command-adapters-snippet.md`.
 
 ### Version-Control Policy for Generated Artifacts (Codex)
 
 Codex does not generate command files, so there is **no derived adapter to
 gitignore**. On the Codex side, what you version-control is the `AGENTS.md`
-shim and `dflow/` (the canonical guide and specs); the merge helper
-`dflow/specs/shared/AGENTS-md-command-adapters-snippet.md` is part of `dflow/`
-and is **version-controlled along with `dflow/`**. `--command-adapters` only
-strengthens the text triggers in `AGENTS.md` for Codex; it adds no `.claude/`,
-`.github/`, or `.agents/` command files, so the Claude / Copilot
-"version-control the generated adapter or not" trade-off does not apply on the
-Codex side. The adapter version-control policy for other tools is covered in
+shim / marked blocks and `dflow/` (the canonical guide and specs). The fallback
+merge helper `dflow/specs/shared/AGENTS-md-command-adapters-snippet.md` is
+created only on a marker conflict; if it appears, it is part of `dflow/` and is
+**version-controlled along with `dflow/`**. `--command-adapters` only strengthens
+the text triggers in `AGENTS.md` for Codex; it adds no `.claude/`, `.github/`,
+or `.agents/` command files, so the Claude / Copilot "version-control the
+generated adapter or not" trade-off does not apply on the Codex side. The
+adapter version-control policy for other tools is covered in
 [README "Files Created by Init"](../README.en.md#files-created-by-init) and the
 per-tool guides.
 
@@ -241,9 +251,10 @@ rejected, use the no-slash text form `dflow:<id>`, for example
 workflow by reading `AI-AGENT-GUIDE.md`.
 
 **Codex does not generate command files.** Even with `--command-adapters`,
-Codex only strengthens text-trigger guidance in `AGENTS.md` / merge
-snippets. Do not expect Codex-specific files under `.claude/commands`,
-`.github/prompts`, or `.agents/skills/dflow/SKILL.md`.
+Codex only strengthens text-trigger guidance in marked blocks inside
+`AGENTS.md`; fallback merge snippets are created only on marker conflicts. Do
+not expect Codex-specific files under `.claude/commands`, `.github/prompts`, or
+`.agents/skills/dflow/SKILL.md`.
 
 **Do not confuse Codex `/init` with Dflow `init`.** Codex `/init` creates a
 generic `AGENTS.md` scaffold for Codex. Dflow setup is `dflow init` (or
@@ -262,10 +273,14 @@ approvals.** In current Codex CLI terminology this is
 Codex can work inside the project and asks before going beyond the sandbox,
 such as writing outside the workspace or accessing network.
 
-**Existing `AGENTS.md` files are preserved.** If Dflow cannot safely write
-the root shim because the file already exists, look under
-`dflow/specs/shared/` for the merge snippet and merge the Dflow pointer into
-your existing project instructions manually.
+**Existing `AGENTS.md` files are preserved.** Dflow does not overwrite your
+custom project instructions. The base pointer is refreshed in place for a
+Dflow-generated shim; other files that already point to `AI-AGENT-GUIDE.md` are
+skipped. Otherwise Dflow shows and appends a marked Dflow block, then refreshes
+that block in place on later runs. `--command-adapters` can still add or refresh
+the adjacent trigger block. If you delete a block, later `init` /
+`configure-agents` runs append it again. Look under `dflow/specs/shared/` for a
+fallback merge snippet only when there is a marker conflict to resolve manually.
 
 **Nested `AGENTS.md` files can change what Codex sees.** Codex layers project
 instructions along the path to the current working directory. If a subfolder

@@ -183,11 +183,15 @@ try {
   const configured = await runDflow(legacyRoot, configureInput, ['configure-agents']);
   assert.equal(configured.code, 0, `configure-agents failed\nSTDOUT:\n${configured.stdout}\nSTDERR:\n${configured.stderr}`);
   assert.equal(await exists(join(legacyRoot, 'dflow/specs/shared/AI-AGENT-GUIDE.md')), true, 'configure should create canonical AI guide');
-  assert.equal(await exists(join(legacyRoot, 'dflow/specs/shared/AGENTS-md-snippet.md')), true, 'configure should write merge snippet for existing AGENTS.md');
+  // PROPOSAL-054: an existing non-guide AGENTS.md is appended in place with a
+  // marker-delimited Dflow block, not parked as a side merge snippet.
+  assert.equal(await exists(join(legacyRoot, 'dflow/specs/shared/AGENTS-md-snippet.md')), false, 'existing non-guide AGENTS.md should be appended in place, not parked as a snippet');
   assert.equal(await exists(join(legacyRoot, 'CLAUDE.md')), true, 'configure should create selected CLAUDE.md shim');
   assert.equal(await exists(join(legacyRoot, '.github/copilot-instructions.md')), true, 'configure should create selected Copilot shim');
   const existingAgents = await readFile(join(legacyRoot, 'AGENTS.md'), 'utf8');
-  assert.match(existingAgents, /^# Existing agent rules/);
+  assert.match(existingAgents, /^# Existing agent rules/, 'user content stays at the top of AGENTS.md');
+  assert.match(existingAgents, /<!-- dflow-generated: agent-shim START -->/, 'PROPOSAL-054: Dflow block appended with the agent-shim marker');
+  assert.match(existingAgents, /dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/, 'appended Dflow block points to the canonical guide');
 
   const adapterConfigured = await runDflow(legacyRoot, configureInput, ['configure-agents', '--command-adapters']);
   assert.equal(
@@ -237,9 +241,16 @@ try {
 
   assert.equal(await exists(join(legacyRoot, '.agents/skills/dflow/SKILL.md')), false, 'Codex skill adapter should not be created');
   assert.equal(await exists(join(legacyRoot, '.codex/commands/dflow-new-feature.md')), false, 'Codex command adapter should not be created');
-  const existingAgentsSnippet = await readFile(join(legacyRoot, 'dflow/specs/shared/AGENTS-md-snippet.md'), 'utf8');
-  assert.match(existingAgentsSnippet, /## Dflow Text Triggers/, 'Codex merge snippet should include text trigger guidance');
-  assert.match(existingAgentsSnippet, /resend it without the slash, for example\s+`dflow:status`/, 'Codex merge snippet should explain no-slash text fallback');
+  // PROPOSAL-054: after --command-adapters the Codex triggers live in AGENTS.md as an
+  // adjacent marked block (the file already carried the agent-shim block from the prior
+  // configure run), not in a side snippet.
+  const legacyAgentsWithTriggers = await readFile(join(legacyRoot, 'AGENTS.md'), 'utf8');
+  assert.match(legacyAgentsWithTriggers, /## Dflow Text Triggers/, 'Codex triggers should be injected into AGENTS.md');
+  assert.match(legacyAgentsWithTriggers, /resend it without the slash, for example\s+`dflow:status`/, 'AGENTS.md trigger block should explain no-slash text fallback');
+  assert.match(legacyAgentsWithTriggers, /^# Existing agent rules/, 'user content preserved through --command-adapters');
+  assert.equal((legacyAgentsWithTriggers.match(/<!-- dflow-generated: agent-shim START -->/g) || []).length, 1, 'exactly one agent-shim block in AGENTS.md');
+  assert.equal((legacyAgentsWithTriggers.match(/codex-command-triggers START/g) || []).length, 1, 'exactly one trigger block in AGENTS.md');
+  assert.equal(await exists(join(legacyRoot, 'dflow/specs/shared/AGENTS-md-snippet.md')), false, 'no snippet when AGENTS.md is managed in place');
 
   await mkdir(join(legacyRoot, '.claude/commands/dflow'), { recursive: true });
   await mkdir(join(legacyRoot, '.claude/commands/other'), { recursive: true });
@@ -678,17 +689,22 @@ try {
   assert.equal((codexAgentsRerun.match(/## Dflow Text Triggers/g) || []).length, 1, 'codex inject: re-run should keep exactly one trigger section');
   assert.equal((codexAgentsRerun.match(/codex-command-triggers START/g) || []).length, 1, 'codex inject: re-run should keep exactly one trigger block marker');
 
-  // User-modified shim degrades safely to the side snippet + warning; AGENTS.md untouched.
-  await writeFile(codexAgentsPath, `# My own notes\n\n${codexAgentsRerun}`);
-  const codexDegrade = await runDflow(codexRoot, '1\ny\n', ['configure-agents', '--command-adapters']);
-  assert.equal(codexDegrade.code, 0, `codex inject: degrade run failed\nSTDOUT:\n${codexDegrade.stdout}\nSTDERR:\n${codexDegrade.stderr}`);
-  assert.match(codexDegrade.stdout, /modified after Dflow generated it/, 'codex inject: a modified shim should warn');
-  assert.equal(await exists(codexSnippetPath), true, 'codex inject: user-modified AGENTS.md should degrade to a command-adapters snippet');
-  const codexCommandAdaptersSnippet = await readFile(codexSnippetPath, 'utf8');
-  assert.match(codexCommandAdaptersSnippet, /## Dflow Text Triggers/, 'codex inject: command-adapters snippet should contain the trigger section');
-  assert.doesNotMatch(codexCommandAdaptersSnippet, /Dflow Project Instructions/, 'codex inject: command-adapters snippet should be trigger-only, not the full shim (the configured AGENTS.md already has the title + guide pointers)');
-  const codexAgentsAfterDegrade = await readFile(codexAgentsPath, 'utf8');
-  assert.match(codexAgentsAfterDegrade, /^# My own notes/, 'codex inject: user-modified AGENTS.md must be left untouched');
+  // PROPOSAL-054 (supersedes PROPOSAL-046's degrade-to-snippet): a guide-configured
+  // file the user modified, whose trigger markers are still well-formed, has its
+  // self-delimited trigger block refreshed in place (OQ#6c) — no snippet, no "modified"
+  // warning, and the base shim is left alone (the file already points to the guide).
+  const userEditedTrigger = `# My own notes\n\n${codexAgentsRerun}`.replace('## Dflow Text Triggers', '## Stale Dflow Triggers (edited)');
+  await writeFile(codexAgentsPath, userEditedTrigger);
+  const codexConfiguredUpdate = await runDflow(codexRoot, '1\ny\n', ['configure-agents', '--command-adapters']);
+  assert.equal(codexConfiguredUpdate.code, 0, `codex inject: configured-update run failed\nSTDOUT:\n${codexConfiguredUpdate.stdout}\nSTDERR:\n${codexConfiguredUpdate.stderr}`);
+  assert.match(codexConfiguredUpdate.stdout, /AGENTS\.md \| update \|/, 'codex inject: a stale trigger block in a configured file should be refreshed in place');
+  assert.doesNotMatch(codexConfiguredUpdate.stdout, /modified after Dflow generated it/, 'codex inject: a configured file with valid trigger markers should not warn about modification');
+  assert.equal(await exists(codexSnippetPath), false, 'codex inject: valid trigger markers refresh in place, not parked as a snippet');
+  const codexAgentsAfterUpdate = await readFile(codexAgentsPath, 'utf8');
+  assert.match(codexAgentsAfterUpdate, /^# My own notes/, 'codex inject: user content must be preserved');
+  assert.equal((codexAgentsAfterUpdate.match(/## Dflow Text Triggers/g) || []).length, 1, 'codex inject: trigger block refreshed to canonical heading');
+  assert.doesNotMatch(codexAgentsAfterUpdate, /## Stale Dflow Triggers/, 'codex inject: stale trigger body replaced in place');
+  assert.doesNotMatch(codexAgentsAfterUpdate, /<!-- dflow-generated: agent-shim START -->/, 'codex inject: base shim is not re-injected into a guide-configured file');
 
   // CRLF / trailing-whitespace reformat of a pristine shim still injects
   // (normalized template match, not a raw hash that an editor reformat would break).

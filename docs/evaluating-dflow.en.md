@@ -42,15 +42,18 @@ in your project's `dflow/specs/` directory and AI instruction files.
   completion checklists, templates). This bundle is projected from the npm
   package at init time so workflows are reachable from any clone without
   needing the Dflow source or package installed locally.
-- Mergeable AI agent instruction files for the tools you select (e.g.,
-  `CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`). Each is a
-  thin pointer to the canonical guide and workflow bundle.
+- AI agent instruction files, or marked Dflow blocks inside existing files, for
+  the tools you select (e.g., `CLAUDE.md`, `AGENTS.md`,
+  `.github/copilot-instructions.md`). Each points the tool to the canonical
+  guide and workflow bundle.
 
 `init` does **not**:
 
 - Inspect, refactor, or migrate your application code.
-- Overwrite existing AI agent instruction files; if one exists, Dflow writes
-  a merge snippet under `dflow/specs/shared/` instead.
+- Overwrite custom content in existing AI agent instruction files; if one
+  exists, Dflow refreshes Dflow-generated shims, shows and appends a marked
+  Dflow block by default otherwise, and writes a fallback merge snippet only on
+  marker conflicts.
 - Modify your build system, package manager, or dependencies.
 - Send any data anywhere; it is a local scaffolding command.
 
@@ -177,8 +180,9 @@ Dflow is designed for low cost to try and low cost to leave:
 - Nothing depends on the `dflow-sdd-ddd` CLI being installed after `init`.
 - The generated files are plain Markdown; remove Dflow from a project with
   `rm -rf dflow/` plus deleting the AI agent shim files you no longer want.
-- Existing project instruction files (e.g., a pre-existing `CLAUDE.md`) are
-  not modified by Dflow, so reverting is straightforward.
+- If an existing project instruction file (e.g., a pre-existing `CLAUDE.md`)
+  received a marked Dflow block, remove that block to revert it; later
+  `init` / `configure-agents` runs will append it again.
 
 This means an evaluation pass leaves no permanent footprint if you decide
 not to adopt.

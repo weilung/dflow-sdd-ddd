@@ -71,9 +71,12 @@ completion checklists）則放在 `init` 投影進專案的 **vendored workflow 
 `CLAUDE.md` shim 刻意保持精簡，這樣 canonical 指南就能在不需要 Claude Code
 專屬修改的情況下持續演進。
 
-如果專案中已有 `CLAUDE.md`，`init` 不會覆蓋它。它改為在
-`dflow/specs/shared/` 下寫入 merge snippet，讓你手動貼入現有的 `CLAUDE.md`。
-這樣可以避免破壞你已有的自訂專案指示。
+如果專案中已有 `CLAUDE.md`，`init` 不會覆蓋自訂內容。已是 Dflow-generated shim
+的檔案會原地刷新；其他已指向 `dflow/specs/shared/AI-AGENT-GUIDE.md` 的檔案會
+略過，不會新增第二個指標。否則 Dflow 會在確認 preview 顯示並於檔案末尾附加帶有
+`<!-- dflow-generated: agent-shim START/END -->` markers 的 Dflow block；重跑
+會原地更新同一段，不會重複。只有遇到衝突或 malformed Dflow markers 時，
+才會在 `dflow/specs/shared/` 寫入 fallback merge snippet 讓你手動處理。
 
 ## 在 Claude Code 中使用 Dflow Slash Commands
 
@@ -279,9 +282,11 @@ adapter wrapper 必須保持薄指標，不應複製 workflow 語義。
 載入 —— Claude Code 會在進入對應 workflow 時按需讀取它們。這樣可以讓 context
 用量與正在進行的工作保持比例。
 
-**既有的 `CLAUDE.md` 會被保留。** `init` 不會覆蓋你現有的專案指示。請到
-`dflow/specs/shared/` 下找 `init` 寫入的 merge snippet，並手動將相關段落貼入
-你現有的 `CLAUDE.md`。
+**既有的 `CLAUDE.md` 會被保留。** `init` 不會覆蓋你現有的自訂專案指示；已是
+Dflow-generated shim 會原地刷新，其他已指向 `AI-AGENT-GUIDE.md` 的檔案會略過，
+否則會在確認 preview 顯示要附加的 marked Dflow block，寫入後重跑會原地更新同一段。
+若你刪除該 block，下一次 `init` / `configure-agents` 會再附加它；只有 marker
+conflict 時才需要到 `dflow/specs/shared/` 找 fallback merge snippet 手動處理。
 
 **跨機器專案可正常運作。** `dflow/specs/` 是純 Markdown，已 check in 到你的
 repo。任何人 clone 該 repo 並在其中使用 Claude Code，都會透過已 commit 的

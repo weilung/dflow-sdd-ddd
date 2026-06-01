@@ -145,9 +145,21 @@ Copilot: Got it. I'll create the feature spec at dflow/specs/features/active/
 
 ### Pre-Existing Repository Instructions
 
-If a `.github/copilot-instructions.md` file already exists in your project, `init` does not overwrite it. Instead, it writes a merge snippet under `dflow/specs/shared/` that you can review and paste into your existing file manually. This avoids destroying custom Copilot instructions you already had.
+If a `.github/copilot-instructions.md` file already exists in your project,
+`init` does not overwrite custom content. A Dflow-generated shim is refreshed
+in place; another file that already points to
+`dflow/specs/shared/AI-AGENT-GUIDE.md` is skipped. If the file does not yet
+point to the guide, Dflow shows the change in the confirmation preview and
+appends a marked `<!-- dflow-generated: agent-shim START/END -->` block at the
+end of the file; re-running refreshes that same block in place without
+duplicating it. This avoids destroying custom Copilot instructions you already
+had. If you delete the block, the next `init` / `configure-agents` run appends
+it again.
 
-Look for a file named `dflow/specs/shared/COPILOT-INSTRUCTIONS-MERGE-SNIPPET.md` and paste the relevant sections into your existing `.github/copilot-instructions.md`.
+Look for the fallback merge snippet
+`dflow/specs/shared/copilot-instructions-snippet.md` only when Dflow reports
+conflicting or malformed markers, then resolve it manually in your existing
+`.github/copilot-instructions.md`.
 
 ### Notes on Slash-Command Passthrough
 
