@@ -452,6 +452,29 @@ try {
   }
 
   // ---------------------------------------------------------------------------
+  // 11b. The same malformed-trigger Codex file but WITHOUT a guide reference (and with
+  //      no agent-shim block at all) cannot take the trigger-only path: the base shim
+  //      is not present, so the fallback is the FULL-shim snippet, which under
+  //      --command-adapters embeds the trigger section (base title + trigger together).
+  // ---------------------------------------------------------------------------
+  {
+    const root = await newProject('none');
+    const filePath = join(root, 'AGENTS.md');
+    const content = `# My AGENTS\n\nTeam rules, no guide pointer.\n\n${TRIGGER_START}\ndangling trigger start, no end\n`;
+    await writeFile(filePath, content);
+    const run = configure(root, '1', ['--command-adapters']);
+    assert.equal(run.code, 0, `no-guide malformed-trigger full-shim fallback failed\nSTDOUT:\n${run.stdout}\nSTDERR:\n${run.stderr}`);
+    assert.equal(await readFile(filePath, 'utf8'), content, 'file left byte-untouched on malformed trigger markers');
+    const fullSnippet = join(root, 'dflow/specs/shared/AGENTS-md-snippet.md');
+    assert.equal(await exists(fullSnippet), true, 'falls back to the full-shim snippet (no base shim present to take the trigger-only path)');
+    assert.equal(await exists(join(root, 'dflow/specs/shared/AGENTS-md-command-adapters-snippet.md')), false, 'the trigger-only snippet is not used when the base shim is missing');
+    assert.match(run.stdout, /AGENTS-md-snippet\.md/, 'fallback warning names the full-shim snippet path');
+    const snippetContent = await readFile(fullSnippet, 'utf8');
+    assert.match(snippetContent, /Dflow Project Instructions/, 'full-shim snippet carries the base shim title');
+    assert.match(snippetContent, /## Dflow Text Triggers/, 'full-shim snippet embeds the trigger section under --command-adapters');
+  }
+
+  // ---------------------------------------------------------------------------
   // 12. A CRLF user file stays CRLF and is idempotent across re-runs.
   // ---------------------------------------------------------------------------
   {
