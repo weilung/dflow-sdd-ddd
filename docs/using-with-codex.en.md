@@ -89,9 +89,15 @@ snippet
 `dflow/specs/shared/AGENTS-md-snippet.md` only when the file contains
 conflicting or malformed Dflow markers.
 
-In the `dflow configure-agents --command-adapters` case, the corresponding
-snippet path is `dflow/specs/shared/AGENTS-md-command-adapters-snippet.md`,
-but it is also used only as the marker-conflict fallback.
+With `dflow configure-agents --command-adapters`, the marker-conflict fallback
+splits into two files depending on which markers are broken: when only the
+trigger markers are malformed but the file still points to the canonical guide,
+Dflow writes the trigger-only
+`dflow/specs/shared/AGENTS-md-command-adapters-snippet.md`; any other marker
+conflict (the agent-shim markers are malformed, or the two marked regions overlap
+or straddle) takes the full-shim `dflow/specs/shared/AGENTS-md-snippet.md`. Both
+appear only on a marker conflict;
+see *Codex Behavior With Optional Command Adapters* below.
 
 ## Using Dflow Workflow Commands in Codex CLI
 
@@ -183,21 +189,36 @@ in markers, with zero manual merge. Re-running re-projects that same section in
 place instead of appending a duplicate.
 
 If `AGENTS.md` was edited after Dflow generated it, or is your own custom file,
-Dflow still preserves the existing content and appends the trigger section as
-an adjacent marked block in `AGENTS.md` through the same mechanism. The
-confirmation preview shows that block first, and later runs refresh it in
-place. Dflow writes a fallback merge snippet only on a marker conflict; in that
-case the Codex-target filename is
-`dflow/specs/shared/AGENTS-md-command-adapters-snippet.md`.
+Dflow still preserves the existing content and appends (or refreshes in place)
+the trigger section as an adjacent marked block in `AGENTS.md` through the same
+mechanism. The confirmation preview shows that block first. Dflow falls back to a
+manual-merge snippet only when existing Dflow markers are too broken to edit in
+place safely, and which snippet it writes depends on which markers are broken:
+
+- **Only the trigger markers are malformed, while the agent-shim markers and their
+  region are otherwise intact (no overlap or straddle), and the file already points
+  to the canonical guide.** The guide pointer is already in place, so the snippet
+  carries just the trigger section:
+  `dflow/specs/shared/AGENTS-md-command-adapters-snippet.md`.
+- **Any other marker conflict** — for example the agent-shim markers themselves
+  are malformed, or the agent-shim and trigger marked regions overlap or straddle
+  each other. The snippet then carries the full shim (title, guide pointers, and,
+  under `--command-adapters`, the trigger section):
+  `dflow/specs/shared/AGENTS-md-snippet.md`.
+
+Both snippets appear only on a marker conflict. A clean custom `AGENTS.md` with
+no conflicting markers does not produce a snippet at all — Dflow just appends the
+adjacent marked block in place.
 
 ### Version-Control Policy for Generated Artifacts (Codex)
 
 Codex does not generate command files, so there is **no derived adapter to
 gitignore**. On the Codex side, what you version-control is the `AGENTS.md`
 shim / marked blocks and `dflow/` (the canonical guide and specs). The fallback
-merge helper `dflow/specs/shared/AGENTS-md-command-adapters-snippet.md` is
-created only on a marker conflict; if it appears, it is part of `dflow/` and is
-**version-controlled along with `dflow/`**. `--command-adapters` only strengthens
+merge helpers (`dflow/specs/shared/AGENTS-md-command-adapters-snippet.md` or
+`dflow/specs/shared/AGENTS-md-snippet.md`) are created only on a marker conflict;
+if one appears, it is part of `dflow/` and is **version-controlled along with
+`dflow/`**. `--command-adapters` only strengthens
 the text triggers in `AGENTS.md` for Codex; it adds no `.claude/`, `.github/`,
 or `.agents/` command files, so the Claude / Copilot "version-control the
 generated adapter or not" trade-off does not apply on the Codex side. The

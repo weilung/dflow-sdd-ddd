@@ -76,9 +76,12 @@ Claude Code、GitHub Copilot 與其他工具。
 原地更新同一段。只有遇到衝突或 malformed Dflow markers 時，才會改寫
 `dflow/specs/shared/AGENTS-md-snippet.md` fallback merge snippet 讓你手動合併。
 
-若是 `dflow configure-agents --command-adapters` 情境，對應檔名為
-`dflow/specs/shared/AGENTS-md-command-adapters-snippet.md`，但同樣只在 marker
-conflict fallback 時使用。
+若改用 `dflow configure-agents --command-adapters`，marker conflict 的 fallback 小抄會依
+「壞掉的是哪一段 marker」分成兩個檔：只有 trigger markers 壞掉、而檔案仍指向 canonical
+指南時，用 trigger-only 的 `dflow/specs/shared/AGENTS-md-command-adapters-snippet.md`；
+其他任何 marker conflict（agent-shim markers 壞掉，或兩段 marked block 交疊／跨界）則用
+完整 shim 的 `dflow/specs/shared/AGENTS-md-snippet.md`。兩者
+都只在 marker conflict 時出現，詳見下方〈選配 Command Adapters 的 Codex 行為〉。
 
 ## 在 Codex CLI 中使用 Dflow Workflow 指令
 
@@ -164,17 +167,28 @@ dflow:new-feature
 `AGENTS.md`，零手動合併；重複執行會就地重投影同一段、不會重複附加。
 
 如果 `AGENTS.md` 在 Dflow 產生後被改過、或本來就是你自訂的檔案，Dflow 仍會保留既有
-內容，並透過同一套機制把 trigger 段作為相鄰的 marked block 附加到 `AGENTS.md`；
-確認 preview 會先顯示這段，重跑會原地更新。只有 marker conflict 時，才會改寫
-fallback merge snippet；此情況下 Codex 目標的檔名是
-`dflow/specs/shared/AGENTS-md-command-adapters-snippet.md`。
+內容，並透過同一套機制把 trigger 段作為相鄰的 marked block 附加（或就地更新）到
+`AGENTS.md`，確認 preview 會先顯示這段。只有當既有的 Dflow markers 壞到無法安全就地
+改寫時，Dflow 才會改成「不動你的檔、另寫一份手動合併小抄」；而且依「壞掉的是哪一段
+marker」分成兩種小抄：
+
+- **只有 trigger markers 壞掉，agent-shim 段與其 region 仍完好（沒有交疊／跨界），且檔案
+  已指向 canonical 指南**：指南指標已就位，小抄只需補 trigger 段，檔名是
+  `dflow/specs/shared/AGENTS-md-command-adapters-snippet.md`。
+- **其他任何 marker conflict**——例如 agent-shim markers 本身壞掉，或 agent-shim 與
+  trigger 兩段 marked block 交疊／跨界——小抄需要完整 shim（標題、指南指標，以及在
+  `--command-adapters` 下的 trigger 段），檔名是 `dflow/specs/shared/AGENTS-md-snippet.md`。
+
+兩種小抄都只在 marker conflict 時出現。乾淨、沒有 marker 衝突的自訂 `AGENTS.md` 不會
+產生任何小抄——Dflow 會直接把相鄰 marked block append 進去。
 
 ### 產生物的版控政策（Codex）
 
 Codex 不產生 command 檔，所以**沒有需要 gitignore 的衍生 adapter**。Codex 端要版控的是
-`AGENTS.md` shim / marked blocks 與 `dflow/`（canonical guide + 規格）；其中
-`dflow/specs/shared/AGENTS-md-command-adapters-snippet.md` 只是在 marker conflict 時產生的
-fallback merge helper，若出現也屬 `dflow/` 的一部分，**隨 `dflow/` 一起版控**。
+`AGENTS.md` shim / marked blocks 與 `dflow/`（canonical guide + 規格）；其中兩種
+fallback merge helper（`dflow/specs/shared/AGENTS-md-command-adapters-snippet.md` 或
+`dflow/specs/shared/AGENTS-md-snippet.md`）只在 marker conflict 時產生，若出現也屬
+`dflow/` 的一部分，**隨 `dflow/` 一起版控**。
 `--command-adapters` 對 Codex 只強化 `AGENTS.md` 的文字 trigger，不新增任何
 `.claude/`、`.github/`、`.agents/` 命令檔，因此 Claude / Copilot 那套「衍生 adapter
 要不要版控」的取捨在 Codex 端不適用。其他工具的 adapter 版控政策見
