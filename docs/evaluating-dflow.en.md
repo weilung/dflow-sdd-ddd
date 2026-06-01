@@ -51,9 +51,9 @@ in your project's `dflow/specs/` directory and AI instruction files.
 
 - Inspect, refactor, or migrate your application code.
 - Overwrite custom content in existing AI agent instruction files; if one
-  exists, Dflow refreshes Dflow-generated shims, shows and appends a marked
-  Dflow block by default otherwise, and writes a fallback merge snippet only on
-  marker conflicts.
+  exists, Dflow refreshes Dflow-generated shims, leaves a file that already
+  points to the guide as-is, shows and appends a marked Dflow block by default
+  otherwise, and writes a fallback merge snippet only on marker conflicts.
 - Modify your build system, package manager, or dependencies.
 - Send any data anywhere; it is a local scaffolding command.
 

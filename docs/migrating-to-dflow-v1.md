@@ -176,8 +176,9 @@ dflow configure-agents
 This command adds shims for any AI tools you select. `dflow configure-agents`
 does not overwrite custom content in an existing root instruction file. If it
 recognizes an older Dflow-generated shim, it refreshes that file to the current
-thin shim in place; otherwise it shows the change in the preview and appends a
-marked Dflow block to the existing file. It writes a manual-merge snippet under
+thin shim in place; a file that already points to the guide is left as-is;
+otherwise it shows the change in the preview and appends a marked Dflow block to
+the existing file. It writes a manual-merge snippet under
 `dflow/specs/shared/<tool>-md-snippet.md` only when the file contains
 conflicting or malformed Dflow markers.
 

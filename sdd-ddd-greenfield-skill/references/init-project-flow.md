@@ -348,19 +348,24 @@ guide.
 For each selected tool-specific file (`AGENTS.md`, `CLAUDE.md`,
 `.github/copilot-instructions.md`):
 
+(checked in this order — the first matching rule wins):
+
 - if the target file does not exist, create a small shim at the target
   path that points to `dflow/specs/shared/AI-AGENT-GUIDE.md`
-- if the target file is an existing Dflow-generated shim, refresh it in place
-- if the target file already references `dflow/specs/shared/AI-AGENT-GUIDE.md`,
-  leave it untouched
+- if the target file contains conflicting or malformed Dflow markers, do not
+  edit it; write a fallback merge snippet under `dflow/specs/shared/` and
+  report that the developer should merge it manually
+- if the target file already contains a single well-formed Dflow marked block,
+  replace that block in place (idempotent refresh) and keep the rest of the
+  file unchanged
+- if the target file is an existing whole-file Dflow-generated shim, refresh it
+  in place
+- if the target file already points to the guide through the developer's own
+  pointer (and has no Dflow marked block), leave it untouched
 - otherwise preserve the existing content and append a marked Dflow block at
-  the end of the file, keeping the file's dominant line ending; show that
-  block in the preview and refresh the same block on re-run
-- if the developer later deletes that block, a later `init` /
-  `configure-agents` run appends it again
-- if the target file contains conflicting or malformed Dflow markers, write a
-  fallback merge snippet under `dflow/specs/shared/` and report that the
-  developer should merge it manually
+  the end of the file, keeping the file's dominant line ending; show that block
+  in the preview, and refresh that same block on re-run. If the developer later
+  deletes the block, a later `init` / `configure-agents` run appends it again
 
 ### 4.4 Directory-only entries
 
