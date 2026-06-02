@@ -76,7 +76,7 @@ completion checklists）則放在 `init` 投影進專案的 **vendored workflow 
 略過，不會新增第二個指標。否則 Dflow 會在確認 preview 顯示並於檔案末尾附加帶有
 `<!-- dflow-generated: agent-shim START/END -->` markers 的 Dflow block；重跑
 會原地更新同一段，不會重複。只有遇到衝突或 malformed Dflow markers 時，
-才會在 `dflow/specs/shared/` 寫入 fallback merge snippet 讓你手動處理。
+才會改寫 `dflow/specs/shared/CLAUDE-md-snippet.md` fallback merge snippet 讓你手動處理。
 
 ## 在 Claude Code 中使用 Dflow Slash Commands
 

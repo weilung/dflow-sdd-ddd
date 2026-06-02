@@ -85,8 +85,8 @@ without adding a second pointer. Otherwise Dflow shows the change in the
 confirmation preview and appends a marked
 `<!-- dflow-generated: agent-shim START/END -->` block at the end of the file;
 re-running refreshes that same block in place without duplicating it. Dflow
-writes a fallback merge snippet under `dflow/specs/shared/` only when the file
-contains conflicting or malformed Dflow markers.
+writes the fallback merge snippet `dflow/specs/shared/CLAUDE-md-snippet.md` only
+when the file contains conflicting or malformed Dflow markers.
 
 ## Using Dflow Slash Commands in Claude Code
 
