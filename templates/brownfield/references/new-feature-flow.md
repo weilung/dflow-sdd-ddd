@@ -354,12 +354,14 @@ Ask these one-by-one; do not dump all five at once.
 
 ### 8.4 Archival
 
-For a single-phase feature, this is the closeout point. For a multi-phase
-feature, the developer typically reaches this point at the end of the
-final phase — at which time `/dflow:finish-feature` is the recommended
-trigger (it bundles steps 8.1 / 8.2 verification, BC sync, and archival
-into one explicit ceremony). Either path is acceptable; pick the one
-that matches the developer's habit.
+For a single-phase feature, this is the closeout point. If the feature has
+later phases still ahead, this phase is complete but the feature is not —
+don't archive yet; run `/dflow:new-phase` to start the next phase, not
+`/dflow:finish-feature` yet. For a multi-phase feature, the developer
+typically reaches this point at the end of the final phase — at which time
+`/dflow:finish-feature` is the recommended trigger (it bundles steps 8.1 /
+8.2 verification, BC sync, and archival into one explicit ceremony). Either
+path is acceptable; pick the one that matches the developer's habit.
 
 - [ ] `_index.md` `status` field changed to `completed`
 - [ ] All `phase-spec-*.md` files in the feature directory have `status:
