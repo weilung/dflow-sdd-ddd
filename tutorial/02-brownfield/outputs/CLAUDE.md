@@ -2,14 +2,15 @@
 
 This project uses Dflow for spec-first AI-assisted development.
 
-Before planning or editing code, read and follow:
+For spec-impacting work — a new feature, a change to product, user-facing, or
+domain behavior, a new requirement, or a bug-fix workflow — read and follow:
 
-- `dflow/specs/shared/AI-AGENT-GUIDE.md`
+- `dflow/specs/shared/AI-AGENT-GUIDE.md` — command registry, routing rules, and project context.
+- `dflow/specs/shared/dflow-workflows/` — vendored workflow bundle with executable step definitions.
 
-Keep tool-specific instruction files small. The Dflow guide above is the
-single source of truth for project workflow rules, slash-command behavior,
+For routine work (refactors, renames, chores, formatting, dependency bumps, or
+general code questions), proceed normally; you need not read the guide first.
+
+Keep tool-specific instruction files small. The guide and workflow bundle are
+the authoritative sources for Dflow workflow rules, slash-command behavior,
 spec locations, and SDD/DDD constraints.
-
-If your tool supports Markdown imports, the canonical guide is imported below:
-
-@dflow/specs/shared/AI-AGENT-GUIDE.md
