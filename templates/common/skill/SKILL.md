@@ -5,12 +5,15 @@ description: >
   /dflow:* commands (/dflow:new-feature, /dflow:modify-existing, /dflow:bug-fix,
   /dflow:new-phase, /dflow:finish-feature, /dflow:pr-review, /dflow:verify,
   /dflow:report-dflow-feedback, /dflow:status, /dflow:next, /dflow:cancel).
-  SECONDARY (auto-trigger safety net) — engage ONLY for: adding or changing
-  product/domain behavior, new requirements, a feature or bug-fix workflow, or
-  spec-impacting architecture/domain-model decisions. Do NOT engage for pure
-  refactors, infrastructure chores, formatting, or general code questions.
-  When engaged by natural language, DO NOT auto-enter a workflow: judge the
-  intent, suggest the matching /dflow: command, and wait for confirmation.
+  SECONDARY — engage ONLY for adding or changing product/user-facing/domain
+  behavior, a new requirement, a feature or bug-fix workflow, or spec-impacting
+  architecture/domain-model decisions. Includes indirect phrasings, e.g. "I want
+  to build/add ...", "let's add the ability to ...", "we need to support ...",
+  "can you implement ...", "users should be able to ...", "the app should also
+  ...". Do NOT engage for pure refactors, renames, infra/build chores,
+  formatting, dep bumps, or general code questions ("how does X work", "explain
+  this"). When engaged by natural language, DO NOT auto-enter a workflow: judge
+  the intent, suggest the matching /dflow: command, and wait for confirmation.
 ---
 
 <!-- dflow-generated: skill-adapter -->

@@ -48,12 +48,17 @@ a thin shim at the project root:
 
 This project uses Dflow for spec-first AI-assisted development.
 
-Before planning or editing code, read and follow:
+For spec-impacting work — a new feature, a change to product, user-facing, or
+domain behavior, a new requirement, or a bug-fix workflow — read and follow:
 
-- `dflow/specs/shared/AI-AGENT-GUIDE.md`
+- `dflow/specs/shared/AI-AGENT-GUIDE.md` — command registry, routing rules, and project context.
+- `dflow/specs/shared/dflow-workflows/` — vendored workflow bundle with executable step definitions.
 
-Keep tool-specific instruction files small. The Dflow guide above is the
-single source of truth for project workflow rules, slash-command behavior,
+For routine work (refactors, renames, chores, formatting, dependency bumps, or
+general code questions), proceed normally; you need not read the guide first.
+
+Keep tool-specific instruction files small. The guide and workflow bundle are
+the authoritative sources for Dflow workflow rules, slash-command behavior,
 spec locations, and SDD/DDD constraints.
 ```
 
@@ -61,13 +66,14 @@ Two things matter when Codex starts in this project:
 
 1. Codex CLI reads `AGENTS.md` as project instructions. This is Codex's
    standard repository-instruction mechanism.
-2. The Dflow shim does not include a Markdown import line. Unlike the
-   Claude Code shim, generated `AGENTS.md` does not contain
-   `@dflow/specs/shared/AI-AGENT-GUIDE.md`.
+2. The Dflow shim is a thin pointer and does not inline the guide. Generated
+   `AGENTS.md` points to `dflow/specs/shared/AI-AGENT-GUIDE.md` with a plain
+   Markdown bullet.
 
 That means Codex sees the pointer immediately, but the canonical Dflow guide
-is not auto-inlined by the shim. Before planning or editing, Codex should
-follow the pointer and read `dflow/specs/shared/AI-AGENT-GUIDE.md`. If Codex
+is not auto-inlined by the shim. For spec-impacting work (a feature, a
+behavior change, or a bug fix), Codex should follow the pointer and read
+`dflow/specs/shared/AI-AGENT-GUIDE.md`. If Codex
 starts answering a Dflow request without mentioning that file, steer it
 explicitly: "Before continuing, read and follow
 `dflow/specs/shared/AI-AGENT-GUIDE.md`."
@@ -270,7 +276,7 @@ across tools. Only the root-level shim differs:
 
 | Tool | Generated shim | Loads canonical guide via |
 |---|---|---|
-| Claude Code | `CLAUDE.md` | `@dflow/specs/shared/AI-AGENT-GUIDE.md` Markdown import |
+| Claude Code | `CLAUDE.md` | Project instructions load the shim; follow the pointer to read the guide |
 | Codex / Copilot coding agent | `AGENTS.md` | Project instructions load the shim; Codex must follow the pointer and read the guide |
 | GitHub Copilot | `.github/copilot-instructions.md` | Reads repository instructions directly |
 
@@ -288,7 +294,7 @@ root, and keep the Dflow pointer in the nearest relevant `AGENTS.md`.
 
 If your team uses both Claude Code and Codex CLI on the same project, no
 extra Dflow coordination is needed. Both tools use the same canonical guide;
-only the shim file and loading mechanism differ.
+only the shim file differs.
 
 ## Common Patterns and Gotchas
 
@@ -298,9 +304,9 @@ locations, or SDD constraints to `AGENTS.md`, those belong in
 other tools' shims do not drift away from it.
 
 **Codex does not inline the Dflow guide from `AGENTS.md`.** The generated
-Codex shim has a normal Markdown bullet pointing to the canonical guide, not
-an `@...` import. Ask Codex to read `AI-AGENT-GUIDE.md` if it appears to be
-working from the shim alone.
+Codex shim has a normal Markdown bullet pointing to the canonical guide. Ask
+Codex to read `AI-AGENT-GUIDE.md` if it appears to be working from the shim
+alone.
 
 **`/dflow:*` is not a Codex CLI built-in slash command.** Codex slash commands
 control the Codex session itself. When raw slash input is intercepted or

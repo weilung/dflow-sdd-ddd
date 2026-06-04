@@ -175,6 +175,84 @@ try {
   }
 
   // ---------------------------------------------------------------------------
+  // 3b. A v0.9.0-era whole-file Claude shim (old "Before planning or editing
+  //     code" wording + the legacy Markdown @import) is recognized as pristine
+  //     and regenerated to the CURRENT scoped wording without the import, so the
+  //     progressive-disclosure upgrade reaches existing projects.
+  // ---------------------------------------------------------------------------
+  {
+    const root = await newProject('1,2,3');
+    const claudePath = join(root, 'CLAUDE.md');
+    const legacyV090 = `# CLAUDE.md - Dflow Project Instructions
+
+This project uses Dflow for spec-first AI-assisted development.
+
+Before planning or editing code, read and follow:
+
+- \`dflow/specs/shared/AI-AGENT-GUIDE.md\` — command registry, routing rules, and project context.
+- \`dflow/specs/shared/dflow-workflows/\` — vendored workflow bundle with executable step definitions.
+
+Keep tool-specific instruction files small. The guide and workflow bundle are
+the authoritative sources for Dflow workflow rules, slash-command behavior,
+spec locations, and SDD/DDD constraints.
+If your tool supports Markdown imports, the canonical guide is imported below:
+
+@dflow/specs/shared/AI-AGENT-GUIDE.md
+`;
+    await writeFile(claudePath, legacyV090);
+
+    const upgrade = configure(root, '1,2,3');
+    assert.equal(upgrade.code, 0, `legacy v0.9.0 upgrade failed\nSTDOUT:\n${upgrade.stdout}\nSTDERR:\n${upgrade.stderr}`);
+    const upgraded = await readFile(claudePath, 'utf8');
+    assert.doesNotMatch(upgraded, /@dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/, 'legacy @import is removed on upgrade');
+    assert.doesNotMatch(upgraded, /Before planning or editing code/, 'old eager-read wording is replaced');
+    assert.match(upgraded, /For spec-impacting work/, 'regenerated to the current scoped wording');
+    assert.match(upgraded, /proceed normally/, 'scoped wording tells routine work to proceed without the guide');
+    assert.match(upgraded, /dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/, 'upgraded shim still points to the canonical guide');
+    assert.equal(count(upgraded, AGENT_SHIM_START), 0, 'regenerated whole-file shim stays marker-free');
+    assert.equal(await exists(join(root, 'dflow/specs/shared/CLAUDE-md-snippet.md')), false, 'legacy shim regenerated in place, not parked as a snippet');
+  }
+
+  // ---------------------------------------------------------------------------
+  // 3c. The legacy-import upgrade tolerates CRLF and editor-added trailing
+  //     whitespace in the old @import block (normalize-then-strip).
+  // ---------------------------------------------------------------------------
+  {
+    const root = await newProject('1,2,3');
+    const claudePath = join(root, 'CLAUDE.md');
+    const fresh = await readFile(claudePath, 'utf8');
+    const messyImport = '\nIf your tool supports Markdown imports, the canonical guide is imported below:  \n   \n@dflow/specs/shared/AI-AGENT-GUIDE.md  \n';
+    const messy = `${fresh.replace(/\n+$/, '')}${messyImport}`.replace(/\n/g, '\r\n');
+    await writeFile(claudePath, messy);
+
+    const upgrade = configure(root, '1,2,3');
+    assert.equal(upgrade.code, 0, `messy legacy-import upgrade failed\nSTDOUT:\n${upgrade.stdout}\nSTDERR:\n${upgrade.stderr}`);
+    const upgraded = await readFile(claudePath, 'utf8');
+    assert.doesNotMatch(upgraded, /@dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/, 'legacy @import removed despite CRLF + trailing whitespace');
+    assert.match(upgraded, /dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/, 'upgraded messy shim still points to the canonical guide');
+  }
+
+  // ---------------------------------------------------------------------------
+  // 3d. The legacy-import strip is scoped to CLAUDE.md. A user-added exact
+  //     @import block in an AGENTS.md is NOT treated as pristine, so the user
+  //     edit is preserved (skipped), not silently regenerated away.
+  // ---------------------------------------------------------------------------
+  {
+    const root = await newProject('1,2,3');
+    const agentsPath = join(root, 'AGENTS.md');
+    const fresh = await readFile(agentsPath, 'utf8');
+    const userImport = '\nIf your tool supports Markdown imports, the canonical guide is imported below:\n\n@dflow/specs/shared/AI-AGENT-GUIDE.md\n';
+    const edited = `${fresh.replace(/\n+$/, '')}${userImport}`;
+    await writeFile(agentsPath, edited);
+
+    const reconfigure = configure(root, '1,2,3');
+    assert.equal(reconfigure.code, 0, `agents scoping reconfigure failed\nSTDOUT:\n${reconfigure.stdout}\nSTDERR:\n${reconfigure.stderr}`);
+    const after = await readFile(agentsPath, 'utf8');
+    assert.match(after, /@dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/, 'user-added @import in a non-Claude shim is preserved (legacy strip is Claude-scoped)');
+    assert.equal(after, edited, 'AGENTS.md with a user-added import is left byte-identical (skipped, not regenerated)');
+  }
+
+  // ---------------------------------------------------------------------------
   // 4. Malformed Dflow markers -> previewed snippet fallback + warning, file untouched.
   //    The warning must be visible in BOTH the preview and the final report, and the
   //    init entry point must surface it (init warning plumbing).

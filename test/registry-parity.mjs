@@ -170,4 +170,23 @@ assert.deepEqual(
   'SKILL.md frontmatter must list exactly the registry command labels'
 );
 
+// (5) SKILL.md description must stay within the agentskills.io / Codex limit of
+//     1024 characters. Codex SKIPS a skill whose description exceeds it (Claude
+//     Code does not enforce this, so the cross-tool common layer is gated by the
+//     stricter Codex limit). Compute the folded (parsed) value: dedent the
+//     `description: >` block (the last frontmatter key) and join lines the way a
+//     YAML folded scalar does (one separator char per line break).
+const descLines = frontmatter[1].split(/\r?\n/);
+const descStart = descLines.findIndex((line) => line.startsWith('description:'));
+assert.ok(descStart !== -1, 'SKILL.md frontmatter must have a description');
+const foldedDescription = descLines
+  .slice(descStart + 1)
+  .map((line) => line.replace(/^  /, ''))
+  .join(' ')
+  .trim();
+assert.ok(
+  foldedDescription.length <= 1024,
+  `SKILL.md description folds to ${foldedDescription.length} chars; must be <= 1024 (Codex skips longer descriptions)`
+);
+
 console.log('registry-parity: all checks passed');

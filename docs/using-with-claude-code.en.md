@@ -45,18 +45,18 @@ selecting Claude Code as a target tool creates a thin shim at the project root:
 
 This project uses Dflow for spec-first AI-assisted development.
 
-Before planning or editing code, read and follow:
+For spec-impacting work — a new feature, a change to product, user-facing, or
+domain behavior, a new requirement, or a bug-fix workflow — read and follow:
 
-- `dflow/specs/shared/AI-AGENT-GUIDE.md`
+- `dflow/specs/shared/AI-AGENT-GUIDE.md` — command registry, routing rules, and project context.
+- `dflow/specs/shared/dflow-workflows/` — vendored workflow bundle with executable step definitions.
 
-Keep tool-specific instruction files small. The Dflow guide above is the
-single source of truth for project workflow rules, slash-command behavior,
+For routine work (refactors, renames, chores, formatting, dependency bumps, or
+general code questions), proceed normally; you need not read the guide first.
+
+Keep tool-specific instruction files small. The guide and workflow bundle are
+the authoritative sources for Dflow workflow rules, slash-command behavior,
 spec locations, and SDD/DDD constraints.
-
-If your tool supports Markdown imports, the canonical guide is imported
-below:
-
-@dflow/specs/shared/AI-AGENT-GUIDE.md
 ```
 
 Two things happen when Claude Code starts in this project:
@@ -64,9 +64,11 @@ Two things happen when Claude Code starts in this project:
 1. Claude Code automatically loads `CLAUDE.md` from the project root into
    its context. This is Claude Code's standard project instructions
    mechanism.
-2. The trailing `@dflow/specs/shared/AI-AGENT-GUIDE.md` line uses Claude
-   Code's Markdown import syntax to inline the canonical Dflow guide. So
-   Claude Code effectively reads both files as one set of instructions.
+2. `CLAUDE.md` is a thin pointer: it names the canonical guide but does not
+   inline it. The guide is loaded on demand — the `dflow` skill pulls it in
+   when relevant work auto-triggers the skill, or the agent follows the
+   pointer for spec-impacting work. This keeps the guide out of every
+   session's context (progressive disclosure) instead of force-loading it.
 
 The canonical guide (`dflow/specs/shared/AI-AGENT-GUIDE.md`) is the
 **command registry and router**: project context (track, tech stack, prose
@@ -285,7 +287,7 @@ across tools. Only the root-level shim differs:
 
 | Tool | Generated shim | Loads canonical guide via |
 |---|---|---|
-| Claude Code | `CLAUDE.md` | `@dflow/specs/shared/AI-AGENT-GUIDE.md` Markdown import |
+| Claude Code | `CLAUDE.md` | Reads file content directly when starting |
 | Codex / Copilot coding agent | `AGENTS.md` | Reads file content directly when starting |
 | GitHub Copilot | `.github/copilot-instructions.md` | Reads file content directly |
 
@@ -325,10 +327,10 @@ their own approval gates (e.g., "I drafted the spec — do you want me to
 proceed to implementation?"). Both can fire on the same action; this is
 expected and not a sign of misconfiguration.
 
-**The `@` import is not recursive.** `CLAUDE.md` imports
-`AI-AGENT-GUIDE.md`, but if `AI-AGENT-GUIDE.md` references other files
-(e.g., feature specs), those are not auto-loaded — Claude Code reads them
-on demand when entering the relevant workflow. This keeps context usage
+**Guide references are not all loaded at once.** `CLAUDE.md` points to
+`AI-AGENT-GUIDE.md`, and the other files `AI-AGENT-GUIDE.md` references
+(e.g., feature specs) are also read on demand — Claude Code reads them
+when entering the relevant workflow. This keeps context usage
 proportional to active work.
 
 **A pre-existing `CLAUDE.md` is preserved.** `init` will not overwrite your

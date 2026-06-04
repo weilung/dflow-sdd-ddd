@@ -134,7 +134,8 @@ try {
   const claudeGuide = await readFile(join(tempRoot, 'CLAUDE.md'), 'utf8');
   const copilotGuide = await readFile(join(tempRoot, '.github/copilot-instructions.md'), 'utf8');
   assert.match(agentsGuide, /dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/);
-  assert.match(claudeGuide, /@dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/);
+  assert.match(claudeGuide, /dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/);
+  assert.doesNotMatch(claudeGuide, /@dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/);
   assert.match(copilotGuide, /dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/);
 
   const second = await runDflow(tempRoot);
@@ -715,7 +716,8 @@ try {
 
   const rootClaude = await readFile(join(webformsRoot, 'CLAUDE.md'), 'utf8');
   assert.match(rootClaude, /^# CLAUDE\.md - Dflow Project Instructions/);
-  assert.match(rootClaude, /@dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/);
+  assert.match(rootClaude, /dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/);
+  assert.doesNotMatch(rootClaude, /@dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/);
 
   const codexAdapterConfigured = await runDflow(webformsRoot, '1\ny\n', ['configure-agents', '--command-adapters']);
   assert.equal(

@@ -30,15 +30,24 @@ Example generated shim:
 
 This project uses Dflow for spec-first AI-assisted development.
 
-Before planning or editing code, read and follow:
+For spec-impacting work — a new feature, a change to product, user-facing, or
+domain behavior, a new requirement, or a bug-fix workflow — read and follow:
 
-- `dflow/specs/shared/AI-AGENT-GUIDE.md`
+- `dflow/specs/shared/AI-AGENT-GUIDE.md` — command registry, routing rules, and project context.
+- `dflow/specs/shared/dflow-workflows/` — vendored workflow bundle with executable step definitions.
+
+For routine work (refactors, renames, chores, formatting, dependency bumps, or
+general code questions), proceed normally; you need not read the guide first.
+
+Keep tool-specific instruction files small. The guide and workflow bundle are
+the authoritative sources for Dflow workflow rules, slash-command behavior,
+spec locations, and SDD/DDD constraints.
 ```
 
 Key points:
 
 - The Copilot shim is located at `.github/copilot-instructions.md` (see `lib/init.js` mapping).
-- The Copilot shim does NOT include a Markdown `@` import. It points to the canonical guide by path only. Readers must open `dflow/specs/shared/AI-AGENT-GUIDE.md` explicitly.
+- The Copilot shim is a thin pointer to the canonical guide by path. Readers must open `dflow/specs/shared/AI-AGENT-GUIDE.md` explicitly.
 
 ## Using Dflow Workflow Commands with GitHub Copilot
 
@@ -188,11 +197,11 @@ The canonical guide (`dflow/specs/shared/AI-AGENT-GUIDE.md`) is the same across 
 | Tool | Generated shim | Loads canonical guide via |
 |---|---|---|
 | GitHub Copilot | `.github/copilot-instructions.md` | Reads repository instructions directly |
-| Claude Code | `CLAUDE.md` | `@dflow/specs/shared/AI-AGENT-GUIDE.md` Markdown import |
+| Claude Code | `CLAUDE.md` | Reads file content directly when starting |
 | Codex / Copilot coding agent | `AGENTS.md` | Reads file content directly when starting |
 
 - Shim path: Copilot uses `.github/copilot-instructions.md` (not `AGENTS.md` or `CLAUDE.md`).
-- Markdown import: Copilot shim has NO `@dflow/specs/shared/AI-AGENT-GUIDE.md` import. This contrasts with the Claude Code shim, which inlines via an `@` import.
+- Loading: the Copilot shim is a thin pointer that does not inline the guide (same as the other tools now); the canonical guide is loaded on demand.
 - Tool model: Copilot is IDE-based (chat panel + inline completions); Codex/Claude Code are CLI-based agents. Copilot interacts through the editor UI rather than a command-line session.
 - Workflow invocation: canonical `/dflow:*` is shared vocabulary, but each tool's `/` parser behaves differently. In Copilot chat text, name `/dflow:<id>`; if you opt in to `--command-adapters`, the VS Code prompt menu name is `/dflow-<id>`, such as `/dflow-new-feature`.
 - Permission model: Copilot relies on the IDE's permission and extension sandbox. It may prompt for or be governed by editor-level approvals; CLI tools often have explicit sandbox flags and separate permission gates.
