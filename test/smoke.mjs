@@ -239,7 +239,10 @@ try {
     assert.doesNotMatch(content, /Do not jump|Status \/ Control Commands|Source of Truth|Spec before code|Step Gate/);
   }
 
-  assert.equal(await exists(join(legacyRoot, '.agents/skills/dflow/SKILL.md')), false, 'Codex skill adapter should not be created');
+  // --command-adapters never projects a skill (that is what --skills does, tested
+  // below). PROPOSAL-056 only generalizes --skills, so the Codex skill must still
+  // be absent here, and the Codex COMMAND adapter must still never exist.
+  assert.equal(await exists(join(legacyRoot, '.agents/skills/dflow/SKILL.md')), false, 'Codex skill adapter should not be created by --command-adapters');
   assert.equal(await exists(join(legacyRoot, '.codex/commands/dflow-new-feature.md')), false, 'Codex command adapter should not be created');
   // PROPOSAL-054: after --command-adapters the Codex triggers live in AGENTS.md as an
   // adjacent marked block (the file already carried the agent-shim block from the prior
@@ -332,10 +335,12 @@ try {
     'non-generated skill should not be in the created/updated set'
   );
 
-  // --skills without Claude selected: warn + no skill file (use a fresh project).
-  const noClaudeRoot = join(tempRoot, 'skills-no-claude');
-  await mkdir(noClaudeRoot, { recursive: true });
-  const noClaudeInit = [
+  // PROPOSAL-056 Phase 1: --skills now ALSO projects a project-level Codex skill
+  // to .agents/skills/dflow/SKILL.md (same source, parity with Claude). Use a
+  // fresh project that selects only the AGENTS.md (Codex) target.
+  const codexSkillRoot = join(tempRoot, 'skills-codex');
+  await mkdir(codexSkillRoot, { recursive: true });
+  const codexSkillInit = [
     '1',
     'ASP.NET Core 9, EF Core 8',
     'none',
@@ -346,20 +351,98 @@ try {
     'none',    // AI agents
     'y'
   ].join('\n') + '\n';
-  const noClaudeInitRun = await runDflow(noClaudeRoot, noClaudeInit, ['init']);
-  assert.equal(noClaudeInitRun.code, 0, `no-claude init failed\nSTDOUT:\n${noClaudeInitRun.stdout}\nSTDERR:\n${noClaudeInitRun.stderr}`);
-  const noClaudeSkills = await runDflow(noClaudeRoot, '1\ny\n', ['configure-agents', '--skills']);
+  const codexSkillInitRun = await runDflow(codexSkillRoot, codexSkillInit, ['init']);
+  assert.equal(codexSkillInitRun.code, 0, `codex-skill init failed\nSTDOUT:\n${codexSkillInitRun.stdout}\nSTDERR:\n${codexSkillInitRun.stderr}`);
+
+  const codexSkillPath = join(codexSkillRoot, '.agents/skills/dflow/SKILL.md');
+  // Select option 1 (AGENTS.md - Codex / Copilot coding agent) only.
+  const codexSkills = await runDflow(codexSkillRoot, '1\ny\n', ['configure-agents', '--skills']);
   assert.equal(
-    noClaudeSkills.code,
+    codexSkills.code,
     0,
-    `configure-agents --skills (no claude) failed\nSTDOUT:\n${noClaudeSkills.stdout}\nSTDERR:\n${noClaudeSkills.stderr}`
+    `configure-agents --skills (codex) failed\nSTDOUT:\n${codexSkills.stdout}\nSTDERR:\n${codexSkills.stderr}`
+  );
+  assert.equal(await exists(codexSkillPath), true, '--skills with Codex (agents) should create the .agents skill adapter');
+  const codexSkillContent = await readFile(codexSkillPath, 'utf8');
+  assert.match(codexSkillContent, /<!-- dflow-generated: skill-adapter -->/, 'Codex skill adapter should include the generated skill marker');
+  assert.match(codexSkillContent, /^name: dflow$/m, 'Codex skill adapter frontmatter should name the skill dflow');
+  assert.match(codexSkillContent, /dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/, 'Codex skill adapter should point to the canonical guide');
+  // Same single source as the Claude skill — no content fork.
+  assert.equal(codexSkillContent, skillContent, 'Codex skill should be byte-identical to the Claude skill (single source)');
+  // Claude was not selected, so no Claude skill should appear in this project.
+  assert.equal(await exists(join(codexSkillRoot, '.claude/skills/dflow/SKILL.md')), false, 'Codex-only --skills should not create a Claude skill');
+
+  // Idempotent re-run for the Codex skill.
+  const codexSkillsRerun = await runDflow(codexSkillRoot, '1\ny\n', ['configure-agents', '--skills']);
+  assert.equal(
+    codexSkillsRerun.code,
+    0,
+    `configure-agents --skills (codex re-run) failed\nSTDOUT:\n${codexSkillsRerun.stdout}\nSTDERR:\n${codexSkillsRerun.stderr}`
+  );
+  assert.equal(await readFile(codexSkillPath, 'utf8'), codexSkillContent, 're-running --skills should rewrite the same marker-stamped Codex skill');
+
+  // User-modified-file protection for the Codex skill path.
+  const userCodexSkill = '# My own dflow skill\n\nHand-written Codex skill, not generated.\n';
+  await writeFile(codexSkillPath, userCodexSkill);
+  const codexSkillsProtected = await runDflow(codexSkillRoot, '1\ny\n', ['configure-agents', '--skills']);
+  assert.equal(
+    codexSkillsProtected.code,
+    0,
+    `configure-agents --skills (codex overwrite protection) failed\nSTDOUT:\n${codexSkillsProtected.stdout}\nSTDERR:\n${codexSkillsProtected.stderr}`
+  );
+  assert.equal(await readFile(codexSkillPath, 'utf8'), userCodexSkill, 'non-generated Codex skill should be left unchanged');
+  assert.match(
+    codexSkillsProtected.stdout,
+    /Existing \.agents\/skills\/dflow\/SKILL\.md is not a Dflow-generated skill; left unchanged/,
+    'overwrite protection should warn about the non-generated Codex skill'
+  );
+
+  // PROPOSAL-056 Phase 1: GitHub Copilot skill projection is DEFERRED. Selecting
+  // Copilot with --skills must NOT create .github/skills; it prints a deferral note.
+  const copilotSkillRoot = join(tempRoot, 'skills-copilot-deferred');
+  await mkdir(copilotSkillRoot, { recursive: true });
+  const copilotSkillInitRun = await runDflow(copilotSkillRoot, codexSkillInit, ['init']);
+  assert.equal(copilotSkillInitRun.code, 0, `copilot-deferred init failed\nSTDOUT:\n${copilotSkillInitRun.stdout}\nSTDERR:\n${copilotSkillInitRun.stderr}`);
+  // Select option 3 (.github/copilot-instructions.md - GitHub Copilot) only.
+  const copilotSkills = await runDflow(copilotSkillRoot, '3\ny\n', ['configure-agents', '--skills']);
+  assert.equal(
+    copilotSkills.code,
+    0,
+    `configure-agents --skills (copilot deferred) failed\nSTDOUT:\n${copilotSkills.stdout}\nSTDERR:\n${copilotSkills.stderr}`
   );
   assert.match(
-    noClaudeSkills.stdout,
-    /--skills flag currently supports Claude Code only/,
-    '--skills without Claude should warn'
+    copilotSkills.stdout,
+    /Copilot skill projection is deferred \(PROPOSAL-056 Phase 1\)/,
+    '--skills with Copilot should print the deferral note'
   );
-  assert.equal(await exists(join(noClaudeRoot, '.claude/skills/dflow/SKILL.md')), false, '--skills without Claude should not create a skill file');
+  assert.equal(await exists(join(copilotSkillRoot, '.github/skills/dflow/SKILL.md')), false, 'deferred Copilot skill should not be created');
+  assert.doesNotMatch(
+    copilotSkills.stdout,
+    /currently supports Claude Code only/,
+    'the old Claude-only warning should no longer appear'
+  );
+
+  // PROPOSAL-056 Phase 1: co-selecting Copilot WITH Codex must STILL project the
+  // Codex skill AND print the Copilot deferral note — the deferral must not early-
+  // return and suppress the other (skill-capable) targets.
+  const coSelRoot = join(tempRoot, 'skills-codex-plus-copilot');
+  await mkdir(coSelRoot, { recursive: true });
+  const coSelInitRun = await runDflow(coSelRoot, codexSkillInit, ['init']);
+  assert.equal(coSelInitRun.code, 0, `co-select init failed\nSTDOUT:\n${coSelInitRun.stdout}\nSTDERR:\n${coSelInitRun.stderr}`);
+  // Select options 1 (AGENTS.md - Codex) AND 3 (GitHub Copilot) together.
+  const coSelSkills = await runDflow(coSelRoot, '1,3\ny\n', ['configure-agents', '--skills']);
+  assert.equal(
+    coSelSkills.code,
+    0,
+    `configure-agents --skills (codex+copilot) failed\nSTDOUT:\n${coSelSkills.stdout}\nSTDERR:\n${coSelSkills.stderr}`
+  );
+  assert.equal(await exists(join(coSelRoot, '.agents/skills/dflow/SKILL.md')), true, 'co-selected Codex skill should still be projected alongside deferred Copilot');
+  assert.match(
+    coSelSkills.stdout,
+    /Copilot skill projection is deferred \(PROPOSAL-056 Phase 1\)/,
+    'co-selected Copilot should still print the deferral note'
+  );
+  assert.equal(await exists(join(coSelRoot, '.github/skills/dflow/SKILL.md')), false, 'co-selected Copilot skill should not be created');
 
   // PROPOSAL-039: workflow bundle projection
   // Use the tempRoot (greenfield init already ran there); bundle should have been projected by init.

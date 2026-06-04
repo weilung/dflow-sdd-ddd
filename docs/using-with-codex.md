@@ -150,9 +150,11 @@ guide 中記為 `/dflow:*`）。
 ### 選配 Command Adapters 的 Codex 行為
 
 `dflow configure-agents --command-adapters` 對 Codex 採文字 trigger 強化，不會建立
-Codex 命令檔，也不會新增 `.agents/skills/dflow/SKILL.md`。Codex v1 沒有與
-Claude `.claude/commands` 或 Copilot `.github/prompts` 對等的 Dflow command-file
-adapter。
+Codex 命令檔。Codex v1 沒有與 Claude `.claude/commands` 或 Copilot `.github/prompts`
+對等的 Dflow command-file adapter。
+
+**自動觸發 skill 走的是 `--skills`（非 `--command-adapters`）。** 見下方
+〈選配 Skill 的 Codex 行為〉。
 
 當你在 `--command-adapters` 模式下選擇 `AGENTS.md - Codex / Copilot coding agent`
 時，Dflow 會把從 canonical command registry 產生的 trigger 清單寫進 `AGENTS.md`。
@@ -182,17 +184,42 @@ marker」分成兩種小抄：
 兩種小抄都只在 marker conflict 時出現。乾淨、沒有 marker 衝突的自訂 `AGENTS.md` 不會
 產生任何小抄——Dflow 會直接把相鄰 marked block append 進去。
 
+### 選配 Skill 的 Codex 行為（自動觸發）
+
+`dflow configure-agents --skills` 會把一份精簡、工具中立的 skill 投影到
+`.agents/skills/dflow/SKILL.md`——Codex 的專案層 skill 路徑。這讓 Codex 取得與
+Claude Code **對等的自然語言自動觸發**：你用「help me start a new feature」這類描述
+時，Codex 可依該 skill 的 `description` 自動判斷是否相關，建議對應的 `dflow:<id>`
+workflow，而不必每次都記得手打命令。
+
+skill body 與 frontmatter（`name` / `description`）都是純文字，只指向 canonical 指南
+（`dflow/specs/shared/AI-AGENT-GUIDE.md`）與 vendored workflow bundle，與 Claude 投影
+的是**同一份 source**（`templates/common/skill/SKILL.md`），沒有 per-tool 內容分岔。
+被自動觸發時，skill 的約定是：先判斷意圖、建議對應 `dflow:<id>`、等你確認後才進入
+workflow，而不會自行直接執行。
+
+重跑 `--skills` 會就地重寫帶 marker 的同一份 skill（idempotent）；若該路徑已存在一份
+**非** Dflow 產生的檔案（沒有 `<!-- dflow-generated: skill-adapter -->` marker），Dflow
+不會覆寫，只會 warn 並保留你的檔。
+
+> GitHub Copilot 的專案層 skill 投影在 PROPOSAL-056 Phase 1 **暫緩**：`--skills` 模式下
+> 選擇 Copilot 時不會建立 `.github/skills`，只會印出一行暫緩說明。
+
 ### 產生物的版控政策（Codex）
 
-Codex 不產生 command 檔，所以**沒有需要 gitignore 的衍生 adapter**。Codex 端要版控的是
-`AGENTS.md` shim / marked blocks 與 `dflow/`（canonical guide + 規格）；其中兩種
-fallback merge helper（`dflow/specs/shared/AGENTS-md-command-adapters-snippet.md` 或
-`dflow/specs/shared/AGENTS-md-snippet.md`）只在 marker conflict 時產生，若出現也屬
+Codex 不產生 command 檔，所以 `--command-adapters` 端**沒有需要 gitignore 的衍生 adapter**。
+Codex 端要版控的是 `AGENTS.md` shim / marked blocks 與 `dflow/`（canonical guide +
+規格）；其中兩種 fallback merge helper（`dflow/specs/shared/AGENTS-md-command-adapters-snippet.md`
+或 `dflow/specs/shared/AGENTS-md-snippet.md`）只在 marker conflict 時產生，若出現也屬
 `dflow/` 的一部分，**隨 `dflow/` 一起版控**。
 `--command-adapters` 對 Codex 只強化 `AGENTS.md` 的文字 trigger，不新增任何
-`.claude/`、`.github/`、`.agents/` 命令檔，因此 Claude / Copilot 那套「衍生 adapter
-要不要版控」的取捨在 Codex 端不適用。其他工具的 adapter 版控政策見
-[README「Init 產生的檔案」](../README.md#init-產生的檔案) 與各 per-tool 指南。
+`.claude/`、`.github/`、`.agents/` 命令檔。
+
+唯一的 Codex 衍生物來自 `--skills`：`.agents/skills/dflow/SKILL.md`。它與 Claude 的
+`.claude/skills/dflow/SKILL.md` 一樣，是可從 canonical 指南重生成的衍生物，沿用相同的
+**建議預設**（不版控、clone 後重跑 `configure-agents --skills` 重生成；若你的團隊偏好 clone
+即有自動觸發，版控它也是合理選擇，原則是同專案對各工具採一致策略）。其他工具的 adapter /
+skill 版控政策見 [README「Init 產生的檔案」](../README.md#init-產生的檔案) 與各 per-tool 指南。
 
 ## 與其他 AI 工具的差異
 
@@ -237,8 +264,9 @@ canonical `/dflow:<id>` workflow。
 
 **Codex 不產生命令檔。** 即使使用 `--command-adapters`，Codex 也只強化
 `AGENTS.md` 中 marked block 的文字 trigger 說明；只有 marker conflict 才會產生
-fallback merge snippet。不要期待 `.claude/commands`、`.github/prompts` 或
-`.agents/skills/dflow/SKILL.md` 形式的 Codex 專屬命令檔。
+fallback merge snippet。不要期待 `.claude/commands` 或 `.github/prompts` 形式的
+Codex 專屬**命令**檔。（自動觸發 **skill** 是另一回事，由 `--skills` 投影到
+`.agents/skills/dflow/SKILL.md`，見上方〈選配 Skill 的 Codex 行為〉。）
 
 **不要混淆 Codex `/init` 與 Dflow `init`。** Codex `/init` 為 Codex 建立
 通用的 `AGENTS.md` scaffold。Dflow 的設定是 `dflow init`（或免安裝路徑的

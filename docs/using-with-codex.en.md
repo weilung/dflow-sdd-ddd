@@ -169,9 +169,12 @@ workflows.
 ### Codex Behavior With Optional Command Adapters
 
 For Codex, `dflow configure-agents --command-adapters` strengthens text
-triggers only. It does not create Codex command files and it does not add
-`.agents/skills/dflow/SKILL.md`. Codex v1 has no Dflow command-file adapter
-equivalent to Claude `.claude/commands` or Copilot `.github/prompts`.
+triggers only. It does not create Codex command files. Codex v1 has no Dflow
+command-file adapter equivalent to Claude `.claude/commands` or Copilot
+`.github/prompts`.
+
+**Auto-trigger skills come from `--skills`, not `--command-adapters`.** See
+"Codex Behavior With Optional Skills" below.
 
 When you select `AGENTS.md - Codex / Copilot coding agent` in
 `--command-adapters` mode, Dflow writes a trigger list generated from the
@@ -210,19 +213,53 @@ Both snippets appear only on a marker conflict. A clean custom `AGENTS.md` with
 no conflicting markers does not produce a snippet at all — Dflow just appends the
 adjacent marked block in place.
 
+### Codex Behavior With Optional Skills (Auto-Trigger)
+
+`dflow configure-agents --skills` projects a thin, tool-neutral skill to
+`.agents/skills/dflow/SKILL.md` — Codex's project-level skill path. This gives
+Codex **natural-language auto-trigger on par with Claude Code**: when you
+describe intent like "help me start a new feature", Codex can judge relevance
+from the skill's `description`, suggest the matching `dflow:<id>` workflow, and
+no longer require you to remember a command every time.
+
+The skill body and frontmatter (`name` / `description`) are plain text that
+only point to the canonical guide (`dflow/specs/shared/AI-AGENT-GUIDE.md`) and
+the vendored workflow bundle. It is the **same source** Claude projects
+(`templates/common/skill/SKILL.md`) — no per-tool content fork. When
+auto-triggered, the skill's contract is to judge intent, suggest the matching
+`dflow:<id>`, and wait for your confirmation before entering a workflow rather
+than running one directly.
+
+Re-running `--skills` rewrites the same marker-stamped skill in place
+(idempotent). If a **non**-Dflow file already exists at that path (no
+`<!-- dflow-generated: skill-adapter -->` marker), Dflow does not overwrite it —
+it warns and leaves your file untouched.
+
+> GitHub Copilot project-level skill projection is **deferred in PROPOSAL-056
+> Phase 1**: selecting Copilot under `--skills` does not create `.github/skills`;
+> Dflow prints a one-line deferral note instead.
+
 ### Version-Control Policy for Generated Artifacts (Codex)
 
 Codex does not generate command files, so there is **no derived adapter to
-gitignore**. On the Codex side, what you version-control is the `AGENTS.md`
-shim / marked blocks and `dflow/` (the canonical guide and specs). The fallback
-merge helpers (`dflow/specs/shared/AGENTS-md-command-adapters-snippet.md` or
+gitignore** on the `--command-adapters` side. On the Codex side, what you
+version-control is the `AGENTS.md` shim / marked blocks and `dflow/` (the
+canonical guide and specs). The fallback merge helpers
+(`dflow/specs/shared/AGENTS-md-command-adapters-snippet.md` or
 `dflow/specs/shared/AGENTS-md-snippet.md`) are created only on a marker conflict;
 if one appears, it is part of `dflow/` and is **version-controlled along with
 `dflow/`**. `--command-adapters` only strengthens
 the text triggers in `AGENTS.md` for Codex; it adds no `.claude/`, `.github/`,
-or `.agents/` command files, so the Claude / Copilot "version-control the
-generated adapter or not" trade-off does not apply on the Codex side. The
-adapter version-control policy for other tools is covered in
+or `.agents/` command files.
+
+The one Codex derived artifact comes from `--skills`:
+`.agents/skills/dflow/SKILL.md`. Like Claude's `.claude/skills/dflow/SKILL.md`,
+it is regenerable from the canonical guide and follows the same **recommended
+default** (do not version-control; regenerate after clone with
+`configure-agents --skills`; version-controlling it is also reasonable if your
+team wants auto-trigger immediately after clone — the rule is one consistent
+policy across tools in a project). The adapter / skill version-control policy
+for other tools is covered in
 [README "Files Created by Init"](../README.en.md#files-created-by-init) and the
 per-tool guides.
 
@@ -274,8 +311,10 @@ workflow by reading `AI-AGENT-GUIDE.md`.
 **Codex does not generate command files.** Even with `--command-adapters`,
 Codex only strengthens text-trigger guidance in marked blocks inside
 `AGENTS.md`; fallback merge snippets are created only on marker conflicts. Do
-not expect Codex-specific files under `.claude/commands`, `.github/prompts`, or
-`.agents/skills/dflow/SKILL.md`.
+not expect Codex-specific **command** files under `.claude/commands` or
+`.github/prompts`. (Auto-trigger **skills** are separate: `--skills` projects
+one to `.agents/skills/dflow/SKILL.md`, see "Codex Behavior With Optional
+Skills" above.)
 
 **Do not confuse Codex `/init` with Dflow `init`.** Codex `/init` creates a
 generic `AGENTS.md` scaffold for Codex. Dflow setup is `dflow init` (or

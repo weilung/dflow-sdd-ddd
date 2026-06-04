@@ -83,6 +83,17 @@ does not copy workflow steps. Copilot's `/` parser behavior differs from
 Claude and Codex: the prompt menu entry is `/dflow-<id>`, while chat text may
 still name the canonical `/dflow:<id>` workflow.
 
+### Skill Auto-Trigger Status on Copilot (Currently Deferred)
+
+If you have seen `dflow configure-agents --skills` (the skill that restores
+natural-language auto-trigger), note that in **PROPOSAL-056 Phase 1**, `--skills`
+projects a project-level skill only for **Claude Code and Codex**; it does
+**not** create `.github/skills` for GitHub Copilot, and it prints a deferral
+note when run. Copilot skill auto-trigger is **currently deferred**, with no
+committed timeline yet. Until then, Copilot users should use the prompt adapters
+above (`dflow configure-agents --command-adapters`, which produce
+`.github/prompts/dflow-*.prompt.md`) as the tool-native entry point.
+
 ### Version Control and Upgrades for Generated Adapters
 
 `.github/prompts/dflow-<id>.prompt.md` is a **generated artifact** projected

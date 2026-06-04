@@ -39,7 +39,7 @@ dflow/specs/shared/AI-AGENT-GUIDE.md file.
 
 Options:
   --command-adapters  Also generate tool-native thin wrappers for supported tools.
-  --skills            Also generate a supported tool's skill adapter (currently Claude Code project skill, restores natural-language auto-trigger).
+  --skills            Also generate project-level skill adapters for supported tools (Claude Code and Codex), restoring natural-language auto-trigger.
 `);
 }
 

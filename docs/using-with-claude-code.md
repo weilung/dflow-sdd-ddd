@@ -202,6 +202,11 @@ dflow configure-agents --skills
 這份 skill 不複製 workflow 步驟，body 指向 canonical
 `dflow/specs/shared/AI-AGENT-GUIDE.md`（命令登錄表與路由規則）以及
 `dflow/specs/shared/dflow-workflows/`（含可執行步驟定義的 vendored bundle）。
+
+同一份 edition-neutral skill source，現在也會由 `--skills` 為 Codex 投影一份
+project-level skill（`.agents/skills/dflow/SKILL.md`），兩者沿用相同的跨工具
+agentskills.io 標準（GitHub Copilot 目前延後）。
+
 它的行為：
 
 - **自動觸發於** feature / bug-fix workflow、product/domain behavior 變更、新需求、

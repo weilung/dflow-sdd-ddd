@@ -244,7 +244,9 @@ without maintaining multiple copies of the workflow rules.
 
 You can run `dflow configure-agents` later to add more tool shims as the team
 adopts additional AI coding agents. If you need Claude / Copilot tool-native
-command entries, use `dflow configure-agents --command-adapters`.
+command entries, use `dflow configure-agents --command-adapters`. For
+natural-language auto-trigger (a project-level skill for Claude Code and Codex),
+use `dflow configure-agents --skills`.
 
 ### Version-Control Policy for Generated Artifacts (recommended default)
 
@@ -258,6 +260,7 @@ version-control the source, not the generated artifacts.
 | `dflow/` (canonical guide, specs, fallback merge snippets) | source | **version-control** |
 | Thin shims or marked Dflow blocks in existing root agent files (`CLAUDE.md` / `AGENTS.md` / `.github/copilot-instructions.md`) | source | **version-control** |
 | `.claude/commands/dflow/`, `.github/prompts/dflow-*.prompt.md` | generated | **recommended: do not version-control (gitignore)**; regenerate after clone with `configure-agents --command-adapters` |
+| `.claude/skills/dflow/`, `.agents/skills/dflow/` | generated | **recommended: do not version-control (gitignore)**; regenerate after clone with `configure-agents --skills` |
 
 This is a **recommendation**, not the only valid policy. If your team wants a
 native `/` menu immediately after clone, or your CI / dev environment does not

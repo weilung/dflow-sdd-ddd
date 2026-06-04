@@ -230,6 +230,11 @@ This skill does not copy workflow steps; its body points to the canonical
 `dflow/specs/shared/AI-AGENT-GUIDE.md` (command registry and routing rules) and
 `dflow/specs/shared/dflow-workflows/` (vendored bundle with executable step
 definitions).
+
+The same edition-neutral skill source is now also projected by `--skills` as a
+project-level skill for Codex (`.agents/skills/dflow/SKILL.md`); both follow the
+same cross-tool agentskills.io standard (GitHub Copilot deferred for now).
+
 Its behavior:
 
 - **Auto-triggers on** feature / bug-fix workflows, product/domain behavior
