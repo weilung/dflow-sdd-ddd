@@ -6,7 +6,7 @@
 
 ---
 
-## 0.10.0 — 2026-06-05 — agentskills 標準三家觸發 parity、既有 agent 檔自動注入、投影內容保全與清理
+## 0.10.0 — 2026-06-06 — agentskills 標準三家觸發 parity、既有 agent 檔自動注入、投影內容保全與清理
 
 **Proposals**：PROPOSAL-049（feature-slice 使用面語意體檢）、PROPOSAL-050（還原 041 雙軌合一丟失的 skill 內容進 AI-AGENT-GUIDE）、PROPOSAL-051（退役 `templates/CLAUDE.md`）、PROPOSAL-052（bundle stale-removal 推廣到同-edition）、PROPOSAL-054（既有 agent 檔 Dflow 墊片 auto-inject）、PROPOSAL-056（Codex 專案層 skill `--skills` parity）、PROPOSAL-057（以 agentskills.io 標準為三家共同自動觸發層；Phase 2）
 
