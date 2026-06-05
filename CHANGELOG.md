@@ -6,6 +6,59 @@
 
 ---
 
+## 0.10.0 — 2026-06-05 — agentskills 標準三家觸發 parity、既有 agent 檔自動注入、投影內容保全與清理
+
+**Proposals**：PROPOSAL-049（feature-slice 使用面語意體檢）、PROPOSAL-050（還原 041 雙軌合一丟失的 skill 內容進 AI-AGENT-GUIDE）、PROPOSAL-051（退役 `templates/CLAUDE.md`）、PROPOSAL-052（bundle stale-removal 推廣到同-edition）、PROPOSAL-054（既有 agent 檔 Dflow 墊片 auto-inject）、PROPOSAL-056（Codex 專案層 skill `--skills` parity）、PROPOSAL-057（以 agentskills.io 標準為三家共同自動觸發層；Phase 2）
+
+本版兩條主線：
+
+1. **入口層標準化 + 降低採用摩擦**（054 / 056 / 057 + Copilot 指南）—— 三家（Claude / Codex / Copilot）以 agentskills.io 開放標準取得自然語言自動觸發 parity、既有 agent 檔零手動合併即接上、Claude shim 瘦身、Copilot 跨介面用法講清楚。
+2. **投影內容保全與清理**（049 / 050 / 051 / 052）—— 一輪 feature-by-feature 語意體檢補回 041 雙軌合一時孤兒化的 canonical 內容、退役 legacy 範本、把 bundle 退役檔清除推廣到最常見的同-edition 升級。
+
+### 新功能 / 行為改善
+
+- **`dflow configure-agents --skills` 專案層 skill parity（Codex 補上自動觸發）**（PROPOSAL-056）：`--skills` 從「只投 Claude、寫死單一路徑」一般化為「把同一份工具中立 thin skill（`templates/common/skill/SKILL.md`）投影到每個被選工具各自的 project-level skill 路徑」。Claude 維持 `.claude/skills/dflow/SKILL.md`；**Codex 新增 `.agents/skills/dflow/SKILL.md`**，找回 Codex 的自然語言自動觸發（先前只有手動命令 / 文字 trigger）。GitHub Copilot 的 `.github/skills/` 本版**延後**（Phase 1）—— 對 Copilot 跑 `--skills` 會印一行延後說明、不建檔。依據：查證確認 Claude / Codex / Copilot 已收斂於 agentskills.io 開放標準（皆以 `SKILL.md` 為入口、`name`/`description` frontmatter、project-level 探索、description 驅動自動觸發）。
+
+- **既有 agent 檔的 Dflow 墊片 auto-inject（三工具統一）**（PROPOSAL-054）：當使用者已有自己的根 agent 檔（Claude `CLAUDE.md`、Codex `AGENTS.md`、Copilot `.github/copilot-instructions.md`）且尚未引用 guide，`init` / `configure-agents` 不再預設「丟一個 snippet 檔、Notes 一行請你手動合併」，改為**附加一塊帶 `<!-- dflow-generated: agent-shim START/END -->` 標記的 Dflow 區塊**（呈現為確認預覽裡的一般項目），重跑時**原地抽換**該區塊（idempotent）。snippet + 警告降為 fallback，只在標記殘缺 / 重複 / 顛倒等無法安全注入時才用；並補上先前缺的對稱警告（最常見路徑反而 signpost 最弱的洞）。指令只能以文字寫進 `AGENTS.md` 的 Codex 受惠最大。
+
+- **bundle 退役檔在同-edition 升級也自動清除**（PROPOSAL-052）：`configure-agents` 的 bundle stale-removal 原本只在 **edition 改變**時觸發；現在推廣為「依 manifest diff 清除『舊 manifest 有、當前 bundle 已無』的退役檔」，涵蓋最常見的**同-edition 重跑升級**。一併補三道 projection-cleanup 硬化：current-bundle 非空 guard（防 bundle 掃出空集合時誤刪整包、砍掉 `/dflow:*` 可達性）、壞 manifest 區分 ENOENT vs parse/IO error（後者至少 warn，不再靜默跳過）、待刪檔措辭從硬編「stale adapter / edition changed」修正為通用。**直接受惠**：051 退役 `templates/CLAUDE.md` 後既有同-edition 專案殘留的 vendored copy，重跑 `dflow configure-agents` 即被清掉。
+
+- **Claude shim 瘦身為薄指標**（PROPOSAL-057 Phase 2）：`init` 生成的根 `CLAUDE.md` 墊片不再用 `@import` 把整份 `AI-AGENT-GUIDE.md`（~5k tokens）每個 session 強制載入，改為路徑無關的薄 awareness，並把「讀 guide」scoping 到 spec-impacting work（對齊 progressive disclosure；workflow 步驟本就按需載入）。
+
+- **skill 自動觸發 recall 強化**（PROPOSAL-057 Phase 2）：`templates/common/skill/SKILL.md` 的 `description` 補上間接觸發語（不點命令名的自然語句也能觸發），修掉先前「最間接語句 recall 較弱」的弱點；同時收斂在 **Codex 的 1024 字元上限**內（986 chars），並加 `test/registry-parity.mjs` 護欄斷言 folded description ≤ 1024 防回歸。觸發契約維持 suggest-and-wait（建議命令、等確認，不自動跑完整個 workflow）。
+
+### 文件
+
+- **GitHub Copilot 指南分介面重寫**（copilot-cmd-surface，2026-06-05 實測）：`docs/using-with-github-copilot.md` + `.en.md` 把 Copilot 用法分為 **VS Code Copilot Chat** 與 **GitHub Copilot CLI** 兩節，各自講自動觸發有無、命令能不能用、正確語法 —— VS Code Chat 自然語言自動觸發 + `/dflow-<id>`（連字號，需 `--command-adapters`）；Copilot CLI 無自動觸發、先打 `/dflow` 手動喚起 skill、無 per-id 命令（`.github/prompts/` CLI 不讀取）。冒號形式 `/dflow:<id>` 釐清為 canonical / Claude·Codex 命令語法，在 Copilot 只能當文字稱呼。移除舊的「chat 文字可直接說 canonical `/dflow:<id>`」易誤導措辭。雙語 parity。
+
+### 投影內容保全（PROPOSAL-049 / 050）
+
+- **feature-slice 使用面語意體檢**（PROPOSAL-049）：對「使用 Dflow 時實際會碰到的範圍」（CLI runtime + init 投影的 bundle / adapter + 雙軌 skill source）做一輪 feature-by-feature 人讀語意體檢，補 047（首次 implementation-stage cross-model review）之前 ship、未過該層 review 的盲區。修掉的 drift 含：`modify-existing-flow` 等殘留「the developer commits」的 pre-047 行為者口吻、Greenfield context-definition 路徑兩軌 parity、`/dflow:verify` scope over-claim、`last-updated` 權威歸 `rules.md` 等。純語意 / 結構修正，grep 擋不住。
+
+- **還原 041 合一丟失的 canonical 內容**（PROPOSAL-050）：041 把兩份 per-edition `SKILL.md` 合一成 35 行薄殼時，數個被各 flow 以 `see SKILL.md § …` 指向的 workflow-protocol 段變成**懸空 ref**。本版把這些段（Workflow Transparency〔Auto-Trigger Safety Net / Three-Tier Transparency / Confirmation Signals NL↔Command / Completion Checklist〕、Ceremony Scaling 完整 T1/T2/T3 表、Guiding Questions by Activity、Project Structure）還原進**兩軌 `AI-AGENT-GUIDE.md`**（runtime 面），並 repoint ~15 處 ref；另還原 conservation audit 抓到的 silent-drop（Brownfield 不適用排除條款、三項可攜資產立論、非指令 decision routing、完成清單 skip-detection guard）。使用者專案的 canonical 指南因此恢復完整、ref 不再撲空。
+
+### Migration / 升級提醒
+
+- **`templates/CLAUDE.md` 退役（移除一個 vendored generated 檔）**（PROPOSAL-051）：刪除 Greenfield / Brownfield 各一份 source + mirror 共 4 檔（legacy full-layout 範例）。它**不是** `init` 來源（根 `CLAUDE.md` 由 `lib/init.js` 程式化生成薄殼），canonical 內容（decision routing / Ceremony 表 / per-flow steps）已於 050 全數移進 `AI-AGENT-GUIDE.md` + bundle。**對既有專案的影響**：先前以同-edition 跑過的專案，其 vendored copy `dflow/specs/shared/dflow-workflows/templates/CLAUDE.md` 會留為**無害殘檔**（帶 generated marker、不被任何 flow 消費）；**重跑 `dflow configure-agents` 即自動清除**（PROPOSAL-052 的同-edition stale-removal）。npm tarball 因此縮減一個 generated file。
+
+- **Claude shim 形狀改變**（PROPOSAL-057）：既有專案的根 `CLAUDE.md` 仍可用；若要拿到瘦身後的薄指標版，重跑 `dflow init` / `dflow configure-agents` 即原地刷新該 Dflow 區塊。
+
+### 維護者工具 / 測試（不影響套件使用者）
+
+- **cross-ref resolver guard**（PROPOSAL-055，dev-only）：新增 `scripts/check-cross-refs.mjs`（納入 `check-repo-consistency.sh`），把「文件 `§` / 檔名 / 路徑 ref 解不解得開」從一次性人工 grep 固化為常駐檢查；namespace-aware（限 public source + governance 範圍、跳過 history 與 `{token}` 佔位、§/anchor longest-prefix）。`scripts/` 不投影 dist、不進 tarball。
+- **registry-parity 測試**（PROPOSAL-053，dev-only）：新增 `test/registry-parity.mjs`，斷言 11 個 `/dflow:*` 指令表跨 surface / 雙軌一致（F-02 安全網）；後並加 057 的 folded description ≤ 1024 斷言。
+- **`test/agent-inject.mjs`**（PROPOSAL-054）：新增既有 agent 檔 auto-inject 的注入 / idempotent 抽換 / fallback 矩陣覆蓋。
+- `test/smoke.mjs`：擴充 054 auto-inject、056 `--skills` 各家路徑、052 同-edition stale-removal 等斷言。
+
+### 驗證
+
+- `npm test`（`smoke.mjs` + `registry-parity.mjs` + `agent-inject.mjs` 全綠）
+- `scripts/check-repo-consistency.sh`（含 `check-cross-refs.mjs` + registry parity + source↔mirror diff + `npm pack --dry-run` + `git diff --check`）pass、0 error
+- `scripts/export-dist.sh --dry-run`：dev / dist 已同步、無 drift
+- 049–057 各 proposal 實作均經 implementation-stage cross-model review 收斂 approve（見各 closeout 紀錄）
+
+---
+
 ## 0.9.0 — 2026-05-28 — 執行當下對齊：feedback 逐欄產出、Codex trigger 注入、commit checkpoints + branch gate（含 breaking changes）
 
 **Proposals**：PROPOSAL-048（feedback 輸出對齊目標 issue 表單）、PROPOSAL-046（Codex command-trigger 注入既有 AGENTS.md shim）、PROPOSAL-047（commit checkpoints、branch lifecycle 強制、AI commit 政策翻轉、init Git policy 升必選）
