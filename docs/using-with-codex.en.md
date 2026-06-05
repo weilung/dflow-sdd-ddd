@@ -241,9 +241,11 @@ Re-running `--skills` rewrites the same marker-stamped skill in place
 `<!-- dflow-generated: skill-adapter -->` marker), Dflow does not overwrite it —
 it warns and leaves your file untouched.
 
-> GitHub Copilot project-level skill projection is **deferred in PROPOSAL-056
-> Phase 1**: selecting Copilot under `--skills` does not create `.github/skills`;
-> Dflow prints a one-line deferral note instead.
+> GitHub Copilot is supported too: selecting Copilot under `--skills` projects
+> `.github/skills/dflow/SKILL.md` (the same thin skill). Copilot also cross-reads
+> the `.claude`/`.agents` paths; Dflow-generated copies are byte-identical, but a
+> pre-existing non-Dflow `dflow` skill at one of those paths is left untouched and
+> could differ — remove or rename it to avoid a same-name duplicate.
 
 ### Version-Control Policy for Generated Artifacts (Codex)
 

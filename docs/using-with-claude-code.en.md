@@ -234,8 +234,9 @@ This skill does not copy workflow steps; its body points to the canonical
 definitions).
 
 The same edition-neutral skill source is now also projected by `--skills` as a
-project-level skill for Codex (`.agents/skills/dflow/SKILL.md`); both follow the
-same cross-tool agentskills.io standard (GitHub Copilot deferred for now).
+project-level skill for Codex (`.agents/skills/dflow/SKILL.md`) and GitHub Copilot
+(`.github/skills/dflow/SKILL.md`); all three follow the same cross-tool
+agentskills.io standard.
 
 Its behavior:
 

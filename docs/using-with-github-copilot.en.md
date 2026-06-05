@@ -144,17 +144,21 @@ syntax and in Copilot can only be a text reference, never typed as a command.
 
 ### The `--skills` Flag and Skill Triggering on Copilot
 
-`dflow configure-agents --skills` currently projects a project-level skill only
-for **Claude Code and Codex**; under **PROPOSAL-056 Phase 1** it does **not**
-create a `.github/skills/` for GitHub Copilot, and it prints a deferral note when
-run against Copilot.
+`dflow configure-agents --skills` projects the same tool-neutral thin skill for
+**Claude Code, Codex, and GitHub Copilot**, each at its own project-level skill
+path; Copilot's is `.github/skills/dflow/SKILL.md`. Testing (2026-06-05) confirmed
+Copilot discovers and runs the skill from its own native `.github/skills/` path
+(it still works with the cross-read `.claude`/`.agents` paths removed); the
+trigger differs by surface — **VS Code Chat auto-triggers on natural language**,
+while the **Copilot CLI needs a `/dflow` to manually engage** it (details in
+Surfaces A / B above).
 
-That does **not mean Copilot cannot use the skill**: testing (2026-06-05) shows
-Copilot still engages Dflow's skill, the trigger just differs by surface — **VS
-Code Chat auto-triggers on natural language**, while the **Copilot CLI needs a
-`/dflow` to manually engage** it (details in Surfaces A / B above). Whether to
-project a dedicated Copilot-native skill remains an open item with no committed
-timeline yet.
+> Note: Copilot also cross-reads `.claude/skills` and `.agents/skills`; if you
+> select Copilot alongside Claude / Codex in the same project, the same `dflow`
+> skill may surface from more than one path. The copies Dflow *generates* are
+> byte-identical (same `name`), so they behave the same; but a pre-existing
+> non-Dflow `dflow` skill at one of those paths is left untouched and could
+> differ — remove or rename it to avoid a divergent same-name duplicate.
 
 ### Version Control and Upgrades for Generated Adapters
 

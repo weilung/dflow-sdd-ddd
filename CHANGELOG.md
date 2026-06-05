@@ -12,12 +12,12 @@
 
 本版兩條主線：
 
-1. **入口層標準化 + 降低採用摩擦**（054 / 056 / 057 + Copilot 指南）—— 三家（Claude / Codex / Copilot）以 agentskills.io 開放標準取得自然語言自動觸發 parity、既有 agent 檔零手動合併即接上、Claude shim 瘦身、Copilot 跨介面用法講清楚。
+1. **入口層標準化 + 降低採用摩擦**（054 / 056 / 057 + Copilot 指南）—— 三家（Claude / Codex / Copilot）以 agentskills.io 開放標準取得 project-level skill 投影 parity（自然語言觸發；Copilot CLI 仍需 `/dflow` 喚起）、既有 agent 檔零手動合併即接上、Claude shim 瘦身、Copilot 跨介面用法講清楚。
 2. **投影內容保全與清理**（049 / 050 / 051 / 052）—— 一輪 feature-by-feature 語意體檢補回 041 雙軌合一時孤兒化的 canonical 內容、退役 legacy 範本、把 bundle 退役檔清除推廣到最常見的同-edition 升級。
 
 ### 新功能 / 行為改善
 
-- **`dflow configure-agents --skills` 專案層 skill parity（Codex 補上自動觸發）**（PROPOSAL-056）：`--skills` 從「只投 Claude、寫死單一路徑」一般化為「把同一份工具中立 thin skill（`templates/common/skill/SKILL.md`）投影到每個被選工具各自的 project-level skill 路徑」。Claude 維持 `.claude/skills/dflow/SKILL.md`；**Codex 新增 `.agents/skills/dflow/SKILL.md`**，找回 Codex 的自然語言自動觸發（先前只有手動命令 / 文字 trigger）。GitHub Copilot 的 `.github/skills/` 本版**延後**（Phase 1）—— 對 Copilot 跑 `--skills` 會印一行延後說明、不建檔。依據：查證確認 Claude / Codex / Copilot 已收斂於 agentskills.io 開放標準（皆以 `SKILL.md` 為入口、`name`/`description` frontmatter、project-level 探索、description 驅動自動觸發）。
+- **`dflow configure-agents --skills` 三家專案層 skill parity（Codex 補自動觸發、Copilot 補原生 skill）**（PROPOSAL-056 + #4 un-defer）：`--skills` 從「只投 Claude、寫死單一路徑」一般化為「把同一份工具中立 thin skill（`templates/common/skill/SKILL.md`）投影到每個被選工具各自的 project-level skill 路徑」。Claude 維持 `.claude/skills/dflow/SKILL.md`；**Codex 新增 `.agents/skills/dflow/SKILL.md`**，找回 Codex 的自然語言自動觸發（先前只有手動命令 / 文字 trigger）；**GitHub Copilot 新增 `.github/skills/dflow/SKILL.md`**（#4 un-defer：spike 確認 Copilot 從自己原生 `.github/skills/` 探索成立、即使移除 `.claude`/`.agents` 跨讀路徑也成立——**VS Code Chat 自然語言自動觸發、Copilot CLI 仍需 `/dflow` 手動喚起**）。Copilot 也會跨讀 `.claude`/`.agents`；Dflow 產生的各份逐字相同，但若該路徑已有非 Dflow 的同名 skill，Dflow 會保留不覆寫、可能內容不同（移除或改名即可避免同名重複）。依據：Claude / Codex / Copilot 已收斂於 agentskills.io 開放標準（皆以 `SKILL.md` 為入口、`name`/`description` frontmatter、project-level 探索、description 驅動自動觸發）。
 
 - **既有 agent 檔的 Dflow 墊片 auto-inject（三工具統一）**（PROPOSAL-054）：當使用者已有自己的根 agent 檔（Claude `CLAUDE.md`、Codex `AGENTS.md`、Copilot `.github/copilot-instructions.md`）且尚未引用 guide，`init` / `configure-agents` 不再預設「丟一個 snippet 檔、Notes 一行請你手動合併」，改為**附加一塊帶 `<!-- dflow-generated: agent-shim START/END -->` 標記的 Dflow 區塊**（呈現為確認預覽裡的一般項目），重跑時**原地抽換**該區塊（idempotent）。snippet + 警告降為 fallback，只在標記殘缺 / 重複 / 顛倒等無法安全注入時才用；並補上先前缺的對稱警告（最常見路徑反而 signpost 最弱的洞）。指令只能以文字寫進 `AGENTS.md` 的 Codex 受惠最大。
 

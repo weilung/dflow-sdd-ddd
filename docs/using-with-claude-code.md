@@ -204,9 +204,9 @@ dflow configure-agents --skills
 `dflow/specs/shared/AI-AGENT-GUIDE.md`（命令登錄表與路由規則）以及
 `dflow/specs/shared/dflow-workflows/`（含可執行步驟定義的 vendored bundle）。
 
-同一份 edition-neutral skill source，現在也會由 `--skills` 為 Codex 投影一份
-project-level skill（`.agents/skills/dflow/SKILL.md`），兩者沿用相同的跨工具
-agentskills.io 標準（GitHub Copilot 目前延後）。
+同一份 edition-neutral skill source，現在也會由 `--skills` 為 Codex
+（`.agents/skills/dflow/SKILL.md`）與 GitHub Copilot（`.github/skills/dflow/SKILL.md`）
+投影 project-level skill，三家沿用相同的跨工具 agentskills.io 標準。
 
 它的行為：
 

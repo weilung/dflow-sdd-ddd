@@ -207,8 +207,10 @@ workflow，而不會自行直接執行。
 **非** Dflow 產生的檔案（沒有 `<!-- dflow-generated: skill-adapter -->` marker），Dflow
 不會覆寫，只會 warn 並保留你的檔。
 
-> GitHub Copilot 的專案層 skill 投影在 PROPOSAL-056 Phase 1 **暫緩**：`--skills` 模式下
-> 選擇 Copilot 時不會建立 `.github/skills`，只會印出一行暫緩說明。
+> GitHub Copilot 也支援：`--skills` 模式下選擇 Copilot 會投影
+> `.github/skills/dflow/SKILL.md`（同一份 thin skill）。Copilot 也會跨讀
+> `.claude`/`.agents`；Dflow 產生的各份逐字相同，但若該路徑已有你自己的非 Dflow
+> `dflow` skill，Dflow 會保留不覆寫、內容可能不同（移除或改名以免同名重複）。
 
 ### 產生物的版控政策（Codex）
 
