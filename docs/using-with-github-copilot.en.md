@@ -2,13 +2,13 @@
 
 > [繁體中文](using-with-github-copilot.md) | **English**
 
-A walk-through of what Dflow looks like when your AI coding agent is GitHub Copilot (IDE chat + inline completions). About 10 minutes to read.
+A walk-through of what Dflow looks like when your AI coding agent is GitHub Copilot. GitHub Copilot has two surfaces — **VS Code Copilot Chat** (the in-IDE chat panel + inline completions) and **GitHub Copilot CLI** (the terminal) — and they trigger Dflow and invoke commands differently, so this guide covers them separately. About 10 minutes to read.
 
 This guide focuses on the Copilot experience specifically. For the tool-neutral evaluation flow, see [`docs/evaluating-dflow.en.md`](evaluating-dflow.en.md). For the full Get Started and feature list, see [`README.md`](../README.en.md).
 
 ## Who This Guide Is For
 
-You are using or evaluating Dflow with GitHub Copilot in an IDE (e.g., VS Code). This guide covers what Copilot sees after `init`, the repository shim location, how to invoke Dflow workflows from the IDE, and Copilot-specific UX and permission patterns worth knowing.
+You are using or evaluating Dflow with GitHub Copilot, in either VS Code Copilot Chat or the GitHub Copilot CLI. This guide covers what Copilot sees after `init`, the repository shim location, how to invoke Dflow workflows on each surface, and Copilot-specific UX and permission patterns worth knowing.
 
 ## Prerequisites
 
@@ -51,14 +51,18 @@ Key points:
 
 ## Using Dflow Workflow Commands with GitHub Copilot
 
-By default, Copilot is an IDE-first assistant (chat panel + inline
-completions), not a CLI tool. Treat Dflow workflow names as plain chat
-instructions rather than CLI slash commands:
+GitHub Copilot has two surfaces, and Dflow triggering and command behavior
+differ between them — sort out which one you are on first:
 
-- In the Copilot Chat: "Run the Dflow /dflow:new-feature workflow" — Copilot should read the canonical guide and proceed.
-- In code comments or editor chat, describe the workflow as plain text: `Run the Dflow /dflow:new-feature workflow.`
+- **VS Code Copilot Chat** (the in-IDE chat panel): natural language **does
+  auto-trigger** Dflow's skill; if you opt in to prompt adapters, the
+  tool-native command `/dflow-<id>` (hyphen) is also available.
+- **GitHub Copilot CLI** (the terminal): there is **no** natural-language
+  auto-trigger; you first type `/dflow` to **manually engage** the skill and let
+  it guide you; the per-id `/dflow-<id>` command is **not available** in the CLI.
 
-Available workflow entry points:
+Both surfaces share the same set of workflow entry points (same vocabulary;
+only how you invoke them differs):
 
 | Command | Use when |
 |---|---|
@@ -71,10 +75,54 @@ Available workflow entry points:
 | `/dflow:pr-review` | A change is ready for SDD/DDD review. |
 | `/dflow:report-dflow-feedback` | You found a Dflow issue or improvement and want a sanitized upstream feedback draft. |
 
+> **Syntax note**: in the table, `/dflow:<id>` (**colon**) is Dflow's canonical
+> vocabulary and the **actual command** syntax for Claude / Codex. Copilot's
+> prompt-adapter command uses `/dflow-<id>` (**hyphen**) instead, and only in VS
+> Code; do not type the colon form literally as a command in Copilot (the
+> Copilot CLI parses `/dflow:new-feature` down to `/dflow`). The two
+> sub-sections below cover how to invoke on each surface.
+
+### Surface A: VS Code Copilot Chat
+
+- **Auto-trigger**: yes. Describe what you want in plain natural language in chat
+  (e.g., "I want to add CSV export for users") and Dflow's skill engages on its
+  own, picks the matching workflow, and starts in **suggest-and-wait** mode (it
+  proposes a command and waits for your confirmation) rather than running the
+  whole workflow unprompted.
+- **Command**: `/dflow-<id>` (**hyphen**) works, but first run
+  `dflow configure-agents --command-adapters` in the project to project
+  `.github/prompts/dflow-<id>.prompt.md` (see the next section); then pick
+  `/dflow-new-feature` from the prompt menu.
+- **Plain text also works**: you can also describe the workflow in plain chat
+  text (e.g., `Run the Dflow /dflow:new-feature workflow.`) — here
+  `/dflow:new-feature` is just a **text reference**, not something parsed as a
+  command.
+
+### Surface B: GitHub Copilot CLI
+
+- **Auto-trigger**: **none**. Sending plain natural language does **not** engage
+  Dflow's skill.
+- **How to engage**: type `/dflow` (no id suffix) to **manually engage** the
+  skill; once engaged it lists the available workflows / asks what you want to
+  do, and you then continue with a **natural-language description** (e.g., "I
+  want to add CSV export") or by replying to the options it lists. It also runs
+  in suggest-and-wait mode.
+- **Command**: the per-id `/dflow-<id>` is **not available** in the CLI —
+  `.github/prompts/dflow-<id>.prompt.md` is VS Code Chat-specific and the **CLI
+  does not read it**, so `/dflow-new-feature` returns Unknown; the colon form
+  `/dflow:new-feature` is parsed down to `/dflow`. The CLI has no per-id command
+  entry; use the "`/dflow` to engage → describe in conversation" path instead.
+- **What about the command the skill suggests**: once engaged, the skill may
+  suggest a `/dflow:<id>` (that is the canonical form written for Claude /
+  Codex). In Copilot you do **not** need to type that command string literally —
+  in the CLI the skill is already engaged, so just describe the workflow you want
+  in conversation or confirm; in VS Code, use the `/dflow-<id>` (hyphen)
+  prompt-menu entry instead.
+
 ### Optional Prompt Adapters
 
-If you want tool-native entries in a Copilot / VS Code environment that
-supports prompt files, run this in an initialized project:
+If you want tool-native **command** entries in a VS Code Copilot environment
+that supports prompt files, run this in an initialized project:
 
 ```bash
 dflow configure-agents --command-adapters
@@ -85,23 +133,28 @@ command registry inside the canonical guide:
 
 - `.github/prompts/dflow-<id>.prompt.md`
 
-These prompts use `/dflow-<id>` in the Copilot / VS Code prompt menu, for
-example `/dflow-new-feature`. Their body only points to the canonical
-`/dflow:new-feature` workflow and `dflow/specs/shared/AI-AGENT-GUIDE.md`; it
-does not copy workflow steps. Copilot's `/` parser behavior differs from
-Claude and Codex: the prompt menu entry is `/dflow-<id>`, while chat text may
-still name the canonical `/dflow:<id>` workflow.
+These prompts work **only in the VS Code Copilot Chat prompt menu** (as
+`/dflow-<id>`, for example `/dflow-new-feature`); the **Copilot CLI does not
+read** `.github/prompts/`, so this command path is unavailable in the CLI (see
+"Surface B" above). Their body only points to the canonical `/dflow:new-feature`
+workflow and `dflow/specs/shared/AI-AGENT-GUIDE.md`; it does not copy workflow
+steps. Note the command syntax uses the **hyphen** `/dflow-<id>`, not the
+canonical **colon** `/dflow:<id>` — the colon form is Claude / Codex's command
+syntax and in Copilot can only be a text reference, never typed as a command.
 
-### Skill Auto-Trigger Status on Copilot (Currently Deferred)
+### The `--skills` Flag and Skill Triggering on Copilot
 
-If you have seen `dflow configure-agents --skills` (the skill that restores
-natural-language auto-trigger), note that in **PROPOSAL-056 Phase 1**, `--skills`
-projects a project-level skill only for **Claude Code and Codex**; it does
-**not** create `.github/skills` for GitHub Copilot, and it prints a deferral
-note when run. Copilot skill auto-trigger is **currently deferred**, with no
-committed timeline yet. Until then, Copilot users should use the prompt adapters
-above (`dflow configure-agents --command-adapters`, which produce
-`.github/prompts/dflow-*.prompt.md`) as the tool-native entry point.
+`dflow configure-agents --skills` currently projects a project-level skill only
+for **Claude Code and Codex**; under **PROPOSAL-056 Phase 1** it does **not**
+create a `.github/skills/` for GitHub Copilot, and it prints a deferral note when
+run against Copilot.
+
+That does **not mean Copilot cannot use the skill**: testing (2026-06-05) shows
+Copilot still engages Dflow's skill, the trigger just differs by surface — **VS
+Code Chat auto-triggers on natural language**, while the **Copilot CLI needs a
+`/dflow` to manually engage** it (details in Surfaces A / B above). Whether to
+project a dedicated Copilot-native skill remains an open item with no committed
+timeline yet.
 
 ### Version Control and Upgrades for Generated Adapters
 
@@ -181,13 +234,24 @@ Look for the fallback merge snippet
 conflicting or malformed markers, then resolve it manually in your existing
 `.github/copilot-instructions.md`.
 
-### Notes on Slash-Command Passthrough
+### Can You Type `/dflow:<id>` (the Colon Form) Directly?
 
-Copilot may or may not passthrough raw `/dflow:*` slash commands depending on the IDE integration and Copilot version. If Copilot does not recognize a slash-prefixed workflow name, re-send the request as plain prose:
+The canonical `/dflow:<id>` (colon) is Claude / Codex's command syntax. In
+Copilot, **do not type it literally as a command on either surface**:
+
+- **VS Code Chat**: as a text reference it is fine (Copilot understands which
+  workflow you mean); for a command entry, use the prompt-adapter `/dflow-<id>`
+  (hyphen).
+- **Copilot CLI**: typing `/dflow:new-feature` is parsed down to `/dflow` (it
+  only engages the skill, without the id). Type `/dflow` to engage, then describe
+  the workflow you want.
+
+On any surface, whenever a slash form is not recognized, re-send the request as
+plain prose:
 
 ```text
-You: Instead of /dflow:new-feature, try: "Please help me start a new Dflow
-     feature workflow. Read dflow/specs/shared/AI-AGENT-GUIDE.md first."
+You: Please help me start a new Dflow feature workflow. Read
+     dflow/specs/shared/AI-AGENT-GUIDE.md first.
 ```
 
 ## Differences vs Other AI Tools
@@ -202,8 +266,8 @@ The canonical guide (`dflow/specs/shared/AI-AGENT-GUIDE.md`) is the same across 
 
 - Shim path: Copilot uses `.github/copilot-instructions.md` (not `AGENTS.md` or `CLAUDE.md`).
 - Loading: the Copilot shim is a thin pointer that does not inline the guide (same as the other tools now); the canonical guide is loaded on demand.
-- Tool model: Copilot is IDE-based (chat panel + inline completions); Codex/Claude Code are CLI-based agents. Copilot interacts through the editor UI rather than a command-line session.
-- Workflow invocation: canonical `/dflow:*` is shared vocabulary, but each tool's `/` parser behaves differently. In Copilot chat text, name `/dflow:<id>`; if you opt in to `--command-adapters`, the VS Code prompt menu name is `/dflow-<id>`, such as `/dflow-new-feature`.
+- Tool model: Copilot has two surfaces — VS Code Chat (chat panel + inline completions) and the Copilot CLI (terminal); Codex/Claude Code are CLI-based agents. The two Copilot surfaces interact with Dflow differently (see Surfaces A / B above).
+- Workflow invocation: canonical `/dflow:*` is shared vocabulary, but each tool's `/` parser behaves differently. Claude / Codex take `/dflow:<id>` (colon) directly as a command; Copilot does **not** — in VS Code the command entry is the prompt-adapter `/dflow-<id>` (hyphen, requires `--command-adapters`), while the Copilot CLI has no per-id command and instead uses `/dflow` to engage the skill (see Surfaces A / B above).
 - Permission model: Copilot relies on the IDE's permission and extension sandbox. It may prompt for or be governed by editor-level approvals; CLI tools often have explicit sandbox flags and separate permission gates.
 
 ## Common Patterns and Gotchas
@@ -212,7 +276,8 @@ The canonical guide (`dflow/specs/shared/AI-AGENT-GUIDE.md`) is the same across 
 - If Copilot appears to be working only from the shim text, ask it to open or read `dflow/specs/shared/AI-AGENT-GUIDE.md` before continuing.
 - Copilot's inline completions may suggest code without following Dflow workflows; explicitly request the workflow when you need spec-driven output.
 - Copilot chat context may not automatically include repository instruction files from `.github/` in all IDE versions; behavior varies by Copilot / IDE version (see footer note).
-- Use plain prose to name the canonical `/dflow:<id>` workflow when slash-prefixed forms are rejected by the IDE.
+- Sort out the surface first: VS Code Chat auto-triggers on natural language and uses `/dflow-<id>` for commands; the Copilot CLI has no auto-trigger, engage with `/dflow` first, and has no per-id command (see Surfaces A / B above).
+- When a slash form is not recognized (occasional in VS Code Chat, or `/dflow-<id>` returning Unknown in the Copilot CLI), describe the workflow in plain prose, or in the CLI type `/dflow` to engage the skill first.
 - Prompt adapters are thin wrappers generated from the canonical command registry; do not hand-write or copy Dflow workflow steps under `.github/prompts/`.
 
 ## Where to Go Next
@@ -224,4 +289,4 @@ The canonical guide (`dflow/specs/shared/AI-AGENT-GUIDE.md`) is the same across 
 
 ---
 
-Note on IDE behavior: Slash-command passthrough and automatic inclusion of `.github/` instruction files vary by Copilot / IDE version. Confirm with a maintainer before relying on exact semantics.
+Note on behavior: the surface differences described here (VS Code Chat auto-triggers on natural language, the Copilot CLI engages manually via `/dflow`, prompt adapters are VS Code-only) reflect 2026-06-05 testing; automatic inclusion of `.github/` instruction files and each surface's `/` command parsing may still vary by Copilot / IDE version. Confirm with a maintainer before relying on exact semantics.
