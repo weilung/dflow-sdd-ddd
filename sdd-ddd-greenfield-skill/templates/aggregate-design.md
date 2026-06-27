@@ -13,6 +13,12 @@ created: {YYYY-MM-DD}
 ## Invariants
 
 > 必須永遠為真的規則。這是 Aggregate 存在的理由。
+> 主體列 **boundary invariants**(需同時看到 Aggregate 內多個物件的狀態才能判的規則)。
+> 單一物件可判的 local constraint 不列這裡 — 純格式/必填走 Validator、有 domain
+> 語意走 VO / Entity constructor。跨 instance 的規則(唯一性、僅一筆 active)可列,
+> 但標 `set-based` 並在 Behavior on Violation 寫明 store-level guard(unique /
+> partial index、concurrency token;見 ddd-modeling-guide 的 Invariant
+> Classification 與 Set-Based 段)。
 
 | ID | Invariant | Behavior on Violation |
 |---|---|---|

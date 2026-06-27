@@ -4,8 +4,12 @@
 
 > **AI collaboration without DDD = accelerated chaos; with DDD = AI constrained inside the domain model upfront.**
 > A Rich Domain Model (business rules encoded into domain objects themselves, not scattered across services or prompts) puts invariants, business rules, and Aggregate boundaries inside the objects — every line of code the AI writes must pass through that contract. Dflow treats DDD as the semantic backbone of SDD.
+>
+> **Dflow doesn't teach AI what DDD is — it's a scaffold:** it forces the AI to keep a full record of the trade-offs behind each design decision and fills in the blind spots the AI tends to miss while filling in details on its own and that review can't easily catch.
+>
+> In other words: not whether the AI can do DDD, but whether you can trust it when it does.
 
-Dflow is a spec-first workflow kit for AI-assisted software development. It gives your AI coding agent a concrete process for turning change requests into structured specs, domain language, implementation plans, drift checks, and reviewable code instead of jumping straight from prompt to code.
+Concretely, it is a spec-first workflow kit for AI-assisted software development. It gives your AI coding agent a concrete process for turning change requests into structured specs, domain language, implementation plans, drift checks, and reviewable code instead of jumping straight from prompt to code.
 
 The goal is not the process itself, but repeatable software change with clearer meaning, fewer scattered rules, and less prompt-dependent behavior.
 
@@ -20,7 +24,7 @@ The goal is not the process itself, but repeatable software change with clearer 
 | **Three-layer documentation model** | Matches how feature branches actually evolve: phase (one propose-implement-archive cycle) / feature (the whole branch's running state and resume pointer) / system (cross-feature long-term knowledge). Many spec tools only ship phase + system, which breaks down when a feature branch spans multiple phases. Detailed below. |
 | **Change-depth-based tiers (T1/T2/T3)** | AI scales specification and verification by change depth: color/typo gets one inline row in `_index.md`; bug fixes get a lightweight spec plus focused verification; new features or bounded-context-level changes go through a full phase-spec plus layer-by-layer implementation planning / verification. Small changes don't get dragged down by the process. |
 | **Drift verification** | `/dflow:verify` cross-checks specs, domain documents, implementation, tests, and tech-debt records to surface the "documentation still describes the old behavior" drift that PR review by eye usually misses. |
-| **Multi-AI-tool rule sharing** | A canonical project guide plus thin tool-specific shims (`CLAUDE.md` / `AGENTS.md` / Copilot instructions) — teams switching between Claude, Codex, and Copilot don't have to maintain multiple copies of workflow rules. |
+| **Multi-AI-tool rule sharing** | A canonical project guide plus thin tool-specific shims (`CLAUDE.md` / `AGENTS.md` / Copilot instructions) — teams switching between Claude, Codex, and Copilot don't have to maintain multiple copies of workflow rules. All three also share one project-level skill built on the agentskills.io open standard, so natural language auto-triggers the matching workflow (Copilot CLI summons it via `/dflow`). |
 
 ## Get Started
 
@@ -48,44 +52,27 @@ tool, run:
 dflow configure-agents
 ```
 
-If you also want tool-native command / prompt wrappers, use the opt-in mode:
+Adding `--skills` projects a project-level skill for all three tools (Claude,
+Codex, and GitHub Copilot), restoring natural-language auto-trigger (you say "I
+want to add a feature" and the AI suggests the matching workflow; Copilot CLI
+still summons it via `/dflow`). All three support it now, so treat it as the
+recommended standard install:
 
 ```bash
-dflow configure-agents --command-adapters
+dflow configure-agents --skills
 ```
 
-This command only configures AI instruction files and optional command
-adapters. It does not rerun project initialization or touch existing specs.
-
-### Alternative: try without installing
-
-If you cannot or do not want to do a global install (no admin rights,
-ephemeral environment, or one-shot evaluation), every Dflow CLI command is
-also available through `npx`:
+If you also want tool-native `/` command / prompt menus, add `--command-adapters`
+(it composes with `--skills`):
 
 ```bash
-npx dflow-sdd-ddd init
-npx dflow-sdd-ddd doctor
-npx dflow-sdd-ddd configure-agents
+dflow configure-agents --command-adapters --skills
 ```
 
-When using this path, all commands in the same session must also use the full
-`npx dflow-sdd-ddd <subcommand>` form. The bare `dflow` alias is only
-available after a global install.
-
-### Check legacy artifacts (optional)
-
-To check whether the project still has legacy or pre-V1 artifacts (such as
-a top-level `specs/` directory or a `_共用/` directory left over from older
-Dflow forms), run:
-
-```bash
-dflow doctor
-```
-
-`doctor` is a read-only health check. It never modifies files; it only
-reports findings and points at the migration guide. Freshly initialized
-projects won't have legacy artifacts and can skip this step.
+These commands (re)configure AI instruction files and refresh the
+project-vendored workflow bundle, plus optional command adapters / skills; they
+do not rerun init's interactive prompts and do not overwrite specs you authored
+yourself.
 
 ### Start using the Dflow workflow
 
@@ -107,7 +94,8 @@ behaves differently. Use these practical invocation forms:
 | Tool | Recommended invocation |
 |---|---|
 | Claude Code after `--command-adapters` | `/dflow:<id>`, for example `/dflow:new-feature` |
-| GitHub Copilot | `/dflow:<id>` as chat text; `/dflow-<id>` in the VS Code prompt menu |
+| GitHub Copilot (VS Code Chat) | Command entry is `/dflow-<id>` (hyphen, needs `--command-adapters`); natural language also auto-triggers. `/dflow:<id>` (colon) is only a text reference, not a command |
+| GitHub Copilot CLI | No per-id command; type `/dflow` to summon the skill, then describe the workflow in natural language |
 | Codex CLI | no-slash plain text `dflow:<id>`, for example `dflow:new-feature` |
 
 If your tool does not support custom slash commands, use the workflow name as
@@ -245,8 +233,8 @@ without maintaining multiple copies of the workflow rules.
 You can run `dflow configure-agents` later to add more tool shims as the team
 adopts additional AI coding agents. If you need Claude / Copilot tool-native
 command entries, use `dflow configure-agents --command-adapters`. For
-natural-language auto-trigger (a project-level skill for Claude Code and Codex),
-use `dflow configure-agents --skills`.
+natural-language auto-trigger (a project-level skill for Claude Code, Codex, and
+GitHub Copilot), use `dflow configure-agents --skills`.
 
 ### Version-Control Policy for Generated Artifacts (recommended default)
 
@@ -260,7 +248,7 @@ version-control the source, not the generated artifacts.
 | `dflow/` (canonical guide, specs, fallback merge snippets) | source | **version-control** |
 | Thin shims or marked Dflow blocks in existing root agent files (`CLAUDE.md` / `AGENTS.md` / `.github/copilot-instructions.md`) | source | **version-control** |
 | `.claude/commands/dflow/`, `.github/prompts/dflow-*.prompt.md` | generated | **recommended: do not version-control (gitignore)**; regenerate after clone with `configure-agents --command-adapters` |
-| `.claude/skills/dflow/`, `.agents/skills/dflow/` | generated | **recommended: do not version-control (gitignore)**; regenerate after clone with `configure-agents --skills` |
+| `.claude/skills/dflow/`, `.agents/skills/dflow/`, `.github/skills/dflow/` | generated | **recommended: do not version-control (gitignore)**; regenerate after clone with `configure-agents --skills` |
 
 This is a **recommendation**, not the only valid policy. If your team wants a
 native `/` menu immediately after clone, or your CI / dev environment does not
@@ -278,6 +266,20 @@ guide" are two different things; re-project with the **same dflow CLI version**
 to avoid a registry / guide version mismatch. Per-tool `.gitignore` snippets,
 glob side effects, the `git rm --cached` switch-over step, and upgrade details
 are covered in the per-tool guides.
+
+**Caveat when upgrading an existing project**: `configure-agents` only
+re-projects the layers Dflow itself owns (the workflow bundle, command / skill
+adapters, and the marked block inside existing agent files). It does **not**
+refresh the canonical guide (`AI-AGENT-GUIDE.md`) or the other user-owned layers
+(such as `_conventions.md` or the prose outside a shim's markers) — those become
+project-owned right after init and are deliberately left untouched. The trade-off:
+when a new release adds content into the canonical guide, an existing project does
+not pick it up automatically and can silently drift from that release's canonical
+shape. After upgrading an existing project, reconcile manually and use a fresh
+comparison baseline — run a **brand-new `dflow init` with the same edition and the
+same answers** elsewhere, then diff it file-by-file against your project: every
+difference should classify as either "your user content" or "known
+outside-the-markers", otherwise it is a missed update.
 
 For tool-specific walk-throughs of what `init` writes and how Dflow's
 workflow commands appear in a given AI tool, see the per-tool guides under
@@ -363,6 +365,16 @@ Domain meaning -> Structured spec -> AI implementation -> Code as output
 
 For a longer explanation, see [Why DDD Matters More with AI](docs/why-ddd-for-ai.en.md).
 
+## Why Dflow (Even When AI Already Knows DDD)
+
+A common objection: "AI already understands DDD — tell it to *build a feature using DDD* and it will, so adding a process layer is over-engineering." That is half right — the AI can indeed state the correct DDD answer. But stating the right answer and letting you see how it got there — and check what it missed — at review are two different things. So the comparison is not "AI tool vs process" but **AI alone vs AI + scaffold**: the difference is not a smarter AI, it is a **more reviewable AI**.
+
+And Dflow's guidance is fed back from real blind spots — and once it is added, the model actually reuses it. One example: modeling on its own, the same model guarded a "only one active at a time" uniqueness rule with just an in-memory check inside the aggregate — textbook-correct, but under concurrency two requests each pass the check and break the invariant (modeling-correct, production-broken); after that blind spot was encoded as a section of Dflow guidance, re-run on a different domain, the same model proactively cited it and added DB-level protection (a unique index + a concurrency token + a 409). That is the value: Dflow turns "the blind spots AI misses on its own" into reusable guidance it actually follows.
+
+For audit-sensitive domains (medical, finance, compliance, anything where a production failure is expensive), the difference is a deal-breaker. The cost has two sides. *Producing* the DDD documents is no longer the pre-AI era of DDD by hand — the AI generates the specs, the decision record, and the domain model for you, so the marginal cost is mainly a few more tokens and running the workflow; and just being constrained by the domain model during generation already makes the output steadier (as in the concurrency blind spot above), which you get even if you never read the record closely. But cashing in the further "reviewable" value still takes a person actually reviewing that record — that is the cost in human attention and discipline. So the trade-off stands: when stakes are high, an audit is needed, or a team maintains it long-term, the investment clearly pays off; when you won't review it, the cost of failure is low, and iteration is fast, AI alone may still be the more practical choice.
+
+For the full loop (how a blind spot becomes guidance, and why the flip points to the guidance content rather than the domain or framing change), a few more "Dflow forces it on the record, AI tends to miss it on its own" observations, and the steps to verify it yourself, see [Why Dflow](docs/why-dflow.en.md).
+
 ## Repository Layout
 
 | Path | Purpose |
@@ -385,17 +397,19 @@ Publish Checklist](docs/npm-publish-checklist.md).
 ## Status
 
 Dflow is currently published as `dflow-sdd-ddd` on npm. The latest published
-npm package is `0.2.0`, covering:
+npm package is `0.10.0`, covering:
 
-- Project initialization (`dflow init`)
-- Workflow documentation (the `/dflow:*` flows)
-- Multi-AI agent setup (CLAUDE.md / AGENTS.md / Copilot instructions shims)
+- Project initialization (`dflow init`) and idempotent upgrade re-projection (`dflow configure-agents`)
+- Workflow documentation (the `/dflow:*` flows) plus a workflow bundle vendored into each project
+- Multi-AI agent setup: a canonical guide plus thin per-tool shims (CLAUDE.md / AGENTS.md / Copilot instructions), with existing agent files auto-injected as a marked block (no manual merge)
+- Native project-level skills for all three tools (Claude / Codex / GitHub Copilot), sharing the agentskills.io open standard with natural-language auto-trigger (Copilot CLI still summons via `/dflow`)
+- Optional tool-native command entries (`--command-adapters`) and an auto-trigger skill (`--skills`)
 - AI-agent-readable SDD/DDD guidance
-- Public migration tooling: manual migration guide plus `dflow doctor` read-only health check
-- Public onboarding: evaluator guide and per-tool walkthroughs for Claude Code and Codex CLI
+- `dflow doctor` read-only project health check
+- Public onboarding: evaluator guide and per-tool walkthroughs for Claude Code, Codex CLI, and GitHub Copilot
 - A verification-only CI workflow (it does not execute publish)
 
-The GitHub source may include post-`0.2.0` repository changes before the
+The GitHub source may include post-`0.10.0` repository changes before the
 next npm release is published. See [CHANGELOG.md](CHANGELOG.md) for full
 release history.
 

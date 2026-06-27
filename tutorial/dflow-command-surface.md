@@ -139,13 +139,12 @@ dflow configure-agents --command-adapters
 dflow doctor
 ```
 
-它用來找 legacy / pre-V1 artifacts，例如：
+它用來檢查專案健康狀態，例如：
 
-- top-level `specs/`
-- `_共用/`
-- 缺少 Dflow Version 的舊 conventions file
+- `dflow/specs/shared/_conventions.md` 缺少 Dflow Version 標記行
+- upgrade 後殘留、已退役的 workflow bundle 檔
 
-它不會修檔，也不會自動 migration。它只回報 findings 並指向 migration guide。
+它不會修檔，只回報 findings。
 
 ## AI workflow command：日常開發流程
 
@@ -367,7 +366,7 @@ Dflow 應該回報：
 
 | Command | 作用 |
 |---|---|
-| `dflow doctor` | CLI read-only health check，找 legacy / pre-V1 artifacts。 |
+| `dflow doctor` | CLI read-only 專案健康檢查。 |
 | `/dflow:verify` | AI workflow drift verification，檢查 specs、domain docs、implementation、tests 是否還描述同一個系統。 |
 
 常見用法：

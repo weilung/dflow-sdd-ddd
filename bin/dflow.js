@@ -11,7 +11,7 @@ function printHelp() {
 Usage:
   dflow init              Initialize Dflow specs in the current project
   dflow configure-agents  Add or update AI agent instruction shims
-  dflow doctor            Read-only health check for legacy / pre-V1 artifacts
+  dflow doctor            Read-only project health check
   dflow --help            Show this help
   dflow --version         Show the CLI version
 `);
@@ -39,7 +39,7 @@ dflow/specs/shared/AI-AGENT-GUIDE.md file.
 
 Options:
   --command-adapters  Also generate tool-native thin wrappers for supported tools.
-  --skills            Also generate project-level skill adapters for supported tools (Claude Code and Codex), restoring natural-language auto-trigger.
+  --skills            Also generate project-level skill adapters for supported tools (Claude Code, Codex, and GitHub Copilot), restoring natural-language auto-trigger.
 `);
 }
 
@@ -47,16 +47,12 @@ function printDoctorHelp() {
   process.stdout.write(`Usage:
   dflow doctor
 
-Read-only health check for the current project. Reports legacy
-or pre-V1 artifacts that may need manual migration:
+Read-only health check for the current project. Reports findings such as:
 
-  - root specs/ directory containing Dflow content
-  - _共用/ directory under specs/ or dflow/specs/
   - dflow/specs/shared/_conventions.md missing the Dflow Version
     front-matter line
 
-Doctor never modifies files. See docs/migrating-to-dflow-v1.md
-for the manual migration checklist.
+Doctor never modifies files.
 `);
 }
 

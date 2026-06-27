@@ -6,6 +6,49 @@
 
 ---
 
+## 0.11.0 — 2026-06-27 — DDD 指引深化 + pre-V1 退役 + docs 刷新
+
+**Proposals**：PROPOSAL-059（modeling-guide 盲區補強）、PROPOSAL-060（Subdomain 分類）、PROPOSAL-061（Brownfield aggregate 萌芽判準）、PROPOSAL-062（戰術補遺）、PROPOSAL-064（Brownfield modeling-guide reachability）、PROPOSAL-065（檢查機械化）、PROPOSAL-066（context-map 語彙補完）、PROPOSAL-063（退役 pre-V1 migration story）
+
+本版主線 = DDD 引導指引一輪深化,貫穿主軸：補 AI 自行建模會漏的盲區、擋 AI 過度套用 DDD、讓 Brownfield 也搆得到完整建模指引、把 review / verify 檢查收成可機械執行的判準；另含 pre-V1 migration story 全退役與 README / docs 刷新。
+
+### 新功能 / 行為改善（DDD 建模指引）
+
+- **DDD modeling guide 盲區補強**（PROPOSAL-059）：補不變式三層分類（local / aggregate-boundary / set-based）、聚合子集合無界成長判準、event payload thin/fat 準則、跨 aggregate 事件鏈失敗路徑 BR 化、Event Sourcing 防呆句。
+- **Subdomain-Aware Modeling Depth（防過度工程）**（PROPOSAL-060）：兩軌 `context-map.md` 加 Subdomain Type 欄（core / supporting / generic）；guide 加「依 subdomain 調建模深度」小節（優先序 cap + 三防誤讀邊界：BR 不豁免 / Tier 正交 / criticality 不降級）。方向是省成本而非加流程。
+- **Brownfield aggregate 萌芽判準**（PROPOSAL-061）：modify-existing / new-feature / new-phase 三流加「一概念累積多條狀態轉移 / 原子跨欄位不變式 → Aggregate 正在成形」偵測,建議升 T1 deliberately 建模。
+- **Brownfield 也搆得到 DDD modeling guide**（PROPOSAL-064）：guide 升為 `templates/common/` canonical bundle reference,`dflow init` / `configure-agents` 投影到 Brownfield 專案（先前 greenfield-only）；guide 內 greenfield-coupled artifact 參照 edition-neutral 化（頂部 Edition note 對映 Brownfield 記錄面）。
+- **modeling guide 戰術補遺**（PROPOSAL-062）：Factory（含 reconstitution ≠ creation）、強型別 ID + domain primitives 判準、Read Model 查詢側（列表 / 報表不走 aggregate）。
+- **context-map 語彙補完**（PROPOSAL-066）：guide BC-Relationships 加 Separate Ways（反過度整合）+ Big Ball of Mud（+ ACL,包 legacy 泥球）判準 / 階梯 + Open Host Service 一句；兩軌 `context-map.md` Relationship Type 語彙同步。
+
+### 維護者 / 檢查機械化
+
+- **DDD 檢查機械化**（PROPOSAL-065）：`pr-review` checklist 的 UL 檢查收成「diff domain-facing 命名 ↔ glossary `Code Mapping` 對照 + 同義詞偵測」（兩軌對齊）；`/dflow:verify` reframe 為「rules↔behavior 核心 + optional domain-doc hygiene」,加 events.md 反向檢查（greenfield,收窄 local + business-significant）與 models.md Code-Mapping 資訊檢查（兩軌）；`check-repo-consistency.sh` 加 Edition-note 載重面 guard（dev-only,不影響套件使用者）。
+
+### 文件 / Tutorial
+
+- **README 刷新 + Why Dflow 頁**：README 更新至現況;新增 `docs/why-dflow.md`（+ 英文 parity）。
+- **tutorial 進階觀念**：`tutorial/DDD_MINDSET_SHIFT.md` 加 3 則進階 mindset（Factory / 強型別 ID / Read Model,對齊 PROPOSAL-062）。
+
+### 移除 / 退役
+
+- **退役 pre-V1 migration story**（PROPOSAL-063）：移除 pre-V1 → V1 migration guide、`dflow doctor` / `dflow init` 的 pre-V1 偵測、`AI-AGENT-GUIDE.md` 偵測段。Dflow 任何已發布 npm 版本皆無 pre-V1 採用者 → 該偵測 / 指引已無對象。**對既有專案：無影響。**
+
+### 修正
+
+- **`--skills` help 修正**：`dflow configure-agents --skills` 的 help 文字補列全三家工具（Claude / Codex / Copilot）。
+
+### 升級提醒
+
+- **Brownfield 取得 DDD modeling guide**（PROPOSAL-064）：既有 Brownfield 專案重跑 `dflow configure-agents` 後,`dflow/specs/shared/dflow-workflows/references/` 下新增 `ddd-modeling-guide.md`（先前僅 greenfield 投影）。
+
+### 驗證
+
+- 每個 DDD phase 全程 proposal-stage + implementation-stage cross-model review 收斂；3b（core-invariant,動 `lib/init.js`）另過 fresh cold-eye gate（r1 抓到破包重投影靜默刪已裝 guide 的 data-loss must-fix）。
+- `npm test` + `scripts/check-repo-consistency.sh`（含 `check-cross-refs.mjs` + source↔mirror diff + `npm pack --dry-run`）全綠。
+
+---
+
 ## 0.10.0 — 2026-06-06 — agentskills 標準三家觸發 parity、既有 agent 檔自動注入、投影內容保全與清理
 
 **Proposals**：PROPOSAL-049（feature-slice 使用面語意體檢）、PROPOSAL-050（還原 041 雙軌合一丟失的 skill 內容進 AI-AGENT-GUIDE）、PROPOSAL-051（退役 `templates/CLAUDE.md`）、PROPOSAL-052（bundle stale-removal 推廣到同-edition）、PROPOSAL-054（既有 agent 檔 Dflow 墊片 auto-inject）、PROPOSAL-056（Codex 專案層 skill `--skills` parity）、PROPOSAL-057（以 agentskills.io 標準為三家共同自動觸發層；Phase 2）

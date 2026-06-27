@@ -95,7 +95,10 @@ Walk the developer through what the new phase covers:
    BRs (ADDED), changed BRs (MODIFIED), removed BRs (REMOVED), renamed
    (RENAMED). Items not mentioned stay UNCHANGED implicitly.
 3. **Any Aggregate / Domain concepts introduced or changed?** New
-   Aggregates, Value Objects, Domain Events, or invariants?
+   Aggregates, Value Objects, Domain Events, or invariants? Model new concepts
+   at the depth set by the BC's Subdomain Type (see
+   `references/ddd-modeling-guide.md` § Subdomain-Aware Modeling Depth) — don't
+   bypass the classification just because this is a phase, not a new feature.
 4. **Cross-context impact?** Does this phase introduce / change Domain
    Events that other contexts consume? (If yes, plan for `context-map.md`
    updates at finish-feature time.)

@@ -32,6 +32,7 @@ The "使用位置" column refers to file paths where the term appears structural
 | Business Rules | 業務規則 | `rules.md`, `_index.md` | BR-ID declarative rules |
 | Current BR Snapshot | 目前業務規則快照 | `_index.md` | feature-level rules snapshot |
 | Domain Models | 領域模型 | `models.md` | Entities / Value Objects / Services 等模型索引 |
+| Subdomain Type | 子領域類型 | `context-map.md` | 標記 BC 為 core / supporting / generic,決定建模深度（Subdomain-Aware Modeling Depth）；不降低 BR / Tier / 安全測試要求 |
 | Change Scope | 變動範圍 | `Git-principles-*.md`, spec templates | 描述本次變更涵蓋的功能 / 文件 / 程式碼範圍 |
 | Feature Goal | 功能目標 | `Git-principles-*.md`, `finish-feature-flow.md` | Integration Summary 與整合 commit message 的主目標段落 |
 | Related BR-IDs | 關聯 BR-ID 清單 | `Git-principles-*.md`, `finish-feature-flow.md` | 統整本次變更涉及的 ADDED / MODIFIED / REMOVED BR-ID |

@@ -4,17 +4,23 @@ Triggered by `/dflow:verify` or `/dflow:verify <bounded-context>`.
 
 ## Purpose
 
-The A+C structure (`rules.md` as index + `behavior.md` as scenario content) introduces a drift risk — the two files can fall out of sync. This command provides a mechanical verification safety net that developers can run at key moments: before a PR, after a refactor, or when onboarding to an unfamiliar Bounded Context.
+The A+C structure (`rules.md` as index + `behavior.md` as scenario content) introduces a drift risk — the two files can fall out of sync. This command's **core** is a mechanical safety net for that `rules.md` ↔ `behavior.md` correspondence, run at key moments: before a PR, after a refactor, or when onboarding to an unfamiliar Bounded Context. On top of the core it also runs **optional, non-blocking domain-doc hygiene checks** on the BC's other docs (`events.md`, `models.md`) — see Scope.
 
 ## Scope
 
-### This command does (mechanical layer)
+### This command does (core + optional hygiene)
 
-Three string-matching checks that AI can perform deterministically:
+A small **core** of three deterministic string-matching checks on the
+`rules.md` ↔ `behavior.md` correspondence:
 
 1. **BR-ID forward check**: Every `BR-*` declared in `rules.md` has a corresponding section in `behavior.md`
 2. **Anchor validity**: If `rules.md` links to `behavior.md#section`, that anchor exists
 3. **BR-ID reverse check**: Every `BR-*` referenced in `behavior.md` is declared in `rules.md`
+
+Plus **optional domain-doc hygiene** warnings (non-blocking — they never fail the
+command, only surface "confirm this is intentional" signals): the `events.md`
+cross-check (forward + reverse, see Core-Specific Notes) and the `models.md`
+Code-Mapping hygiene check (see Model Catalog Notes).
 
 ### This command does NOT do (semantic layer — explicitly excluded)
 
@@ -40,9 +46,9 @@ Reasons:
 - BC-level current state is already maintained by `rules.md` /
   `behavior.md` / `events.md`, written by the same
   `/dflow:finish-feature` Step 3
-- `/dflow:verify` keeps a small, mechanical scope: just the
-  `rules.md` ↔ `behavior.md` correspondence inside one BC, plus the
-  events.md bonus check below
+- `/dflow:verify` keeps a small core: the `rules.md` ↔ `behavior.md`
+  correspondence inside one BC, plus the optional domain-doc hygiene
+  checks below (events.md, models.md)
 - Cross-feature / cross-phase aggregation would mix `/dflow:verify`'s
   job with `/dflow:finish-feature`'s job and produce false positives
   during in-progress features
@@ -86,6 +92,10 @@ For each Bounded Context:
       - behavior.md → templates/behavior.md
       Or run the completion flow to populate it from existing completed specs
   ```
+- Also locate the **optional** hygiene inputs for this BC — `events.md` and
+  `models.md`. They feed the non-blocking hygiene checks (Core-Specific Notes /
+  Model Catalog Notes). If either is absent, **skip its hygiene check silently** —
+  do not report or stop; they are bonus, not part of the core.
 
 ### Step 2: Extract BR-IDs from rules.md
 
@@ -155,15 +165,52 @@ Issues:
      remove the stale scenario reference from behavior.md
 ```
 
+The optional domain-doc hygiene checks (below) append their non-blocking signals
+to this same report — the `events.md` cross-check as `⚠`, the `models.md`
+Code-Mapping check as `ℹ` — and never change the core pass / fail count.
+
 ## Core-Specific Notes
 
-When verifying a Core context, also check:
-- `events.md` references in `behavior.md`: if a scenario says "And {DomainEvent} is raised", confirm the event is listed in `events.md`
-- This is a **bonus check**, not a blocking failure — report as a warning:
+When verifying a Core context, also run the `events.md` cross-check — **both
+directions, bonus only** (warnings, never a blocking failure):
+
+- **Forward** — `events.md` referenced from `behavior.md`: if a scenario says
+  "And {DomainEvent} is raised", confirm the event is listed in `events.md`:
   ```
   ⚠ BR-001 scenario references ExpenseReportSubmitted event,
     but events.md does not list it
   ```
+- **Reverse** — an `events.md` event with no scenario: for each Event Catalog row
+  that is **locally produced** (Producer is this BC's Aggregate / Application
+  Service) **and business-significant**, confirm at least one `behavior.md`
+  scenario references it; warn if none:
+  ```
+  ⚠ events.md lists OrderCancelled (produced by Order) but no behavior.md
+    scenario references it — confirm intentional (orphan / not yet specced)
+  ```
+  Exclude (else noisy): the `{EventName}` seed row, and best-effort side-effect
+  events (notification / logging) that the modeling guide lets live in
+  `events.md` / tech-debt without a BR. The reverse check is deterministic name
+  matching **plus** this applicability judgment — not a pure string match.
+
+## Model Catalog Notes
+
+A non-blocking **informational** hygiene check on `models.md`:
+
+- For each row whose **primary name cell** holds a real value, if the
+  `Code Mapping` column is empty or still a `{Namespace.Class}` placeholder,
+  surface it:
+  ```
+  ℹ models.md: Entity "ExpenseReport" has no Code Mapping yet — link it if the
+    code exists; if it is deliberately deferred, this is expected
+  ```
+- **Skip untouched seed rows by the name cell only**: a row whose name is still a
+  `{...}` placeholder is seed scaffolding. But a row with a **real name** and a
+  placeholder / empty Code Mapping is exactly the one to surface — do not skip it
+  just because that one cell still holds `{...}`.
+- This is **informational, not drift** — a recorded model with no Code Mapping is a
+  normal state before the code is written. An explicit "planned / deferred" note on
+  the row counts as accounted for; do not surface it.
 
 ## When to Run
 
@@ -178,9 +225,10 @@ Recommended trigger points (not enforced — developer's judgment):
 ## Path Assumptions
 
 This command operates entirely within `dflow/specs/domain/{context}/` files
-(`rules.md`, `behavior.md`, and the `events.md` bonus check). It does
-**not** read from `dflow/specs/features/active/{SPEC-ID}-{slug}/` directories
-— the feature directory layout is not part of verify's input.
+(`rules.md` and `behavior.md` for the core check; `events.md` and `models.md`
+for the optional hygiene warnings). It does **not** read from
+`dflow/specs/features/active/{SPEC-ID}-{slug}/` directories — the feature
+directory layout is not part of verify's input.
 
 ## Interaction with Other Commands
 

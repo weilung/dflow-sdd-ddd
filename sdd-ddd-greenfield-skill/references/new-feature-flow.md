@@ -52,13 +52,36 @@ If it crosses contexts:
 - Do we need an Anti-Corruption Layer?"
 ```
 
+Once the BC is confirmed, classify and record its **Subdomain Type** as part
+of the same confirmation (not a separate gate):
+
+```
+"Is this capability core (差異化來源), supporting (必要但非差異化),
+or generic (可買 / 可套件 / 簡單 CRUD)? I'll record it in context-map.md."
+```
+
+If the BC already has a Subdomain Type in `context-map.md`, reuse it — don't
+re-ask unless the developer wants to reclassify. Record it in
+`dflow/specs/domain/context-map.md`:
+
+- If the **Subdomain Type column is missing** (an older context-map), add the
+  column **preserving every existing row** — do not rewrite their content.
+- The greenfield context-map is created at init, so the file normally exists;
+  if for any reason it is absent, create it from `templates/context-map.md`.
+
+The classification sets the modeling depth used in Step 3 (see
+`references/ddd-modeling-guide.md` § Subdomain-Aware Modeling Depth).
+
 **→ Transition (step-internal)**: Step 2 complete. Announce "Step 2 complete (BC identified). Entering Step 3: Domain Modeling." and continue.
 
 ## Step 3: Domain Modeling
 
 This is where the Greenfield Clean Architecture workflow diverges
 significantly from the Brownfield edition.
-Read `references/ddd-modeling-guide.md` for detailed patterns.
+Read `references/ddd-modeling-guide.md` for detailed patterns. Apply the
+modeling depth set by this BC's Subdomain Type from Step 2 (see that guide's
+§ Subdomain-Aware Modeling Depth): a `generic` context gets a thin model, not
+the full tactical treatment below.
 
 Walk through:
 
@@ -174,12 +197,17 @@ dflow/specs/features/active/{SPEC-ID}-{slug}/
    using `templates/phase-spec.md`. The "Delta from prior phases" section
    is filled with "首 phase，無前置 Delta" (first phase has nothing to
    delta against).
-4. **If this feature introduces a new Aggregate**, also create an
-   `aggregate-design.md` from `templates/aggregate-design.md` **inside this
-   feature directory** as the per-Aggregate design worksheet. It is a working
-   artifact scoped to the feature; the Aggregate's durable, long-lived catalog
-   entry still lives in `dflow/specs/domain/{context}/models.md`.
-   `aggregate-design.md` complements `models.md`, it does not replace it.
+4. **If this feature introduces a new Aggregate**, whether to create an
+   `aggregate-design.md` worksheet from `templates/aggregate-design.md`
+   **inside this feature directory** follows the BC's Subdomain Type (Step 2;
+   see `references/ddd-modeling-guide.md` § Subdomain-Aware Modeling Depth):
+   **core** → create it; **supporting** → create it but keep it lean;
+   **generic** → skip by default (a thin wrapper needs no design worksheet)
+   unless the developer explicitly opts into deeper modeling and records why.
+   When created, it is a working artifact scoped to the feature; the
+   Aggregate's durable, long-lived catalog entry still lives in
+   `dflow/specs/domain/{context}/models.md` — `aggregate-design.md`
+   complements `models.md`, it does not replace it.
 
 Key additions compared to Brownfield edition:
 - **Aggregate State Transitions**: Document how Aggregate state changes

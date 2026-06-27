@@ -102,6 +102,12 @@ input like this (supporting files live in the workflow bundle at
   `dflow/specs/features/backlog/` and suggest work based on migration value.
 - **"I'm creating a branch"** → read `references/git-integration.md`; verify
   branch naming and ensure a spec exists before coding starts.
+- **"I'm designing a domain model" / "How should I model X?" / building or
+  reshaping an Aggregate** → read `references/ddd-modeling-guide.md` (DDD
+  tactical patterns: aggregates, invariants, value objects, domain events). It
+  is written with Greenfield artifact names; see its **Edition note** for where
+  Brownfield records the same decisions (`models.md` / `rules.md` /
+  `behavior.md` / `migration/tech-debt.md`).
 - **"Dflow seems wrong" / "this template is confusing"** (or you notice Dflow
   guidance drift) → suggest `/dflow:report-dflow-feedback`; never submit
   anything upstream automatically.
@@ -343,34 +349,6 @@ during the completion checklist, not via template section markers.
 - Are there duplicated calculations? → Record
 - Direct SQL in delivery/entrypoint code? → Record
 - Magic numbers or undocumented statuses? → Record and add to glossary
-
-## Pre-V1 Artifacts Detection
-
-When working in a project that adopted Dflow before `dflow-sdd-ddd@0.1.0`,
-you may encounter layout or naming patterns that predate the V1 baseline.
-If any of the following appear, surface the observation to the developer
-and recommend manual migration; do not rewrite anything silently.
-
-Signals:
-
-- Top-level `specs/` directory containing Dflow-shaped content (V1 layout
-  uses `dflow/specs/`).
-- `_共用/` directory under `specs/` or `dflow/specs/` (V1 uses `shared/`).
-- Section headings in Traditional Chinese where V1 templates render
-  canonical English; compare against `TEMPLATE-LANGUAGE-GLOSSARY.md` if
-  available.
-- References to a runtime `/dflow:init-project` slash command (V1
-  replaced it with the Dflow CLI init command (`dflow init`, or
-  `npx dflow-sdd-ddd init` when using the no-install path)).
-- A root `CLAUDE.md`, `AGENTS.md`, or equivalent that holds the full
-  Dflow workflow text instead of being a thin shim pointing to this
-  file.
-- `dflow/specs/shared/_conventions.md` is missing the `> Dflow Version:`
-  front-matter line (V1 init writes it automatically).
-
-Recommend `docs/migrating-to-dflow-v1.md` for the manual migration
-checklist. Migration affects every spec the team has written; manual
-review is required.
 
 ## Workflow Steps
 

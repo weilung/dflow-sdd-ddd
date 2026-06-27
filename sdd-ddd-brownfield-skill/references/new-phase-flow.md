@@ -92,7 +92,14 @@ Walk the developer through what the new phase covers:
    BRs (ADDED), changed BRs (MODIFIED), removed BRs (REMOVED), renamed
    (RENAMED). Items not mentioned stay UNCHANGED implicitly.
 3. **Any Domain concepts introduced or changed?** New Entities / Value
-   Objects / Services touching `src/Domain/{context}/`?
+   Objects / Services touching `src/Domain/{context}/`? If this phase is an
+   **Aggregate-emergence escalation** (handed off from `/dflow:modify-existing`),
+   record the candidate Aggregate Root, the invariants it protects, and what
+   must change atomically — marking the Aggregate Root on its `models.md`
+   Entity row (no separate Aggregates section). For how to model it (invariant
+   classification, set-based / uniqueness rules, aggregate sizing), read
+   `references/ddd-modeling-guide.md` (its **Edition note** maps recording
+   surfaces to brownfield's `models.md` / `rules.md`).
 4. **Data structure impact?** New tables, columns, indices?
 5. **Why now?** Priority — informs sequencing relative to other phases.
 

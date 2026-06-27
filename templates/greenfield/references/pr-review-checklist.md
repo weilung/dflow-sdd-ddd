@@ -116,7 +116,15 @@ If the closeout commit is in this PR (`/dflow:finish-feature` was run):
 
 ## Cross-Cutting
 
-- [ ] **Glossary consistency** — new terms documented?
+- [ ] **Glossary consistency** — any new business concept added to `glossary.md`?
+- [ ] **Naming matches the Ubiquitous Language** — for each **domain-facing** type
+      or member the diff introduces (skip DTO / test / framework names), is there a
+      matching term in `glossary.md`? The `Code Mapping` column maps each term to
+      its `{Namespace/Class/Member}` — a domain name in the diff with no glossary
+      term, or a term whose Code Mapping is now stale, is the signal.
+- [ ] **No synonym drift** — is the code naming a concept with a different word than
+      the glossary (e.g. "reimbursement" in code vs "報銷 / Expense Claim" in the
+      glossary)? Align it. (Judgment call, not a string match.)
 - [ ] **Context boundaries respected** — no reaching into another context's internals
 - [ ] **Domain Events documented** — events.md updated?
 - [ ] **Tests cover invariants** — not just happy path

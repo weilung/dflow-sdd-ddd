@@ -139,7 +139,13 @@ for later?"
 ## Glossary Consistency
 
 - [ ] **New terms documented** — Any new business concept added to glossary.md?
-- [ ] **Consistent naming** — Do class/method/variable names match glossary terms?
+- [ ] **Naming matches the Ubiquitous Language** — for each **domain-facing**
+      class / method / variable the diff introduces (skip DTO / test / framework
+      names), is there a matching term in `glossary.md`? The `Code Mapping` column
+      maps each term to its `{Namespace/Class/Member}` — a domain name with no
+      glossary term, or a term whose Code Mapping is now stale, is the signal.
+- [ ] **No synonym drift** — is the code naming a concept with a different word
+      than the glossary? Align it. (Judgment call, not a string match.)
 - [ ] **No ambiguous terms** — Are domain-specific terms used precisely?
 
 Example check:

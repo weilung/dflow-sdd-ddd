@@ -282,7 +282,45 @@ Decision framework:
 - **Extract now** if: the logic is being significantly modified anyway
 - **Extract now** if: the logic is duplicated elsewhere and we need the single source of truth
 - **Defer extraction** if: the change is a one-line fix and the surrounding code is too tangled
+- **Consider not extracting at all** if: the context is `generic` (per the
+  context-map Subdomain Type) — a commodity capability's endgame is wholesale
+  replacement with an off-the-shelf package / service, so extracting its rules
+  one by one is wasted effort; record the replacement intent as the tech-debt
+  entry instead
 - **Always record** the extraction opportunity in tech-debt.md even if deferring
+
+If the target context has **no Subdomain Type** (not in `context-map.md`, or
+the column is absent), ask the developer once to classify it. If they'd rather
+not decide now, record it as an Open Question in the spec and run the
+extraction decision on the framework above — do **not** assume `generic`.
+
+**Aggregate emergence check.** Before extracting yet another rule onto an
+existing concept, look at what has already accumulated on it (in `models.md` /
+`rules.md`). The signal that it has stopped being a loose entity and is
+becoming an **Aggregate Root with a consistency boundary**: **2+ non-trivial
+state-transition rules on the same lifecycle identity, or any invariant that
+must check / update multiple fields or child records atomically.** (A
+*consistency boundary* means state that must hold or change **together,
+atomically** — not mere relatedness: same screen, related nouns, or local
+single-field input validation do **not** count.) When you see it, continuing
+to extract rules one by one as T2 will leave the boundary undrawn — surface it
+and **suggest escalating to T1** (`/dflow:new-phase` inside an active feature,
+else `/dflow:new-feature`) to model the Aggregate deliberately: its invariants,
+what must change atomically, what it protects. For *how* to model it —
+invariant classification, set-based / uniqueness rules, aggregate sizing — read
+`references/ddd-modeling-guide.md` (its **Edition note** maps each recording
+surface to brownfield's `models.md` / `rules.md`). In `models.md`, **mark the
+existing Entity row as the Aggregate Root and note the protected invariants /
+atomic-change scope in its Responsibility / Notes** — brownfield `models.md`
+has no separate Aggregates section, do not invent one; update the Repository
+row if one exists. If the developer defers, **record the emergence observation
+in `tech-debt.md`** so the boundary decision is not silently lost.
+
+If the context is **`generic`** (Subdomain Type), emergence is usually a
+*replacement / adapter-boundary* debt signal, not a cue for deep T1 modeling —
+record the replacement intent (consistent with the generic extraction fallback
+above) rather than escalating, unless the developer explicitly chooses to
+model it.
 
 ### Generate Implementation Tasks List
 

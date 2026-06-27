@@ -145,7 +145,7 @@ try {
   const cleanDoctor = await runDflow(tempRoot, '', ['doctor']);
   assert.equal(cleanDoctor.code, 0, `doctor on clean V1 init failed\nSTDOUT:\n${cleanDoctor.stdout}\nSTDERR:\n${cleanDoctor.stderr}`);
   assert.match(cleanDoctor.stdout, /^Dflow Doctor /m, 'doctor should print header');
-  assert.match(cleanDoctor.stdout, /All checks passed\. No legacy artifacts detected\./);
+  assert.match(cleanDoctor.stdout, /All checks passed\. No Dflow health findings detected\./);
 
   const legacyRoot = join(tempRoot, 'legacy-warning');
   await mkdir(join(legacyRoot, 'specs'), { recursive: true });
@@ -165,16 +165,8 @@ try {
 
   const legacy = await runDflow(legacyRoot, legacyInput);
   assert.equal(legacy.code, 0, `legacy init failed\nSTDOUT:\n${legacy.stdout}\nSTDERR:\n${legacy.stderr}`);
-  assert.match(legacy.stderr, /Detected legacy specs\/\./);
-  assert.equal(await exists(join(legacyRoot, 'specs', 'legacy.md')), true, 'legacy specs/ file should remain untouched');
+  assert.equal(await exists(join(legacyRoot, 'specs', 'legacy.md')), true, 'pre-existing root specs/ file should remain untouched');
   assert.equal(await exists(join(legacyRoot, 'dflow/specs/shared/_conventions.md')), true, 'legacy run should write dflow/specs/');
-
-  const legacyDoctor = await runDflow(legacyRoot, '', ['doctor']);
-  assert.equal(legacyDoctor.code, 0, `doctor on legacy project failed\nSTDOUT:\n${legacyDoctor.stdout}\nSTDERR:\n${legacyDoctor.stderr}`);
-  assert.match(legacyDoctor.stdout, /\[warn\] Legacy specs\/ directory at project root/);
-  assert.match(legacyDoctor.stdout, /docs\/migrating-to-dflow-v1\.md/);
-  assert.match(legacyDoctor.stdout, /Doctor is read-only and does not modify any files\./);
-  assert.equal(await exists(join(legacyRoot, 'specs', 'legacy.md')), true, 'doctor should not touch legacy specs/');
 
   await writeFile(join(legacyRoot, 'AGENTS.md'), '# Existing agent rules\n');
   const configureInput = [
@@ -482,7 +474,7 @@ try {
     'templates/behavior.md',
     'templates/aggregate-design.md', // greenfield-only
     'templates/events.md',           // greenfield-only
-    'references/ddd-modeling-guide.md', // greenfield-only
+    'references/ddd-modeling-guide.md', // PROPOSAL-064: common, projected to both editions
   ];
   for (const bundleFile of expectedBundleFiles) {
     assert.equal(
@@ -491,6 +483,16 @@ try {
       `bundle file should exist: dflow-workflows/${bundleFile}`
     );
   }
+
+  // PROPOSAL-064: greenfield reads the guide from templates/common/ too (same
+  // merged scan) — assert the projected content is the common source, so a
+  // regression of the read-path (reading templates/{edition}/ instead of the
+  // descriptor's root) is caught in BOTH editions.
+  const greenfieldGuide = await readFile(join(bundleDir, 'references/ddd-modeling-guide.md'), 'utf8');
+  assert.ok(
+    greenfieldGuide.includes('Edition note'),
+    'PROPOSAL-064: greenfield-projected modeling guide must be the common source (Edition note present)'
+  );
 
   // PROPOSAL-051: templates/CLAUDE.md retired — must NOT be projected into the bundle.
   assert.equal(
@@ -637,12 +639,28 @@ try {
   const webformsBundleManifest = JSON.parse(await readFile(join(webformsBundleDir, '.dflow-bundle-manifest.json'), 'utf8'));
   assert.equal(webformsBundleManifest.edition, 'brownfield', 'brownfield bundle manifest edition should be brownfield');
 
-  // Brownfield bundle should NOT include greenfield-only files
+  // PROPOSAL-064: ddd-modeling-guide.md is now an edition-neutral COMMON bundle
+  // reference, projected into BOTH editions (it was greenfield-only before).
   assert.equal(
     await exists(join(webformsBundleDir, 'references/ddd-modeling-guide.md')),
-    false,
-    'brownfield bundle should not contain greenfield-only ddd-modeling-guide.md'
+    true,
+    'PROPOSAL-064: brownfield bundle should now contain the common ddd-modeling-guide.md'
   );
+  // ...and the projected content must be the COMMON source (proves the projector
+  // reads from templates/common/, not templates/{edition}/): only the common
+  // guide carries the edition-neutral "Edition note".
+  const brownfieldGuide = await readFile(join(webformsBundleDir, 'references/ddd-modeling-guide.md'), 'utf8');
+  assert.ok(
+    brownfieldGuide.includes('Edition note'),
+    'PROPOSAL-064: brownfield-projected modeling guide must be the common source (Edition note present)'
+  );
+  // The manifest must list the common-sourced guide (keyed by sourceRel, so the
+  // dest path is edition-neutral).
+  assert.ok(
+    webformsBundleManifest.files.includes('dflow/specs/shared/dflow-workflows/references/ddd-modeling-guide.md'),
+    'PROPOSAL-064: brownfield bundle manifest should list the common ddd-modeling-guide.md'
+  );
+  // aggregate-design.md / events.md TEMPLATES stay greenfield-only (not promoted).
   assert.equal(
     await exists(join(webformsBundleDir, 'templates/aggregate-design.md')),
     false,
@@ -960,6 +978,43 @@ try {
     assert.doesNotMatch(sDoctor.stdout, /Retired workflow bundle file: [^\n]*retired-052-user\.md/, `[${edition}] doctor must NOT report a marker-stripped (user) file`);
     assert.doesNotMatch(sDoctor.stdout, new RegExp(`Retired workflow bundle file: [^\\n]*${currentBundleFile.split('/').pop().replace(/\./g, '\\.')}`), `[${edition}] doctor must NOT report a current bundle file`);
     assert.equal(await exists(join(sRoot, orphanRel)), true, `[${edition}] doctor is read-only — orphan must not be deleted`);
+  }
+
+  // PROPOSAL-064 fresh-gate regression: a greenfield -> brownfield edition switch
+  // must REMOVE the greenfield-only bundle templates (aggregate-design.md,
+  // events.md) while PRESERVING the common ddd-modeling-guide.md (it belongs to
+  // both editions). This locks the exact silent-deletion class the fresh cold-eye
+  // gate caught (a common-sourced file being mis-classified as "retired").
+  {
+    const swRoot = join(tempRoot, 'edition-switch');
+    await mkdir(swRoot, { recursive: true });
+    const swInit = await runDflow(swRoot, ['1', 'Node 20, Express 4, Jest', 'none', '1', '2', '1', '1', 'none', 'y'].join('\n') + '\n');
+    assert.equal(swInit.code, 0, `edition-switch greenfield init failed\nSTDOUT:\n${swInit.stdout}\nSTDERR:\n${swInit.stderr}`);
+    const swBundle = join(swRoot, BUNDLE_REL);
+    assert.equal(await exists(join(swBundle, 'templates/aggregate-design.md')), true, 'edition-switch precond: greenfield init has aggregate-design.md');
+    assert.equal(await exists(join(swBundle, 'references/ddd-modeling-guide.md')), true, 'edition-switch precond: greenfield init has the common guide');
+
+    // Switch the project to brownfield. configure-agents infers the edition by
+    // STRUCTURE (inferExistingEdition): drop the greenfield signals
+    // (architecture/, domain/context-map.md) and add the brownfield one
+    // (migration/tech-debt.md); keep the manifest edition consistent too.
+    await rm(join(swRoot, 'dflow/specs/architecture'), { recursive: true, force: true });
+    await rm(join(swRoot, 'dflow/specs/domain/context-map.md'), { force: true });
+    await mkdir(join(swRoot, 'dflow/specs/migration'), { recursive: true });
+    await writeFile(join(swRoot, 'dflow/specs/migration/tech-debt.md'), '# migration tech debt\n');
+    const swManifestPath = join(swBundle, '.dflow-bundle-manifest.json');
+    const swM1 = JSON.parse(await readFile(swManifestPath, 'utf8'));
+    swM1.edition = 'brownfield';
+    await writeFile(swManifestPath, `${JSON.stringify(swM1, null, 2)}\n`);
+
+    const swReproject = await runDflow(swRoot, '1,2,3\ny\n', ['configure-agents']);
+    assert.equal(swReproject.code, 0, `edition-switch reprojection failed\nSTDOUT:\n${swReproject.stdout}\nSTDERR:\n${swReproject.stderr}`);
+    assert.equal(await exists(join(swBundle, 'references/ddd-modeling-guide.md')), true, 'edition-switch: common ddd-modeling-guide.md must SURVIVE the switch');
+    assert.equal(await exists(join(swBundle, 'templates/aggregate-design.md')), false, 'edition-switch: greenfield-only aggregate-design.md must be removed');
+    assert.equal(await exists(join(swBundle, 'templates/events.md')), false, 'edition-switch: greenfield-only events.md must be removed');
+    const swM2 = JSON.parse(await readFile(swManifestPath, 'utf8'));
+    assert.equal(swM2.files.includes(`${BUNDLE_REL}/references/ddd-modeling-guide.md`), true, 'edition-switch: rebuilt manifest still lists the common guide');
+    assert.equal(swM2.files.includes(`${BUNDLE_REL}/templates/aggregate-design.md`), false, 'edition-switch: rebuilt manifest drops greenfield-only aggregate-design.md');
   }
 
   console.log(`Smoke test passed in ${tempRoot}`);

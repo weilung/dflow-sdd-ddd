@@ -50,6 +50,23 @@ If no matching context exists:
 2. Create `dflow/specs/domain/{new-context}/context.md` using the context-definition template
 3. Get developer confirmation before proceeding
 
+Once the BC is confirmed, classify and record its **Subdomain Type** as part
+of the same confirmation (not a separate gate):
+
+```
+"Is this capability core (差異化來源), supporting (必要但非差異化),
+or generic (可買 / 可套件 / 簡單 CRUD)? I'll record it in context-map.md."
+```
+
+If the BC already has a Subdomain Type, reuse it — don't re-ask unless the
+developer wants to reclassify. Record it in
+`dflow/specs/domain/context-map.md`:
+
+- If the file **does not exist** (the Brownfield track does not mandate it —
+  contexts emerge organically), create it from `templates/context-map.md`.
+- If it exists but the **Subdomain Type column is missing**, add the column
+  **preserving every existing row** — do not rewrite their content.
+
 **→ Transition (step-internal)**: Step 2 complete. Announce "Step 2 complete (BC identified). Entering Step 3: Domain Concept Discovery." and continue.
 
 ## Step 3: Domain Concept Discovery
@@ -61,6 +78,17 @@ Walk through these questions:
 - **What are the rules/constraints?** → Business Rules to document
 - **What are the states/statuses?** → State machines to model
 - **What external data is needed?** → Interfaces to define
+
+If one concept gathers rules / invariants that must hold together — **a state
+machine over its lifecycle, or invariants spanning several of its fields /
+child records** — treat it as a candidate **Aggregate Root** (a consistency
+boundary = atomic, not mere relatedness), not just an Entity. Note its
+invariants and what must change atomically against its `models.md` Entity row,
+and confirm the boundary with the developer. (A state machine is one common
+signal, not a prerequisite.) For the tactical patterns — invariant
+classification, set-based / uniqueness rules, value objects, aggregate sizing —
+read `references/ddd-modeling-guide.md` (its **Edition note** maps recording
+surfaces to brownfield's `models.md` / `rules.md`).
 
 For each new concept:
 1. Check glossary — add if missing
