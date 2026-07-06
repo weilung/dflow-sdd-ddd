@@ -249,6 +249,17 @@ Changes that require Aggregate redesign:
 boundary still make sense, or do we need to split/merge?"
 ```
 
+**Established-model re-read.** When the change extends an existing
+Aggregate, re-read that Aggregate's recorded Design Decisions — its
+`aggregate-design.md` worksheet in the feature directory that introduced it
+(usually under `features/completed/`). If this change matches a recorded
+re-evaluation condition ("revisit when …") or trips a model-resistance
+signal, follow `references/ddd-modeling-guide.md` § "Revising an
+Established Model": record one short passage in the spec's Design
+Decisions / Open Questions — proceed as-is, split, or rename, with the
+reason. Deciding to keep the current model, recorded, is a valid outcome;
+extending silently is not.
+
 ### Do we need new Domain Events?
 
 If the behavior change means other parts of the system need to react differently:

@@ -113,6 +113,16 @@ classification, set-based / uniqueness rules, value objects, aggregate sizing �
 read `references/ddd-modeling-guide.md` (its **Edition note** maps recording
 surfaces to brownfield's `models.md` / `rules.md`).
 
+The mirror case — the concept is **already modeled**: when extending an
+existing Aggregate / modeled concept, re-read what was recorded when it was
+shaped (its `models.md` row + Notes and the relevant `rules.md` entries)
+before extending it. If this change matches a recorded re-evaluation
+condition ("revisit when …") or trips a model-resistance signal, follow
+`references/ddd-modeling-guide.md` § "Revising an Established Model":
+record one short passage in the spec's design decisions / open questions —
+proceed as-is, split, or rename, with the reason. Deciding to keep the
+current model, recorded, is a valid outcome; extending silently is not.
+
 For each new concept:
 1. Check glossary — add if missing
 2. Check if it already exists in models.md — extend if needed

@@ -61,4 +61,5 @@ created: {YYYY-MM-DD}
 
 ## Design Decisions
 
-> 為什麼 Aggregate 的邊界劃在這裡？有沒有考慮過其他方案？
+> 為什麼 Aggregate 的邊界劃在這裡？有沒有考慮過其他方案？每個決策附
+> **再評估條件**：什麼情況出現時，這個決策應該被重看？（「revisit when …」）

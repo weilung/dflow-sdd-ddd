@@ -106,7 +106,11 @@ Walk the developer through what the new phase covers:
    Entity row (no separate Aggregates section). For how to model it (invariant
    classification, set-based / uniqueness rules, aggregate sizing), read
    `references/ddd-modeling-guide.md` (its **Edition note** maps recording
-   surfaces to brownfield's `models.md` / `rules.md`).
+   surfaces to brownfield's `models.md` / `rules.md`). If the phase **extends
+   an already-modeled Aggregate / concept**, apply the established-model
+   re-read from `references/ddd-modeling-guide.md` § "Revising an Established
+   Model" (match recorded re-evaluation conditions; record proceed / split /
+   rename in the phase-spec).
 4. **Data structure impact?** New tables, columns, indices?
 5. **Why now?** Priority — informs sequencing relative to other phases.
 

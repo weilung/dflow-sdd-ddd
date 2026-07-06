@@ -119,6 +119,17 @@ Those things form an Aggregate. Everything else is eventually consistent."
 - What entities belong inside this Aggregate?
 - What Value Objects can we extract?
 
+**Established-model re-read (when the feature reuses an existing
+Aggregate).** Re-read that Aggregate's recorded Design Decisions — its
+`aggregate-design.md` worksheet in the feature directory that introduced it
+(usually under `features/completed/`) — before extending it. If this change
+matches a recorded re-evaluation condition ("revisit when …") or trips a
+model-resistance signal, follow `references/ddd-modeling-guide.md`
+§ "Revising an Established Model": record one short passage in the
+phase-spec's Design Decisions / Open Questions — proceed as-is, split, or
+rename, with the reason. Deciding to keep the current model, recorded, is a
+valid outcome; extending silently is not.
+
 ### Domain Events
 ```
 "After this happens, what else in the system needs to know?"

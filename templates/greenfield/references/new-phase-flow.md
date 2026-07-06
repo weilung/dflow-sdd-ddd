@@ -106,6 +106,10 @@ Walk the developer through what the new phase covers:
    at the depth set by the BC's Subdomain Type (see
    `references/ddd-modeling-guide.md` § Subdomain-Aware Modeling Depth) — don't
    bypass the classification just because this is a phase, not a new feature.
+   If the phase **extends an existing Aggregate**, apply the established-model
+   re-read from `references/ddd-modeling-guide.md` § "Revising an Established
+   Model" (match recorded re-evaluation conditions; record proceed / split /
+   rename in the phase-spec).
 4. **Cross-context impact?** Does this phase introduce / change Domain
    Events that other contexts consume? (If yes, plan for `context-map.md`
    updates at finish-feature time.)

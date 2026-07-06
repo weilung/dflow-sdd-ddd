@@ -328,6 +328,17 @@ has no separate Aggregates section, do not invent one; update the Repository
 row if one exists. If the developer defers, **record the emergence observation
 in `tech-debt.md`** so the boundary decision is not silently lost.
 
+**Established-model re-read (the emergence check's mirror).** When the rule
+you are extracting lands on an **already-modeled** Aggregate / concept,
+re-read what was recorded when it was shaped (its `models.md` row + Notes
+and the relevant `rules.md` entries) before extending it. If this change
+matches a recorded re-evaluation condition ("revisit when …") or trips a
+model-resistance signal, follow `references/ddd-modeling-guide.md`
+§ "Revising an Established Model": record one short passage in the spec's
+design decisions / open questions — proceed as-is, split, or rename, with
+the reason. Deciding to keep the current model, recorded, is a valid
+outcome; extending silently is not.
+
 If the context is **`generic`** (Subdomain Type), emergence is usually a
 *replacement / adapter-boundary* debt signal, not a cue for deep T1 modeling —
 record the replacement intent (consistent with the generic extraction fallback

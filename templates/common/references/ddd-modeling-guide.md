@@ -101,6 +101,9 @@ Is it identified by an ID that persists over time?
             └─ No  → Re-examine — it's probably one of the above
 ```
 
+A stateful multi-step flow is not a Domain Service — see "Long-Running
+Processes".
+
 ## Aggregate Design
 
 Aggregates are the most important and most commonly misunderstood DDD concept.
@@ -186,6 +189,9 @@ When designing a new Aggregate:
 6. **Will any child collection grow without bound over time?** (history,
    comments, audit entries) Unbounded growth is a split signal — move it to
    its own Aggregate or a read model and reference by ID.
+7. **What would make this boundary wrong?** Record the answer in the
+   worksheet's Design Decisions as a re-evaluation condition ("revisit
+   when …") — it is what "Revising an Established Model" re-reads later.
 
 ### Invariant Classification
 
@@ -254,6 +260,79 @@ worth querying?), then add the store-level guard either way. (Heavier
 serialization tactics — distributed locks, per-key actors, aggregate-per-key
 sharding — exist but are advanced; reach for a store-level constraint or version
 check first.)
+
+## Revising an Established Model
+
+The sections above are about getting a boundary right the first time. This
+one is about the other half of a model's life: an established model whose
+original decision was right — until the conditions changed. **A recorded
+design decision is not settled law.** It is a decision *plus the conditions
+under which it was right*; when those conditions expire, the decision is
+due for review, not deference.
+
+### The re-read rule
+
+**When extending an existing Aggregate, re-read its recorded Design
+Decisions before adding to it** (the `aggregate-design.md` worksheet;
+Brownfield — see the Edition note). You are not reading for format — you
+are checking two things:
+
+1. Does any recorded **re-evaluation condition** ("revisit when …") match
+   the change in front of you?
+2. Did the original rationale assume something that is no longer true?
+
+### Signals that the model is resisting
+
+Any of these appearing in your change is a signal — go to the ladder below:
+
+- **Bending a field to fit** — a field that was previously required by the
+  entity's lifecycle is made nullable to fit a new case.
+- **Discriminator creep** — adding a `Purpose` / `Type` discriminator so
+  one entity carries materially different lifecycles, required fields, or
+  rules.
+- **Stacking another branch** — a third or later *distinct business branch*
+  on the same decision axis (validation / error variants don't count; the
+  count is an anchor, not an automatic refactor rule).
+- **Qualifying a term to use it** — you keep saying "the Order here means
+  the cart-order"; one glossary term now covers two lifecycles.
+- **A recorded re-evaluation condition matches** the current change.
+- **Cross-instance transaction pressure** — a new invariant or operation
+  needs same-transaction writes across Aggregate instances because the
+  current boundary cannot own the rule (see Aggregate Design Rules #2; a
+  flow over *time* is a different topic — see "Long-Running Processes").
+- **A child collection grows without bound** — the split signal from
+  Aggregate Design Rules #4 and Common Mistakes #7 applies to established
+  models too.
+
+### What to do when a signal fires — take the lowest rung that fits
+
+1. **Name it in the spec** (mandatory when a signal fires; zero design
+   cost). One short passage in the spec's design decisions / open
+   questions: which signal fired, the options, and the decision —
+   **proceed as-is, split, or rename — with the reason**. Deciding *not*
+   to split, recorded, is a perfectly good outcome when the rationale
+   still holds. What is not acceptable is extending the model as if the
+   question did not exist.
+2. **Treat the revision as its own change** when the answer is "split" or
+   "rename": record it as tech debt or a follow-up feature — or, if the
+   feature cannot proceed sanely on the old boundary, make the split /
+   rename the feature's first phase (T1 ceremony; the glossary moves
+   first, RENAMED deltas, code follows).
+
+Two guards, so this section cannot become its own kind of
+over-engineering:
+
+> Signals are the trigger, not a schedule. Do not re-litigate the model on
+> every touch: no signal → no ceremony; one signal → name it; several
+> signals, or a matched re-evaluation condition → evaluate seriously.
+
+> A signal triggers **review, not redesign**. Do not split or rename just
+> because a signal fired. A short recorded decision to keep the current
+> model is a valid outcome when the rationale still holds.
+
+This applies where a model exists to revise — core / supporting contexts.
+A generic context's thin wrapper (see "Subdomain-Aware Modeling Depth")
+has no worksheet and needs none of this ceremony.
 
 ## Value Objects
 
@@ -438,6 +517,95 @@ the values that changed — not a snapshot of the whole Aggregate.
   delivery. If no dispatcher is wired yet, record it as deferred tech debt — but
   still clear on a successful save so events cannot accumulate unbounded.
 
+## Long-Running Processes
+
+The Aggregate design rules above already cover the simple case: one Aggregate
+per transaction, with cross-Aggregate work flowing through Domain Events and
+eventual consistency. This section is for the flows where that is not the
+whole story — where the multi-step flow is itself a business thing with
+state, and that state needs a home.
+
+### Process or event chain?
+
+Use an event chain when each reaction can succeed or fail independently — a
+later failure does not change the earlier domain commitment. Treat the flow
+as a **process** when the business must track and decide the multi-step
+**outcome**: compensate or reverse an earlier commitment, answer current
+progress, enforce a deadline, or enforce an ordered cross-Aggregate workflow
+whose intermediate state matters.
+
+The quickest entry test: **if a later step fails, must an earlier step be
+undone?** "Payment failed → release the reserved stock" is a process, not an
+event chain.
+
+Further signals that the flow is a process:
+
+- The business asks "where is order #123 in the flow?" and no single
+  Aggregate can answer.
+- A deadline is part of the rules ("if payment is not confirmed within 30
+  minutes, release the seats").
+- Steps across Aggregates must run in a prescribed order **and** the
+  intermediate state matters to the business — being ordered by itself is
+  not enough.
+
+**Not a process:** fire-and-forget notifications, read-model updates,
+logging, and other best-effort side effects — even when ordered, even when
+they cross Aggregates. Those remain plain event chains; their failure
+handling is already covered by the failure-path guideline under Event
+Handling Guidelines.
+
+### Where does the process state live? Take the lowest rung that fits
+
+1. **A status field on the Aggregate that owns the flow** — the first choice
+   when the process is naturally part of one Aggregate's lifecycle:
+   `Order.Status = PendingPayment → Paid → Shipped`. Event handlers advance
+   the status; each compensation is an explicit state-transition method
+   (`order.Cancel(reason)`) with its own BR. Most mid-size flows stop here.
+   The boundary: a status field is enough only when the process is naturally
+   part of that Aggregate's lifecycle — do not store every downstream
+   system's bookkeeping on the owner just to avoid a process Aggregate.
+
+2. **A dedicated process Aggregate** (the DDD shape of a *process manager*) —
+   when the coordination belongs to no existing Aggregate, or the flow needs
+   its own bookkeeping (steps completed, retries, deadline): a small
+   Aggregate (e.g. `OrderFulfillment`) whose state *is* the flow's progress.
+   It reacts to events, issues commands, and its invariants are process
+   rules ("cannot ship before payment is confirmed"). It is an ordinary
+   Aggregate — same aggregate-design worksheet, same Invariants table,
+   events cataloged in `events.md` like any other (Brownfield — see the
+   Edition note). Two boundaries: a process Aggregate **coordinates
+   progress** — it does not pull the participating Aggregates into one
+   transaction or take over their invariants. And do not create one for a
+   two-step event reaction with no compensation, no deadline, and no
+   business-visible progress to answer — keep that as an event chain, or as
+   the owner Aggregate's normal state if it already has one.
+
+3. **An orchestration framework / workflow engine** — the Phase 2+ upgrade,
+   worth it only at operational scale (versioning long-lived in-flight
+   flows, visibility dashboards). Like event sourcing, this is a separate,
+   heavyweight architecture decision: record it as an ADR if genuinely
+   needed; never introduce it as a side effect of modeling.
+
+### Compensation is business behavior, not plumbing
+
+A compensating action is not a rollback — the mail was sent, the money
+moved; they cannot un-happen. Compensation is a **new domain fact**
+(`RefundIssued`, `ReservationReleased`) with its own BR and Given/When/Then
+in `behavior.md`. The failure-path guideline under Event Handling Guidelines
+says *which* final failures must become BRs; this section says *where the
+logic that answers them lives*.
+
+### Deadlines
+
+A deadline is part of the process state. Detecting expiry is infrastructure
+(a scheduled check), but the decision — "expired → release the seats" — is a
+domain rule, expressed as a domain event (`BookingExpired`) and handled like
+any other.
+
+Two search terms, so you can find the literature: *choreography* is a plain
+event chain; *orchestration* means an explicit process owner. These are
+search terms, not a framework choice.
+
 ## Specifications
 
 For complex query logic that belongs to the domain:
@@ -508,6 +676,10 @@ Use Domain Services for operations that:
 - Involve multiple Aggregates (read-only access to the second Aggregate)
 - Require external information (through interfaces) to make domain decisions
 - Don't naturally belong to any single Entity
+
+A Domain Service can make a **stateless** cross-Aggregate decision. It is
+not a home for process progress, retries, deadlines, or compensation state.
+When the flow has state, use the "Long-Running Processes" ladder.
 
 ```csharp
 // Domain Service — in Domain layer
@@ -646,3 +818,20 @@ The less-obvious three — when to reach for them:
     Aggregates just to display a list / report causes object-graph bloat and N+1
     → Use a read model (denormalized projection / DTO) for the display path; see
     "Read Models (Query Side)"
+
+11. **Compensation logic scattered across event handlers** — Each handler
+    patches state on its own; no one owns the process, and nobody can answer
+    "where is order #123 in the flow"
+    → Give the process a home (a status field on the owning Aggregate or a
+    dedicated process Aggregate); write each compensating action as a BR; see
+    "Long-Running Processes"
+
+12. **Treating recorded design decisions as settled law** — Extending an
+    Aggregate while bending it to fit (a lifecycle-required field turned
+    nullable for a new case, a `Purpose` / `Type` discriminator making one
+    entity carry materially different lifecycles or rules), never re-reading
+    the Design Decisions whose re-evaluation condition the change just
+    triggered
+    → Re-read recorded decisions when extending an existing Aggregate; when a
+    resistance signal fires, name the revision question in the spec (proceed /
+    split / rename, with reason); see "Revising an Established Model"
