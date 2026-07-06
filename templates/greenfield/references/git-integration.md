@@ -43,8 +43,8 @@ bugfix/{BUG-ID}-{slug}
 Examples:
 
 ```
-feature/EXP-001-expense-submission-aggregate
-feature/HR-003-leave-approval-workflow
+feature/SPEC-20260424-002-submit-expense-report
+feature/SPEC-20260430-001-leave-approval-workflow
 bugfix/BUG-042-money-rounding
 ```
 
@@ -149,10 +149,30 @@ existing Step Gate prompt (it does not add a separate question):
 Tier sets how many checkpoints a change has: T1 three (spec / implementation /
 closeout), T2 two (spec+implementation merged / closeout), T3 a single commit.
 Whether you choose Y or N, the AI records one row in the feature `_index.md`
-Checkpoint Log. A commit hash is written only after the commit succeeds; a hook
-rejection or failed commit is recorded as `failed` (never a fake hash). After
-several consecutive skips in a project the AI mentions you can turn checkpoints
-off in config — it does not turn them off for you.
+Checkpoint Log — every checkpoint is accounted for (`committed` / `skipped` /
+`failed`), even when no commit happens. A commit hash is written only after the
+commit succeeds; a hook rejection or failed commit is recorded as `failed`
+(never a fake hash). **Exception — the closeout row**: the closeout commit
+cannot contain its own hash, so the closeout row is written before the commit
+as `closeout | committed` with **no hash** (see
+`references/finish-feature-flow.md` Step 4); trace that commit via
+`git log -1 -- dflow/specs/features/completed/{SPEC-ID}-{slug}` or the optional
+`Dflow-Checkpoint` trailer below. After several consecutive skips in a project
+the AI mentions you can turn checkpoints off in config — it does not turn them
+off for you.
+
+**Optional machine-greppable trailer.** Teams that want cross-flow checkpoint
+accounting can append a commit trailer at checkpoint commits:
+
+```
+Dflow-Checkpoint: {SPEC-ID} {spec|impl|closeout}
+```
+
+The `_index.md` Checkpoint Log **remains the source of truth**; the trailer is
+a cheap derived mirror (`git log --grep 'Dflow-Checkpoint: {SPEC-ID}'`). Use
+role names, not (k/N) counts — the checkpoint total can change mid-feature
+(tier escalation, follow-ups), and a role gap ("impl exists but no closeout for
+this SPEC-ID") is detectable without predicting N, even across flows.
 
 ### AI commits
 
@@ -312,9 +332,9 @@ with the rule.
 ```
 [SPEC-ID] Short description
 
-[EXP-001] Define ExpenseReport Aggregate with submission invariants
-[EXP-001] Add CreateExpenseReport command and handler
-[EXP-001] Implement persistence configuration for ExpenseReport
+[SPEC-20260424-002] Define ExpenseReport Aggregate with submission invariants
+[SPEC-20260424-002] Add CreateExpenseReport command and handler
+[SPEC-20260424-002] Implement persistence configuration for ExpenseReport
 [BUG-042] Fix rounding in Money value object
 ```
 

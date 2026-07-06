@@ -105,22 +105,41 @@ Template note (for AI):
 > T3 單一 commit。
 >
 > commit hash 只在 commit 實際成功後填入；pre-commit hook reject 或 commit
-> 失敗記 `failed`、不寫假 hash。
+> 失敗記 `failed`、不寫假 hash。**例外：closeout 列不填 hash**——closeout
+> commit 無法自含自身 hash，該列於 commit 前寫入、隨歸檔目錄一起進 commit；
+> 溯源用 `git log -1 -- completed/{SPEC-ID}-{slug}` 或選配的
+> `Dflow-Checkpoint` trailer（見 references/git-integration.md）。
 
 | Timestamp | Checkpoint | Result |
 |---|---|---|
 | {YYYY-MM-DD HH:MM} | spec-baseline | committed ({hash}) / skipped / failed |
 | {YYYY-MM-DD HH:MM} | implementation | committed ({hash}) / skipped / failed |
-| {YYYY-MM-DD HH:MM} | closeout | committed ({hash}) / skipped / failed |
+| {YYYY-MM-DD HH:MM} | closeout | committed / skipped / failed |
 
 ## Resume Pointer
 
-> 一句話：目前進展到哪？下一個動作是什麼？
-> 開新對話接續工作時，從這裡讀起。
+> 目前進展到哪？下一個動作是什麼？開新對話接續工作時，從這裡讀起。
+>
+> 下方四個 cursor 欄位是 workflow 進度的**存放層（宣告，claim）**：
+> 進入 flow 時設 Active Workflow；**每過一個 step gate** 更新 Current Step /
+> Gates Passed / Awaiting（與該 gate 既有的 `_index.md` 更新合併，不另加儀式）；
+> closeout / `/dflow:cancel` 時 Active Workflow 設回 `none`。
+> `/dflow:status` 讀 cursor 後會與推導證據（Checkpoint Log、phase-spec
+> status、git log）交叉，不一致會明確報 mismatch——cursor 是宣告、證據優先。
+> Phase 粒度進度由上方 Phase Specs 表承載；cursor 只補 workflow step / gate
+> 粒度，不展開成 per-step 全表（步驟線性，游標可推導每一步的完成/未做）。
 
 **Current Progress**: {one-line summary}
 
 **Next Action**: {suggested next action}
+
+**Active Workflow**: {new-feature | modify-existing | bug-fix | new-phase | finish-feature | none}
+
+**Current Step**: {Step N — short step name | n/a}
+
+**Gates Passed**: {e.g. "3→3.5, 4→5" | n/a}
+
+**Awaiting**: {step-gate description | none}
 
 <!--
 ## Follow-up Tracking

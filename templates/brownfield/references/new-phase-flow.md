@@ -19,6 +19,8 @@ adds a new phase to an in-progress feature only.
 - Step 5 → Step 6 (`_index.md` refreshed → start implementation)
 - Step 6 → Step 7 (implementation done → complete the phase)
 
+Crossing any step gate above also updates the feature's `_index.md` Resume Pointer cursor (Active Workflow / Current Step / Gates Passed / Awaiting) — fold it into that gate's existing `_index.md` / Resume Pointer edit, no separate ceremony (see the `_index.md` template's Resume Pointer notes).
+
 All other step transitions are **step-internal**: announce "Step N complete,
 entering Step N+1" and proceed without waiting. See AI-AGENT-GUIDE.md § Workflow
 Transparency for the full transparency protocol and confirmation signals.
@@ -63,6 +65,11 @@ AI must locate the target feature and load its current state:
    - Read the most recent phase-spec to understand where the prior phase
      left off (its Business Rules and Delta-from-prior-phases sections in
      particular)
+   - Run the in-flight overlap scan (classification and dedup rules in
+     `AI-AGENT-GUIDE.md` § Status / Control Commands): list other unfinished
+     features in `active/` and any feature / bugfix branches whose work is
+     not visible on this branch — if the incoming phase scope overlaps one
+     of them, surface it before writing the phase-spec.
 
 4. **Branch gate — ensure you are on this feature's branch (before any commit)**
 

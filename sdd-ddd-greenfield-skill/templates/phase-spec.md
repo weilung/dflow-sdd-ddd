@@ -1,11 +1,11 @@
 ---
-id: {CONTEXT}-{NUMBER}
+spec-id: SPEC-{YYYYMMDD}-{NNN}    # the owning feature's SPEC-ID (matches the feature directory name)
 title: 功能標題
-status: draft | in-progress | completed
+status: in-progress    # in-progress | completed
 bounded-context: {ContextName}
 created: {YYYY-MM-DD}
 author: {developer-name}
-branch: feature/{CONTEXT}-{NUMBER}-{short-description}
+branch: feature/{SPEC-ID}-{slug}
 ---
 
 # {功能標題}

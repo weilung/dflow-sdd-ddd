@@ -141,7 +141,7 @@ When applicable, prefix with a type (conventional commits-style):
 | test | tests only |
 | chore | build / tooling |
 
-Example: `[EXP-001] feat: introduce ExpenseReport Aggregate with submission invariants`
+Example: `[SPEC-20260424-002] feat: introduce ExpenseReport Aggregate with submission invariants`
 
 ---
 

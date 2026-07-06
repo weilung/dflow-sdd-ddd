@@ -305,8 +305,10 @@ assistant's documented line (e.g. `Co-Authored-By: Claude
 There is no separate `hotfix/*` branch. A hotfix is:
 
 1. A (small) feature branch cut from `main`
-2. Named `feature/{SPEC-ID}-{slug}` where SPEC-ID is a lightweight spec
-   or a full-ceremony spec depending on severity
+2. Named by the normal Dflow branch scheme, chosen by severity: a
+   bug-type hotfix (T2 lightweight) uses `bugfix/{BUG-ID}-{slug}`; a
+   hotfix that warrants full ceremony uses `feature/{SPEC-ID}-{slug}`
+   (see `references/git-integration.md` § Branch Naming Convention)
 3. Merged back to `main` via the team's chosen merge strategy
 4. Deployed via the same pipeline as any other change
 

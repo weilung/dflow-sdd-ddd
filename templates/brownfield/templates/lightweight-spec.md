@@ -1,10 +1,10 @@
 ---
-id: BUG-{NUMBER}
+id: BUG-{NUMBER}    # bug-type T2 only; a non-bug T2 (lightweight-{date}-{slug}.md) carries no id — the filename identifies it
 title: {簡述問題}
-status: in-progress
+status: in-progress    # in-progress | completed
 bounded-context: {ContextName}
 created: {YYYY-MM-DD}
-branch: bugfix/BUG-{NUMBER}-{short-description}
+branch: bugfix/BUG-{NUMBER}-{slug}
 ---
 
 <!--

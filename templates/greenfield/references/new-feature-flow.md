@@ -10,6 +10,8 @@ Triggered by `/dflow:new-feature` (or natural language implying a new-feature ta
 - Step 6 → Step 7 (branch ready → start implementation)
 - Step 7 → Step 8 (implementation done → completion)
 
+Crossing any step gate above also updates the host feature's `_index.md` Resume Pointer cursor (Active Workflow / Current Step / Gates Passed / Awaiting) once the feature directory exists — fold it into that gate's existing `_index.md` / Resume Pointer edit, no separate ceremony (see the `_index.md` template's Resume Pointer notes).
+
 All other step transitions are **step-internal**: announce "Step N complete, entering Step N+1" and proceed without waiting. See AI-AGENT-GUIDE.md § Workflow Transparency for the full transparency protocol and confirmation signals.
 
 **Ceremony**: this flow always defaults to **T1 Heavy** — the first phase of a brand-new feature is by definition a full SDD cycle. Tier judgement (T1 / T2 / T3) only applies to `/dflow:modify-existing` (see `references/modify-existing-flow.md` and AI-AGENT-GUIDE.md § Ceremony Scaling).
@@ -30,6 +32,27 @@ Check existing assets:
 - Search `dflow/specs/domain/` for related concepts
 - Search `dflow/specs/features/` for related features
 - Check `dflow/specs/domain/glossary.md` and `context-map.md`
+
+**In-flight overlap scan (cross-branch + other unfinished features)** — this
+branch's `dflow/specs/` does not show everything in flight. Run the in-flight
+scan (classification and dedup rules in `AI-AGENT-GUIDE.md` § Status / Control
+Commands):
+
+```bash
+git fetch   # when the network allows; skip gracefully offline
+git branch --all --list '*feature/*' --list '*bugfix/*'
+```
+
+- List other unfinished features already in this branch's `active/` (one
+  cursor line each, from their `_index.md` Resume Pointer).
+- Classify every listed branch by the guide's rules — in flight elsewhere /
+  closed out awaiting integration / stale (completed here) / unknown — do
+  not shortcut the classification. If a branch classified as **in flight
+  elsewhere, closed out awaiting integration, or unknown** has an ID / slug
+  that semantically overlaps this request, surface it and wait for the
+  developer to decide — continue there / integrate it first / treat as
+  related / unrelated — **before creating any new directory, spec, or
+  branch**. Only stale (completed here) branches are non-blocking.
 
 **→ Transition (step-internal)**: Step 1 complete. Announce "Step 1 complete (intake). Entering Step 2: Identify the Bounded Context." and continue.
 
@@ -192,7 +215,7 @@ dflow/specs/features/active/{SPEC-ID}-{slug}/
    - Current BR Snapshot: initialise from the first phase's planned BRs
      (will be refreshed when the phase-spec finalises)
    - Lightweight Changes: empty table at start
-   - Resume Pointer: "phase-1 in progress: drafting phase-spec." / "Next Action: finish phase-spec, then implement Domain layer."
+   - Resume Pointer: "phase-1 in progress: drafting phase-spec." / "Next Action: finish phase-spec, then implement Domain layer." / cursor fields: Active Workflow `new-feature`, Current Step `Step 4 — write the spec`, Gates Passed `3→3.5`, Awaiting `none (mid-step)`
 3. **Create the first phase-spec** at `phase-spec-{YYYY-MM-DD}-{slug}.md`
    using `templates/phase-spec.md`. The "Delta from prior phases" section
    is filled with "首 phase，無前置 Delta" (first phase has nothing to

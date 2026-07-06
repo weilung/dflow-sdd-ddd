@@ -286,11 +286,16 @@ public record Money(decimal Amount, Currency Currency)
 }
 
 // DateRange
-public record DateRange(DateOnly Start, DateOnly End)
+public record DateRange
 {
-    public DateRange
+    public DateOnly Start { get; }
+    public DateOnly End { get; }
+
+    public DateRange(DateOnly start, DateOnly end)
     {
-        if (Start > End) throw new DomainException("Start must be before End.");
+        if (start > end) throw new DomainException("Start must be before End.");
+        Start = start;
+        End = end;
     }
 
     public bool Contains(DateOnly date) => date >= Start && date <= End;

@@ -7,6 +7,8 @@ Step-by-step guide for when a developer triggers `/dflow:modify-existing` or `/d
 - Step 4 → Step 5 (extraction decision → start implementation)
 - Step 5 → Step 6 (implementation done → update artifacts)
 
+Crossing any step gate above also updates the host feature's `_index.md` Resume Pointer cursor (Active Workflow / Current Step / Gates Passed / Awaiting) once the host feature directory exists — fold it into that gate's existing `_index.md` / Resume Pointer edit, no separate ceremony (see the `_index.md` template's Resume Pointer notes).
+
 All other step transitions are **step-internal**: announce "Step N complete, entering Step N+1" and proceed without waiting. See AI-AGENT-GUIDE.md § Workflow Transparency for the full transparency protocol and confirmation signals.
 
 **Ceremony adjustment when triggered by `/dflow:bug-fix`**: treat as lightweight — use the Lightweight Spec Template (see `templates/lightweight-spec.md`) instead of the full spec, and Step 4 (extraction) may default to "defer and record in tech-debt.md" unless the bug itself is in extractable logic. T2 still generates a concise `Implementation Tasks` checklist (see Step 4).
@@ -63,6 +65,16 @@ Walk through these in order:
    this is a new concern. For T1, use `/dflow:new-feature`. For T2 / T3
    on a standalone bug, see Step 1.5 — `/dflow:bug-fix` will create a
    minimal feature directory to host the lightweight-spec.
+4. **In-flight overlap scan (cross-branch)**: this branch's `active/` is not
+   everything in flight. Run the in-flight scan (classification and dedup
+   rules in `AI-AGENT-GUIDE.md` § Status / Control Commands) — `git fetch`
+   when the network allows, then
+   `git branch --all --list '*feature/*' --list '*bugfix/*'` — and also list
+   other unfinished features in this branch's `active/` (one cursor line
+   each). If a scanned branch classified as in flight elsewhere, closed out
+   awaiting integration, or unknown — or an unfinished feature — semantically
+   overlaps this change, surface it and wait for the developer to decide
+   before creating anything new (stale branches are non-blocking).
 
 > **Why scan completed too?** Completed features are frozen history
 > and **cannot accept** any T2 / T3 directly

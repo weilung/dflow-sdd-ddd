@@ -56,6 +56,10 @@ proceeding (do not flip status, do not archive, do not emit summary).
 - [ ] Every phase-spec file referenced in the Phase Specs table exists at
       the path the table claims
 - [ ] Every phase-spec file's frontmatter has `status: completed`
+- [ ] Every Tier = T2 row in `_index.md` Lightweight Changes references an
+      existing `lightweight-*.md` / `BUG-*.md` file in the feature directory
+- [ ] Every such lightweight / BUG spec file's frontmatter has
+      `status: completed`
 - [ ] `_index.md` has no obvious open items in Resume Pointer (e.g. "phase-N
       drafting" / "implementation pending" / "TODO" markers)
 - [ ] Current BR Snapshot table is non-empty (or feature is intentionally
@@ -66,6 +70,7 @@ If any check fails:
 > found:
 >   ✗ phase-spec-2026-04-15-foo.md status is still `in-progress`
 >   ✗ Phase Specs table row 3 references missing file phase-spec-...
+>   ✗ lightweight-2026-06-20-rounding.md frontmatter status is still `in-progress`
 >
 > Address these (run `/dflow:new-phase` to add missing work, or fix the
 > stale status manually), then re-run `/dflow:finish-feature`."
@@ -93,11 +98,17 @@ branch: feature/{SPEC-ID}-{slug}
 ---
 ```
 
-Also update the **Resume Pointer** to reflect closeout:
+Also update the **Resume Pointer** to reflect closeout — this writes the
+cursor's terminal state (after closeout no workflow is active on this
+feature; do not edit the cursor again after the Step 4 closeout commit):
 
 ```
 **Current Progress**: feature completed ({date}); all phase-specs status = completed.
 **Next Action**: integration — push / merge / PR per the selected Git policy.
+**Active Workflow**: none
+**Current Step**: n/a
+**Gates Passed**: n/a
+**Awaiting**: none
 ```
 
 **→ Transition (step-internal)**: Step 2 complete. Announce "Step 2 complete (status flipped). Entering Step 3: Sync BR Snapshot to BC layer." and continue.
@@ -184,7 +195,8 @@ AI runs:
 ```bash
 git mv dflow/specs/features/active/{SPEC-ID}-{slug} \
        dflow/specs/features/completed/{SPEC-ID}-{slug}
-git status   # confirm rename detection
+git status   # confirm rename detection AND check for `RM` — an `M` next to
+             # a rename means unstaged edits you must re-add before committing
 ```
 
 `git mv` is mandatory — never use plain `mv` + `git add`. This preserves
@@ -193,37 +205,75 @@ PR diff quality stays intact across the move. See
 `references/git-integration.md` § "Directory Moves Must Use git mv" for
 the full rule set.
 
-After the move, also `git add` any modified files from Step 3 (the
-updated `rules.md`, `behavior.md`, `events.md`, `context-map.md`,
-`glossary.md`, `architecture/tech-debt.md`, etc.) into the same stage.
-
 **Closeout commit checkpoint** (completes the offline Local-closeout gate):
 
 ```
-✓ Feature archived to completed/ and closeout files staged
+✓ Feature archived to completed/ and closeout ready to stage
    Commit this closeout now?
    [Y] Yes — the AI commits with your Git identity (marker per _conventions.md § AI Commit Policy)
    [N] No — skip; you commit yourself
 ```
 
-Whether you choose Y or N, record one row in the feature `_index.md`
-Checkpoint Log (`closeout | committed ({hash})` or `closeout | skipped`). Only
-write a hash after the commit actually succeeds; if a pre-commit hook rejects it
-or the commit fails, record `failed` and surface the error — never write a fake
-hash.
+Then, in this order:
 
-The Local-closeout gate is satisfied **only when the closeout is committed**:
-closeout complete, Checkpoint Log updated, and the working tree clean (no
-uncommitted changes). If you declined the commit (chose N) or it failed,
-Local-closeout is **not** satisfied yet — commit the staged closeout yourself
-before continuing; do not enter the Integration / PR gate with uncommitted
-changes. Once committed, the gate stands on its own offline; integration happens
-in Step 5 when you have network.
+1. **Record the checkpoint row first.** Write one row in the moved
+   `_index.md` Checkpoint Log — `closeout | committed` for Y, `closeout |
+   skipped` for N. The closeout row carries **no commit hash**: the closeout
+   commit cannot contain its own hash. Trace it later via
+   `git log -1 -- dflow/specs/features/completed/{SPEC-ID}-{slug}` (or the
+   optional `Dflow-Checkpoint` trailer). The "hash only after success" rule
+   still applies to spec / implementation rows — closeout is the documented
+   exception (see `references/git-integration.md` § Commit Checkpoints,
+   Branch Gate & AI Commits).
+2. **Stage the whole archived feature directory:**
 
-**→ Transition (step-internal)**: Step 4 complete. Branch on whether the closeout commit landed:
+   ```bash
+   git add dflow/specs/features/completed/{SPEC-ID}-{slug}
+   ```
 
-- **Closeout commit landed (working tree clean)** → announce "Step 4 complete (feature archived; Local-closeout gate satisfied). Entering Step 5: Integration / PR gate." and continue.
-- **Closeout commit was declined (N) or failed** → **stop here.** Announce "Step 4 complete (feature archived), but the Local-closeout gate is not satisfied yet — the closeout is staged but uncommitted. Commit those changes (or address the failure), then resume to Step 5." Do **not** enter Step 5 with uncommitted closeout changes.
+   This is required, not optional: `git mv` stages the rename with the
+   **last-committed** content, so working-tree edits made earlier in this
+   flow to the moved files — the Step 2 status flip and Resume Pointer
+   update, plus the checkpoint row you just wrote — stay **unstaged** until
+   this `git add`. In `git status`, the moved `_index.md` showing `RM`
+   instead of plain `R` is exactly this signal. Then also `git add` the
+   files updated in Step 3 (the updated `rules.md`, `behavior.md`,
+   `events.md`, `context-map.md`, `glossary.md`,
+   `architecture/tech-debt.md`, etc.) into the same stage.
+3. **Commit (Y) or stop (N).** For Y the AI commits. If a pre-commit hook
+   rejects it or the commit fails, flip the checkpoint row to `failed` (the
+   row is not committed yet — edit it directly), surface the error, and
+   treat the gate as unsatisfied.
+
+**Post-commit closeout verification** — after a successful commit, and before
+declaring the Local-closeout gate satisfied, AI runs and reports `✓` / `✗` for
+every item:
+
+- [ ] `git show HEAD:dflow/specs/features/completed/{SPEC-ID}-{slug}/_index.md`
+      — one blob read verifying **two** things: frontmatter `status: completed`
+      **and** the Checkpoint Log contains the closeout row. This reads the
+      **committed** content, not the working tree — the former catches "rename
+      carried stale content", the latter catches "row never made it into the
+      commit".
+- [ ] `dflow/specs/features/active/{SPEC-ID}-{slug}/` no longer exists (the
+      directory was moved, not copied)
+- [ ] `git status --short` shows no leftovers related to this feature
+      (working tree clean; identify any unrelated dirty files explicitly)
+
+If any item fails, do **not** declare closeout complete — fix it (re-add and
+amend, or a follow-up commit; the developer chooses) and re-verify.
+
+The Local-closeout gate is satisfied **only when the closeout is committed and
+the verification above passes**. If you declined the commit (chose N) or it
+failed, Local-closeout is **not** satisfied yet — commit the staged closeout
+yourself before continuing; do not enter the Integration / PR gate with
+uncommitted changes. Once committed and verified, the gate stands on its own
+offline; integration happens in Step 5 when you have network.
+
+**→ Transition (step-internal)**: Step 4 complete. Branch on the verification result:
+
+- **Closeout commit landed and post-commit verification passed** → announce "Step 4 complete (feature archived; Local-closeout gate satisfied). Entering Step 5: Integration / PR gate." and continue.
+- **Closeout commit was declined (N), failed, or verification reported `✗`** → **stop here.** Announce "Step 4 complete (feature archived), but the Local-closeout gate is not satisfied yet — the closeout is staged but uncommitted, or the committed content failed verification. Commit the staged changes (or fix the failure), then resume to Step 5." Do **not** enter Step 5 with uncommitted or unverified closeout changes.
 
 ## Step 5: Emit Integration Summary (Git-strategy-neutral)
 
@@ -286,10 +336,17 @@ the developer:
 
 If no `follow-up-of` field, skip Step 6 and announce closeout complete:
 > "`/dflow:finish-feature` complete for `{SPEC-ID}-{slug}`. Feature
-> directory is now at `dflow/specs/features/completed/{SPEC-ID}-{slug}/`.
-> If you skipped the closeout commit, commit the staged changes first to
-> finish the Local-closeout gate. Then integration — merge / push / PR —
-> follows the selected Git policy, at your discretion."
+> directory is now at `dflow/specs/features/completed/{SPEC-ID}-{slug}/`,
+> with the Local-closeout gate satisfied (closeout committed and verified).
+> Integration — merge / push / PR — follows the selected Git policy, at
+> your discretion."
+
+**In-flight reminder** — after the closeout announcement (with or without
+Step 6), run the in-flight overview scan (see `AI-AGENT-GUIDE.md` § Status /
+Control Commands) and list any other unfinished features in `active/` and any
+in-flight feature / bugfix branches. Surfacing them at closeout is deliberate:
+attention is about to move elsewhere, and this is exactly where half-done work
+sinks.
 
 ## Step 6: Reverse-Update Follow-up Tracking (only if follow-up)
 

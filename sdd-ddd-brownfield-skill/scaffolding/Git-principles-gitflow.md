@@ -140,7 +140,7 @@ When applicable, prefix with a type (conventional commits-style):
 | test | tests only |
 | chore | build / tooling |
 
-Example: `[EXP-001] feat: add JPY currency support to Money VO`
+Example: `[SPEC-20260424-001] feat: add JPY currency support to Money VO`
 
 ---
 

@@ -95,8 +95,8 @@ adopted, the format is:
 | test | tests only |
 | chore | build / tooling |
 
-Example: `feat(expense): add JPY currency support` with `[EXP-001]` in
-the body.
+Example: `feat(expense): add JPY currency support` with
+`[SPEC-20260424-001]` in the body.
 
 ---
 

@@ -37,9 +37,9 @@ main (or your project's base branch)
 ```
 feature/{SPEC-ID}-{slug}
   Examples:
-    feature/EXP-001-jpy-currency-support
-    feature/HR-003-leave-approval-workflow
-    feature/SHARED-002-audit-logging
+    feature/SPEC-20260424-001-jpy-currency-support
+    feature/SPEC-20260430-001-leave-approval-workflow
+    feature/SPEC-20260502-002-audit-logging
 
 bugfix/{BUG-ID}-{slug}
   Examples:
@@ -148,10 +148,30 @@ existing Step Gate prompt (it does not add a separate question):
 Tier sets how many checkpoints a change has: T1 three (spec / implementation /
 closeout), T2 two (spec+implementation merged / closeout), T3 a single commit.
 Whether you choose Y or N, the AI records one row in the feature `_index.md`
-Checkpoint Log. A commit hash is written only after the commit succeeds; a hook
-rejection or failed commit is recorded as `failed` (never a fake hash). After
-several consecutive skips in a project the AI mentions you can turn checkpoints
-off in config — it does not turn them off for you.
+Checkpoint Log — every checkpoint is accounted for (`committed` / `skipped` /
+`failed`), even when no commit happens. A commit hash is written only after the
+commit succeeds; a hook rejection or failed commit is recorded as `failed`
+(never a fake hash). **Exception — the closeout row**: the closeout commit
+cannot contain its own hash, so the closeout row is written before the commit
+as `closeout | committed` with **no hash** (see
+`references/finish-feature-flow.md` Step 4); trace that commit via
+`git log -1 -- dflow/specs/features/completed/{SPEC-ID}-{slug}` or the optional
+`Dflow-Checkpoint` trailer below. After several consecutive skips in a project
+the AI mentions you can turn checkpoints off in config — it does not turn them
+off for you.
+
+**Optional machine-greppable trailer.** Teams that want cross-flow checkpoint
+accounting can append a commit trailer at checkpoint commits:
+
+```
+Dflow-Checkpoint: {SPEC-ID} {spec|impl|closeout}
+```
+
+The `_index.md` Checkpoint Log **remains the source of truth**; the trailer is
+a cheap derived mirror (`git log --grep 'Dflow-Checkpoint: {SPEC-ID}'`). Use
+role names, not (k/N) counts — the checkpoint total can change mid-feature
+(tier escalation, follow-ups), and a role gap ("impl exists but no closeout for
+this SPEC-ID") is detectable without predicting N, even across flows.
 
 ### AI commits
 
@@ -325,8 +345,8 @@ Tie commits to specs:
 [SPEC-ID] Short description
 
 Examples:
-[EXP-001] Add JPY currency support to Money value object
-[EXP-001] Extract exchange rate logic to Domain service
+[SPEC-20260424-001] Add JPY currency support to Money value object
+[SPEC-20260424-001] Extract exchange rate logic to Domain service
 [BUG-042] Fix rounding inconsistency, extract to Money.Round()
 ```
 

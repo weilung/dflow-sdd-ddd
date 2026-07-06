@@ -74,10 +74,43 @@ input like this (supporting files live in the workflow bundle at
 
 ## Status / Control Commands
 
-`/dflow:status` reports active workflow state. Include these fields: workflow,
-step, completed, in-progress, remaining, pending decision, and next valid action.
-If no workflow is active, say that no workflow is active and list valid flow-entry
-or standalone commands.
+`/dflow:status` reports in two parts.
+
+**Part 1 — in-flight overview (always shown, workflow active or not).**
+Aggregate every in-flight feature so unfinished work surfaces without anyone
+remembering to look:
+
+- Scan this branch's `dflow/specs/features/active/*/_index.md` and print one
+  line per feature: SPEC-ID / Active Workflow / Current Step / Awaiting / last
+  Checkpoint Log row (read from each Resume Pointer cursor).
+- Cross-branch: run `git fetch` when the network allows (skip gracefully
+  offline), then `git branch --all --list '*feature/*' --list '*bugfix/*'`,
+  deduplicating local and remote refs of the same branch (prefer local). For
+  each branch, classify in order: (1) its feature directory exists in this
+  branch's `active/` → already covered above; (2) exists in this branch's
+  `completed/` → a stale undeleted branch — list as "completed; branch can be
+  deleted", **not** in-flight; (3)
+  `git show {branch}:dflow/specs/features/active/{dir}/_index.md` is readable
+  → in flight on that branch, print its cursor line (no branch switching);
+  (4) the `completed/` path is readable on that branch → closed out there,
+  awaiting integration; (5) nothing readable → list the branch as unknown
+  state.
+- If `features/backlog/` is non-empty, append one count line.
+- Inherent limit: work never committed anywhere is invisible to any git scan.
+
+**Part 2 — current feature detail (when a workflow is active).** Read the
+Resume Pointer cursor as the **declared** state, then cross-check it against
+derived evidence (Checkpoint Log, phase-spec statuses, recent git log). On
+mismatch, report both sides explicitly and ask the developer to correct the
+cursor — the cursor is a claim; evidence wins. If the cursor fields are absent
+(an older `_index.md`), fall back to pure derivation. For readability you may
+expand the cursor into a step checklist (done / in progress / not started)
+derived live from the flow file — display only, never stored.
+
+Include these fields: workflow, step, completed, in-progress, remaining,
+pending decision, and next valid action. If no workflow is active, say so and
+list valid flow-entry or standalone commands (Part 1 still shows the
+in-flight overview).
 
 `/dflow:next` is valid only at a step gate in an active workflow. Treat it as
 developer confirmation equivalent to "OK" or "continue", then move to the next
@@ -85,7 +118,9 @@ workflow step.
 
 `/dflow:cancel` aborts the current workflow and returns to free conversation.
 Do not rollback changes, delete artifacts, or rewrite specs merely because the
-workflow was cancelled.
+workflow was cancelled. If the feature directory exists, set the Resume
+Pointer cursor's Active Workflow to `none` (keep Current Progress as a trace
+of where the cancellation happened).
 
 When no workflow is active, `/dflow:next` and `/dflow:cancel` must report that
 there is no active workflow to advance or cancel.
