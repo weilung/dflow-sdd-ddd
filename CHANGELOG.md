@@ -6,6 +6,42 @@
 
 ---
 
+## 0.12.0 — 2026-07-09 — 模型生命週期閉環（長時流程 + 模型重審）+ 收尾守門與跨 session 連續性
+
+**Proposals**：PROPOSAL-067（skill source 舊制 ID 與範例正確性清理）、PROPOSAL-068（finish-feature 收尾完整性守門）、PROPOSAL-069（跨分支 / 跨 session 連續性 Phase 1）、PROPOSAL-070（Long-Running Processes 判準與最簡階梯）、PROPOSAL-071（模型修正判準）
+
+本版兩條主線：
+
+1. **DDD 指引優化線收官**（070 / 071）——modeling guide 補上模型生命週期的最後兩塊：跨 Aggregate 多步驟流程的協調與補償邏輯住哪（Long-Running Processes），以及既有模型何時該被重審（Revising an Established Model）。至此生命週期閉環：形成（061 萌芽）→ 使用 → 漂移偵測（verify）→ 重審（071）。
+2. **Workflow 收尾與連續性**（068 / 069）——finish-feature 收尾產物守門 + 跨分支 / 跨 session 的在途工作可見性。
+
+### 新功能 / 行為改善（DDD 建模指引）
+
+- **Long-Running Processes（長時流程）**（PROPOSAL-070）：guide 新段——判準先行（「後面失敗需要撤銷前面 → 你要的是 process，不是 event chain」+ 訊號清單與 fire-and-forget 負向守句）、三階梯（owning aggregate status 欄位 → 專責 process aggregate → workflow framework = ADR 決策，比照 outbox / Event Sourcing 防呆先例）、補償 BR 化（補償是新的 domain fact，非 rollback）、deadline 分層（偵測是排程、決策是 domain 規則）。同檔補 Pattern Selection flowchart 與 Domain Services 的 stateful-process 守句、Common Mistakes #11（補償邏輯散落 handler）；greenfield `events.md` 模板加指路一句。
+- **Revising an Established Model（重審既有模型）**（PROPOSAL-071）：guide 新段——重讀規則（擴充既有 Aggregate 前重讀其 Design Decisions 與再評估條件）、六個「模型在抵抗」訊號（生命週期必填欄位 nullable 化、判別欄增生、同軸第 3+ 業務分支、術語加限定詞、再評估條件命中、跨 instance 交易壓力）+ 無界集合 cross-ref、兩階梯（spec 內具名記錄「照舊 / 拆分 / 改名 + 理由」→ 修正當獨立變更走 T1）、雙反空轉守句（訊號是觸發器不是排程；觸發的是重審不是重設計）。Design Questions 加第 7 問（把再評估條件寫進 worksheet）、Common Mistakes #12；兩軌 new-feature / modify-existing flow 在 Aggregate 歸屬時刻加完整重讀掛鉤（brownfield 與 061 萌芽判準成對）、兩軌 new-phase 加一句指路；`aggregate-design.md` 模板提示再評估條件。
+
+### Workflow 強化
+
+- **finish-feature 收尾完整性守門**（PROPOSAL-068）：closeout 產物順序重排與雙驗證——closeout 列先寫（明文無 hash 例外）→ 整目錄 `git add` → commit → `git show HEAD:` 單 blob 同時驗 status 與 closeout 列，gate 以驗證通過為準；lightweight / BUG spec 驗證補進 Step 1；選配 `Dflow-Checkpoint` trailer 與 checkpoint 帳原則明文化（dist issue #5 的 skill 面收斂）。
+- **跨分支 / 跨 session 連續性 Phase 1**（PROPOSAL-069）：`_index.md` Resume Pointer 加持久化 workflow cursor（Active Workflow / Current Step / Gates Passed / Awaiting；宣告與推導證據交叉、證據優先）；`/dflow:status` 改兩段式——在途總覽（本分支 active features + 跨分支 git 掃描分類）+ 當前 feature 細節；intake 重疊掃描（dist issue #4 部分收）。
+
+### 清理 / 修正
+
+- **skill source 舊制 ID 與範例正確性**（PROPOSAL-067）：flow / 模板殘留的 pre-SPEC-ID 舊制全面換為 SPEC-format（frontmatter、branch 命名、範例 ID）、greenfield trunk Hotfixes 依 severity 雙軌命名、guide 內 `DateRange` 範例改合法 C#。
+- `scripts/check-cross-refs.mjs` Windows 路徑 bug 修正（dev-only，不影響套件使用者）。
+
+### 升級提醒
+
+- 既有專案重跑 `dflow configure-agents` 後，bundle 內 `ddd-modeling-guide.md` 取得兩個新段落（Long-Running Processes、Revising an Established Model），六個 flow 檔取得既有模型重讀掛鉤，`aggregate-design.md` / `events.md` 模板取得新提示句。
+
+### 驗證
+
+- P-067〜071 全程 proposal-stage + implementation-stage cross-model review 收斂（各案 1〜3 輪迭代至 zero findings）；cold-eye gate 依風險分級 skip（純散文、不動 runtime，user 逐案核可）。
+- **P-071 為證據驅動成案**：sim-test R4（seeded 既有專案 + 事前登錄 per-signal rubric）判定「AI 不回頭質疑既有模型決策」盲區成立（H1）後才寫指引；P-070 於同一 R4 中獲落地當日後驗（dev session 主動引用並正確應用其負向守句）。
+- `npm test` + `scripts/check-repo-consistency.sh`（含 cross-refs + source↔mirror diff + `npm pack --dry-run`）全綠。
+
+---
+
 ## 0.11.0 — 2026-06-27 — DDD 指引深化 + pre-V1 退役 + docs 刷新
 
 **Proposals**：PROPOSAL-059（modeling-guide 盲區補強）、PROPOSAL-060（Subdomain 分類）、PROPOSAL-061（Brownfield aggregate 萌芽判準）、PROPOSAL-062（戰術補遺）、PROPOSAL-064（Brownfield modeling-guide reachability）、PROPOSAL-065（檢查機械化）、PROPOSAL-066（context-map 語彙補完）、PROPOSAL-063（退役 pre-V1 migration story）
