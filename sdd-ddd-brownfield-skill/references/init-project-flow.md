@@ -167,6 +167,32 @@ Wait for answers.
 > and refreshes it in place on re-run. Merge snippets under
 > `dflow/specs/shared/` are used only if Dflow markers conflict."
 
+Wait for answers.
+
+### Q9. Project-level skill (agent-gated, default yes)
+
+Asked only when Q8 selected at least one agent — with no agents there is no
+projection target and this question is skipped entirely.
+
+> "Install the project-level Dflow skill for natural-language auto-trigger?
+> (Y/n)
+>
+> The skill is what makes requests like 'I want to add a feature' surface the
+> matching workflow automatically; without it, triggering relies on the
+> instruction files alone and degrades in long sessions. Skill files are
+> Dflow-generated derivatives — the recommended default is to gitignore them
+> and re-project after cloning."
+
+Wait for the answer. **Blank defaults to yes.** On `n`, tell the developer:
+
+> "Skipped the project-level skill; add it later with
+> `dflow configure-agents --skills`."
+
+CLI note: the CLI asks this question only on an interactive terminal. A
+non-interactive (piped) `dflow init` never reads an extra stdin answer for it
+— existing scripted answer sequences keep their structure and keep working —
+and installs the skill for the selected agents by default.
+
 **→ Transition (step-internal)**: Step 2 complete. Announce
 > "Step 2 complete (project information captured). Entering Step 3:
 > File-list preview."
@@ -274,7 +300,7 @@ skip, and wait for developer confirmation:
 **→ Step Gate: Step 3 → Step 4**
 
 Wait for explicit confirmation. If the developer asks to change the
-selection, go back to the relevant Step 2 question (Q5–Q8) and re-run Step 3.
+selection, go back to the relevant Step 2 question (Q5–Q9) and re-run Step 3.
 
 ---
 
@@ -345,6 +371,22 @@ For each selected tool-specific file (`AGENTS.md`, `CLAUDE.md`,
   the end of the file, keeping the file's dominant line ending; show that block
   in the preview, and refresh that same block on re-run. If the developer later
   deletes the block, a later `init` / `configure-agents` run appends it again
+
+If the developer chose to install the project-level skill (Q9), the CLI also
+creates the skill file for each selected tool at its native project-level
+path:
+
+- `.claude/skills/dflow/SKILL.md` — Claude Code
+- `.agents/skills/dflow/SKILL.md` — Codex
+- `.github/skills/dflow/SKILL.md` — GitHub Copilot
+
+All three are the same edition-neutral thin skill projected from the single
+canonical source in the npm package. An existing file at one of those paths
+that is **not** Dflow-generated (missing the
+`<!-- dflow-generated: skill-adapter -->` marker) is left unchanged with a
+warning. Manual AI fallback (no npm available): do **not** hand-write SKILL.md
+content — report that the skill install is deferred and the developer should
+run `dflow configure-agents --skills` once npm is available.
 
 ### 4.4 Directory-only entries
 

@@ -179,8 +179,9 @@ triggers only. It does not create Codex command files. Codex v1 has no Dflow
 command-file adapter equivalent to Claude `.claude/commands` or Copilot
 `.github/prompts`.
 
-**Auto-trigger skills come from `--skills`, not `--command-adapters`.** See
-"Codex Behavior With Optional Skills" below.
+**Auto-trigger skills come from the skill install (init's default, or
+`--skills`), not `--command-adapters`.** See "Codex Behavior With Skills"
+below.
 
 When you select `AGENTS.md - Codex / Copilot coding agent` in
 `--command-adapters` mode, Dflow writes a trigger list generated from the
@@ -219,10 +220,16 @@ Both snippets appear only on a marker conflict. A clean custom `AGENTS.md` with
 no conflicting markers does not produce a snippet at all — Dflow just appends the
 adjacent marked block in place.
 
-### Codex Behavior With Optional Skills (Auto-Trigger)
+### Codex Behavior With Skills (Auto-Trigger, Installed by Default)
 
-`dflow configure-agents --skills` projects a thin, tool-neutral skill to
-`.agents/skills/dflow/SKILL.md` — Codex's project-level skill path. This gives
+Dflow projects a thin, tool-neutral skill to
+`.agents/skills/dflow/SKILL.md` — Codex's project-level skill path. The skill
+now installs **by default**: `dflow init` installs it when Codex was selected
+(interactive runs ask one default-yes question; non-interactive runs install
+without reading extra stdin), and `dflow configure-agents` asks the same
+question when Codex is newly selected without a skill;
+`dflow configure-agents --skills` backfills a previously skipped skill or
+force-regenerates it. This gives
 Codex **natural-language auto-trigger on par with Claude Code**: when you
 describe intent like "help me start a new feature", Codex can judge relevance
 from the skill's `description`, suggest the matching `dflow:<id>` workflow, and
@@ -320,9 +327,9 @@ workflow by reading `AI-AGENT-GUIDE.md`.
 Codex only strengthens text-trigger guidance in marked blocks inside
 `AGENTS.md`; fallback merge snippets are created only on marker conflicts. Do
 not expect Codex-specific **command** files under `.claude/commands` or
-`.github/prompts`. (Auto-trigger **skills** are separate: `--skills` projects
-one to `.agents/skills/dflow/SKILL.md`, see "Codex Behavior With Optional
-Skills" above.)
+`.github/prompts`. (Auto-trigger **skills** are separate: init installs one to
+`.agents/skills/dflow/SKILL.md` by default and `--skills` regenerates it, see
+"Codex Behavior With Skills" above.)
 
 **Do not confuse Codex `/init` with Dflow `init`.** Codex `/init` creates a
 generic `AGENTS.md` scaffold for Codex. Dflow setup is `dflow init` (or

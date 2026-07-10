@@ -41,10 +41,25 @@ dflow init
 ```
 
 The init flow asks whether the project is greenfield or brownfield, which Git
-policy the team follows (GitFlow / Trunk), and how AI-made commits should be
-marked, then previews the files it will create. Existing files are not overwritten. Init
+policy the team follows (GitFlow / Trunk), how AI-made commits should be
+marked, and which AI tools to configure, then previews the files it will create. Existing files are not overwritten. Init
 creates workflow documentation and AI instruction files; it does not inspect,
 refactor, or migrate your application code.
+
+When AI tools were selected, init also installs the project-level skill for
+them (Claude, Codex, and GitHub Copilot) **by default** — the source of
+natural-language auto-trigger (you say "I want to add a feature" and the AI
+suggests the matching workflow; Copilot CLI summons it via `/dflow`). On an
+interactive terminal it asks one `(Y/n)` question — just press Enter to
+install; a scripted (non-interactive) run never reads an extra answer and
+installs by default, so existing automation answer sequences run unchanged.
+Skill files are Dflow-generated derivatives: the recommended default is to
+gitignore them and re-project after cloning (see the version-control table
+below).
+
+(The default skill install and the configure-agents prompt below are
+post-`0.12.0` changes not yet published to npm — on the npm version this is
+still opt-in: run `dflow configure-agents --skills` after init.)
 
 If the project is already initialized and you later add another AI coding
 tool, run:
@@ -53,23 +68,23 @@ tool, run:
 dflow configure-agents
 ```
 
-Adding `--skills` projects a project-level skill for all three tools (Claude,
-Codex, and GitHub Copilot), restoring natural-language auto-trigger (you say "I
-want to add a feature" and the AI suggests the matching workflow; Copilot CLI
-still summons it via `/dflow`). All three support it now, so treat it as the
-recommended standard install:
+It asks the same default-yes skill question for newly selected tools that have
+no skill yet (non-interactive runs install by default), so tools added later
+don't miss auto-trigger either. To force-regenerate the skills for all selected
+tools (for example to refresh them after upgrading Dflow), use `--skills`:
 
 ```bash
 dflow configure-agents --skills
 ```
 
-Skipping skills does not leave the AI trigger-blind — the project instructions
-init writes (the shims + the canonical guide) already tell it to suggest the
-matching `/dflow:*` command for spec-impacting requests. The difference is
-reliability: that path depends on the model remembering the instructions in
-the moment and degrades in long sessions, while `--skills` hands triggering to
-the tool's native skill-matching mechanism (the skill's trigger description
-sits in front of the model every turn), making it dependable.
+Answering `n` to the skill does not leave the AI trigger-blind — the project
+instructions init writes (the shims + the canonical guide) already tell it to
+suggest the matching `/dflow:*` command for spec-impacting requests. The
+difference is reliability: that path depends on the model remembering the
+instructions in the moment and degrades in long sessions, while the skill hands
+triggering to the tool's native matching mechanism (the skill's trigger
+description sits in front of the model every turn), making it dependable. You
+can add it any time later with `dflow configure-agents --skills`.
 
 If you also want tool-native `/` command / prompt menus, add `--command-adapters`
 (it composes with `--skills`):
@@ -287,10 +302,12 @@ guide stays the single source of truth, so teams can use multiple AI tools
 without maintaining multiple copies of the workflow rules.
 
 You can run `dflow configure-agents` later to add more tool shims as the team
-adopts additional AI coding agents. If you need Claude / Copilot tool-native
-command entries, use `dflow configure-agents --command-adapters`. For
-natural-language auto-trigger (a project-level skill for Claude Code, Codex, and
-GitHub Copilot), use `dflow configure-agents --skills`.
+adopts additional AI coding agents — it asks the default-yes skill question for
+newly selected tools that have no skill yet (non-interactive runs install by
+default), so auto-trigger is not missed. If you need Claude / Copilot
+tool-native command entries, use `dflow configure-agents --command-adapters`.
+To force-regenerate the skills for all selected tools (for example after
+upgrading Dflow), use `dflow configure-agents --skills`.
 
 ### Version-Control Policy for Generated Artifacts (recommended default)
 

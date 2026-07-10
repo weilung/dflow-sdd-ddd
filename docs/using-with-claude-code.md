@@ -187,16 +187,19 @@ git rm --cached -r .claude/commands/dflow/
 重投影；但既有 `dflow/specs/shared/AI-AGENT-GUIDE.md` **不會**被覆寫——「重投影 adapter」不等於
 「升級 canonical guide」。請以**相同的 dflow CLI 版本**重投影，避免 registry 與 guide 版本錯位。
 
-### 選配 Skill Adapter（找回自然語言自動觸發）
+### Skill Adapter（自然語言自動觸發，init 預設安裝）
 
-Command adapter 提供 `/` 選單入口，但**不會自動觸發**——你得主動打命令。若想找回
-「講『我要加一個功能』就自動現身」的體驗，可在已初始化的專案中執行：
+Command adapter 提供 `/` 選單入口，但**不會自動觸發**——你得主動打命令。自動觸發
+來自 project-level skill，而它現在是**預設安裝**：`dflow init` 有選 AI 工具時就會裝
+（互動模式問一題、直接按 Enter = 裝；非互動不多讀答案、直接預設裝），
+`dflow configure-agents` 對「新選且尚無 skill」的工具也補問同一題。若當時答 `n`
+略過、或想強制重生成（例如升級 Dflow 後刷新），執行：
 
 ```bash
 dflow configure-agents --skills
 ```
 
-選擇 Claude Code 後，Dflow 會產生一份薄 skill：
+選擇 Claude Code 後（init 或 configure-agents 皆同），Dflow 會產生一份薄 skill：
 
 - `.claude/skills/dflow/SKILL.md`
 
@@ -204,7 +207,7 @@ dflow configure-agents --skills
 `dflow/specs/shared/AI-AGENT-GUIDE.md`（命令登錄表與路由規則）以及
 `dflow/specs/shared/dflow-workflows/`（含可執行步驟定義的 vendored bundle）。
 
-同一份 edition-neutral skill source，現在也會由 `--skills` 為 Codex
+同一份 edition-neutral skill source，也會為 Codex
 （`.agents/skills/dflow/SKILL.md`）與 GitHub Copilot（`.github/skills/dflow/SKILL.md`）
 投影 project-level skill，三家沿用相同的跨工具 agentskills.io 標準。
 
@@ -216,14 +219,15 @@ dflow configure-agents --skills
 - 由自然語言觸發時，**不會直接進 workflow**：它會判斷意圖、**建議對應的 `/dflow:`
   命令並等待你確認**，再進入流程。
 
-**四種組合**（command adapter 與 skill 各自獨立 opt-in）：
+**四種組合**（command adapter 維持 opt-in；skill 預設安裝，可在 init 答 `n`
+略過或事後刪除）：
 
 | 安裝組合 | 入口行為 |
 |---|---|
-| 都不裝 | 只有根目錄 shim（CLAUDE.md 指向 guide）；無 `/` 選單、無自動觸發 |
-| 只裝 command adapters | `/dflow:*` 出現在 `/` 選單；無自然語言自動觸發 |
-| 只裝 skill | 自然語言自動觸發（suggest-and-wait）；無 `/` 選單 |
-| 兩者都裝 | `/` 選單 + 自然語言 safety net **可共存** |
+| 都沒有（skill 題答 `n`、未裝 adapters） | 只有根目錄 shim（CLAUDE.md 指向 guide）；無 `/` 選單、無自動觸發 |
+| 只有 command adapters | `/dflow:*` 出現在 `/` 選單；無自然語言自動觸發 |
+| 只有 skill（init 預設結果） | 自然語言自動觸發（suggest-and-wait）；無 `/` 選單 |
+| 兩者都有 | `/` 選單 + 自然語言 safety net **可共存** |
 
 **兩者可共存、無需互斥**（已在真實 Claude Code 環境驗證）：skill 名稱 `dflow` 與
 command adapter 的 `dflow:<id>` 不撞名，明確命令各自精準載入、不會雙觸發；skill 當
@@ -266,10 +270,12 @@ SDD 約束加入 `CLAUDE.md`，這些內容應該放到
 `dflow/specs/shared/AI-AGENT-GUIDE.md`。shim 保持精簡，其他工具的 shim 才不會
 與它產生漂移（drift）。
 
-**`/dflow:*` 不是安裝 Claude Code Skill。** `init` 不會在 Claude Code 的
-skill 系統中安裝任何東西。未安裝 command adapters 時，Dflow 名稱只是 AI 從
-workflow 表識別的文字 trigger；安裝 `dflow configure-agents --command-adapters`
-後，新增的是薄 command wrapper，不是 workflow 的第二份定義。
+**`/dflow:*` 命令名不等於 skill。** init 預設會在 Claude Code 的 skill 系統
+裝一份自動觸發 skill（`.claude/skills/dflow/SKILL.md`，skill 題答 `n` 可略過），
+但 `/dflow:*` 這組**命令名**本身不是 skill——未安裝 command adapters 時，它們
+只是 AI 從 workflow 表識別的文字 trigger；安裝
+`dflow configure-agents --command-adapters` 後，新增的是薄 command wrapper，
+不是 workflow 的第二份定義。
 
 **legacy Claude skill 與 installed adapter 擇一。** 如果專案仍保留舊的
 `.claude/skills/sdd-ddd-*` skill，請在 legacy skill 與 `--command-adapters`

@@ -142,11 +142,16 @@ steps. Note the command syntax uses the **hyphen** `/dflow-<id>`, not the
 canonical **colon** `/dflow:<id>` — the colon form is Claude / Codex's command
 syntax and in Copilot can only be a text reference, never typed as a command.
 
-### The `--skills` Flag and Skill Triggering on Copilot
+### Skill Triggering on Copilot (Installed by Default)
 
-`dflow configure-agents --skills` projects the same tool-neutral thin skill for
+Dflow projects the same tool-neutral thin skill for
 **Claude Code, Codex, and GitHub Copilot**, each at its own project-level skill
-path; Copilot's is `.github/skills/dflow/SKILL.md`. Testing (2026-06-05) confirmed
+path; Copilot's is `.github/skills/dflow/SKILL.md`. The skill now installs **by
+default**: `dflow init` installs it when Copilot was selected (interactive runs
+ask one default-yes question; non-interactive runs install without reading
+extra stdin), `dflow configure-agents` asks the same question when Copilot is
+newly selected without a skill, and `dflow configure-agents --skills` backfills
+or force-regenerates it. Testing (2026-06-05) confirmed
 Copilot discovers and runs the skill from its own native `.github/skills/` path
 (it still works with the cross-read `.claude`/`.agents` paths removed); the
 trigger differs by surface — **VS Code Chat auto-triggers on natural language**,

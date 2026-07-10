@@ -46,6 +46,12 @@ in your project's `dflow/specs/` directory and AI instruction files.
   the tools you select (e.g., `CLAUDE.md`, `AGENTS.md`,
   `.github/copilot-instructions.md`). Each points the tool to the canonical
   guide and workflow bundle.
+- The project-level skill for the selected tools (`.claude/skills/dflow/` /
+  `.agents/skills/dflow/` / `.github/skills/dflow/`), installed **by default**
+  — the source of natural-language auto-trigger. Interactive runs ask one
+  `(Y/n)` question (Enter = install); non-interactive runs never read an extra
+  answer and install by default. If you answer `n`, add it later with
+  `dflow configure-agents --skills`.
 
 `init` does **not**:
 
@@ -76,7 +82,8 @@ and router; executable workflow steps live in the vendored bundle at
 - Multiple tools can be active in the same project without diverging
   workflow rules.
 - Switching or adding tools later does not require re-running `init`; run
-  `dflow configure-agents` to add another shim, or
+  `dflow configure-agents` to add another shim (it asks the same default-yes
+  skill question for newly selected tools that have no skill yet), or
   `dflow configure-agents --command-adapters` to opt in to tool-native command
   entries.
 - The guide and workflow bundle together are the authoritative sources for

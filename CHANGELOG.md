@@ -6,6 +6,47 @@
 
 ---
 
+## Unreleased（下一個 minor release）
+
+**Proposals**：PROPOSAL-074（init 預設安裝 project-level skill）
+
+### 行為變更（breaking-class，release notes 必須明示）
+
+- **init 預設安裝 project-level skill**（PROPOSAL-074）：`dflow init` 在 AI agents
+  題後新增 skill 安裝題——只在互動終端機（TTY）問、專用預設 Y 契約（空白輸入 =
+  裝）；答 `n` 必印 `dflow configure-agents --skills` 補裝提示；未選任何 agent 則
+  不問也不裝。**非互動（piped）init 不新增 stdin 槽位**：既有腳本答案序列結構不變
+  照跑，但產出集合改變——會為選定 agents 預設多產出 skill 檔
+  （`.claude/skills/dflow/` / `.agents/skills/dflow/` / `.github/skills/dflow/`）。
+- **configure-agents 對稱補問**（PROPOSAL-074 開放問題 2 選 (b)）：無 `--skills`
+  時，對「新選且尚無 skill」的 agent 問同款預設 Y 題（非 TTY 直接預設裝）；已有
+  skill 檔（Dflow 產或使用者自有）的 agent 不重問、不重生成。`--skills` 語意不變
+  ＝強制重生成所有選定工具的 skill。既有 scripted configure-agents 若選了尚無
+  skill 的 agent，非互動下會多產出 skill 檔。
+- init / configure-agents 完成訊息在裝了 skill 時加衍生物版控提示（建議
+  gitignore + clone 後重投影，沿用 PROPOSAL-037 建議預設）。
+
+### 文件
+
+- README（zh/en）「開始使用」改寫：`--skills` 從「建議標準安裝」改為「init 預設
+  已裝；`--skills` = 補裝 / 強制重生成」，並補非互動契約與版控建議；per-tool
+  docs（Claude / Codex / Copilot × zh/en）、evaluating-dflow（zh/en）、兩軌
+  init-project-flow（加 Q9 + manual fallback 不手寫 SKILL.md 守句；templates
+  鏡像同步）、TEMPLATE-COVERAGE（加 skill 列）、bin help、tutorial 兩軌
+  walkthrough-01 + `outputs/` fixtures（補真 CLI 產生的 SKILL.md 快照）同步。
+
+### 驗證
+
+- `test/skill-default.mjs`（新增，in-process 假 TTY）：TTY Y / n / 空白（預設
+  Y）/ 未選 agent 不問、configure-agents missing 問 / 已有不重問 / n-path 提示 /
+  `--skills` 不問。smoke：非 TTY 序列不變性（舊 9 行序列原樣照跑 + 多出 skill
+  檔）、no-agent 不裝、configure-agents 非 TTY 預設補裝（含「加新工具」路徑）、
+  三家路徑全驗；generated 覆寫 / 非 generated skip + warning 沿用既有 `--skills`
+  測試。`npm test` + `scripts/check-repo-consistency.sh` + `npm pack --dry-run`
+  全綠。
+
+---
+
 ## 0.12.0 — 2026-07-09 — 模型生命週期閉環（長時流程 + 模型重審）+ 收尾守門與跨 session 連續性
 
 **Proposals**：PROPOSAL-067（skill source 舊制 ID 與範例正確性清理）、PROPOSAL-068（finish-feature 收尾完整性守門）、PROPOSAL-069（跨分支 / 跨 session 連續性 Phase 1）、PROPOSAL-070（Long-Running Processes 判準與最簡階梯）、PROPOSAL-071（模型修正判準）

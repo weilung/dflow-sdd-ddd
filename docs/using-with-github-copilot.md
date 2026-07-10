@@ -137,11 +137,14 @@ dflow configure-agents --command-adapters
 **連字號** `/dflow-<id>`，不是 canonical 的**冒號** `/dflow:<id>`——後者是
 Claude / Codex 的命令寫法，在 Copilot 只能當文字稱呼、不能當命令輸入。
 
-### `--skills` flag 與 Copilot 的 skill 觸發
+### Copilot 的 skill 觸發（init 預設安裝）
 
-`dflow configure-agents --skills` 會為 **Claude Code、Codex 與 GitHub Copilot**
+Dflow 會為 **Claude Code、Codex 與 GitHub Copilot**
 各自投影同一份工具中立的 thin skill 到它們的 project-level skill 路徑；Copilot 的是
-`.github/skills/dflow/SKILL.md`。實測（2026-06-05）確認 Copilot 會從**自己原生的
+`.github/skills/dflow/SKILL.md`。這份 skill 現在**預設安裝**：`dflow init` 有選
+Copilot 就裝（互動問一題預設 Y、非互動直接裝）、`dflow configure-agents` 對新選且
+尚無 skill 的 Copilot 也補問；`dflow configure-agents --skills` 用於補裝或強制
+重生成。實測（2026-06-05）確認 Copilot 會從**自己原生的
 `.github/skills/`** 探索並運作（即使移除 `.claude`/`.agents` 的跨讀路徑也成立），
 觸發方式依介面而異——**VS Code Chat 自然語言自動觸發**、**Copilot CLI 需打 `/dflow`
 手動喚起**（細節見上方介面 A / B）。

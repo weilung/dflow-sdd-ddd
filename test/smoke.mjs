@@ -64,6 +64,10 @@ function toCrlf(content) {
 }
 
 try {
+  // PROPOSAL-074 non-TTY sequence invariance: this pre-074 answer sequence (ending
+  // with the final confirmation `y`) must keep running UNCHANGED — non-TTY init has
+  // no stdin slot for the skill question. What changes is only the output set: the
+  // project-level skill now installs by default for the selected agents.
   const input = [
     '1',
     'ASP.NET Core 9, EF Core 8, MediatR 12, xUnit',
@@ -95,7 +99,12 @@ try {
     'dflow/specs/architecture/decisions/README.md',
     'AGENTS.md',
     'CLAUDE.md',
-    '.github/copilot-instructions.md'
+    '.github/copilot-instructions.md',
+    // PROPOSAL-074: init now installs the project-level skill by default (non-TTY
+    // run, all three agents selected -> all three skill paths).
+    '.claude/skills/dflow/SKILL.md',
+    '.agents/skills/dflow/SKILL.md',
+    '.github/skills/dflow/SKILL.md'
   ];
 
   for (const relativePath of mandatoryPaths) {
@@ -105,6 +114,13 @@ try {
       `${relativePath} should exist\nSTDOUT:\n${first.stdout}\nSTDERR:\n${first.stderr}`
     );
   }
+
+  // PROPOSAL-074: the default-installed skill is the same marker-stamped thin skill
+  // that --skills projects.
+  const initSkill = await readFile(join(tempRoot, '.claude/skills/dflow/SKILL.md'), 'utf8');
+  assert.match(initSkill, /<!-- dflow-generated: skill-adapter -->/, 'init-installed skill should carry the generated skill marker');
+  assert.match(initSkill, /dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/, 'init-installed skill should point to the canonical guide');
+  assert.match(first.stdout, /Dflow-managed derivatives/, 'init next steps should include the skill version-control hint');
 
   const conventions = await readFile(join(tempRoot, 'dflow/specs/shared/_conventions.md'), 'utf8');
   assert.equal((conventions.match(/^## Prose Language$/gm) || []).length, 1, 'Prose Language section count');
@@ -167,6 +183,11 @@ try {
   assert.equal(legacy.code, 0, `legacy init failed\nSTDOUT:\n${legacy.stdout}\nSTDERR:\n${legacy.stderr}`);
   assert.equal(await exists(join(legacyRoot, 'specs', 'legacy.md')), true, 'pre-existing root specs/ file should remain untouched');
   assert.equal(await exists(join(legacyRoot, 'dflow/specs/shared/_conventions.md')), true, 'legacy run should write dflow/specs/');
+  // PROPOSAL-074: the skill install is agent-gated — with no agents selected there
+  // is no projection target, so no skill path may appear (and no question is asked).
+  assert.equal(await exists(join(legacyRoot, '.claude/skills/dflow/SKILL.md')), false, 'no-agent init should not install a Claude skill');
+  assert.equal(await exists(join(legacyRoot, '.agents/skills/dflow/SKILL.md')), false, 'no-agent init should not install a Codex skill');
+  assert.equal(await exists(join(legacyRoot, '.github/skills/dflow/SKILL.md')), false, 'no-agent init should not install a Copilot skill');
 
   await writeFile(join(legacyRoot, 'AGENTS.md'), '# Existing agent rules\n');
   const configureInput = [
@@ -176,6 +197,13 @@ try {
   const configured = await runDflow(legacyRoot, configureInput, ['configure-agents']);
   assert.equal(configured.code, 0, `configure-agents failed\nSTDOUT:\n${configured.stdout}\nSTDERR:\n${configured.stderr}`);
   assert.equal(await exists(join(legacyRoot, 'dflow/specs/shared/AI-AGENT-GUIDE.md')), true, 'configure should create canonical AI guide');
+  // PROPOSAL-074 (OQ2 branch b): a no-flag non-TTY configure-agents selecting agents
+  // that have no project-level skill yet installs it by default — same contract as
+  // init, no extra stdin slot consumed (this input still ends with the single `y`).
+  assert.equal(await exists(join(legacyRoot, '.claude/skills/dflow/SKILL.md')), true, 'configure-agents should default-install the missing Claude skill');
+  assert.equal(await exists(join(legacyRoot, '.agents/skills/dflow/SKILL.md')), true, 'configure-agents should default-install the missing Codex skill');
+  assert.equal(await exists(join(legacyRoot, '.github/skills/dflow/SKILL.md')), true, 'configure-agents should default-install the missing Copilot skill');
+  assert.match(configured.stdout, /Dflow-managed derivatives/, 'configure-agents next steps should include the skill version-control hint after a default install');
   // PROPOSAL-054: an existing non-guide AGENTS.md is appended in place with a
   // marker-delimited Dflow block, not parked as a side merge snippet.
   assert.equal(await exists(join(legacyRoot, 'dflow/specs/shared/AGENTS-md-snippet.md')), false, 'existing non-guide AGENTS.md should be appended in place, not parked as a snippet');
@@ -232,10 +260,11 @@ try {
     assert.doesNotMatch(content, /Do not jump|Status \/ Control Commands|Source of Truth|Spec before code|Step Gate/);
   }
 
-  // --command-adapters never projects a skill (that is what --skills does, tested
-  // below). PROPOSAL-056 only generalizes --skills, so the Codex skill must still
-  // be absent here, and the Codex COMMAND adapter must still never exist.
-  assert.equal(await exists(join(legacyRoot, '.agents/skills/dflow/SKILL.md')), false, 'Codex skill adapter should not be created by --command-adapters');
+  // PROPOSAL-074 retired the old "only --skills projects a skill" contract: the
+  // earlier no-flag configure run above already default-installed the three skills,
+  // so this --command-adapters run found nothing missing and changed nothing. The
+  // Codex COMMAND adapter must still never exist (unchanged by 074).
+  assert.equal(await exists(join(legacyRoot, '.agents/skills/dflow/SKILL.md')), true, 'Codex skill from the earlier default install should survive --command-adapters');
   assert.equal(await exists(join(legacyRoot, '.codex/commands/dflow-new-feature.md')), false, 'Codex command adapter should not be created');
   // PROPOSAL-054: after --command-adapters the Codex triggers live in AGENTS.md as an
   // adjacent marked block (the file already carried the agent-shim block from the prior
@@ -284,6 +313,22 @@ try {
   assert.equal(reconfigured.code, 0, `second configure-agents failed\nSTDOUT:\n${reconfigured.stdout}\nSTDERR:\n${reconfigured.stderr}`);
   assert.equal(await exists(join(legacyRoot, 'dflow/specs/shared/CLAUDE-md-snippet.md')), false, 'configured CLAUDE.md should skip instead of creating a duplicate snippet');
 
+  // PROPOSAL-074 boundary: a flagless run installs ONLY the missing skills — an
+  // existing Dflow-generated skill (marker-stamped sentinel below) must NOT be
+  // regenerated without --skills, even in the same run that backfills another
+  // agent's missing skill.
+  const sentinelSkill = '<!-- dflow-generated: skill-adapter -->\n\n# sentinel: locally aged skill\n';
+  await writeFile(join(legacyRoot, '.claude/skills/dflow/SKILL.md'), sentinelSkill);
+  await rm(join(legacyRoot, '.agents/skills/dflow/SKILL.md'), { force: true });
+  const mixedDefault = await runDflow(legacyRoot, '1,2\ny\n', ['configure-agents']);
+  assert.equal(mixedDefault.code, 0, `mixed-state flagless configure-agents failed\nSTDOUT:\n${mixedDefault.stdout}\nSTDERR:\n${mixedDefault.stderr}`);
+  assert.equal(await exists(join(legacyRoot, '.agents/skills/dflow/SKILL.md')), true, 'flagless run should install the missing Codex skill');
+  assert.equal(
+    await readFile(join(legacyRoot, '.claude/skills/dflow/SKILL.md'), 'utf8'),
+    sentinelSkill,
+    'flagless run must NOT regenerate an existing generated skill (only --skills does)'
+  );
+
   // PROPOSAL-038: --skills thin Claude skill adapter
   const skillPath = join(legacyRoot, '.claude/skills/dflow/SKILL.md');
   const skillsConfigured = await runDflow(legacyRoot, '2\ny\n', ['configure-agents', '--skills']);
@@ -294,6 +339,7 @@ try {
   );
   assert.equal(await exists(skillPath), true, '--skills with Claude should create the skill adapter');
   const skillContent = await readFile(skillPath, 'utf8');
+  assert.doesNotMatch(skillContent, /sentinel/, '--skills must regenerate an existing generated skill (regenerate-all semantics)');
   assert.match(skillContent, /<!-- dflow-generated: skill-adapter -->/, 'skill adapter should include the generated skill marker');
   assert.match(skillContent, /^name: dflow$/m, 'skill adapter frontmatter should name the skill dflow');
   assert.match(skillContent, /dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/, 'skill adapter should point to the canonical guide');
@@ -759,7 +805,10 @@ try {
   assert.match(webformsAgents, /`\/dflow:new-feature` as text/);
   assert.match(webformsAgents, /`\/dflow:cancel` as text/);
   assert.match(webformsAgents, /resend it without the slash, for example\s+`dflow:status`/, 'Codex AGENTS shim should explain no-slash text fallback');
-  assert.equal(await exists(join(webformsRoot, '.agents/skills/dflow/SKILL.md')), false, 'Codex skill adapter should not be created for Codex-only configuration');
+  // PROPOSAL-074 (OQ2 branch b): this is the "add another AI tool later" path — the
+  // webforms project had only the Claude skill (from its init), so selecting Codex
+  // here default-installs the missing .agents skill in the same non-TTY run.
+  assert.equal(await exists(join(webformsRoot, '.agents/skills/dflow/SKILL.md')), true, 'adding Codex later should default-install its missing skill');
   assert.equal(await exists(join(webformsRoot, '.claude/commands/dflow/new-feature.md')), false, 'Codex-only command-adapters should not create Claude files');
 
   // PROPOSAL-046: Codex command-trigger injection into a Dflow-generated AGENTS.md.

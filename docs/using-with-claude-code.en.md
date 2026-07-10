@@ -213,18 +213,23 @@ re-projects adapters from the **new registry**, but an existing
 adapters" is not the same as "migrating the canonical guide." Re-project with
 the **same dflow CLI version** to avoid a registry / guide version mismatch.
 
-### Optional Skill Adapter (Restore Natural-Language Auto-Trigger)
+### Skill Adapter (Natural-Language Auto-Trigger, Installed by Default)
 
 Command adapters give you a `/` menu entry, but they **do not auto-trigger** —
-you have to invoke the command yourself. If you want to restore the "say 'I want
-to add a feature' and it shows up automatically" experience, run this in an
-initialized project:
+you have to invoke the command yourself. Auto-trigger comes from the
+project-level skill, and it now installs **by default**: `dflow init` installs
+it when AI tools were selected (interactive runs ask one question — press Enter
+to install; non-interactive runs never read an extra answer and install by
+default), and `dflow configure-agents` asks the same question for newly
+selected tools that have no skill yet. If you answered `n` back then, or want
+to force-regenerate (for example to refresh after upgrading Dflow), run:
 
 ```bash
 dflow configure-agents --skills
 ```
 
-After you select Claude Code, Dflow generates a thin skill:
+After you select Claude Code (in init or configure-agents), Dflow generates a
+thin skill:
 
 - `.claude/skills/dflow/SKILL.md`
 
@@ -233,8 +238,8 @@ This skill does not copy workflow steps; its body points to the canonical
 `dflow/specs/shared/dflow-workflows/` (vendored bundle with executable step
 definitions).
 
-The same edition-neutral skill source is now also projected by `--skills` as a
-project-level skill for Codex (`.agents/skills/dflow/SKILL.md`) and GitHub Copilot
+The same edition-neutral skill source is also projected as a project-level
+skill for Codex (`.agents/skills/dflow/SKILL.md`) and GitHub Copilot
 (`.github/skills/dflow/SKILL.md`); all three follow the same cross-tool
 agentskills.io standard.
 
@@ -249,14 +254,14 @@ Its behavior:
   judges the intent, **suggests the matching `/dflow:` command, and waits for
   your confirmation** before proceeding.
 
-**The four combinations** (command adapters and the skill are each independently
-opt-in):
+**The four combinations** (command adapters stay opt-in; the skill installs by
+default — answer `n` at init to skip it, or delete it later):
 
 | Installed | Entry behavior |
 |---|---|
-| Neither | Root shim only (CLAUDE.md points to the guide); no `/` menu, no auto-trigger |
+| Neither (skill skipped with `n`, no adapters) | Root shim only (CLAUDE.md points to the guide); no `/` menu, no auto-trigger |
 | Command adapters only | `/dflow:*` appears in the `/` menu; no natural-language auto-trigger |
-| Skill only | Natural-language auto-trigger (suggest-and-wait); no `/` menu |
+| Skill only (init's default outcome) | Natural-language auto-trigger (suggest-and-wait); no `/` menu |
 | Both | `/` menu + natural-language safety net **may coexist** |
 
 **Both may coexist with no mutex needed** (validated in a real Claude Code
@@ -307,11 +312,13 @@ spec locations, or SDD constraints to `CLAUDE.md`, those belong in
 `dflow/specs/shared/AI-AGENT-GUIDE.md` instead. The shim stays small so
 that other tools' shims don't drift away from it.
 
-**`/dflow:*` is not a Claude Code Skill installation.** `init` does not
-install anything into Claude Code's skill system. Without command adapters,
-Dflow names are text triggers the AI recognizes from the workflow table. After
-you run `dflow configure-agents --command-adapters`, the added files are thin
-command wrappers, not a second workflow definition.
+**The `/dflow:*` command names are not the skill.** `init` does install the
+auto-trigger skill into Claude Code's skill system by default
+(`.claude/skills/dflow/SKILL.md`; answer `n` at the skill question to skip),
+but the `/dflow:*` **command names** themselves are not a skill. Without
+command adapters, those names are text triggers the AI recognizes from the
+workflow table. After you run `dflow configure-agents --command-adapters`, the
+added files are thin command wrappers, not a second workflow definition.
 
 **Choose either legacy Claude skills or the installed adapter.** If the
 project still has legacy `.claude/skills/sdd-ddd-*` skills, choose either

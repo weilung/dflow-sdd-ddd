@@ -84,7 +84,7 @@ Repo inventory:
 
 ## Step 2 — 最小必要問題
 
-Dflow 問 Bob 六類問題：
+Dflow 問 Bob 七類問題：
 
 | 問題 | Bob 的回答 | 影響 |
 |---|---|---|
@@ -94,6 +94,7 @@ Dflow 問 Bob 六類問題：
 | prose language | `zh-TW` | `_conventions.md` 記錄 `## Prose Language`。 |
 | optional starter | `_overview.md`、`Git-principles-gitflow.md` | 建 overview 與 Git Flow guide。 |
 | AI agents | `CLAUDE.md` | 建 canonical AI guide 與 Claude shim。 |
+| project-level skill | 直接按 Enter（預設 Y） | 建 `.claude/skills/dflow/SKILL.md`，自然語言就能自動觸發 workflow。答 `n` 可之後用 `configure-agents --skills` 補裝。 |
 
 Bob 選 Git Flow，不是因為 Git Flow 比 trunk-based 更「正確」，而是因為這個維運團隊有
 release / hotfix 節奏。Dflow 在這裡只記錄專案事實，不替團隊改變 release ownership。
@@ -103,7 +104,7 @@ release / hotfix 節奏。Dflow 在這裡只記錄專案事實，不替團隊改
 Dflow 在寫檔前列出 preview：
 
 ```text
-Will create (10 files):
+Will create (11 files):
 - dflow/specs/features/active/.gitkeep
 - dflow/specs/features/completed/.gitkeep
 - dflow/specs/features/backlog/.gitkeep
@@ -114,6 +115,7 @@ Will create (10 files):
 - dflow/specs/shared/Git-principles-gitflow.md
 - dflow/specs/shared/AI-AGENT-GUIDE.md
 - CLAUDE.md
+- .claude/skills/dflow/SKILL.md
 
 Will skip (0 files already present)
 
@@ -173,10 +175,16 @@ Bob 確認後，Dflow 寫入 baseline。
 |---|---|
 | [`outputs/CLAUDE.md`](outputs/CLAUDE.md) | Claude Code shim，指向 canonical AI guide。 |
 
+**project-level skill（自然語言自動觸發）**
+
+| Path | 用途 |
+|---|---|
+| [`outputs/.claude/skills/dflow/SKILL.md`](outputs/.claude/skills/dflow/SKILL.md) | Claude Code 專案層 skill。Bob 說「訂單折扣好像算錯了」這類自然語言時，Claude 會依觸發描述自動建議對應 workflow。skill 檔是衍生物，建議 gitignore、clone 後用 `configure-agents --skills` 重投影。 |
+
 **optional command adapters**
 
-`dflow init` 只建立 root shim。若 Bob 想在 Claude Code 中看到工具原生 Dflow
-命令入口，可以在 init 後執行：
+`dflow init` 建立 root shim 與 project-level skill。若 Bob 想在 Claude Code 中
+看到工具原生 Dflow 命令入口，可以在 init 後執行：
 
 ```bash
 dflow configure-agents --command-adapters

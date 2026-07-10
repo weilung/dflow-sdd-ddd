@@ -26,7 +26,11 @@ function printInitHelp() {
 Initializes Dflow project specs under dflow/specs/.
 The command prompts for project type, tech stack, migration context, prose
 language, Git policy, AI commit marker, optional starter files, and AI coding
-agents before showing a full file preview.
+agents, then — when agents were selected on an interactive terminal — whether
+to install the project-level Dflow skill (default yes), before showing a full
+file preview. Non-interactive runs never read an extra stdin answer for the
+skill question: existing scripted answer sequences run unchanged, and the
+skill is installed by default for the selected agents.
 `);
 }
 
@@ -41,7 +45,12 @@ dflow/specs/shared/AI-AGENT-GUIDE.md file.
 
 Options:
   --command-adapters  Also generate tool-native thin wrappers for supported tools.
-  --skills            Also generate project-level skill adapters for supported tools (Claude Code, Codex, and GitHub Copilot), restoring natural-language auto-trigger.
+  --skills            Regenerate project-level skill adapters for all selected supported tools (Claude Code, Codex, and GitHub Copilot), restoring natural-language auto-trigger.
+
+Without --skills, selecting an agent that has no project-level skill yet
+prompts to install it (default yes) on an interactive terminal; non-interactive
+runs install it by default without reading an extra stdin answer. Agents whose
+skill file already exists are not re-asked and not regenerated.
 `);
 }
 

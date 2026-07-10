@@ -89,7 +89,7 @@ Repo inventory:
 
 ## Step 2 — 最小必要問題
 
-Dflow 接著問六類問題。這不是表單填寫，而是用來決定 baseline files 的內容與邊界。
+Dflow 接著問七類問題。這不是表單填寫，而是用來決定 baseline files 的內容與邊界。
 
 | 問題 | Alice 的回答 | 影響 |
 |---|---|---|
@@ -99,6 +99,7 @@ Dflow 接著問六類問題。這不是表單填寫，而是用來決定 baselin
 | prose language | `zh-TW` | `_conventions.md` 記錄 `## Prose Language`。 |
 | optional starter | `_overview.md`、`Git-principles-trunk.md` | 建 project overview 與 trunk-based Git guide。 |
 | AI agents | AGENTS、CLAUDE、GitHub Copilot 全選 | 建 canonical AI guide 與三個 thin shims。 |
+| project-level skill | 直接按 Enter（預設 Y） | 為三家各建 `skills/dflow/SKILL.md`，自然語言就能自動觸發 workflow。答 `n` 可之後用 `configure-agents --skills` 補裝。 |
 
 Alice 特別選 trunk-based，不選 gitflow。Dflow 會重新確認這個二擇一：
 
@@ -115,7 +116,7 @@ Dflow CLI:
 Dflow 在寫檔前列出 preview：
 
 ```text
-Will create (15 files):
+Will create (17 files):
 - dflow/specs/features/active/.gitkeep
 - dflow/specs/features/completed/.gitkeep
 - dflow/specs/features/backlog/.gitkeep
@@ -130,6 +131,9 @@ Will create (15 files):
 - AGENTS.md
 - CLAUDE.md
 - .github/copilot-instructions.md
+- .claude/skills/dflow/SKILL.md
+- .agents/skills/dflow/SKILL.md
+- .github/skills/dflow/SKILL.md
 
 Will skip (0 files already present)
 
@@ -192,10 +196,24 @@ Alice 確認後，Dflow 寫入 baseline。重要分組如下。
 | [`outputs/CLAUDE.md`](outputs/CLAUDE.md) | Claude Code shim，指向 canonical guide。 |
 | [`outputs/.github/copilot-instructions.md`](outputs/.github/copilot-instructions.md) | GitHub Copilot repository instruction shim。 |
 
+**project-level skill（自然語言自動觸發）**
+
+Alice 在 skill 題直接按 Enter（預設 Y），Dflow 為三家各建同一份 thin skill：
+
+| Path | 用途 |
+|---|---|
+| [`outputs/.claude/skills/dflow/SKILL.md`](outputs/.claude/skills/dflow/SKILL.md) | Claude Code 專案層 skill。 |
+| [`outputs/.agents/skills/dflow/SKILL.md`](outputs/.agents/skills/dflow/SKILL.md) | Codex 專案層 skill（內容與 Claude 份逐字相同）。 |
+| [`outputs/.github/skills/dflow/SKILL.md`](outputs/.github/skills/dflow/SKILL.md) | GitHub Copilot 專案層 skill（VS Code Chat 自動觸發；Copilot CLI 打 `/dflow` 喚起）。 |
+
+有了它，Alice 說「我想加一個報銷功能」這類自然語言時，工具會依 skill 的觸發描述
+自動建議對應的 `/dflow:*` workflow，不必記命令。skill 檔是 Dflow 衍生物，建議
+gitignore、clone 後用 `dflow configure-agents --skills` 重投影。
+
 **optional command adapters**
 
-`dflow init` 先建立 canonical guide 與 root shims；若團隊想讓工具 UI 顯示 Dflow
-命令入口，Alice 會在 init 後再執行 opt-in 設定：
+`dflow init` 建立 canonical guide、root shims 與 project-level skill；若團隊想讓
+工具 UI 顯示 Dflow 命令入口，Alice 會在 init 後再執行 opt-in 設定：
 
 ```bash
 dflow configure-agents --command-adapters

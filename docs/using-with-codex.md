@@ -158,8 +158,8 @@ guide 中記為 `/dflow:*`）。
 Codex 命令檔。Codex v1 沒有與 Claude `.claude/commands` 或 Copilot `.github/prompts`
 對等的 Dflow command-file adapter。
 
-**自動觸發 skill 走的是 `--skills`（非 `--command-adapters`）。** 見下方
-〈選配 Skill 的 Codex 行為〉。
+**自動觸發 skill 走的是 skill 安裝（init 預設、或 `--skills`），非
+`--command-adapters`。** 見下方〈Skill 的 Codex 行為〉。
 
 當你在 `--command-adapters` 模式下選擇 `AGENTS.md - Codex / Copilot coding agent`
 時，Dflow 會把從 canonical command registry 產生的 trigger 清單寫進 `AGENTS.md`。
@@ -189,10 +189,13 @@ marker」分成兩種小抄：
 兩種小抄都只在 marker conflict 時出現。乾淨、沒有 marker 衝突的自訂 `AGENTS.md` 不會
 產生任何小抄——Dflow 會直接把相鄰 marked block append 進去。
 
-### 選配 Skill 的 Codex 行為（自動觸發）
+### Skill 的 Codex 行為（自動觸發，init 預設安裝）
 
-`dflow configure-agents --skills` 會把一份精簡、工具中立的 skill 投影到
-`.agents/skills/dflow/SKILL.md`——Codex 的專案層 skill 路徑。這讓 Codex 取得與
+Dflow 會把一份精簡、工具中立的 skill 投影到
+`.agents/skills/dflow/SKILL.md`——Codex 的專案層 skill 路徑。這份 skill 現在
+**預設安裝**：`dflow init` 有選 Codex 就裝（互動問一題預設 Y、非互動直接裝）、
+`dflow configure-agents` 對新選且尚無 skill 的 Codex 也補問；
+`dflow configure-agents --skills` 用於補裝先前略過的、或強制重生成。這讓 Codex 取得與
 Claude Code **對等的自然語言自動觸發**：你用「help me start a new feature」這類描述
 時，Codex 可依該 skill 的 `description` 自動判斷是否相關，建議對應的 `dflow:<id>`
 workflow，而不必每次都記得手打命令。
@@ -272,8 +275,8 @@ canonical `/dflow:<id>` workflow。
 **Codex 不產生命令檔。** 即使使用 `--command-adapters`，Codex 也只強化
 `AGENTS.md` 中 marked block 的文字 trigger 說明；只有 marker conflict 才會產生
 fallback merge snippet。不要期待 `.claude/commands` 或 `.github/prompts` 形式的
-Codex 專屬**命令**檔。（自動觸發 **skill** 是另一回事，由 `--skills` 投影到
-`.agents/skills/dflow/SKILL.md`，見上方〈選配 Skill 的 Codex 行為〉。）
+Codex 專屬**命令**檔。（自動觸發 **skill** 是另一回事，init 預設安裝、`--skills`
+可重生成，路徑 `.agents/skills/dflow/SKILL.md`，見上方〈Skill 的 Codex 行為〉。）
 
 **不要混淆 Codex `/init` 與 Dflow `init`。** Codex `/init` 為 Codex 建立
 通用的 `AGENTS.md` scaffold。Dflow 的設定是 `dflow init`（或免安裝路徑的
