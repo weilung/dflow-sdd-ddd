@@ -24,6 +24,7 @@ The goal is not the process itself, but repeatable software change with clearer 
 | **Three-layer documentation model** | Matches how feature branches actually evolve: phase (one propose-implement-archive cycle) / feature (the whole branch's running state and resume pointer) / system (cross-feature long-term knowledge). Many spec tools only ship phase + system, which breaks down when a feature branch spans multiple phases. Detailed below. |
 | **Change-depth-based tiers (T1/T2/T3)** | AI scales specification and verification by change depth: color/typo gets one inline row in `_index.md`; bug fixes get a lightweight spec plus focused verification; new features or bounded-context-level changes go through a full phase-spec plus layer-by-layer implementation planning / verification. Small changes don't get dragged down by the process. |
 | **Drift verification** | `/dflow:verify` cross-checks specs, domain documents, implementation, tests, and tech-debt records to surface the "documentation still describes the old behavior" drift that PR review by eye usually misses. |
+| **Specs humans can read, not just AI (md → HTML)** | Most spec-first tools produce specs only the AI reads comfortably — dense Markdown tables and markers humans skim past, so spec review quietly stops happening. `dflow render` mirrors the whole specs tree into browsable static HTML: tables become cards, AI-facing markers become badges, cross-file links stay clickable. Markdown stays the AI-facing source of truth; humans get a readable projection. Side-by-side screenshot below. |
 | **Multi-AI-tool rule sharing** | A canonical project guide plus thin tool-specific shims (`CLAUDE.md` / `AGENTS.md` / Copilot instructions) — teams switching between Claude, Codex, and Copilot don't have to maintain multiple copies of workflow rules. All three also share one project-level skill built on the agentskills.io open standard, so natural language auto-triggers the matching workflow (Copilot CLI summons it via `/dflow`). |
 
 ## Get Started
@@ -122,12 +123,27 @@ reading, run:
 dflow render
 ```
 
+(`render` was added after `0.12.0` and has not shipped in an npm release yet —
+until the next npm release, clone the GitHub source, run `npm install`, and
+invoke it as `node bin/dflow.js render`.)
+
 It mirrors `dflow/specs/` into a static HTML tree (default output
 `dflow-specs-html/`; adjust with `--src` / `--out` / `--title`): record-style
 tables become one card per row, AI-facing comment markers become badges /
 chips, gherkin blocks get keyword highlighting, and in-tree `.md` links and
 filename mentions are rewritten to the matching HTML pages. Open the output
 directory's `index.html` in a browser (`file://` works; no server needed).
+
+The same spec, read two ways — left: the AI-facing Markdown source (dense
+tables plus AI-only markers like `<!-- phase-2 ADDED -->`); right: the HTML
+`dflow render` produces (one card per row, markers become badges):
+
+![The same models.md: AI-facing Markdown source on the left, dflow render HTML output on the right](media/render-side-by-side.png)
+
+The example comes from this repo's Expense tutorial specs
+([`tutorial/01-greenfield/outputs`](tutorial/01-greenfield/outputs/)); after
+cloning and running `npm install`, reproduce it with
+`node bin/dflow.js render --src tutorial/01-greenfield/outputs/dflow/specs`.
 
 The division of labor: **Markdown is the AI-facing source of truth; HTML is
 the human-reading projection.** Re-run `dflow render` whenever the specs

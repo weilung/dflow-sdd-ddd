@@ -24,6 +24,7 @@
 | **三層文件模型** | 對應 feature branch 的實際節奏：phase（單次提案-實作循環）/ feature（整條 branch 的累積狀態與接續指引）/ system（跨 feature 的長期知識）。許多 spec 工具只有 phase + system 兩層，多次迭代的 feature branch 跨多個 phase 時就會失真。下方有完整說明。 |
 | **依改動深淺的 Tier 制（T1/T2/T3）** | AI 依改動深淺自動決定規格與驗證量級：改顏色 / typo 只需 `_index.md` 一行；bug fix 用 lightweight spec + 聚焦驗證；新 feature 或動到 bounded context 才走完整 phase-spec + 分層實作計畫 / 驗證。小修改不會被流程拖累。 |
 | **漂移驗證** | `/dflow:verify` 把規格、領域文件、實作、測試、技術債紀錄做交叉比對，找出 PR review 人眼看不出來的「文件還在描述舊行為」漂移。 |
+| **Specs 給 AI 讀、也給人讀（md → HTML）** | 多數 spec-first 工具的規格只有 AI 好讀——密集表格加標記的 Markdown，人翻起來吃力，時間一久規格就沒人 review。`dflow render` 把整棵 specs 樹轉成可瀏覽的靜態 HTML：表格變卡片、AI 專用標記變 badge、跨檔連結可點。Markdown 仍是 AI 讀的 source of truth，人另有一份好讀的投影。下方有對照截圖。 |
 | **多 AI 工具共用一份規則** | Canonical 專案指南 + 各工具薄 shim（`CLAUDE.md` / `AGENTS.md` / Copilot instructions），團隊在 Claude / Codex / Copilot 之間切換時不必維護多份 workflow 規則。三家還共用一份依 agentskills.io 開放標準的 project-level skill，可用自然語言自動觸發對應 workflow（Copilot CLI 需先打 `/dflow` 喚起）。 |
 
 ## 開始使用
@@ -96,7 +97,15 @@ Dflow 的 specs 是給 AI 讀的 Markdown（表格緊湊、標記密集）。要
 dflow render
 ```
 
+（`render` 是 `0.12.0` 之後加入的指令、尚未隨 npm 發佈——在下一次 npm release 前，請 clone GitHub source、`npm install` 後以 `node bin/dflow.js render` 執行。）
+
 它把 `dflow/specs/` 鏡像成一棵靜態 HTML 樹（預設輸出 `dflow-specs-html/`，可用 `--src` / `--out` / `--title` 調整）：記錄型表格逐列轉成卡片、AI 專用註解標記變成 badge / chip、gherkin 區塊關鍵字高亮、樹內 `.md` 連結與檔名提及自動改連對應 HTML 頁。開啟輸出目錄的 `index.html` 即可瀏覽（`file://` 直開、免 server）。
+
+同一份 spec 的兩種讀法——左：AI 讀的 Markdown 源（密集表格 + `<!-- phase-2 ADDED -->` 這類 AI 專用標記）；右：`dflow render` 產出的 HTML（逐列變卡片、標記變 badge）：
+
+![同一份 models.md：左為 AI 讀的 Markdown 源，右為 dflow render 產生的 HTML 頁面](media/render-side-by-side.png)
+
+範例取自本 repo 的 Expense 教學規格（[`tutorial/01-greenfield/outputs`](tutorial/01-greenfield/outputs/)），clone、`npm install` 後可用 `node bin/dflow.js render --src tutorial/01-greenfield/outputs/dflow/specs` 自行重現。
 
 分工模型：**Markdown 是 AI 閱讀的 source of truth；HTML 是人類閱讀投影**。specs 一變就重跑一次 `dflow render` 即刷新（每次執行都是全量重建）。輸出目錄由 render 管理——以 `.dflow-render-manifest.json` 記帳，來源刪除 / 改名後重跑會清掉對應的舊 HTML，非 render 產生的檔案永不會被動到——屬可重生成的衍生物，建議加進 `.gitignore`：
 
