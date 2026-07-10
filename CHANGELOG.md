@@ -83,6 +83,10 @@
   mixed-state sentinel 回歸：flagless 不重生成既有 skill）、三家路徑全驗。
   `npm test` + `scripts/check-repo-consistency.sh` + `npm pack --dry-run` 全綠
   （dev 與 dist 兩側）。
+- **Post-publish smoke（對公開 registry 套件，2026-07-10）**：
+  `npx dflow-sdd-ddd@0.13.0` 之 `--version` / `--help` 正確；init（非互動
+  舊答案序列）exit 0、預設產出三家 skill 檔；configure-agents exit 0；
+  doctor 全過；render 30 md → HTML 成功。registry `latest = 0.13.0`。
 
 ### 升級提醒
 
