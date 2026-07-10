@@ -340,19 +340,19 @@ issue 與 pull request 指引見 [CONTRIBUTING.md](CONTRIBUTING.md)。Pull reque
 
 ## 狀態
 
-Dflow 目前以 `dflow-sdd-ddd` 名稱發佈於 npm。最新發佈版本為 `0.10.0`，涵蓋：
+Dflow 目前以 `dflow-sdd-ddd` 名稱發佈於 npm。最新發佈版本為 `0.12.0`，涵蓋：
 
 - 專案初始化（`dflow init`）與 idempotent 升級重投影（`dflow configure-agents`）
 - Workflow 文件（`/dflow:*` 流程）＋隨專案 vendored 的 workflow bundle
 - 多 AI agent 設定：canonical 指南 + 各工具薄 shim（CLAUDE.md / AGENTS.md / Copilot instructions）；既有 agent 檔以帶 marker 的區塊自動注入、零手動合併
 - 三家原生 project-level skill（Claude / Codex / GitHub Copilot），共用 agentskills.io 開放標準、支援自然語言自動觸發（Copilot CLI 仍需先打 `/dflow` 喚起）
 - 選配工具原生命令入口（`--command-adapters`）與自動觸發 skill（`--skills`）
-- AI agent 可讀的 SDD/DDD 指引
+- AI agent 可讀的 SDD/DDD 指引，含深化的 DDD 戰術建模指引與模型生命週期閉環（長時流程與模型重審；0.11–0.12）
 - `dflow doctor` 唯讀專案健康檢查
 - 公開 onboarding：evaluator 指南，Claude Code / Codex CLI / GitHub Copilot 的 per-tool walkthrough
 - 僅驗證的 CI workflow（不執行 publish）
 
-GitHub 上的 source 可能包含 `0.10.0` 之後尚未發佈的 repo 變更。完整 release history 見 [CHANGELOG.md](CHANGELOG.md)。
+GitHub 上的 source 可能包含 `0.12.0` 之後尚未發佈的 repo 變更。完整 release history 見 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 授權
 
