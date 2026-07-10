@@ -52,6 +52,8 @@ dflow configure-agents
 dflow configure-agents --skills
 ```
 
+沒裝 skills 不代表 AI 完全不會建議 workflow——init 產生的專案指示（shim + canonical 指南）本身就要求 AI 對 spec-impacting 的請求建議對應的 `/dflow:*` 指令。差別在可靠度：那條路靠模型當下記得指示，對話一長就可能漏；`--skills` 把觸發交給工具原生的 skill 匹配機制（skill 的觸發描述每回合都在模型面前），觸發才穩定。
+
 若還想要工具原生的 `/` 命令 / prompt 選單，再加 `--command-adapters`（可與 `--skills` 並用）：
 
 ```bash

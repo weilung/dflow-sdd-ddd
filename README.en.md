@@ -63,6 +63,14 @@ recommended standard install:
 dflow configure-agents --skills
 ```
 
+Skipping skills does not leave the AI trigger-blind — the project instructions
+init writes (the shims + the canonical guide) already tell it to suggest the
+matching `/dflow:*` command for spec-impacting requests. The difference is
+reliability: that path depends on the model remembering the instructions in
+the moment and degrades in long sessions, while `--skills` hands triggering to
+the tool's native skill-matching mechanism (the skill's trigger description
+sits in front of the model every turn), making it dependable.
+
 If you also want tool-native `/` command / prompt menus, add `--command-adapters`
 (it composes with `--skills`):
 
