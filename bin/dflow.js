@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const { runConfigureAgents, runDoctor, runInit } = require('../lib/init');
+const { runRender } = require('../lib/render');
 const pkg = require('../package.json');
 
 const args = process.argv.slice(2);
@@ -12,6 +13,7 @@ Usage:
   dflow init              Initialize Dflow specs in the current project
   dflow configure-agents  Add or update AI agent instruction shims
   dflow doctor            Read-only project health check
+  dflow render            Render the specs Markdown tree to browsable HTML
   dflow --help            Show this help
   dflow --version         Show the CLI version
 `);
@@ -40,6 +42,37 @@ dflow/specs/shared/AI-AGENT-GUIDE.md file.
 Options:
   --command-adapters  Also generate tool-native thin wrappers for supported tools.
   --skills            Also generate project-level skill adapters for supported tools (Claude Code, Codex, and GitHub Copilot), restoring natural-language auto-trigger.
+`);
+}
+
+function printRenderHelp() {
+  process.stdout.write(`Usage:
+  dflow render [--src <dir>] [--out <dir>] [--title <text>]
+
+Renders the Markdown specs tree into a mirrored static HTML tree for human
+reading (record tables become cards, AI markers become badges), plus an
+index.html file tree at the output root. Open index.html directly in a
+browser; file:// works, no server needed.
+
+Markdown stays the AI-facing source of truth. Re-run this command whenever
+the sources change; every run is a full rebuild.
+
+Options:
+  --src <dir>     Specs root to render (default: dflow/specs)
+  --out <dir>     Output directory (default: dflow-specs-html)
+  --title <text>  index.html page title (default: "dflow specs")
+
+The output directory is owned by dflow render: every rendered file embeds a
+generated-by marker, and a .dflow-render-manifest.json ledger tracks the
+mirror. Files whose sources were deleted or renamed are cleaned up on the
+next run — a file is deleted only when it is both ledger-listed and
+marker-verified, and an existing file at a path being rendered is
+overwritten only when it is marker-verified (that is how the partial
+outputs of an interrupted run converge on the next run). render refuses a
+non-empty directory without a ledger, anything it never creates (symlinks,
+junctions, hardlinked files), unrecognized files at paths it must write,
+and source trees whose outputs would collide. render only writes --out; it
+never modifies --src.
 `);
 }
 
@@ -108,6 +141,20 @@ async function main() {
       stderr: process.stderr,
       commandAdapters: configureOptions.includes('--command-adapters'),
       skills: configureOptions.includes('--skills')
+    });
+  }
+
+  if (args[0] === 'render') {
+    if (args.length > 1 && (args[1] === '--help' || args[1] === '-h')) {
+      printRenderHelp();
+      return 0;
+    }
+
+    return await runRender({
+      cwd: process.cwd(),
+      args: args.slice(1),
+      stdout: process.stdout,
+      stderr: process.stderr
     });
   }
 

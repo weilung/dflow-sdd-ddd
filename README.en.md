@@ -113,6 +113,38 @@ Dflow](docs/evaluating-dflow.en.md). For end-to-end scenario walk-throughs of
 Greenfield and Brownfield workflows with worked spec outputs, see the
 [`tutorial/`](tutorial/README.md) index.
 
+### Render the specs as human-readable HTML
+
+Dflow specs are AI-facing Markdown (dense tables, heavy markers). For human
+reading, run:
+
+```bash
+dflow render
+```
+
+It mirrors `dflow/specs/` into a static HTML tree (default output
+`dflow-specs-html/`; adjust with `--src` / `--out` / `--title`): record-style
+tables become one card per row, AI-facing comment markers become badges /
+chips, gherkin blocks get keyword highlighting, and in-tree `.md` links and
+filename mentions are rewritten to the matching HTML pages. Open the output
+directory's `index.html` in a browser (`file://` works; no server needed).
+
+The division of labor: **Markdown is the AI-facing source of truth; HTML is
+the human-reading projection.** Re-run `dflow render` whenever the specs
+change (every run is a full rebuild). The output directory is managed by
+render — tracked in `.dflow-render-manifest.json`, so deleting or renaming a
+source cleans up its stale HTML on the next run, and files render did not
+generate are never touched — it is a regenerable derived artifact, so add it
+to `.gitignore`:
+
+```gitignore
+dflow-specs-html/
+```
+
+Note: render passes inline HTML in your specs (`<br>` and the like) through
+as-is, without sanitizing — it is designed to render your own project's specs
+(a trusted source); do not point it at untrusted Markdown.
+
 ## Project Tracks
 
 | Track | Use it when | Main outcome |
@@ -380,7 +412,7 @@ For the full loop (how a blind spot becomes guidance, and why the flip points to
 | Path | Purpose |
 |---|---|
 | `bin/` | CLI entrypoint. |
-| `lib/` | Init runtime implementation. |
+| `lib/` | CLI runtime implementation (init / configure-agents / doctor / render). |
 | `templates/` | Files copied by the init command. |
 | `test/` | Smoke tests for generated output. |
 | `tutorial/` | Guided learning scenarios and expected outputs. |

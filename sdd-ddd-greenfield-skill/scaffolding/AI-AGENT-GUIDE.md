@@ -64,6 +64,11 @@ input like this (supporting files live in the workflow bundle at
 - **"Quick question about..." / "How does X work?"** → check
   `dflow/specs/domain/` first and answer from the documented domain knowledge.
 - **"I'm creating a branch"** → read `references/git-integration.md`.
+- **"Turn the specs into HTML" / "make the specs easier to read"** → run the
+  CLI command `dflow render` (a human-readability tool, not a `/dflow:*`
+  workflow). It mirrors `dflow/specs/` into a browsable static HTML tree
+  (default output: `dflow-specs-html/`); re-run it after specs change —
+  Markdown stays the AI-facing source of truth.
 - **"Dflow seems wrong" / "this template is confusing"** (or you notice Dflow
   guidance drift) → suggest `/dflow:report-dflow-feedback`; never submit
   anything upstream automatically.

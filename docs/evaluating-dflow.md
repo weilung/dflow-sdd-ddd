@@ -123,6 +123,12 @@ repo 上下文的 AI 助理一起運作。
 
    開啟 `dflow/specs/shared/_overview.md`、`dflow/specs/shared/_conventions.md`、以及 `dflow/specs/shared/AI-AGENT-GUIDE.md` 看看整體架構。
 
+   也可以跑 `dflow render` 把 specs 樹轉成人類閱讀的 HTML（輸出
+   `dflow-specs-html/`，開 `index.html` 即可瀏覽）。剛 init 完的 specs 多是
+   起始模板；要看接近實戰的渲染效果，clone 本 repo 後對 tutorial 的規格範例
+   跑 `dflow render --src tutorial/01-greenfield/outputs/dflow/specs --out
+   <任意輸出目錄>`。
+
 4. **閱讀一份 tutorial walk-through** 以了解完整的 feature flow：
    - Greenfield：[`tutorial/01-greenfield/`](../tutorial/01-greenfield/walkthrough-00-setup.md)
    - Brownfield：[`tutorial/02-brownfield/`](../tutorial/02-brownfield/walkthrough-00-setup.md)
@@ -137,7 +143,10 @@ repo 上下文的 AI 助理一起運作。
 
 Dflow 的設計讓試用成本低、退出成本也低：
 
-- `init` 完成後，你的專案不依賴已安裝的 `dflow-sdd-ddd` CLI。
+- `init` 完成後，specs 與 workflow 文件本身不依賴已安裝的 `dflow-sdd-ddd`
+  CLI——它們是已 commit 進 repo 的純 Markdown，任何 clone 都讀得到。CLI 只在
+  三種時機用到：升級重投影（`configure-agents`）、健康檢查（`doctor`）、以及
+  把 specs 轉成人類閱讀的 HTML（`dflow render`，見上方 playbook 第 3 步）。
 - 產生的檔案都是純 Markdown；用 `rm -rf dflow/` 加上刪除你不再需要的 AI 指示 shim 檔案，即可從專案中移除 Dflow。
 - 既有的專案指示檔（例如原本就存在的 `CLAUDE.md`）若被加入 marked Dflow
   block，刪除該 block 即可復原；但之後再跑 `init` / `configure-agents`

@@ -154,6 +154,13 @@ real codebase.
    `dflow/specs/shared/_conventions.md`, and
    `dflow/specs/shared/AI-AGENT-GUIDE.md` to see the shape.
 
+   You can also run `dflow render` to project the specs tree into
+   human-readable HTML (output in `dflow-specs-html/`; open `index.html` to
+   browse). A freshly initialized project is mostly starter templates; for a
+   closer-to-real rendering, clone this repo and render the tutorial's worked
+   specs: `dflow render --src tutorial/01-greenfield/outputs/dflow/specs
+   --out <any output dir>`.
+
 4. **Read one tutorial walk-through** to see what a real feature flow looks
    like end to end:
    - Greenfield: [`tutorial/01-greenfield/`](../tutorial/01-greenfield/walkthrough-00-setup.md)
@@ -177,7 +184,12 @@ against.
 
 Dflow is designed for low cost to try and low cost to leave:
 
-- Nothing depends on the `dflow-sdd-ddd` CLI being installed after `init`.
+- After `init`, the specs and workflow documents themselves do not depend on
+  the `dflow-sdd-ddd` CLI being installed — they are plain Markdown committed
+  into your repo, readable from any clone. The CLI is only needed for three
+  things: upgrade re-projection (`configure-agents`), health checks
+  (`doctor`), and rendering the specs as human-readable HTML (`dflow render`,
+  see playbook step 3 above).
 - The generated files are plain Markdown; remove Dflow from a project with
   `rm -rf dflow/` plus deleting the AI agent shim files you no longer want.
 - If an existing project instruction file (e.g., a pre-existing `CLAUDE.md`)

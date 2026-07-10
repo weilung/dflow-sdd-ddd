@@ -39,10 +39,13 @@
   },
   "homepage": "https://github.com/weilung/dflow-sdd-ddd#readme",
   "scripts": {
-    "test": "node test/smoke.mjs && node test/registry-parity.mjs && node test/agent-inject.mjs && node test/bundle-guards.mjs"
+    "test": "node test/smoke.mjs && node test/registry-parity.mjs && node test/agent-inject.mjs && node test/bundle-guards.mjs && node test/render.mjs"
   },
   "license": "AGPL-3.0-or-later",
   "publishConfig": {
     "access": "public"
+  },
+  "dependencies": {
+    "marked": "18.0.5"
   }
 }
