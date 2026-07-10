@@ -6,11 +6,33 @@
 
 ---
 
-## Unreleased（下一個 minor release）
+## 0.13.0 — 2026-07-10 — dflow render（specs 人讀化）+ init 預設安裝 skill（day-one 自動觸發）
 
-**Proposals**：PROPOSAL-074（init 預設安裝 project-level skill）
+**Proposals**：PROPOSAL-072（表格 `<br>` 分行慣例）、PROPOSAL-073（`dflow render` 子指令）、PROPOSAL-074（init 預設安裝 project-level skill）
 
-### 行為變更（breaking-class，release notes 必須明示）
+本版兩條主線：
+
+1. **Specs 給 AI 讀、也給人讀**（073）——新增 `dflow render`，把 `dflow/specs/`
+   Markdown 樹鏡像成可瀏覽的靜態 HTML，`file://` 直開免 server；Markdown 仍是
+   AI-facing source of truth。
+2. **自然語言自動觸發成為 day-one 體驗**（074）——`dflow init` 預設安裝
+   project-level skill（先前要 `configure-agents --skills` 事後加裝）；
+   configure-agents 對「之後加新工具」路徑同步補問，兩條 onboarding 路徑一致。
+
+### 新功能
+
+- **`dflow render [--src <dir>] [--out <dir>] [--title <text>]`**（PROPOSAL-073）：
+  specs Markdown → 靜態 HTML 鏡像 + 根目錄 `index.html` 檔案樹（記錄型表格轉
+  卡片、AI 標記轉 badge、gherkin 關鍵字高亮、樹內 `.md` 連結改連對應 HTML 頁）；
+  每次執行全量重建。人讀性工具、不是 AI workflow 指令：不進命令登錄表、無
+  command adapters，11 個 `/dflow:*` 清單不變。輸出目錄由 render 專屬持有：
+  `.dflow-render-manifest.json` ledger + 每檔內嵌 generated-by marker——來源
+  刪除/改名的殘檔下次執行清掉（ledger 列名 + marker 雙證才刪）、marker 驗證
+  才覆寫、非空且無 ledger 的目錄拒絕、symlink / junction / hardlink / 特殊檔
+  拒絕、來源投影碰撞先拒絕；`--src` 永不被寫。第一個 npm runtime 依賴：
+  `marked`（exact-pinned `18.0.5`）。
+
+### 行為變更（breaking-class，升級請讀）
 
 - **init 預設安裝 project-level skill**（PROPOSAL-074）：`dflow init` 在 AI agents
   題後新增 skill 安裝題——只在互動終端機（TTY）問、專用預設 Y 契約（空白輸入 =
@@ -26,8 +48,18 @@
 - init / configure-agents 完成訊息在裝了 skill 時加衍生物版控提示（建議
   gitignore + clone 後重投影，沿用 PROPOSAL-037 建議預設）。
 
+### 模板 / 慣例
+
+- **表格一格多項的 `<br>` 分行慣例**（PROPOSAL-072）：spec 模板與 skill source
+  加格式守則註記（36 檔）——記錄型表格一格多項時用 `<br>` 分行，避免整格糊成
+  一行；不改任何欄位語意。
+
 ### 文件
 
+- README（zh/en）主要特點表加「Specs 給 AI 讀、也給人讀（md → HTML）」列；
+  render 段落加左右對照截圖（`media/render-side-by-side.png`，以正式 renderer
+  跑 tutorial outputs 產生；`media/` 隨 GitHub 散佈、不進 npm tarball）；
+  npm-latest 版本參照刷新。
 - README（zh/en）「開始使用」改寫：`--skills` 從「建議標準安裝」改為「init 預設
   已裝；`--skills` = 補裝 / 強制重生成」，並補非互動契約與版控建議；per-tool
   docs（Claude / Codex / Copilot × zh/en）、evaluating-dflow（zh/en）、兩軌
@@ -37,13 +69,31 @@
 
 ### 驗證
 
+- **P-073**：proposal-stage review 收斂 → impl-stage cross-model loop R1–R3 →
+  fresh cold-eye gates G1–G8（每輪全新 session、不餵先前 findings、gate 前後
+  worktree hash 比對）至 **G8 approve 零 findings**。
+- **P-074**：proposal-stage R1–R4 收斂（R3 reviewer 檔案存取故障判有條件
+  approve、不採計，R3b 全文內嵌重驗）→ impl-stage G6 2 findings（flagless
+  configure-agents「只裝缺的」邊界、Claude docs 舊契約殘留）修正 → G6 R2
+  approve 零 findings → fresh cold-eye gate G7 runtime 面零 findings。
 - `test/skill-default.mjs`（新增，in-process 假 TTY）：TTY Y / n / 空白（預設
   Y）/ 未選 agent 不問、configure-agents missing 問 / 已有不重問 / n-path 提示 /
   `--skills` 不問。smoke：非 TTY 序列不變性（舊 9 行序列原樣照跑 + 多出 skill
-  檔）、no-agent 不裝、configure-agents 非 TTY 預設補裝（含「加新工具」路徑）、
-  三家路徑全驗；generated 覆寫 / 非 generated skip + warning 沿用既有 `--skills`
-  測試。`npm test` + `scripts/check-repo-consistency.sh` + `npm pack --dry-run`
-  全綠。
+  檔）、no-agent 不裝、configure-agents 非 TTY 預設補裝（含「加新工具」路徑 +
+  mixed-state sentinel 回歸：flagless 不重生成既有 skill）、三家路徑全驗。
+  `npm test` + `scripts/check-repo-consistency.sh` + `npm pack --dry-run` 全綠
+  （dev 與 dist 兩側）。
+
+### 升級提醒
+
+- **scripted 自動化不用改答案序列**：非互動 `dflow init` / `configure-agents`
+  的既有 stdin 序列照跑；差別是產出會多 skill 檔。不想要 → TTY 下答 `n`、
+  非互動則事後刪檔並 gitignore（skill 檔是衍生物，`dflow configure-agents
+  --skills` 隨時可重生成）。
+- 既有專案重跑 `configure-agents` 新增工具時會被補問 skill（預設 Y）；已有
+  skill 的工具不受影響。
+- `dflow render` 為新增指令，不影響任何既有 workflow；11 個 `/dflow:*` 指令
+  清單不變。
 
 ---
 

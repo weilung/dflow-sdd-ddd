@@ -57,10 +57,6 @@ Skill files are Dflow-generated derivatives: the recommended default is to
 gitignore them and re-project after cloning (see the version-control table
 below).
 
-(The default skill install and the configure-agents prompt below are
-post-`0.12.0` changes not yet published to npm — on the npm version this is
-still opt-in: run `dflow configure-agents --skills` after init.)
-
 If the project is already initialized and you later add another AI coding
 tool, run:
 
@@ -145,10 +141,6 @@ reading, run:
 ```bash
 dflow render
 ```
-
-(`render` was added after `0.12.0` and has not shipped in an npm release yet —
-until the next npm release, clone the GitHub source, run `npm install`, and
-invoke it as `node bin/dflow.js render`.)
 
 It mirrors `dflow/specs/` into a static HTML tree (default output
 `dflow-specs-html/`; adjust with `--src` / `--out` / `--title`): record-style
@@ -470,19 +462,20 @@ Publish Checklist](docs/npm-publish-checklist.md).
 ## Status
 
 Dflow is currently published as `dflow-sdd-ddd` on npm. The latest published
-npm package is `0.12.0`, covering:
+npm package is `0.13.0`, covering:
 
 - Project initialization (`dflow init`) and idempotent upgrade re-projection (`dflow configure-agents`)
 - Workflow documentation (the `/dflow:*` flows) plus a workflow bundle vendored into each project
 - Multi-AI agent setup: a canonical guide plus thin per-tool shims (CLAUDE.md / AGENTS.md / Copilot instructions), with existing agent files auto-injected as a marked block (no manual merge)
-- Native project-level skills for all three tools (Claude / Codex / GitHub Copilot), sharing the agentskills.io open standard with natural-language auto-trigger (Copilot CLI still summons via `/dflow`)
-- Optional tool-native command entries (`--command-adapters`) and an auto-trigger skill (`--skills`)
+- Native project-level skills for all three tools (Claude / Codex / GitHub Copilot), **installed by init by default** (0.13), sharing the agentskills.io open standard with natural-language auto-trigger (Copilot CLI still summons via `/dflow`)
+- Optional tool-native command entries (`--command-adapters`); `--skills` backfills / force-regenerates the skill
+- `dflow render`: specs Markdown → a browsable static HTML mirror (for human reading; opens via `file://`, no server; 0.13)
 - AI-agent-readable SDD/DDD guidance, including deepened DDD tactical-modeling guidance and a closed model-lifecycle loop (long-running flows and model re-review; 0.11–0.12)
 - `dflow doctor` read-only project health check
 - Public onboarding: evaluator guide and per-tool walkthroughs for Claude Code, Codex CLI, and GitHub Copilot
 - A verification-only CI workflow (it does not execute publish)
 
-The GitHub source may include post-`0.12.0` repository changes before the
+The GitHub source may include post-`0.13.0` repository changes before the
 next npm release is published. See [CHANGELOG.md](CHANGELOG.md) for full
 release history.
 
