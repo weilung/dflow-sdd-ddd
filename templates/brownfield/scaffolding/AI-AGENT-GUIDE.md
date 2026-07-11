@@ -13,6 +13,11 @@ This project uses Dflow for spec-first AI-assisted development.
 | Migration / legacy context | {migration-context} |
 | Prose language | {prose-language} |
 
+<!-- dflow-generated: guide-canonical START -->
+<!-- Everything between these markers is Dflow-managed canonical guide content.
+     `dflow configure-agents` refreshes it in place on upgrade. Put project-specific
+     notes in "## Project Context" above (or outside the markers), not in here. -->
+
 ## Why This Matters
 
 This project has business logic embedded in delivery/entrypoint code
@@ -300,7 +305,7 @@ needed). The criteria below apply when `/dflow:modify-existing` or
 | Tier | Scenario | Output | Command / Trigger |
 |---|---|---|---|
 | **T1 Heavy** | New feature, new phase, architectural change, new BR | Independent `phase-spec-YYYY-MM-DD-{slug}.md` placed in the feature directory + `_index.md` Phase Specs row + refresh BR Snapshot | `/dflow:new-feature` / `/dflow:new-phase` |
-| **T2 Light** | Bug fix, UI input validation tweak, flow branch change — has BR Delta | Independent `lightweight-{YYYY-MM-DD}-{slug}.md` (or `BUG-{NUMBER}-{slug}.md`) inside the feature directory + `_index.md` Lightweight Changes row (outbound link) + refresh BR Snapshot | `/dflow:bug-fix` or `/dflow:modify-existing` (lightweight branch) |
+| **T2 Light** | Bug fix, UI input validation tweak, flow branch change — has BR Delta | Independent `lightweight-YYYY-MM-DD-{slug}.md` (or `BUG-{NUMBER}-{slug}.md`) inside the feature directory + `_index.md` Lightweight Changes row (outbound link) + refresh BR Snapshot | `/dflow:bug-fix` or `/dflow:modify-existing` (lightweight branch) |
 | **T3 Trivial** | Button colour, copy/text fix, typo, formatting, pure comments — **no BR change, no Domain concept change, no data structure change** | **Inline row in `_index.md` Lightweight Changes only** (no independent spec file) | `/dflow:modify-existing` (`_index-only` branch) |
 
 **T3 criteria** (the AI must satisfy **all four** before classifying T3):
@@ -426,3 +431,5 @@ should stay thin and point back here.
 If a tool does not support Dflow slash commands, treat the command names as
 plain workflow names and follow the matching flow file from the workflow bundle
 at `dflow/specs/shared/dflow-workflows/`.
+
+<!-- dflow-generated: guide-canonical END -->

@@ -283,8 +283,11 @@ files whose only job is to redirect the tool to the canonical guide):
 | GitHub Copilot | `.github/copilot-instructions.md` |
 
 If one of those files already exists, Dflow preserves custom content. A
-Dflow-generated shim is refreshed in place; another file that already points to
-`dflow/specs/shared/AI-AGENT-GUIDE.md` is skipped. If the file does not yet
+Dflow-generated shim is refreshed in place. A file you wrote yourself that
+already points to `dflow/specs/shared/AI-AGENT-GUIDE.md` is never rewritten:
+an interactive run asks whether to append the marked managed block at the end
+of the file (default No), and a non-interactive run skips it with a warning.
+If the file does not yet
 point to the guide, Dflow shows the change in the confirmation preview and
 appends a marked `<!-- dflow-generated: agent-shim START/END -->` block at the
 end of the file; re-running refreshes that same block in place without
@@ -324,27 +327,35 @@ across all tools in a project**, rather than ignoring adapters for one tool and
 tracking them for another.
 
 After upgrading Dflow, re-running `dflow configure-agents --command-adapters`
-re-projects adapters from the **new command registry**, but it does **not**
-overwrite an existing `dflow/specs/shared/AI-AGENT-GUIDE.md` (an existing
-canonical guide is kept). "Re-projecting adapters" and "migrating the canonical
-guide" are two different things; re-project with the **same dflow CLI version**
-to avoid a registry / guide version mismatch. Per-tool `.gitignore` snippets,
+re-projects adapters from the **new command registry**, and it also refreshes
+the **marker-guarded canonical region** of
+`dflow/specs/shared/AI-AGENT-GUIDE.md` in place (everything outside the markers
+— including `## Project Context` — is kept), so the two no longer skew apart.
+Re-project with the **same dflow CLI version**. Per-tool `.gitignore` snippets,
 glob side effects, the `git rm --cached` switch-over step, and upgrade details
 are covered in the per-tool guides.
 
-**Caveat when upgrading an existing project**: `configure-agents` only
-re-projects the layers Dflow itself owns (the workflow bundle, command / skill
-adapters, and the marked block inside existing agent files). It does **not**
-refresh the canonical guide (`AI-AGENT-GUIDE.md`) or the other user-owned layers
-(such as `_conventions.md` or the prose outside a shim's markers) — those become
-project-owned right after init and are deliberately left untouched. The trade-off:
-when a new release adds content into the canonical guide, an existing project does
-not pick it up automatically and can silently drift from that release's canonical
-shape. After upgrading an existing project, reconcile manually and use a fresh
-comparison baseline — run a **brand-new `dflow init` with the same edition and the
-same answers** elsewhere, then diff it file-by-file against your project: every
-difference should classify as either "your user content" or "known
-outside-the-markers", otherwise it is a missed update.
+**Caveat when upgrading an existing project**: `configure-agents` re-projects
+the layers Dflow itself owns — the workflow bundle, command / skill adapters,
+the marked block inside existing agent files, and the marker-guarded canonical
+region of `AI-AGENT-GUIDE.md` — and advances the `> Dflow Version:` line in
+`_conventions.md` to the CLI version it reconciled with. It does **not**
+rewrite user-owned content: the guide's `## Project Context`, the rest of
+`_conventions.md`, the init-only starters (`_overview.md`,
+`Git-principles-*.md`), and any prose outside a shim's markers. A pre-marker guide, or an
+agent file carrying your own edits, is not rewritten silently either — an
+interactive run **asks** before adopting the markers (default No; guide
+adoption keeps `## Project Context`), and a non-interactive run skips with a
+warning; only a pristine, unedited Dflow shim is still regenerated in place as
+before. After upgrading, run `dflow doctor`
+first: it reports drift read-only (a stale last-reconciled version, a frozen
+guide or dangling `§` references from the bundle, policy sections that are no
+longer machine-readable, feature `_index.md` files with an older template
+shape, unmanaged agent files). For a thorough verification, the baseline is
+still a **brand-new `dflow init` with the same edition and the same answers**
+elsewhere, diffed file-by-file against your project: every difference should
+classify as either "your user content" or "known outside-the-markers",
+otherwise it is a missed update.
 
 For tool-specific walk-throughs of what `init` writes and how Dflow's
 workflow commands appear in a given AI tool, see the per-tool guides under

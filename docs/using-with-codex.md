@@ -76,7 +76,9 @@ Claude Code、GitHub Copilot 與其他工具。
 
 如果專案中已有 `AGENTS.md`，`init` 不會覆蓋自訂內容。已是 Dflow-generated shim
 的檔案會原地刷新；其他已指向 `dflow/specs/shared/AI-AGENT-GUIDE.md` 的檔案會
-略過，不會新增第二個指標。否則 Dflow 會在確認 preview 顯示並於檔案末尾附加帶有
+略過並警告，不會新增第二個指標——之後在互動終端跑 `dflow configure-agents`
+會詢問是否附加帶 marker 的管理區塊（預設 N），非互動執行維持略過並警告。
+否則 Dflow 會在確認 preview 顯示並於檔案末尾附加帶有
 `<!-- dflow-generated: agent-shim START/END -->` markers 的 Dflow block，重跑會
 原地更新同一段。只有遇到衝突或 malformed Dflow markers 時，才會改寫
 `dflow/specs/shared/AGENTS-md-snippet.md` fallback merge snippet 讓你手動合併。

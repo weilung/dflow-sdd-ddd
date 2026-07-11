@@ -196,10 +196,13 @@ git rm --cached .github/prompts/dflow-*.prompt.md
 files.)
 
 After upgrading Dflow, re-running `dflow configure-agents --command-adapters`
-re-projects prompt adapters from the **new registry**, but an existing
-`dflow/specs/shared/AI-AGENT-GUIDE.md` is **not** overwritten — "re-projecting
-adapters" is not the same as "migrating the canonical guide." Re-project with
-the **same dflow CLI version**.
+re-projects prompt adapters from the **new registry** and also refreshes the
+**marker-guarded canonical region** of `dflow/specs/shared/AI-AGENT-GUIDE.md`
+in place (everything outside the markers — including `## Project Context` — is
+kept). If an older project's guide has no markers yet, an interactive run asks
+before adopting them (default No); a non-interactive run skips with a warning.
+Re-project with the **same dflow CLI version**, and run `dflow doctor`
+afterwards to review any remaining drift (read-only).
 
 ### Sample Conversation Flow
 
@@ -230,7 +233,10 @@ Copilot: Got it. I'll create the feature spec at dflow/specs/features/active/
 If a `.github/copilot-instructions.md` file already exists in your project,
 `init` does not overwrite custom content. A Dflow-generated shim is refreshed
 in place; another file that already points to
-`dflow/specs/shared/AI-AGENT-GUIDE.md` is skipped. If the file does not yet
+`dflow/specs/shared/AI-AGENT-GUIDE.md` is skipped with a warning — a later
+interactive `dflow configure-agents` run offers to append the marked managed
+block (default No), while non-interactive runs keep skipping with the warning.
+If the file does not yet
 point to the guide, Dflow shows the change in the confirmation preview and
 appends a marked `<!-- dflow-generated: agent-shim START/END -->` block at the
 end of the file; re-running refreshes that same block in place without

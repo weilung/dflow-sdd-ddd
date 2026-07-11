@@ -178,8 +178,10 @@ git rm --cached .github/prompts/dflow-*.prompt.md
 （`--cached` 只移出版控、保留工作目錄檔案。）
 
 升級 dflow 後重跑 `dflow configure-agents --command-adapters`，prompt adapter 會用**新版 registry**
-重投影；但既有 `dflow/specs/shared/AI-AGENT-GUIDE.md` **不會**被覆寫——「重投影 adapter」不等於
-「升級 canonical guide」。請以**相同的 dflow CLI 版本**重投影。
+重投影；`dflow/specs/shared/AI-AGENT-GUIDE.md` 內**帶 marker 的 canonical 區**也會原地刷新
+（marker 以外——含 `## Project Context`——保留不動）。較舊專案的 guide 還沒有 marker 時，
+互動執行會詢問是否採用（預設 N）、非互動則跳過並警告。請以**相同的 dflow CLI 版本**重投影，
+升級後先跑 `dflow doctor` 檢視殘餘漂移（read-only）。
 
 ### 對話範例
 
@@ -209,7 +211,9 @@ Copilot: Got it. I'll create the feature spec at dflow/specs/features/active/
 
 如果你的專案中已有 `.github/copilot-instructions.md`，`init` 不會覆蓋自訂內容。
 已是 Dflow-generated shim 的檔案會原地刷新；其他已指向
-`dflow/specs/shared/AI-AGENT-GUIDE.md` 的檔案會略過。若既有檔案尚未指向 guide，
+`dflow/specs/shared/AI-AGENT-GUIDE.md` 的檔案會略過並警告——之後在互動終端跑
+`dflow configure-agents` 會詢問是否附加帶 marker 的管理區塊（預設 N），非互動
+執行維持略過並警告。若既有檔案尚未指向 guide，
 Dflow 會在確認 preview 顯示並於檔案末尾附加帶有
 `<!-- dflow-generated: agent-shim START/END -->` markers 的 Dflow block；重跑會
 原地更新同一段，不會重複。這樣可以避免破壞你已有的自訂 Copilot 指示。若你刪除

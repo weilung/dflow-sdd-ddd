@@ -51,6 +51,14 @@ Without --skills, selecting an agent that has no project-level skill yet
 prompts to install it (default yes) on an interactive terminal; non-interactive
 runs install it by default without reading an extra stdin answer. Agents whose
 skill file already exists are not re-asked and not regenerated.
+
+On upgrade re-runs the command also refreshes the marker-guarded canonical
+region of dflow/specs/shared/AI-AGENT-GUIDE.md (content outside the markers,
+including "## Project Context", is kept) and advances the "> Dflow Version:"
+last-reconciled line in _conventions.md. A pre-marker guide, or an agent file
+you edited yourself, is never rewritten silently: interactive runs offer
+marker adoption (default No); non-interactive runs skip and warn. (A pristine,
+unedited Dflow shim is still regenerated in place, as before.)
 `);
 }
 
@@ -92,7 +100,18 @@ function printDoctorHelp() {
 Read-only health check for the current project. Reports findings such as:
 
   - dflow/specs/shared/_conventions.md missing the Dflow Version
-    front-matter line
+    front-matter line, or recording an older last-reconciled version
+  - policy sections (Git Policy / AI Commit Policy / Prose Language)
+    missing or no longer machine-readable
+  - AI-AGENT-GUIDE.md frozen at an older Dflow version (missing or
+    malformed guide-canonical markers, stale canonical content) and
+    dangling "AI-AGENT-GUIDE.md § ..." references from the workflow bundle
+  - init-only starters drifted (missing or edited Git-principles file
+    for the selected policy)
+  - active feature _index.md files created from an older template shape
+  - root agent files (AGENTS.md / CLAUDE.md / copilot-instructions.md)
+    with malformed Dflow markers or unmanaged Dflow wording
+  - workflow bundle orphans and a bundle projected by an older Dflow
 
 Doctor never modifies files.
 `);

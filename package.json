@@ -39,7 +39,7 @@
   },
   "homepage": "https://github.com/weilung/dflow-sdd-ddd#readme",
   "scripts": {
-    "test": "node test/smoke.mjs && node test/skill-default.mjs && node test/registry-parity.mjs && node test/agent-inject.mjs && node test/bundle-guards.mjs && node test/render.mjs"
+    "test": "node test/smoke.mjs && node test/skill-default.mjs && node test/registry-parity.mjs && node test/agent-inject.mjs && node test/upgrade-drift.mjs && node test/bundle-guards.mjs && node test/render.mjs"
   },
   "license": "AGPL-3.0-or-later",
   "publishConfig": {

@@ -86,8 +86,11 @@ GitHub Copilot, and other tools.
 
 If an `AGENTS.md` already existed in the project, `init` does not overwrite
 custom content. A Dflow-generated shim is refreshed in place; another file
-that already points to `dflow/specs/shared/AI-AGENT-GUIDE.md` is skipped
-without adding a second pointer. Otherwise Dflow shows the change in the
+that already points to `dflow/specs/shared/AI-AGENT-GUIDE.md` is skipped with
+a warning, without adding a second pointer — a later interactive
+`dflow configure-agents` run offers to append the marked managed block
+(default No), while non-interactive runs keep skipping with the warning.
+Otherwise Dflow shows the change in the
 confirmation preview and appends a marked
 `<!-- dflow-generated: agent-shim START/END -->` block at the end of the file;
 re-running refreshes that same block in place. Dflow writes the fallback merge
