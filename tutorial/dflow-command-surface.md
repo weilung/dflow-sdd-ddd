@@ -398,7 +398,7 @@ Dflow 應該回報：
 
 - flow 指示不清楚
 - template 欄位讓人誤解
-- README 與 skill source 不一致
+- README 與 `templates/` workflow 內容不一致
 - tutorial 與現行命令表面不一致
 
 可以用：
@@ -434,7 +434,7 @@ dflow init
 
 ### 混淆 3：`/dflow:verify`、`/dflow:pr-review`、`/dflow:status`、`/dflow:next`、`/dflow:cancel` 是否有效？
 
-有效。它們是目前 Dflow skill source 與 README 仍列出的命令。
+有效。它們是目前 Dflow `templates/` workflow 內容與 README 仍列出的命令。
 
 差別是：
 

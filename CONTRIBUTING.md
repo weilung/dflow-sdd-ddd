@@ -13,8 +13,8 @@ Please read:
   document structure.
 - `TEMPLATE-LANGUAGE-GLOSSARY.md` before changing template headings or field
   labels.
-- The relevant Greenfield or Brownfield skill source when changing workflow
-  behavior.
+- The relevant Greenfield or Brownfield workflow content under `templates/`
+  when changing workflow behavior.
 
 The public source is kept intentionally smaller than the development workspace.
 Internal planning notes, proposal handoffs, and review artifacts are maintainer
@@ -71,13 +71,10 @@ GitHub Actions runs the same verification commands on every pull request to
 `main` and on every push to `main`. The CI is verification-only — it does not
 publish releases, change versions, or create tags.
 
-When changing templates or scaffolding, keep both source surfaces aligned:
-
-- skill source under `sdd-ddd-greenfield-skill/` or
-  `sdd-ddd-brownfield-skill/`
-- packaged templates under `templates/greenfield/` or `templates/brownfield/`
-
-If you are unsure which surface to edit, describe that uncertainty in the PR.
+Templates and scaffolding live under `templates/greenfield/`,
+`templates/brownfield/`, and `templates/common/` — the single content source
+read by the CLI. Edit them directly; there is no separate mirror to keep in
+sync.
 
 ## Greenfield and Brownfield Synchronization
 

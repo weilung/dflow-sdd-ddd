@@ -12,7 +12,9 @@ Replace `<version>` with the version being published, for example `0.1.2`.
 - [ ] Update `CHANGELOG.md`.
 - [ ] Confirm `README.md` installation instructions match the release.
 - [ ] Confirm Greenfield and Brownfield common flow changes are synchronized.
-- [ ] Confirm generated templates match skill source where applicable.
+- [ ] Confirm workflow content changes are complete under `templates/` — the
+      single content source; there is no separate skill-source copy to
+      synchronize.
 - [ ] Run the lifecycle check in the development repo and confirm it is green,
       so every proposal this release covers is terminal (`implemented` /
       `rejected` / `superseded`) and already archived:

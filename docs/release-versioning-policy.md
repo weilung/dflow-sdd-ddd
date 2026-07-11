@@ -95,8 +95,9 @@ the only place where release history is recorded.
 
 ## Greenfield and Brownfield Changes
 
-If a change touches a common SDD flow, update both Greenfield and Brownfield
-skill sources unless the release intentionally changes only one track.
+If a change touches a common SDD flow, update the flow under both
+`templates/greenfield/references/` and `templates/brownfield/references/`
+unless the release intentionally changes only one track.
 
 Common synchronized flow files include:
 

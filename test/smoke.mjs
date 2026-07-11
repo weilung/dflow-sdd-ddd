@@ -746,15 +746,11 @@ try {
   const brownfieldNewPhase = await readFile(join(webformsBundleDir, 'references/new-phase-flow.md'), 'utf8');
   assert.match(brownfieldNewPhase, /Never create a new feature branch here/, 'PROPOSAL-047 (brownfield parity): new-phase must not recreate a feature branch');
 
-  // Fence-integrity guard — exhaustive scan over all Git-principles source + mirror files
+  // Fence-integrity guard — exhaustive scan over all Git-principles template source files
   // (catches any content glued to a closing fence, not just `}```; previous narrower guard
   // missed trunk integration-example fences in round-2). Pattern \S``` flags non-whitespace
   // immediately before three backticks at end of line.
   const gitPrinciplesScanList = [
-    'sdd-ddd-greenfield-skill/scaffolding/Git-principles-trunk.md',
-    'sdd-ddd-greenfield-skill/scaffolding/Git-principles-gitflow.md',
-    'sdd-ddd-brownfield-skill/scaffolding/Git-principles-trunk.md',
-    'sdd-ddd-brownfield-skill/scaffolding/Git-principles-gitflow.md',
     'templates/greenfield/scaffolding/Git-principles-trunk.md',
     'templates/greenfield/scaffolding/Git-principles-gitflow.md',
     'templates/brownfield/scaffolding/Git-principles-trunk.md',

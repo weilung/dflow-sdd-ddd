@@ -163,5 +163,5 @@ Initial ADRs that typically exist:
 - [Glossary](../domain/glossary.md)
 - [Tech debt backlog](../architecture/tech-debt.md)
 - [Architecture decisions](../architecture/decisions/)
-- Dflow skill: see `CLAUDE.md` and the `sdd-ddd-greenfield-skill/` bundle
-  for the full AI workflow guidance.
+- Dflow skill: see `CLAUDE.md` and the in-project bundle at
+  `dflow/specs/shared/dflow-workflows/` for the full AI workflow guidance.

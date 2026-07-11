@@ -126,5 +126,5 @@ where Domain logic is pure C# and can be tested without WebForms,
 - [Git principles](Git-principles-gitflow.md)
 - [Glossary](../domain/glossary.md)
 - [Tech debt backlog](../migration/tech-debt.md)
-- Dflow skill: see `CLAUDE.md` and the `sdd-ddd-brownfield-skill/` bundle
-  for the full AI workflow guidance.
+- Dflow skill: see `CLAUDE.md` and the in-project bundle at
+  `dflow/specs/shared/dflow-workflows/` for the full AI workflow guidance.

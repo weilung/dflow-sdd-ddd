@@ -292,7 +292,7 @@ The canonical guide (`dflow/specs/shared/AI-AGENT-GUIDE.md`) is the same across 
 ## Where to Go Next
 
 - If you have not run `init`: run `dflow init` (after `npm install -g dflow-sdd-ddd`) or `npx dflow-sdd-ddd init` and choose the Copilot target to create `.github/copilot-instructions.md`.
-- Read [`dflow/specs/shared/AI-AGENT-GUIDE.md`](../sdd-ddd-greenfield-skill/scaffolding/AI-AGENT-GUIDE.md) (or the brownfield equivalent) before starting a workflow.
+- Read [`dflow/specs/shared/AI-AGENT-GUIDE.md`](../templates/greenfield/scaffolding/AI-AGENT-GUIDE.md) (or the brownfield equivalent) before starting a workflow.
 - See [`tutorial/01-greenfield/`](../tutorial/01-greenfield/walkthrough-00-setup.md) for conversation examples that demonstrate Copilot chat flows.
 - Read [`docs/why-ddd-for-ai.en.md`](why-ddd-for-ai.en.md) for the design rationale behind spec-first plus DDD.
 

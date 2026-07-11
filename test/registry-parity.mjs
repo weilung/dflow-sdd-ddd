@@ -8,8 +8,8 @@
 // Deliberately self-contained: it ships its own tiny Markdown-table parser
 // instead of importing lib/init.js, so (a) it needs no runtime export and keeps
 // F-02 a zero-lib-change addition, and (b) a parser bug cannot hide itself by
-// being the same code under test. Skill-source <-> template mirror parity is
-// owned by scripts/check-repo-consistency.sh; this test reads templates/.
+// being the same code under test. This test reads templates/, the single
+// content source (PROPOSAL-075).
 
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';

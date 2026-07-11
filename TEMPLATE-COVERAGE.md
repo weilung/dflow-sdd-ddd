@@ -29,8 +29,8 @@ The matrix lists Brownfield / Greenfield logical template parity so reviewers ca
 
 ## Reference Flow Parity
 
-Common reference flows under `sdd-ddd-brownfield-skill/references/` and
-`sdd-ddd-greenfield-skill/references/` must stay synchronized unless a
+Common reference flows under `templates/brownfield/references/` and
+`templates/greenfield/references/` must stay synchronized unless a
 track-specific difference is explicit. This includes
 `dflow-feedback-flow.md`; it is a governance/support flow and should not grow
 GitHub CLI submission behavior without a separate proposal.

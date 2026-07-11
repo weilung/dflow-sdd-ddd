@@ -446,10 +446,9 @@ For the full loop (how a blind spot becomes guidance, and why the flip points to
 |---|---|
 | `bin/` | CLI entrypoint. |
 | `lib/` | CLI runtime implementation (init / configure-agents / doctor / render). |
-| `templates/` | Files copied by the init command. |
+| `templates/` | The single source of workflow content; `dflow init` / `dflow configure-agents` project from here into your project. |
 | `test/` | Smoke tests for generated output. |
 | `tutorial/` | Guided learning scenarios and expected outputs. |
-| `sdd-ddd-*-skill/` | Source workflow material consumed by AI coding agents. |
 
 ## Contributing and Releases
 
