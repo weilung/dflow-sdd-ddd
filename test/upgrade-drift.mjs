@@ -9,6 +9,8 @@
 //       (case 2d), including the "now marker-managed" follow-up run;
 //   (5) the `> Dflow Version:` last-reconciled line advances on configure-agents;
 //   (6) doctor reports the drift matrix read-only and stays clean elsewhere.
+// Section (11) covers PROPOSAL-076: context inference reads the guide's
+// "## Project Context" rows (section-scoped) and doctor reports missing rows.
 //
 // Same conventions as test/skill-default.mjs: runInit / runConfigureAgents /
 // runDoctor are driven in-process; TTY halves use PassThrough streams faking
@@ -25,7 +27,7 @@ import { fileURLToPath } from 'node:url';
 import init from '../lib/init.js';
 import doctorChecks from '../lib/doctor-checks.js';
 
-const { runInit, runConfigureAgents, runDoctor, writeFilePlan } = init;
+const { runInit, runConfigureAgents, runDoctor, writeFilePlan, inferTechStackSummary, inferMigrationContext } = init;
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 const pkg = JSON.parse(await readFile(join(repoRoot, 'package.json'), 'utf8'));
@@ -581,6 +583,183 @@ try {
   const blankDoctor = await runDoctorAt(spaced);
   assert.equal(blankDoctor.code, 0, 'doctor must stay exit 0 on a whitespace-only policy value');
   assert.match(blankDoctor.stdout, /## Git Policy line is not machine-readable/, 'doctor must flag a whitespace-only policy value');
+
+  // ---------------------------------------------------------------------------
+  // (11) PROPOSAL-076: context inference reads the guide's "## Project Context"
+  // rows (the _overview.md rows the pre-076 code looked for never existed in any
+  // packaged template). Unit-level through the exported functions: the only
+  // write consumer is whole-guide creation when the guide is missing — exactly
+  // when the source is absent — so the real-value read has no black-box write
+  // to observe.
+  // ---------------------------------------------------------------------------
+  const infer = await newProject('2');
+  assert.equal(await inferTechStackSummary(infer), 'Node 20, Express 4, Jest', 'inference must read the init-substituted Tech stack row');
+  assert.equal(await inferMigrationContext(infer), 'none', 'inference must read the init-substituted Migration row');
+  assert.equal(await inferTechStackSummary(brown), 'Node 20, Express 4, Jest', 'brownfield inference parity');
+
+  const inferGuidePath = join(infer, GUIDE_REL);
+  const inferBaseGuide = await readFile(inferGuidePath, 'utf8');
+  const TECH_ROW = '| Tech stack | Node 20, Express 4, Jest |';
+  const MIGRATION_ROW = '| Migration / legacy context | none |';
+  assert.ok(inferBaseGuide.includes(TECH_ROW) && inferBaseGuide.includes(MIGRATION_ROW), 'fixture guide must carry the substituted rows');
+
+  // (11a) user-edited values are picked up — reading the user region is the point.
+  await writeFile(inferGuidePath, inferBaseGuide
+    .replace(TECH_ROW, '| Tech stack | Deno 2 + Fresh |')
+    .replace(MIGRATION_ROW, '| Migration / legacy context | WebForms -> Core rewrite underway |'));
+  assert.equal(await inferTechStackSummary(infer), 'Deno 2 + Fresh', 'edited Tech stack value must win');
+  assert.equal(await inferMigrationContext(infer), 'WebForms -> Core rewrite underway', 'edited Migration value must win');
+
+  // (11b) <br> cell content (PROPOSAL-072 cell line-break convention) is captured whole.
+  await writeFile(inferGuidePath, inferBaseGuide.replace(TECH_ROW, '| Tech stack | Node 20<br>Express 4 |'));
+  assert.equal(await inferTechStackSummary(infer), 'Node 20<br>Express 4', '<br> cells must be captured whole');
+
+  // (11c) deleted row / whitespace-only cell / renamed section heading → fallback.
+  await writeFile(inferGuidePath, inferBaseGuide.replace(/^\| Tech stack \|.*\n/m, ''));
+  assert.equal(await inferTechStackSummary(infer), 'unknown', 'deleted row must fall back');
+  await writeFile(inferGuidePath, inferBaseGuide.replace(TECH_ROW, '| Tech stack |   |'));
+  assert.equal(await inferTechStackSummary(infer), 'unknown', 'whitespace-only cell must fall back (parseContextLine null semantics)');
+  await writeFile(inferGuidePath, inferBaseGuide.replace('## Project Context', '## Contexto del Proyecto'));
+  assert.equal(await inferTechStackSummary(infer), 'unknown', 'renamed Project Context heading must fall back');
+
+  // (11d) section-scoping: a same-name row outside "## Project Context" must
+  // neither supply nor shadow the value.
+  await writeFile(inferGuidePath, `${inferBaseGuide.replace(/^\| Tech stack \|.*\n/m, '')}\n| Tech stack | DECOY-outside-section |\n`);
+  assert.equal(await inferTechStackSummary(infer), 'unknown', 'a Tech stack row outside Project Context must not be read');
+  await writeFile(inferGuidePath, `${inferBaseGuide}\n| Tech stack | DECOY-outside-section |\n`);
+  assert.equal(await inferTechStackSummary(infer), 'Node 20, Express 4, Jest', 'the in-section row must win over an out-of-section decoy');
+
+  // (11e) CRLF guide still parses.
+  await writeFile(inferGuidePath, inferBaseGuide.replace(/\n/g, '\r\n'));
+  assert.equal(await inferTechStackSummary(infer), 'Node 20, Express 4, Jest', 'CRLF guide must still parse');
+
+  // (11e2) gate G1: a fenced example containing a fake "## Project Context"
+  // heading before the real section must not bound the section.
+  await writeFile(inferGuidePath, inferBaseGuide.replace(
+    '## Project Context',
+    '```md\n## Project Context\n| Tech stack | FENCED-DECOY |\n```\n\n## Project Context'
+  ));
+  assert.equal(await inferTechStackSummary(infer), 'Node 20, Express 4, Jest', 'a fenced fake Project Context heading must not bound the section');
+
+  // (11e3) gate G1: Markdown-escaped pipes in the cell are captured whole and
+  // unescaped, not truncated at the first `\|`.
+  await writeFile(inferGuidePath, inferBaseGuide.replace(TECH_ROW, '| Tech stack | Node \\| Express |'));
+  assert.equal(await inferTechStackSummary(infer), 'Node | Express', 'escaped pipes in the cell must be captured whole and unescaped');
+
+  // (11e4) gate G2: a fenced decoy row INSIDE the Project Context section can
+  // neither shadow the real row nor supply a value when the real row is gone.
+  await writeFile(inferGuidePath, inferBaseGuide.replace(
+    '| Field | Value |',
+    '```md\n| Tech stack | FENCED-INSIDE-DECOY |\n```\n\n| Field | Value |'
+  ));
+  assert.equal(await inferTechStackSummary(infer), 'Node 20, Express 4, Jest', 'a fenced decoy row inside the section must not shadow the real row');
+  await writeFile(inferGuidePath, inferBaseGuide
+    .replace(/^\| Tech stack \|.*\n/m, '')
+    .replace('| Field | Value |', '```md\n| Tech stack | FENCED-INSIDE-DECOY |\n```\n\n| Field | Value |'));
+  assert.equal(await inferTechStackSummary(infer), 'unknown', 'a fenced decoy row must not supply a value when the real row is gone');
+
+  // (11e4b) gate G4: a four-backtick fence containing a three-backtick line
+  // must not close early — the decoy row inside stays fenced.
+  await writeFile(inferGuidePath, inferBaseGuide.replace(
+    '| Field | Value |',
+    '````md\nnested example:\n```\n| Tech stack | FENCED-4TICK-DECOY |\n```\n````\n\n| Field | Value |'
+  ));
+  assert.equal(await inferTechStackSummary(infer), 'Node 20, Express 4, Jest', 'a longer fence must not close on a shorter inner fence line');
+
+  // (11e4d) gate G6: an info-string fence line (```js) inside an open fence is
+  // content, not a close — the decoy after it stays fenced.
+  await writeFile(inferGuidePath, inferBaseGuide.replace(
+    '| Field | Value |',
+    '```md\nexample with an inner opener:\n```js\n## Project Context\n| Tech stack | FENCED-INFOSTRING-DECOY |\n```\n\n| Field | Value |'
+  ));
+  assert.equal(await inferTechStackSummary(infer), 'Node 20, Express 4, Jest', 'an info-string fence line inside a fence must not close it');
+
+  // (11e4c) gate G4: a UTF-8 BOM must not defeat recognizability or parsing.
+  await writeFile(inferGuidePath, '\uFEFF' + inferBaseGuide);
+  assert.equal(await inferTechStackSummary(infer), 'Node 20, Express 4, Jest', 'a BOM-prefixed guide must still parse');
+
+  // (11e5) gate G2 round-trip: bare `|` in the free-text init answers is
+  // table-escaped on write and unescaped on read — no phantom cells, no
+  // truncation.
+  const pipeDir = join(tempRoot, `p-pipe-${projectCounter += 1}`);
+  await mkdir(pipeDir, { recursive: true });
+  const pipeStdout = captureStream(false);
+  const pipeCode = await runInit({
+    cwd: pipeDir,
+    stdin: pipeStdin(['1', 'Node | Express, Jest', 'legacy | replatform', '1', '2', '1', '1', '2', 'y']),
+    stdout: pipeStdout,
+    stderr: captureStream(false)
+  });
+  assert.equal(pipeCode, 0, `pipe-answer init failed\n${pipeStdout.text}`);
+  assert.match(await readFile(join(pipeDir, GUIDE_REL), 'utf8'), /^\| Tech stack \| Node \\\| Express, Jest \|$/m, 'bare pipes in Q2 must be escaped in the guide table cell');
+  assert.equal(await inferTechStackSummary(pipeDir), 'Node | Express, Jest', 'pipe-carrying tech stack must round-trip through inference');
+  assert.equal(await inferMigrationContext(pipeDir), 'legacy | replatform', 'pipe-carrying migration context must round-trip through inference');
+
+  // (11f) missing guide → fallback (the known-limitation source-equals-target case).
+  await unlink(inferGuidePath);
+  assert.equal(await inferTechStackSummary(infer), 'unknown', 'missing guide must fall back');
+  assert.equal(await inferMigrationContext(infer), 'none', 'missing guide must fall back (migration)');
+
+  // (11g) known limitation, black-box: re-creating the missing guide records the
+  // fallback values (the source died with the guide), and the result round-trips.
+  const recreatedRun = await runConfigure(infer, ['2', 'y']);
+  assert.equal(recreatedRun.code, 0, `guide re-creation run failed\n${recreatedRun.all}`);
+  const recreatedGuide = await readFile(inferGuidePath, 'utf8');
+  assert.match(recreatedGuide, /^\| Tech stack \| unknown \|$/m, 'known limitation: a re-created guide records the fallback tech stack');
+  assert.match(recreatedGuide, /^\| Migration \/ legacy context \| none \|$/m, 'known limitation: a re-created guide records the fallback migration context');
+  assert.equal(await inferTechStackSummary(infer), 'unknown', 're-created guide must round-trip through inference');
+
+  // (11h) doctor: a recognizable guide missing a Project Context row gets one
+  // info finding naming exactly the missing row(s); fresh projects stay clean
+  // (asserted in (6)/(7)); an unrecognizable guide keeps only its own finding.
+  const pcDoc = await newProject('2');
+  const pcGuidePath = join(pcDoc, GUIDE_REL);
+  await writeFile(pcGuidePath, (await readFile(pcGuidePath, 'utf8')).replace(/^\| Tech stack \|.*\n/m, ''));
+  const pcDoctor = await runDoctorAt(pcDoc);
+  assert.equal(pcDoctor.code, 0, 'doctor must stay exit 0 on a missing Project Context row');
+  assert.match(pcDoctor.stdout, /^\[info\] .*"## Project Context" is missing machine-readable row\(s\): Tech stack/m, 'doctor: missing Tech stack row is reported at info level');
+  assert.match(pcDoctor.stdout, /1 finding\(s\): 0 warn, 1 info\./, 'doctor: the isolated missing-row case must count as exactly one info finding');
+  assert.doesNotMatch(pcDoctor.stdout, /row\(s\): Tech stack, Migration/, 'doctor: the intact Migration row must not be listed');
+
+  await writeFile(pcGuidePath, '\uFEFF' + (await readFile(pcGuidePath, 'utf8')));
+  const pcBomDoctor = await runDoctorAt(pcDoc);
+  assert.match(pcBomDoctor.stdout, /missing machine-readable row\(s\): Tech stack/, 'doctor: a BOM must not defeat the row check');
+
+  // (11h2) gate G5: a marker-managed guide whose Project Context heading was
+  // renamed away still gets a doctor finding — the canonical-state check stays
+  // silent (markers are fine) and inference silently falls back otherwise.
+  const pcGone = await newProject('2');
+  const pcGonePath = join(pcGone, GUIDE_REL);
+  await writeFile(pcGonePath, (await readFile(pcGonePath, 'utf8')).replace('## Project Context', '## About This Project'));
+  const pcGoneDoctor = await runDoctorAt(pcGone);
+  assert.equal(pcGoneDoctor.code, 0, 'doctor must stay exit 0 on a missing Project Context section');
+  assert.match(pcGoneDoctor.stdout, /has no "## Project Context" section/, 'doctor: marker-managed guide without the section is reported');
+  assert.equal(await inferTechStackSummary(pcGone), 'unknown', 'inference falls back without the Project Context section');
+
+  const pcBrown = await newProject('2', '2');
+  const pcBrownGuidePath = join(pcBrown, GUIDE_REL);
+  await writeFile(pcBrownGuidePath, (await readFile(pcBrownGuidePath, 'utf8')).replace(/^\| Migration \/ legacy context \|.*\n/m, ''));
+  const pcBrownDoctor = await runDoctorAt(pcBrown);
+  assert.match(pcBrownDoctor.stdout, /missing machine-readable row\(s\): Migration \/ legacy context/, 'doctor: brownfield missing Migration row is reported (parity)');
+
+  assert.doesNotMatch(foreignDoctor.stdout, /missing machine-readable row/, 'doctor: unrecognizable guide must not get the Project Context row finding');
+
+  // (11j) gate G3: a markerless guide whose ONLY "## Project Context" heading
+  // sits inside a fenced example must be unrecognizable — recognizability now
+  // implies locatable bounds, so an accepted adoption offer can never hit the
+  // transplant internal error.
+  const fencedPc = await newProject('2');
+  await writeFile(
+    join(fencedPc, GUIDE_REL),
+    '# Dflow AI Agent Guide\n\nNotes.\n\n```md\n## Project Context\n```\n\nMore notes.\n'
+  );
+  const fencedPcRun = await runConfigure(fencedPc, ['2', 'y'], { tty: true });
+  assert.equal(fencedPcRun.code, 0, `fenced-only-PC guide run failed\n${fencedPcRun.all}`);
+  assert.ok(!fencedPcRun.stdout.includes(GUIDE_QUESTION), 'a guide whose only Project Context heading is fenced must not get the adoption offer');
+  assert.match(fencedPcRun.all, /not recognizable as a Dflow guide/, 'fenced-only-PC guide must be treated as unrecognizable');
+  const fencedPcDoctor = await runDoctorAt(fencedPc);
+  assert.match(fencedPcDoctor.stdout, /is not recognizable as a Dflow guide/, 'doctor: fenced-only-PC guide gets the unrecognizable finding');
+  assert.doesNotMatch(fencedPcDoctor.stdout, /accept the marker-adoption offer/, 'doctor: fenced-only-PC guide must not be pointed at a non-existent offer');
 
   console.log(`PROPOSAL-058 upgrade-drift tests passed in ${tempRoot}`);
 } finally {

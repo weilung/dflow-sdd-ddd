@@ -106,6 +106,8 @@ Read-only health check for the current project. Reports findings such as:
   - AI-AGENT-GUIDE.md frozen at an older Dflow version (missing or
     malformed guide-canonical markers, stale canonical content) and
     dangling "AI-AGENT-GUIDE.md § ..." references from the workflow bundle
+  - AI-AGENT-GUIDE.md "## Project Context" missing the machine-readable
+    Tech stack / Migration rows that context inference reads
   - init-only starters drifted (missing or edited Git-principles file
     for the selected policy)
   - active feature _index.md files created from an older template shape

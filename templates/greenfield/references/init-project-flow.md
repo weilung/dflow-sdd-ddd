@@ -110,12 +110,12 @@ Used to substitute `{Framework version}` / `{ORM version}` /
 
 > "Was this project ported / migrated from a prior stack (e.g. legacy
 > presentation framework, monolith), or is it new-build on the chosen
-> framework? If migrated, is there any legacy concern you'd like the
-> overview to flag?"
+> framework? If migrated, is there any legacy concern you'd like noted?"
 
-If migrated → `_overview.md` can carry a short migration-context note.
-Otherwise skip. In the Greenfield track, migration is not the first-class
-concern, but noting origin is still useful.
+If migrated → the answer is recorded in the `Migration / legacy context` row
+of the AI agent guide's `## Project Context` table. If not migrated, skip —
+the row records `none`. In the Greenfield track, migration is not the
+first-class concern, but noting origin is still useful.
 
 ### Q4. Project prose language
 

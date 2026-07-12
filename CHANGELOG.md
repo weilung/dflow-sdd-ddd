@@ -6,7 +6,24 @@
 
 ---
 
-## 0.13.0 — 2026-07-10 — dflow render（specs 人讀化）+ init 預設安裝 skill（day-one 自動觸發）
+## Unreleased
+
+> 註：0.13.0 後已實作、尚未寫入本節的還有 PROPOSAL-058（升級期 user-owned 層
+> drift：guide canonical marker-guard 原地刷新、`dflow doctor` drift 偵測、
+> last-reconciled 版本行；詳見 `archive/proposals/PROPOSAL-058-*`）——完整條目
+> 於 release prep 補寫。
+
+### 修正
+
+- **configure-agents 的 context inference 死源修正**（PROPOSAL-076）：
+  `techStackSummary` / `migrationContext` 推斷原本讀 `_overview.md` 的
+  `| Tech stack |` / `| Migration / legacy context |` 表列——但任何版本的
+  packaged `_overview` 模板都從未有這兩列，推斷恆 fallback `unknown` / `none`。
+  現改讀真正的機器可讀落點：guide `AI-AGENT-GUIDE.md` 的 `## Project Context`
+  表（init 自始把 Q2/Q3 答案寫在這裡；只解析 Project Context 段內、段外同名列
+  不遮蔽）。`dflow doctor` 新增 info 級檢查：可辨識的 guide 若缺這兩列（或列
+  不可解析）會提示 inference 後果；fresh init 專案不受影響（列本來就在）。
+  同步校正兩軌 `init-project-flow.md` 把 Q3 落點誤述為 `_overview.md` 的殘句。
 
 **Proposals**：PROPOSAL-072（表格 `<br>` 分行慣例）、PROPOSAL-073（`dflow render` 子指令）、PROPOSAL-074（init 預設安裝 project-level skill）
 

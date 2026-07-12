@@ -104,7 +104,9 @@ Used to substitute `{Framework}` / `{Framework version}` / `{Language}` /
 If yes → `_overview.md` "Target Architecture Strategy" section is emphasised and
 `migration/tech-debt.md` is prioritised. If no → the scaffolding still
 mentions the principles (Migration Awareness / Domain Extraction /
-Dual-Track Parallel / Pragmatic First) but framed as forward-option.
+Dual-Track Parallel / Pragmatic First) but framed as forward-option. Either
+way the answer is recorded in the `Migration / legacy context` row of the AI
+agent guide's `## Project Context` table.
 
 ### Q4. Project prose language
 
