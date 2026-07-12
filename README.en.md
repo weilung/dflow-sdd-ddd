@@ -472,20 +472,21 @@ Publish Checklist](docs/npm-publish-checklist.md).
 ## Status
 
 Dflow is currently published as `dflow-sdd-ddd` on npm. The latest published
-npm package is `0.13.0`, covering:
+npm package is `0.14.0`, covering:
 
 - Project initialization (`dflow init`) and idempotent upgrade re-projection (`dflow configure-agents`)
 - Workflow documentation (the `/dflow:*` flows) plus a workflow bundle vendored into each project
 - Multi-AI agent setup: a canonical guide plus thin per-tool shims (CLAUDE.md / AGENTS.md / Copilot instructions), with existing agent files auto-injected as a marked block (no manual merge)
+- Marker-guarded in-place refresh of the guide's Dflow canonical sections on upgrade, plus consent-gated marker adoption for pre-marker guides / agent files (0.14)
 - Native project-level skills for all three tools (Claude / Codex / GitHub Copilot), **installed by init by default** (0.13), sharing the agentskills.io open standard with natural-language auto-trigger (Copilot CLI still summons via `/dflow`)
 - Optional tool-native command entries (`--command-adapters`); `--skills` backfills / force-regenerates the skill
 - `dflow render`: specs Markdown → a browsable static HTML mirror (for human reading; opens via `file://`, no server; 0.13)
 - AI-agent-readable SDD/DDD guidance, including deepened DDD tactical-modeling guidance and a closed model-lifecycle loop (long-running flows and model re-review; 0.11–0.12)
-- `dflow doctor` read-only project health check
+- `dflow doctor` read-only project health check, including upgrade-drift detection (version line, policy format, guide freeze and dangling references, starter drift, template shape; 0.14)
 - Public onboarding: evaluator guide and per-tool walkthroughs for Claude Code, Codex CLI, and GitHub Copilot
 - A verification-only CI workflow (it does not execute publish)
 
-The GitHub source may include post-`0.13.0` repository changes before the
+The GitHub source may include post-`0.14.0` repository changes before the
 next npm release is published. See [CHANGELOG.md](CHANGELOG.md) for full
 release history.
 

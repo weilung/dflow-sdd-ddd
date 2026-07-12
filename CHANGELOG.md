@@ -6,24 +6,67 @@
 
 ---
 
-## Unreleased
+## 0.14.0 — 2026-07-12 — 升級健檢與 guide canonical 區可升級化
 
-> 註：0.13.0 後已實作、尚未寫入本節的還有 PROPOSAL-058（升級期 user-owned 層
-> drift：guide canonical marker-guard 原地刷新、`dflow doctor` drift 偵測、
-> last-reconciled 版本行；詳見 `archive/proposals/PROPOSAL-058-*`）——完整條目
-> 於 release prep 補寫。
+**Proposals**：PROPOSAL-058（升級期 user-owned 層 drift 偵測 + guide marker-guard）、PROPOSAL-076（configure-agents context inference 死源修正）、PROPOSAL-075（workflow 內容源單一化，內部）
 
-### 修正
+本版主線：讓「升級既有專案」從黑箱變成可診斷、可局部自動化——
 
-- **configure-agents 的 context inference 死源修正**（PROPOSAL-076）：
+1. **`dflow doctor` 成為升級健檢**（058）：偵測專案各層相對當前 CLI 版本的
+   drift，只報不改。
+2. **guide 的 Dflow 段落隨升級刷新**（058）：`AI-AGENT-GUIDE.md` canonical 區包
+   marker、`configure-agents` 原地刷新；你的 `## Project Context` 與 marker 外
+   內容一律保留。
+3. **context inference 讀真正的資料源**（076）：修正 re-projection 時 tech
+   stack / migration context 恆退 `unknown` / `none` 的死源缺口。
+
+### 新功能（PROPOSAL-058）
+
+- **guide-canonical marker-guard**：兩軌 `AI-AGENT-GUIDE.md` 模板的 canonical
+  段包 `<!-- dflow-generated: guide-canonical START/END -->`；`configure-agents`
+  對 marker 完好的 guide **原地刷新** canonical 區（canonical 區
+  substitution-free、刷新 byte-idempotent；保留檔案 EOL 與 marker 外全部內容）。
+- **Consent-gated adoption offers**（互動式、預設 No；非互動一律 skip+warn、
+  不佔 stdin slot）：
+  - 無 marker 但可辨識的舊 guide → 詢問是否包 marker 並刷新（`## Project
+    Context` 保留、其餘替換）；
+  - 引用 guide 但非 Dflow 管理的 root agent 檔（case 2d）→ 詢問是否附掛
+    marker 管理區塊（此後隨升級刷新；提示手動清舊 Dflow 措辭）。
+- **`> Dflow Version:` 進位為 last-reconciled 語意**：`configure-agents` 成功
+  套用後把 `_conventions.md` 的版本行推進到當前 CLI 版；任何 guarded skip 即
+  放棄推進（不高估 reconciliation）；行缺失不自動補（doctor 報告）。
+- **doctor 升級 drift 偵測集**（全部 warn/info、exit 0、嚴格唯讀）：版本行
+  stale／不可解析、政策段存在與機器格式、guide marker 態 + canonical byte 比
+  對、workflow bundle 與 `_conventions` 的 `AI-AGENT-GUIDE.md §` dangling 參
+  照、Git-principles 檔缺失／漂移、active feature `_index.md` 舊模板形狀（附
+  AI 協助遷移指引；completed/ 不掃）、root agent shim 態、bundle manifest 版
+  本落後。
+- docs：README（兩語）升級 caveat 段改寫——新升級行為 + doctor 健檢 +
+  「fresh init 對比」保留為徹底驗證 SOP；六個 using-with 檔與 doctor help 同步。
+
+### 修正（PROPOSAL-076）
+
+- **configure-agents 的 context inference 死源修正**：
   `techStackSummary` / `migrationContext` 推斷原本讀 `_overview.md` 的
   `| Tech stack |` / `| Migration / legacy context |` 表列——但任何版本的
   packaged `_overview` 模板都從未有這兩列，推斷恆 fallback `unknown` / `none`。
   現改讀真正的機器可讀落點：guide `AI-AGENT-GUIDE.md` 的 `## Project Context`
   表（init 自始把 Q2/Q3 答案寫在這裡；只解析 Project Context 段內、段外同名列
-  不遮蔽）。`dflow doctor` 新增 info 級檢查：可辨識的 guide 若缺這兩列（或列
-  不可解析）會提示 inference 後果；fresh init 專案不受影響（列本來就在）。
-  同步校正兩軌 `init-project-flow.md` 把 Q3 落點誤述為 `_overview.md` 的殘句。
+  不遮蔽）。`dflow doctor` 新增 info 級檢查：可辨識／marker 管理的 guide 若缺
+  `## Project Context` 段、缺這兩列或列不可解析，會提示 inference 後果；fresh
+  init 專案不受影響（列本來就在）。同步校正兩軌 `init-project-flow.md` 把 Q3
+  落點誤述為 `_overview.md` 的殘句。
+- **解析與寫入加固**（076 實作 review 鏈產物，惠及既有 doctor 掃描）：fence
+  掃描補齊 CommonMark 閉合規則（fence 長度、info-string 行不算閉合、≤3 空白縮
+  排）；guide 可辨識性判準 fence-aware 且與 Project Context 定位一致（接受
+  adoption offer 不可能再因 fenced 假標題中止）；BOM 容忍；init 把 Q2/Q3 答案
+  寫入表格 cell 時跳脫 `|`，值經 inference 完整 round-trip。
+
+### 內部（PROPOSAL-075）
+
+- workflow 內容源單一化：退役兩個歷史 skill-source 鏡像目錄，`templates/` 成
+  唯一內容源（npm 包內容不變；README／docs 對應措辭同步、一致性 guard 防止
+  retired 路徑回流）。
 
 **Proposals**：PROPOSAL-072（表格 `<br>` 分行慣例）、PROPOSAL-073（`dflow render` 子指令）、PROPOSAL-074（init 預設安裝 project-level skill）
 
