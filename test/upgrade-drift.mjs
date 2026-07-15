@@ -761,6 +761,70 @@ try {
   assert.match(fencedPcDoctor.stdout, /is not recognizable as a Dflow guide/, 'doctor: fenced-only-PC guide gets the unrecognizable finding');
   assert.doesNotMatch(fencedPcDoctor.stdout, /accept the marker-adoption offer/, 'doctor: fenced-only-PC guide must not be pointed at a non-existent offer');
 
+  // ---------------------------------------------------------------------------
+  // (12) PROPOSAL-078 phase 1 — table-formatting convention delivery:
+  // (a) doctor reports spec docs that hold tables but lack the convention
+  //     comment (info, aggregated, whole-file comment search);
+  // (b) scope boundaries: shared/ and features/completed/ are never scanned,
+  //     fence-only tables never count (fresh-init cleanliness is locked by
+  //     the earlier clean-project assertions);
+  // (c) the canonical flow one-liner is delivered identically across BOTH
+  //     tracks' references (grep-sync lock, per the P-078 amendment);
+  // (d) unit edges of hasTableWithoutConventionComment.
+  // ---------------------------------------------------------------------------
+  const conv = await newProject('2');
+  const strippedGlossary = (await readFile(join(conv, 'dflow/specs/domain/glossary.md'), 'utf8'))
+    .split('\n').filter((line) => !line.includes('Formatting convention: keep table cells concise')).join('\n');
+  await writeFile(join(conv, 'dflow/specs/domain/glossary.md'), strippedGlossary);
+  // mid-file comment still counts as present (whole-file search, amendment #4)
+  await writeFile(join(conv, 'dflow/specs/architecture/notes.md'),
+    '# Notes\n\nprose first\n\n<!-- Formatting convention: keep table cells concise. -->\n\n| A | B |\n|---|---|\n| x | y |\n');
+  // fenced table only -> not a table-bearing doc
+  await writeFile(join(conv, 'dflow/specs/architecture/fenced.md'),
+    '# Fenced\n\n```\n| A | B |\n|---|---|\n```\n');
+  // completed/ archive is out of scope even when it would otherwise hit
+  await mkdir(join(conv, 'dflow/specs/features/completed/SPEC-20250101-001-done'), { recursive: true });
+  await writeFile(join(conv, 'dflow/specs/features/completed/SPEC-20250101-001-done/_index.md'),
+    '# Done\n\n| A | B |\n|---|---|\n| x | y |\n');
+
+  const convDoctor = await runDoctorAt(conv);
+  assert.equal(convDoctor.code, 0, 'doctor stays exit 0 on convention-comment findings');
+  assert.match(convDoctor.stdout, /1 spec doc\(s\) hold tables but lack the table-formatting convention comment/, 'doctor: aggregated info finding fires');
+  assert.match(convDoctor.stdout, /dflow\/specs\/domain\/glossary\.md/, 'doctor: names the stripped doc');
+  assert.doesNotMatch(convDoctor.stdout, /architecture\/notes\.md/, 'doctor: mid-file comment satisfies the check');
+  assert.doesNotMatch(convDoctor.stdout, /architecture\/fenced\.md/, 'doctor: fence-only tables never count');
+  assert.doesNotMatch(convDoctor.stdout, /completed\/SPEC-20250101-001-done/, 'doctor: completed/ is not scanned');
+  assert.match(convDoctor.stdout, /Doctor never edits user-authored specs/, 'doctor: read-only stance stated in the action');
+
+  // (12c) canonical one-liner delivered identically in both tracks
+  const CANONICAL_LINE = '> **Table-cell formatting**: keep table cells concise — separate multiple short items with `<br>` (never chain them into one line with ；/; separators), and move long narrative detail out of the cell into a document section (full convention: the formatting comment at each spec doc\'s head).';
+  const FLOW_SPOTS = {
+    'finish-feature-flow.md': 1,
+    'modify-existing-flow.md': 1,
+    'new-feature-flow.md': 2,
+    'new-phase-flow.md': 2,
+    'drift-verification.md': 1
+  };
+  for (const track of ['greenfield', 'brownfield']) {
+    for (const [file, expected] of Object.entries(FLOW_SPOTS)) {
+      const content = await readFile(join(repoRoot, 'templates', track, 'references', file), 'utf8');
+      const count = content.split(CANONICAL_LINE).length - 1;
+      assert.equal(count, expected, `${track}/references/${file}: canonical table-cell line must appear exactly ${expected}x (byte-identical for grep-sync)`);
+    }
+  }
+
+  // (12d) unit edges (regex boundaries per review p078-r1: single-column
+  // outer-pipe tables detected, pipe-less multi-column detected, bare ---
+  // excluded)
+  assert.equal(doctorChecks.hasTableWithoutConventionComment('| A |\n|---|---|\n| x |\n'), true, 'bare table without comment hits');
+  assert.equal(doctorChecks.hasTableWithoutConventionComment('| A |\n|---|\n| long wall cell |\n'), true, 'single-column outer-pipe table is still a table');
+  assert.equal(doctorChecks.hasTableWithoutConventionComment('A | B\n---|---\nx | y\n'), true, 'pipe-less two-column delimiter is detected');
+  assert.equal(doctorChecks.hasTableWithoutConventionComment('<!-- Formatting convention: keep table cells concise ... -->\n| A | B |\n|---|---|\n'), false, 'comment anywhere satisfies');
+  assert.equal(doctorChecks.hasTableWithoutConventionComment('# Doc\n\n---\n\nprose\n'), false, 'thematic break is not a table');
+  assert.equal(doctorChecks.hasTableWithoutConventionComment('# Doc\n\n --- \n\nprose\n'), false, 'padded thematic break is not a table either');
+  assert.equal(doctorChecks.hasTableWithoutConventionComment('```\n|---|---|\n```\n'), false, 'fenced delimiter row is not a table');
+  assert.equal(doctorChecks.hasTableWithoutConventionComment('| A | B |\r\n|---|---|\r\n| x | y |\r\n'), true, 'CRLF docs are detected too');
+
   console.log(`PROPOSAL-058 upgrade-drift tests passed in ${tempRoot}`);
 } finally {
   if (process.env.DFLOW_KEEP_SMOKE_TMP !== '1') {

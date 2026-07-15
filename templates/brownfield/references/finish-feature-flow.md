@@ -124,6 +124,8 @@ Before syncing, ensure required BC files exist. If missing, create from template
 - `dflow/specs/domain/{context}/rules.md` → `templates/rules.md`
 - `dflow/specs/domain/{context}/behavior.md` → `templates/behavior.md`
 
+> **Table-cell formatting**: keep table cells concise — separate multiple short items with `<br>` (never chain them into one line with ；/; separators), and move long narrative detail out of the cell into a document section (full convention: the formatting comment at each spec doc's head).
+
 For each row in Current BR Snapshot where Status = `active`:
 
 - If the BR-ID is **not yet in `rules.md`** → add it (new ADDED rule

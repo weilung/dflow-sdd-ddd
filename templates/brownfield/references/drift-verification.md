@@ -161,6 +161,10 @@ Issues:
      remove the stale scenario reference from behavior.md
 ```
 
+When a remediation action adds or updates `rules.md` rows, follow the spec formatting convention:
+
+> **Table-cell formatting**: keep table cells concise — separate multiple short items with `<br>` (never chain them into one line with ；/; separators), and move long narrative detail out of the cell into a document section (full convention: the formatting comment at each spec doc's head).
+
 The optional `models.md` Code-Mapping hygiene check (below) appends its
 non-blocking `ℹ` signals to this same report and never changes the core
 pass / fail count.

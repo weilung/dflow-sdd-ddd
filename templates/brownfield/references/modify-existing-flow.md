@@ -435,6 +435,8 @@ Ask these one-by-one.
 
 ### 6.3 Documentation updates
 
+> **Table-cell formatting**: keep table cells concise — separate multiple short items with `<br>` (never chain them into one line with ；/; separators), and move long narrative detail out of the cell into a document section (full convention: the formatting comment at each spec doc's head).
+
 - [ ] Update or create the feature / bug spec; set `status: completed`
 - [ ] `dflow/specs/domain/{context}/rules.md` — business rules updated
 - [ ] `dflow/specs/domain/{context}/models.md` — domain model updated

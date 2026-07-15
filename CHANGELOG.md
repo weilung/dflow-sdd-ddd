@@ -8,7 +8,17 @@
 
 ## Unreleased
 
-**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）
+**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）
+
+- **Formatting convention 從被動註解升級為主動投遞（P-078 phase 1）**：
+  concise-cell/`<br>` 慣例（P-072）原本只存在於模板檔頭 HTML 註解——
+  (1) 現在同一句 canonical 守則寫進兩軌 flow references 的**每個記錄型
+  doc 寫入點**（new-feature／new-phase／finish-feature／modify-existing／
+  drift-verification remediation，每軌 7 處、字串完全一致、可 grep 驗證
+  同步）；(2) `dflow doctor` 新增 **info 級**偵測：spec doc 有表格但缺
+  convention 註解（全檔搜尋、fence 內表格不算、`shared/` 與
+  `features/completed/` 不掃）→ 聚合報告 + 指引 AI 協助補註解，**不自動
+  改寫 user-authored specs**。
 
 - **`dflow render` 長欄位可讀性（P-077 A1）**：使用者把長 narrative 塞進
   table cell 時（OBTS dogfooding 實證的「牆」），render 端純排版緩解——含

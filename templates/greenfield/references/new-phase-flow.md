@@ -169,6 +169,8 @@ frontmatter `status` to `in-progress`. Phase-2-onward specs **must** fill
 in the **Delta from prior phases** section (the first phase typically has
 just "首 phase，無前置 Delta"; this is phase 2+, so the section is required).
 
+> **Table-cell formatting**: keep table cells concise — separate multiple short items with `<br>` (never chain them into one line with ；/; separators), and move long narrative detail out of the cell into a document section (full convention: the formatting comment at each spec doc's head).
+
 Walk the developer through each section, in the same way `new-feature-flow`
 Step 4 does — Behavior (with Aggregate state transitions and Domain
 Events) / Business Rules / Delta / Edge Cases / Domain Events / layer-by-
@@ -199,6 +201,8 @@ Wait for confirmation before entering Step 5.
 ## Step 5: Refresh `_index.md`
 
 Update the feature's `_index.md`:
+
+> **Table-cell formatting**: keep table cells concise — separate multiple short items with `<br>` (never chain them into one line with ；/; separators), and move long narrative detail out of the cell into a document section (full convention: the formatting comment at each spec doc's head).
 
 1. **Phase Specs table** — add a new row for this phase:
    ```

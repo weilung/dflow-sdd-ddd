@@ -216,6 +216,8 @@ dflow/specs/features/active/{SPEC-ID}-{slug}/
 └── phase-spec-{YYYY-MM-DD}-{slug}.md
 ```
 
+> **Table-cell formatting**: keep table cells concise — separate multiple short items with `<br>` (never chain them into one line with ；/; separators), and move long narrative detail out of the cell into a document section (full convention: the formatting comment at each spec doc's head).
+
 1. **Create the directory**: `dflow/specs/features/active/{SPEC-ID}-{slug}/`
 2. **Create `_index.md`** using `templates/_index.md`:
    - Metadata: fill `spec-id`, `slug`, `status: in-progress`, `created`, `branch`
@@ -432,6 +434,8 @@ AI lists findings one at a time and waits for the developer to confirm each:
 Ask these one-by-one; do not dump all six at once.
 
 ### 8.3 Documentation updates
+
+> **Table-cell formatting**: keep table cells concise — separate multiple short items with `<br>` (never chain them into one line with ；/; separators), and move long narrative detail out of the cell into a document section (full convention: the formatting comment at each spec doc's head).
 
 - [ ] `dflow/specs/domain/glossary.md` — new terms added
 - [ ] `dflow/specs/domain/{context}/models.md` — model definitions updated
