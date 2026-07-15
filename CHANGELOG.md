@@ -6,6 +6,17 @@
 
 ---
 
+## Unreleased
+
+**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）
+
+- **`dflow render` 長欄位可讀性（P-077 A1）**：使用者把長 narrative 塞進
+  table cell 時（OBTS dogfooding 實證的「牆」），render 端純排版緩解——含
+  200+ 字欄位的卡片自動撐滿整列並放寬行距；400+ 字欄位以純 CSS 摺疊為 6
+  行、附「展開全文／收合」切換（無 JavaScript、checkbox 鍵盤可操作）；列
+  印一律全展開。cell 內容原樣輸出、不做任何語意拆分；source md 完全不變、
+  AI 讀取不受影響。
+
 ## 0.14.0 — 2026-07-12 — 升級健檢與 guide canonical 區可升級化
 
 **Proposals**：PROPOSAL-058（升級期 user-owned 層 drift 偵測 + guide marker-guard）、PROPOSAL-076（configure-agents context inference 死源修正）、PROPOSAL-075（workflow 內容源單一化，內部）

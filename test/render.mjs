@@ -14,7 +14,10 @@
 // incl. reserved root names), rendering semantics
 // ported from the prototype (all-table cards, in-cell <br>, CJK heading
 // anchors + .md#anchor link rewriting, autolink rules, gherkin highlighting,
-// raw-HTML passthrough, paragraph-adjacent task lists under marked), Windows
+// raw-HTML passthrough, paragraph-adjacent task lists under marked),
+// long-field readability (PROPOSAL-077 A1: threshold locks, wide cards,
+// prose spacing, CSS clamp toggle with document-unique ids, verbatim cell
+// content, title/short-field exemptions, print expansion CSS), Windows
 // long-path output, and the dynamic import('marked') loading-path lock.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -25,7 +28,7 @@ import { fileURLToPath } from 'node:url';
 
 import render from '../lib/render.js';
 
-const { parseManifest, staleEntries, pathContains, findUnsafeEntry, findProjectionCollision, GENERATED_MARK } = render;
+const { parseManifest, staleEntries, pathContains, findUnsafeEntry, findProjectionCollision, GENERATED_MARK, LONG_FIELD_CHARS, CLAMP_FIELD_CHARS } = render;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
@@ -311,6 +314,84 @@ Scenario: submit expense
     assert.ok(manifest.files.includes('index.html'), 'root index.html is in the manifest ledger');
     assert.ok(manifest.files.includes('models.html'));
     assert.ok(!manifest.files.includes(MANIFEST_NAME), 'manifest never lists itself');
+  }
+
+  // --- PROPOSAL-077 A1: long-field readability ---
+  // Layout-only contract: a LONG field widens its card and gets prose
+  // spacing; a CLAMP field additionally sits behind a pure-CSS toggle with a
+  // document-unique id. Cell HTML is emitted verbatim (run-on ； chains and
+  // existing <br> untouched — A1 never splits content), autolinking still
+  // reaches clamped content, titles and sub-threshold fields are exempt, and
+  // print CSS removes the clamp.
+  {
+    const proj = join(tempRoot, 'longfield');
+    const src = join(proj, 'dflow/specs');
+
+    // documented thresholds are load-bearing for every fixture below
+    assert.equal(LONG_FIELD_CHARS, 200, 'LONG threshold locked as documented in the proposal amendment');
+    assert.equal(CLAMP_FIELD_CHARS, 400, 'CLAMP threshold locked as documented in the proposal amendment');
+
+    const prose210 = '長'.repeat(210); // >= LONG, < CLAMP: prose + wide, no toggle
+    const wallA = `${'甲'.repeat(200)}；${'乙'.repeat(200)}<br>尾段 \`notes.md\``; // ~412 plain chars >= CLAMP
+    const wallB = '丙'.repeat(410); // second toggle -> id uniqueness
+    const under199 = '丁'.repeat(199); // one below LONG: must stay a plain field
+    const longTitle = '題'.repeat(250); // title column is exempt by design
+    const proseOnly = '戊'.repeat(210); // LONG-only row: widening must not depend on a clamp field (review r1 minor)
+
+    await writeFixture(join(src, 'rules.md'), `# Rules
+
+| BR-ID | Rule | Source | Status |
+|---|---|---|---|
+| BR-001 | ${wallA} | ${prose210} | active |
+| BR-002 | ${wallB} | 短摘要 | active |
+| ${longTitle} | 短規則 | 短 | active |
+| BR-004 | 短規則 | ${under199} | active |
+| BR-005 | ${proseOnly} | 短 | active |
+`);
+    await writeFixture(join(src, 'notes.md'), '# Notes\n');
+
+    const run = runRenderCli(proj, []);
+    assert.equal(run.code, 0, `longfield render failed\nSTDERR:\n${run.stderr}`);
+    const outDir = join(proj, 'dflow-specs-html');
+    const page = await readOut(join(outDir, 'rules.html'));
+
+    // LONG field: prose class on the value, wide card, no toggle for it
+    assert.ok(page.includes(`<div class="fld-v prose">${prose210}</div>`), 'LONG field renders prose spacing without a toggle');
+    assert.equal((page.match(/<article class="card wide">/g) || []).length, 3, 'the two wall rows and the LONG-only row widen');
+    // widening must trigger from a LONG-only field, independent of any clamp
+    // field in the row (review r1 minor: false-pass gap when every wide row
+    // also carried a >= CLAMP field)
+    assert.ok(
+      page.includes(`<article class="card wide"><div class="card-title">BR-005</div>`),
+      'a 200–399 char field alone widens its card'
+    );
+    assert.ok(page.includes(`<div class="fld-v prose">${proseOnly}</div>`), 'LONG-only field renders prose without a toggle wrapper');
+
+    // CLAMP field: checkbox + clamp wrapper + label, ids unique per document
+    assert.ok(
+      page.includes('<div class="fld-v prose"><input type="checkbox" class="fxt" id="fldx-0"><div class="fxc">甲'),
+      'first wall field clamps behind toggle fldx-0'
+    );
+    assert.match(page, /<label class="fxl" for="fldx-0"><span class="fxm">展開全文 ▾<\/span><span class="fxs">收合 ▴<\/span><\/label>/);
+    assert.ok(page.includes('id="fldx-1"') && page.includes('for="fldx-1"'), 'second wall field gets the next document-unique id');
+    assert.equal((page.match(/class="fxt"/g) || []).length, 2, 'only wall-length fields get toggles');
+
+    // verbatim content: the ； run-on chain and the authored <br> survive
+    // unmodified inside the clamp (no layout-driven splitting), and code-
+    // mention autolinking still applies within clamped content
+    assert.ok(page.includes(`${'甲'.repeat(200)}；${'乙'.repeat(200)}<br>尾段 `), 'run-on ；chain and existing <br> emitted verbatim');
+    assert.match(page, /<div class="fxc">甲[^]*?<a href="notes\.html"><code>notes\.md<\/code><\/a><\/div>/, 'autolink reaches clamped content');
+
+    // exemptions: a long title alone neither widens nor clamps; one char
+    // below LONG stays a plain field (threshold is >=)
+    assert.ok(page.includes(`<article class="card"><div class="card-title">${longTitle}</div>`), 'long title alone keeps a plain card');
+    assert.ok(page.includes(`<div class="fld-v">${under199}</div>`), '199-char field stays plain (threshold is >= 200)');
+
+    // stylesheet carries the layout contract: full-row span, 6-line clamp,
+    // and print always fully expands with the toggle chrome hidden
+    assert.match(page, /\.card\.wide \{ grid-column: 1 \/ -1; \}/);
+    assert.match(page, /\.fxc \{ max-height: calc\(6 \* 1\.85em\); overflow: hidden;/);
+    assert.match(page, /@media print \{\s*\.fxc \{ max-height: none; \}\s*\.fxc::after, \.fxl, \.fxt \{ display: none; \}\s*\}/);
   }
 
   // --- mirror consistency: deleted / renamed sources -> stale cleanup ---

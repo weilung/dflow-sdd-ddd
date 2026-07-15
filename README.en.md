@@ -146,8 +146,13 @@ It mirrors `dflow/specs/` into a static HTML tree (default output
 `dflow-specs-html/`; adjust with `--src` / `--out` / `--title`): record-style
 tables become one card per row, AI-facing comment markers become badges /
 chips, gherkin blocks get keyword highlighting, and in-tree `.md` links and
-filename mentions are rewritten to the matching HTML pages. Open the output
-directory's `index.html` in a browser (`file://` works; no server needed).
+filename mentions are rewritten to the matching HTML pages. Wall-length
+narrative crammed into a single cell also renders more readably: its card
+spans the full row with relaxed line spacing, and extra-long fields collapse
+to a few lines behind a pure-CSS "expand" toggle (no JavaScript; printing
+always fully expands; cell content is emitted verbatim, never split). Open
+the output directory's `index.html` in a browser (`file://` works; no server
+needed).
 
 The same spec, read two ways — left: the AI-facing Markdown source (dense
 tables plus AI-only markers like `<!-- phase-2 ADDED -->`); right: the HTML
