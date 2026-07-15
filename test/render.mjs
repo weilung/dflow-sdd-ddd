@@ -206,6 +206,35 @@ owner: team-a
 
 Raw <b>bold</b> passthrough and a break<br>here.
 
+Given 已有一張草稿報支單
+When 員工按下送出
+Then 系統建立簽核鏈
+And 通知第一位簽核人
+
+When the employee submits it alone, this English sentence stays plain.
+
+Given 步驟含 \`SelectedValue\` 代碼段
+Then 代碼段不影響上色資格
+
+Given <b>raw html</b> 出現在段落
+When 屬性可能藏換行
+Then 整段保守跳過不上色
+
+Given [連結](https://example.com "標題第一行
+When 標題內假行") 步驟一
+Then 步驟二
+
+\`\`\`
+Scenario: untagged but gherkin-looking
+Given inside an untagged fence
+Then it still lights up
+\`\`\`
+
+\`\`\`
+SELECT * FROM T WHERE Given = 1
+ORDER BY id
+\`\`\`
+
 See [行為](./behavior.md#中文-heading) and [\`behavior.md\`](behavior.md).
 
 Mentions: \`notes.md\` and \`dup.md\` and \`outside.md\`.
@@ -293,13 +322,55 @@ Scenario: submit expense
     assert.match(models, /<a href="mailto:someone@example\.md">m<\/a>/, 'mailto: .md href stays untouched');
     assert.match(models, /<a href="file:notes\.md">f<\/a>/, 'file: .md href stays untouched');
 
-    // gherkin keyword highlighting inside the fenced block; the block's
-    // content stays link-free even though it mentions an in-tree filename
+    // gherkin keyword highlighting inside the fenced block (per-keyword
+    // color classes); the block's content stays link-free even though it
+    // mentions an in-tree filename
     const gherkinBlock = models.match(/<pre><code class="language-gherkin">[^]*?<\/code><\/pre>/);
     assert.ok(gherkinBlock, 'gherkin block rendered as <pre>');
-    assert.match(gherkinBlock[0], /<span class="kw">Scenario:<\/span> submit expense/);
-    assert.match(gherkinBlock[0], /<span class="kw">Given<\/span> a draft report referencing notes\.md/);
+    assert.match(gherkinBlock[0], /<span class="kw kw-s">Scenario:<\/span> submit expense/);
+    assert.match(gherkinBlock[0], /<span class="kw kw-g">Given<\/span> a draft report referencing notes\.md/);
+    assert.match(gherkinBlock[0], /<span class="kw kw-w">When<\/span> the employee submits it/);
+    assert.match(gherkinBlock[0], /<span class="kw kw-t">Then<\/span> the report is submitted/);
     assert.doesNotMatch(gherkinBlock[0], /<a /, 'no links injected into <pre> content');
+
+    // prose scenario steps (OBTS behavior.md style): every line keyword-led
+    // -> per-keyword coloring inside the paragraph
+    assert.match(models, /<span class="kw kw-g">Given<\/span> 已有一張草稿報支單/);
+    assert.match(models, /<span class="kw kw-w">When<\/span> 員工按下送出/);
+    assert.match(models, /<span class="kw kw-t">Then<\/span> 系統建立簽核鏈/);
+    assert.match(models, /<span class="kw kw-a">And<\/span> 通知第一位簽核人/);
+    // …but a lone English sentence starting with a keyword must stay plain
+    assert.match(models, /When the employee submits it alone, this English sentence stays plain\./);
+    assert.doesNotMatch(models, /kw-w">When<\/span> the employee submits it alone/, 'single prose line never lights up');
+
+    // codespans keep a step paragraph eligible (the dominant real-world
+    // shape: steps referencing identifiers)…
+    assert.match(models, /<span class="kw kw-g">Given<\/span> 步驟含 <code>SelectedValue<\/code> 代碼段/);
+    // …but raw inline HTML disqualifies the whole paragraph (review
+    // visual-r1: a newline inside an attribute could otherwise get a span
+    // injected mid-tag) — content passes through untouched
+    assert.match(models, /<p>Given <b>raw html<\/b> 出現在段落/, 'raw-html paragraph passes through');
+    assert.doesNotMatch(models, /kw-g">Given<\/span> <b>raw html/, 'raw-html paragraph is never highlighted');
+    // multiline link titles: the newline lives inside title="…", so the
+    // tag-aware splitter must not treat it as a step line (review
+    // visual-r2) — the paragraph still highlights on its REAL lines and
+    // the attribute stays untouched
+    assert.match(models, /title="標題第一行\nWhen 標題內假行"/, 'multiline link title survives verbatim');
+    assert.doesNotMatch(models, /title="[^"]*<span/, 'no span ever lands inside an attribute');
+    assert.match(models, /<span class="kw kw-g">Given<\/span> <a href="https:\/\/example\.com"[^>]*>連結<\/a> 步驟一/, 'link-title paragraph still highlights its real lines');
+    assert.match(models, /<span class="kw kw-t">Then<\/span> 步驟二/);
+
+    // untagged fence heuristic: scenario-looking blocks highlight, other
+    // untagged code (keyword only mid-line) stays plain
+    assert.match(models, /<pre><code><span class="kw kw-s">Scenario:<\/span> untagged but gherkin-looking/);
+    assert.match(models, /<span class="kw kw-g">Given<\/span> inside an untagged fence/);
+    assert.match(models, /<pre><code>SELECT \* FROM T WHERE Given = 1/, 'non-gherkin untagged fence stays plain');
+
+    // heading hierarchy colors + keyword palette present in the stylesheet
+    assert.match(models, /h1 \{[^}]*color: var\(--head-strong\)/);
+    assert.match(models, /h2 \{[^}]*color: var\(--head-strong\)/);
+    assert.match(models, /h3 \{[^}]*color: var\(--accent\)/);
+    assert.match(models, /\.kw-t \{ color: var\(--kw-then\); \}/);
 
     // index page: custom title + tree links + dir labels
     const index = await readOut(join(outDir, 'index.html'));
@@ -307,6 +378,20 @@ Scenario: submit expense
     assert.match(index, /<a href="models\.html">models\.md<\/a>/);
     assert.match(index, /<span class="dir">x\/<\/span>/);
     assert.match(index, /<a href="x\/dup\.html">dup\.md<\/a>/);
+
+    // index tree chrome (OBTS dogfooding feedback 2026-07-15): CSS-only
+    // guide lines with a └ stop on the last sibling, plus folder/file icons
+    // as currentColor mask SVGs — no markup change, links stay plain <a>
+    assert.match(index, /ul\.tree ul li::after \{[^}]*border-top: 1px solid/, 'tree connector lines present');
+    assert.match(index, /ul\.tree ul li:last-child::before \{ height: 1em; \}/, 'vertical guide stops at the last sibling');
+    assert.match(index, /ul\.tree \.dir::before, ul\.tree li > a::before \{[^}]*background: currentColor/, 'icons paint via currentColor (theme-aware)');
+    // each icon block must carry BOTH the -webkit-mask and unprefixed mask
+    // declarations (review idxtree-r1: locking only the prefixed one lets
+    // the standard declaration silently vanish)
+    assert.match(index, /ul\.tree \.dir::before \{\s*-webkit-mask: url\("data:image\/svg\+xml/, 'folder icon -webkit-mask present');
+    assert.match(index, /ul\.tree \.dir::before \{[^}]*\n\s+mask: url\("data:image\/svg\+xml/, 'folder icon unprefixed mask present');
+    assert.match(index, /ul\.tree li > a::before \{\s*-webkit-mask: url\("data:image\/svg\+xml/, 'file icon -webkit-mask present');
+    assert.match(index, /ul\.tree li > a::before \{[^}]*\n\s+mask: url\("data:image\/svg\+xml/, 'file icon unprefixed mask present');
 
     // manifest: root index.html accounted, manifest itself never listed
     const manifest = await readManifest(outDir);

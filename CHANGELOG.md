@@ -16,6 +16,16 @@
   行、附「展開全文／收合」切換（無 JavaScript、checkbox 鍵盤可操作）；列
   印一律全展開。cell 內容原樣輸出、不做任何語意拆分；source md 完全不變、
   AI 讀取不受影響。
+- **`dflow render` index 檔案樹樹狀視覺**（OBTS dogfooding 回饋）：index.html
+  的檔案樹加上導引線（含 └ 收尾）與資料夾／檔案圖示——純 CSS（mask SVG、
+  `currentColor` 隨明暗主題著色）、零 JS，HTML 結構與連結不變。
+- **`dflow render` Gherkin 高亮補到實際寫法 + 關鍵字分色**（OBTS dogfooding
+  回饋）：高亮從「僅 \`\`\`gherkin fence」擴到三種情境——已標語言 fence、未標
+  語言但 ≥2 行 keyword 開頭的 fence、以及**一般段落步驟**（OBTS behavior.md
+  的主流寫法；每行都以 keyword 開頭才亮，避免英文敘述句誤上色）。關鍵字改
+  分色：Given 綠、When 琥珀、Then 紫、And/But 灰、Scenario: 主色。
+- **`dflow render` 標題色階**（OBTS dogfooding 回饋）：h1/h2 深綠
+  （dark 模式轉亮青保對比）、h3/h4 主色 accent，強化內頁層級掃讀。
 
 ## 0.14.0 — 2026-07-12 — 升級健檢與 guide canonical 區可升級化
 
