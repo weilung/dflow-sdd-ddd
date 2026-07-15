@@ -26,6 +26,13 @@
   分色：Given 綠、When 琥珀、Then 紫、And/But 灰、Scenario: 主色。
 - **`dflow render` 標題色階**（OBTS dogfooding 回饋）：h1/h2 深綠
   （dark 模式轉亮青保對比）、h3/h4 主色 accent，強化內頁層級掃讀。
+- **`dflow render` completed/ 年度分頁（P-079）**：`features/completed/`
+  是只增不減的封存區，root index 不再攤開——改為 completed/ 一行年度連結
+  （新→舊、含件數），每年度一個**實體頁** `features/completed/index-<年>.html`
+  （年份取自 SPEC 目錄名前綴；不合規項目進「未分年」桶頁），頁內新→舊排
+  序、附年度切換列。所有生成 index 頁納入撞名防護（來源若有同名 .md 於任
+  何寫入前拒絕）；年度清空時該頁由 manifest 差集自動回收。`features/active/`
+  維持全列（工作集應一眼全見）。
 
 ## 0.14.0 — 2026-07-12 — 升級健檢與 guide canonical 區可升級化
 

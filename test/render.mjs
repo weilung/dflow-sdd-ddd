@@ -17,8 +17,12 @@
 // raw-HTML passthrough, paragraph-adjacent task lists under marked),
 // long-field readability (PROPOSAL-077 A1: threshold locks, wide cards,
 // prose spacing, CSS clamp toggle with document-unique ids, verbatim cell
-// content, title/short-field exemptions, print expansion CSS), Windows
-// long-path output, and the dynamic import('marked') loading-path lock.
+// content, title/short-field exemptions, print expansion CSS), completed/
+// year pagination (PROPOSAL-079: root stub with year links, physical
+// per-year pages with newest-first units and sibling nav, other-bucket,
+// reserved-output collisions, emptied-year stale cleanup, grouping units),
+// Windows long-path output, and the dynamic import('marked') loading-path
+// lock.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { link, mkdir, mkdtemp, readFile, rm, rmdir, stat, symlink, unlink, writeFile } from 'node:fs/promises';
@@ -477,6 +481,117 @@ Scenario: submit expense
     assert.match(page, /\.card\.wide \{ grid-column: 1 \/ -1; \}/);
     assert.match(page, /\.fxc \{ max-height: calc\(6 \* 1\.85em\); overflow: hidden;/);
     assert.match(page, /@media print \{\s*\.fxc \{ max-height: none; \}\s*\.fxc::after, \.fxl, \.fxt \{ display: none; \}\s*\}/);
+  }
+
+  // --- PROPOSAL-079: completed/ year pagination ---
+  // features/completed/ never inlines into the root index: the root carries
+  // a completed/ stub with per-year links (newest year first, non-conforming
+  // entries in a 未分年 bucket), each year is a REAL generated page under
+  // features/completed/, every generated page is a reserved output in the
+  // projection-collision guard, and an emptied year's page is stale-cleaned
+  // by the ledger diff like any other output.
+  {
+    const proj = join(tempRoot, 'yearpage');
+    const src = join(proj, 'dflow/specs');
+    await writeFixture(join(src, 'domain/glossary.md'), '# G\n');
+    await writeFixture(join(src, 'features/active/SPEC-20260701-001-wip/_index.md'), '# WIP\n');
+    await writeFixture(join(src, 'features/completed/SPEC-20250103-001-old/_index.md'), '# Old\n');
+    await writeFixture(join(src, 'features/completed/SPEC-20260611-001-mid/_index.md'), '# Mid\n');
+    await writeFixture(join(src, 'features/completed/SPEC-20260702-001-new/_index.md'), '# New\n');
+    await writeFixture(join(src, 'features/completed/SPEC-20260702-001-new/phase-spec.md'), '# P\n');
+    await writeFixture(join(src, 'features/completed/loose-note.md'), '# Loose\n');
+
+    const run = runRenderCli(proj, []);
+    assert.equal(run.code, 0, `yearpage render failed\nSTDERR:\n${run.stderr}`);
+    const outDir = join(proj, 'dflow-specs-html');
+    const index = await readOut(join(outDir, 'index.html'));
+
+    // root: stub line with year links, newest first, unit counts; completed
+    // spec files are NOT inlined; active stays inline
+    assert.match(
+      index,
+      /<span class="dir">completed\/<\/span> <span class="years"><a href="features\/completed\/index-2026\.html">2026 \(2\)<\/a> · <a href="features\/completed\/index-2025\.html">2025 \(1\)<\/a> · <a href="features\/completed\/index-other\.html">未分年 \(1\)<\/a><\/span>/,
+      'root completed stub carries year links'
+    );
+    assert.doesNotMatch(index, /SPEC-20260702-001-new\/_index\.html/, 'root no longer inlines completed spec files');
+    assert.match(index, /<a href="features\/active\/SPEC-20260701-001-wip\/_index\.html">/, 'active stays inline');
+
+    // year page: heading, sibling nav, newest-first units, page-relative
+    // links, crumb back to root
+    const y2026 = await readOut(join(outDir, 'features/completed/index-2026.html'));
+    assert.match(y2026, /<h1>completed \/ 2026<\/h1>/);
+    assert.match(y2026, /<p class="yearnav"><strong>2026<\/strong> · <a href="index-2025\.html">2025<\/a> · <a href="index-other\.html">未分年<\/a><\/p>/);
+    const posNew = y2026.indexOf('SPEC-20260702-001-new');
+    const posMid = y2026.indexOf('SPEC-20260611-001-mid');
+    assert.ok(posNew !== -1 && posMid !== -1 && posNew < posMid, 'year page lists SPEC dirs newest-first');
+    assert.match(y2026, /<a href="SPEC-20260702-001-new\/_index\.html">_index\.md<\/a>/, 'year-page links are page-relative');
+    assert.match(y2026, /<a href="\.\.\/\.\.\/index\.html">specs<\/a> \/ features \/ completed \/ 2026/, 'crumb walks back to the root index');
+
+    // other bucket lists non-conforming entries
+    const other = await readOut(join(outDir, 'features/completed/index-other.html'));
+    assert.match(other, /<a href="loose-note\.html">loose-note\.md<\/a>/);
+
+    // ledger accounts the generated pages
+    const manifest = await readManifest(outDir);
+    assert.ok(manifest.files.includes('features/completed/index-2026.html'));
+    assert.ok(manifest.files.includes('features/completed/index-other.html'));
+
+    // emptied year: page stale-cleaned, root links updated
+    await rm(join(src, 'features/completed/SPEC-20250103-001-old'), { recursive: true });
+    assert.equal(runRenderCli(proj, []).code, 0, 'rerun after emptying a year');
+    assert.equal(await exists(join(outDir, 'features/completed/index-2025.html')), false, 'emptied year page is stale-cleaned');
+    assert.doesNotMatch(await readOut(join(outDir, 'index.html')), /index-2025\.html/, 'root year links drop the emptied year');
+
+    // collision: a source at a reserved year-index path refuses before any
+    // output mutation
+    const proj2 = join(tempRoot, 'yearpage-collide');
+    await writeFixture(join(proj2, 'dflow/specs/features/completed/SPEC-20260101-001-x/_index.md'), '# X\n');
+    await writeFixture(join(proj2, 'dflow/specs/features/completed/index-2026.md'), '# fake\n');
+    const collided = runRenderCli(proj2, []);
+    assert.equal(collided.code, 1, 'reserved year-index name collision exits 1');
+    assert.match(collided.stderr, /features\/completed\/index-2026\.md and the generated completed index for 2026 would both produce features\/completed\/index-2026\.html/);
+    assert.equal(await exists(join(proj2, 'dflow-specs-html')), false, 'refusal precedes creating the output directory');
+
+    // unit: grouping edges — year from the SPEC dir prefix, loose files
+    // (even SPEC-named ones: only DIRECTORIES group by year) and
+    // non-conforming dirs bucket to 'other', empty grouping is null
+    const groups = render.groupCompletedByYear([
+      'features/completed/SPEC-20260702-001-a/_index.md',
+      'features/completed/SPEC-20260611-002-b/_index.md',
+      'features/completed/notes.md',
+      'features/completed/SPEC-20260101-x.md',
+      'features/completed/legacy-dir/file.md',
+      'features/active/SPEC-20260701-001-c/_index.md',
+      'domain/glossary.md'
+    ]);
+    assert.deepEqual([...groups.keys()].sort(), ['2026', 'other']);
+    assert.equal(groups.get('2026').units.size, 2);
+    assert.deepEqual([...groups.get('other').units].sort(), ['SPEC-20260101-x.md', 'legacy-dir', 'notes.md'],
+      'a loose SPEC-named FILE buckets to other, never to a year');
+    assert.equal(render.groupCompletedByYear(['domain/x.md']), null, 'no completed entries -> no pagination');
+
+    // unit: reserved-page collision variants (review p079-r1) — case
+    // variant, source-directory shape, and the other-bucket name
+    const reserved = [
+      { out: 'index.html', what: 'the generated file tree' },
+      { out: 'features/completed/index-2026.html', what: 'the generated completed index for 2026' },
+      { out: 'features/completed/index-other.html', what: 'the generated completed index for 未分年' }
+    ];
+    assert.match(
+      findProjectionCollision(['features/completed/INDEX-2026.md'], reserved),
+      /INDEX-2026\.md and the generated completed index for 2026/,
+      'reserved-page collision is case-insensitive'
+    );
+    assert.match(
+      findProjectionCollision(['features/completed/index-2026.html/x.md'], reserved),
+      /needs features\/completed\/index-2026\.html\/ as a directory, but render generates features\/completed\/index-2026\.html there/,
+      'source directory squatting on a reserved year-index path refuses'
+    );
+    assert.match(
+      findProjectionCollision(['features/completed/index-other.md'], reserved),
+      /index-other\.md and the generated completed index for 未分年/,
+      'the other-bucket page name is reserved too'
+    );
   }
 
   // --- mirror consistency: deleted / renamed sources -> stale cleanup ---

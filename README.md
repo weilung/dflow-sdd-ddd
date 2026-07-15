@@ -101,7 +101,7 @@ Dflow 的 specs 是給 AI 讀的 Markdown（表格緊湊、標記密集）。要
 dflow render
 ```
 
-它把 `dflow/specs/` 鏡像成一棵靜態 HTML 樹（預設輸出 `dflow-specs-html/`，可用 `--src` / `--out` / `--title` 調整）：記錄型表格逐列轉成卡片、AI 專用註解標記變成 badge / chip、gherkin 區塊關鍵字高亮、樹內 `.md` 連結與檔名提及自動改連對應 HTML 頁。塞進單一儲存格的超長敘述也會自動改善呈現：該卡片撐滿整列、放寬行距，特別長的欄位先摺疊成數行、點「展開全文」再看全文（純 CSS、無 JavaScript，列印一律全展開；cell 內容原樣輸出、不做拆分）。開啟輸出目錄的 `index.html` 即可瀏覽（`file://` 直開、免 server）。
+它把 `dflow/specs/` 鏡像成一棵靜態 HTML 樹（預設輸出 `dflow-specs-html/`，可用 `--src` / `--out` / `--title` 調整）：記錄型表格逐列轉成卡片、AI 專用註解標記變成 badge / chip、gherkin 區塊關鍵字高亮、樹內 `.md` 連結與檔名提及自動改連對應 HTML 頁。`features/completed/` 封存區不會攤平在首頁——首頁只列年度連結，每個年度是獨立頁面，封存再多年首頁也不會變長。塞進單一儲存格的超長敘述也會自動改善呈現：該卡片撐滿整列、放寬行距，特別長的欄位先摺疊成數行、點「展開全文」再看全文（純 CSS、無 JavaScript，列印一律全展開；cell 內容原樣輸出、不做拆分）。開啟輸出目錄的 `index.html` 即可瀏覽（`file://` 直開、免 server）。
 
 同一份 spec 的兩種讀法——左：AI 讀的 Markdown 源（密集表格 + `<!-- phase-2 ADDED -->` 這類 AI 專用標記）；右：`dflow render` 產出的 HTML（逐列變卡片、標記變 badge）：
 
