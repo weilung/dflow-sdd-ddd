@@ -59,7 +59,32 @@ AI must locate the target feature and load its current state:
    completed = frozen-history semantic and produces confusing dir-rename
    history. The follow-up path is the only correct route.
 
-3. **Load context for the new phase**
+3. **Refuse if the target is a minimal (zero-phase) host**
+
+   Decide this from the **persisted shape** — the same selector closeout
+   uses: an **empty Phase Specs table and no `phase-spec-*` file** in the host
+   directory. Such a host records a small standalone or follow-up change and
+   is *defined* by carrying no phase. Adding one does not extend it; it turns
+   the host into a phase-bearing feature, and closeout will then check it as
+   one. Refuse with:
+
+   ```
+   "`{SPEC-ID}-{slug}` is a minimal (zero-phase) host — it records a
+   lightweight change and carries no phase-specs, so a phase cannot be
+   added to it.
+
+   If this is genuinely new T1 work, run /dflow:new-feature. If it is
+   another small change, run /dflow:modify-existing — its Step 1 decides
+   the tier and finds or opens the right host for it."
+   ```
+
+   Do NOT create a first phase-spec here to "make the host usable", and do
+   not jump into `modify-existing-flow.md` Step 1.6, 1.7 or 1.8 from here:
+   each of those assumes Step 1's tier decision and host-linkage scan have
+   already run, and entering one directly skips both. Send the developer to
+   Step 1, exactly as `new-feature-flow.md` Step 4's guard does.
+
+4. **Load context for the new phase**
    - Read the feature's `_index.md` — Metadata, Goals & Scope, Phase Specs,
      Current BR Snapshot, Resume Pointer
    - Read the most recent phase-spec to understand where the prior phase
@@ -71,7 +96,7 @@ AI must locate the target feature and load its current state:
      not visible on this branch — if the incoming phase scope overlaps one
      of them, surface it before writing the phase-spec.
 
-4. **Branch gate — ensure you are on this feature's branch (before any commit)**
+5. **Branch gate — ensure you are on this feature's branch (before any commit)**
 
    This phase's commits must land on the active feature's
    `feature/{SPEC-ID}-{slug}` branch. If you are not already on it (you

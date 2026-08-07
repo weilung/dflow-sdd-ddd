@@ -1,7 +1,7 @@
 ---
 id: BUG-001
 title: Emoji surrogate truncation in reject reason
-status: in-progress
+status: completed
 bounded-context: Expense
 created: 2026-05-04
 branch: feature/SPEC-20260428-001-employee-submit-expense
@@ -29,27 +29,16 @@ Alice 用 browser dev tools 重現後確認：React form 在限制 reject reason
 
 ## Behavior Delta
 
-### ADDED - BR / behavior added
+BR Delta: none — implementation defect
+Governing BR-IDs: BR-007
 
-_(none)_
-
-### MODIFIED - implementation behavior modified in this fix
-
-#### Rule: BR-007 Reject 必須附註原因
+> BR-007 的 rule wording 不變，這次修的是實作缺陷；以下 before / after 描述的是實作行為，不是 BR delta。
 
 **Before**: Given 一份 ExpenseReport 處於 Submitted 狀態 And `ApproverId != SubmitterId` When 主管在 React reject form 輸入 `金額對不上👍` And 前端 counter 顯示 `6 字 ✓` And form 用 `substring(0, maxLen)` 截斷 value Then payload 可能包含 invalid surrogate And `ApprovalReason` 在字數計算時拋出泛用錯誤 And reject 被拒絕。
 
 **After**: Given 同樣輸入 `金額對不上👍` When React reject form 需要限制長度 Then Presentation Layer 使用 grapheme-aware 截斷，不會切開 surrogate pair And payload 保持 valid Unicode string And `ApprovalReason` normalize 後依 BR-007 接受該 reason，reject 可繼續完成。
 
 **Reason**: BR-007 本身已允許中文短語與 emoji 視覺字元；錯誤在 implementation-level Unicode handling，而不是 business rule wording。
-
-### REMOVED - BR removed
-
-_(none)_
-
-### RENAMED - BR renamed
-
-_(none)_
 
 ### UNCHANGED - explicitly unaffected
 

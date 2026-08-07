@@ -115,7 +115,10 @@ AI 的完整決策樹、Workflow Transparency、Ceremony Scaling 三層判準
 1. **Spec Before Code** — 沒有規格就不寫實作
 2. **Domain at the Center** — 業務邏輯只存在於 Domain 層
 3. **Ubiquitous Language** — 使用 `dflow/specs/domain/glossary.md` 中定義的術語
-4. **One Aggregate per Transaction** — 單一操作只修改一個 Aggregate
+4. **One Aggregate per Transaction（default）** — 單一操作預設只修改一個
+   Aggregate；有充分理由的 multi-root local transaction 例外，依
+   `dflow/specs/shared/dflow-workflows/references/ddd-modeling-guide.md`
+   「Aggregate Design Rules」記錄 domain rationale 與 re-evaluation condition
 5. **Dependency Inversion** — Domain 定義介面，Infrastructure 實作
 
 ### Domain Layer Rules (Hard Invariants)
@@ -147,7 +150,7 @@ AI 的完整決策樹、Workflow Transparency、Ceremony Scaling 三層判準
 
 ### AI Collaboration Notes
 
-- 開發者提出任何需求時，先引導建立 spec 和 Aggregate 設計
+- 開發者提出需求時，先用 guide 的 § Ceremony Scaling ordered cascade 判 tier，再依 tier 決定產出：T1 才引導建立 spec 和 Aggregate 設計，T2 用 lightweight spec，T3 在所屬 feature 的 `_index.md` 記一行（沒有 active host 時，`/dflow:modify-existing` 會先開一個 minimal zero-phase host），below workflow 直接做
 - 確認實作順序：Domain → Application → Infrastructure → Presentation
 - 發現業務邏輯在錯誤的層時，指出並建議搬移
 - 每次開發循環結束時，提醒更新術語表、models.md、events.md

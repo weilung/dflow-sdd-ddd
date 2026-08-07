@@ -30,6 +30,35 @@ dflow/specs/features/active/{SPEC-ID}-{slug}/
 T3 Trivial changes do **not** produce a separate file — they are
 recorded as one row in `_index.md` Lightweight Changes.
 
+### SPEC-ID Format
+
+- Pattern: `SPEC-YYYYMMDD-NNN` (e.g. `SPEC-20260421-001`)
+- Per-day counter `NNN` resets daily, starts at `001`
+- Once assigned, the SPEC-ID is immutable — it appears in the feature
+  directory name, the first phase-spec filename, and the git branch
+  name (see `Git-principles-*.md`)
+- **Minimal (zero-phase) host exception.** A host that records a small
+  standalone or follow-up change — or a baseline capture — carries **no
+  phase-spec**, so there is no phase-spec filename for the SPEC-ID to appear
+  in; the directory name and the branch carry it. A **functional bug** host
+  goes one step further: its branch is `bugfix/BUG-{NUMBER}-{slug}`, so it
+  carries the BUG-NUMBER and not the SPEC-ID at all. In every case the host
+  `_index.md` `branch:` field is authoritative, and the SPEC-ID itself stays
+  immutable. Do not create a phase-spec, or rename a branch, to make the
+  three-name rule above hold.
+
+### Slug Conventions (Project-Specific Fill-In)
+
+- **Language**: follow the language the feature is discussed in (Dflow
+  skill policy); no translation is forced. Both Chinese and English
+  slugs are valid.
+- **Project-specific term list**: {fill in project-specific abbreviation
+  conventions here, e.g. "payroll → pr", "expense report → exp-rpt"
+  if your team has house-style shortenings; otherwise leave this
+  section empty}
+- **Length target**: 2–4 English words or 2–6 Chinese characters
+  (Dflow skill guidance)
+
 ## Prose Language
 
 Project prose language: `{prose-language}`
@@ -49,26 +78,6 @@ Do not translate code identifiers, DDD pattern names, BR IDs, SPEC IDs,
 file paths, branch names, anchors, or inline code only to satisfy the
 prose-language setting.
 
-### SPEC-ID Format
-
-- Pattern: `SPEC-YYYYMMDD-NNN` (e.g. `SPEC-20260421-001`)
-- Per-day counter `NNN` resets daily, starts at `001`
-- Once assigned, the SPEC-ID is immutable — it appears in the feature
-  directory name, the first phase-spec filename, and the git branch
-  name (see `Git-principles-*.md`)
-
-### Slug Conventions (Project-Specific Fill-In)
-
-- **Language**: follow the language the feature is discussed in (Dflow
-  skill policy); no translation is forced. Both Chinese and English
-  slugs are valid.
-- **Project-specific term list**: {fill in project-specific abbreviation
-  conventions here, e.g. "payroll → pr", "expense report → exp-rpt"
-  if your team has house-style shortenings; otherwise leave this
-  section empty}
-- **Length target**: 2–4 English words or 2–6 Chinese characters
-  (Dflow skill guidance)
-
 ---
 
 ## Filling the Templates
@@ -79,10 +88,13 @@ Dflow ships these templates (do **not** re-inline their content here
 | Template | Used when |
 |----------|-----------|
 | `templates/_index.md`          | Creating a feature directory (every feature) |
-| `templates/phase-spec.md`      | T1 Heavy — new feature / new phase / architectural change |
-| `templates/lightweight-spec.md`| T2 Light — bug fix / small tweak with BR Delta |
+| `templates/phase-spec.md`      | T1 Heavy |
+| `templates/lightweight-spec.md`| T2 Light — classic BR-delta form, or one of the no-BR family variants (presentation, non-breaking contract, operational / security, performance, implementation defect, intentional change) |
 | `templates/context-definition.md` | When a new Bounded Context is introduced |
 | `templates/behavior.md`        | BC-level consolidated behavior spec |
+
+Which tier applies is decided by the cascade in `AI-AGENT-GUIDE.md` § Ceremony
+Scaling, never by this table — these rows only say which template a tier uses.
 
 Project-specific guidance when filling these templates:
 
@@ -99,20 +111,30 @@ Project-specific guidance when filling these templates:
 
 ## Ceremony Scaling (Project Application)
 
-Dflow defines three tiers — **T1 Heavy / T2 Light / T3
-Trivial**. See `AI-AGENT-GUIDE.md` § Ceremony Scaling for the full
-criteria table. We do not re-define the tier criteria here; this
+Dflow defines three tiers — **T1 Heavy / T2 Light / T3 Trivial** — plus a
+below-workflow level. See `AI-AGENT-GUIDE.md` § Ceremony Scaling for the
+full ordered cascade. We do not re-define the tier criteria here; this
 section records how *this* project applies them in borderline
 situations.
 
+**The cascade result is a floor: rows in this section may only escalate a
+tier, never lower it.** A row may take a change Dflow would call T2 and
+make it T1 for this project; no row may lower a T1, and no row may move a
+tracked change below workflow.
+
+Write `T<n> (project convention)` in the Tier column when this project raises the
+tier, and `cascade result` when it adds an obligation but no tier change. Do not
+write a bare tier — that restates the cascade instead of recording a decision,
+and it is how the two drift apart.
+
 | Situation (project-specific) | Tier we default to | Why |
 |------------------------------|--------------------|-----|
-| {e.g. Year-end reporting tweak without BR change} | T2 | Touches logic path even though no new BR; extract to `lightweight-spec.md` for trace |
-| {e.g. Pure label / display text translation} | T3 | No BR change; inline row in `_index.md` |
-| {e.g. UI refresh across multiple entrypoints} | T1 (project convention) | We treat multi-entrypoint UI/API refresh as T1 for this project even though Dflow default would be T2, because these changes often leak into business logic embedded in delivery/entrypoint code (presentation/UI layer, controllers, handlers, jobs, message consumers, data pipelines, or stored procedures) |
+| {e.g. Year-end reporting tweak without BR change} | cascade result + a `lightweight-spec.md` trace | No tier change — we want the trace even when the cascade would not require a spec file, because the reporting logic path is where our defects hide |
+| {e.g. Pure label / display text wording polish on one screen} | cascade result + note in the extraction log | No tier change — we add the note so the delivery-layer sweep can find it later |
+| {e.g. UI refresh across multiple entrypoints} | T1 (project convention) | We escalate multi-entrypoint UI/API refresh above whatever the cascade returns, because these changes often leak into business logic embedded in delivery/entrypoint code (presentation/UI layer, controllers, handlers, jobs, message consumers, data pipelines, or stored procedures) |
 
 If the team disagrees on tier classification for a specific change,
-run through the T3 four-criteria checklist (in `AI-AGENT-GUIDE.md` §
+run through the ordered cascade (in `AI-AGENT-GUIDE.md` §
 Ceremony Scaling) and record the decision here the first time it arises.
 
 ---

@@ -59,6 +59,25 @@ branch: feature/SPEC-20260428-001-employee-submit-expense
 | 2026-04-30 | T2 | Reject reason 從至少 10 字元放寬為 5 中文字 OR 10 英數字。見 [lightweight-2026-04-30-approval-reason-bilingual-length.md](./lightweight-2026-04-30-approval-reason-bilingual-length.md) | `{pending}` |
 | 2026-05-04 | T2 | Bug-fix: 前端 substring 截斷 emoji surrogate pair 導致 reject reason 被拒。見 [BUG-001-emoji-surrogate-truncation.md](./BUG-001-emoji-surrogate-truncation.md) | `{pending}` |
 
+## Follow-up Tracking
+
+> 本段是 `templates/_index.md` 的**選配第八段**，只在這個 feature 長出 follow-up 時才出現。
+> 它是**衍生索引**——權威來源是 follow-up feature 自己的 `follow-up-of` 欄位；兩者若不一致，
+> 以 `follow-up-of` 為準。
+>
+> 這一列走過 `absent → in-progress → completed` 三個狀態：
+> - `in-progress` 由 follow-up host 的 **checkpoint 1** 帶入（見
+>   `references/modify-existing-flow.md` Step 1.6）；
+> - `completed` 由 `/dflow:finish-feature` **Step 6** 的 flip 帶入。
+>
+> **flip 不是 checkpoint。** 它是 sanctioned post-completion mutation，**兩邊的 Checkpoint
+> Log 都不記**——不記在 follow-up host（已關帳歸檔），也不記在本 feature（它的 ledger 不該
+> 被別的 feature 汙染）。但它**必須被 commit**，且該 commit 的路徑集合只能有本檔案。
+
+| SPEC-ID | Slug | Date | Status |
+|---|---|---|---|
+| SPEC-20260512-001 | reject-not-persisted | 2026-05-12 | completed |
+
 ## Resume Pointer
 
 > 一句話：目前進展到哪？下一個動作是什麼？

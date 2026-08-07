@@ -42,6 +42,21 @@ Phase 1 `vip-rate-and-contract` 會擴張既有 `DiscountPolicy`，新增 `Contr
 |---|---|---|---|
 | | | | |
 
+<!-- dflow:section checkpoint-log -->
+## Checkpoint Log
+
+> 生命週期 checkpoint 的 commit / skip 時間線。T1 記三點（spec 完／impl 完／
+> closeout），每個 checkpoint 無論 commit 或 skip 都記一列。完整規則見
+> `dflow/specs/shared/dflow-workflows/templates/_index.md` 與
+> references/git-integration.md § Commit Checkpoints。
+>
+> 列數跟著本 host 自己的 Resume Pointer 走：它記著 implementation 尚未開始，
+> 所以目前只有 spec 這一列；impl 與 closeout 各於發生時補一列。
+
+| Timestamp | Checkpoint | Result |
+|---|---|---|
+| 2026-05-05 14:20 | spec | committed (7c4e8b2) |
+
 <!-- dflow:section resume-pointer -->
 ## Resume Pointer
 

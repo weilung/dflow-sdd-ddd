@@ -27,7 +27,7 @@ completed snapshot 的完整讀法，再讀
 
 | 你關心的問題 | 本篇會展示的部分 |
 |---|---|
-| `/dflow:bug-fix` 和 `/dflow:modify-existing` 有什麼差別？ | bug-fix 走 modify-existing flow，但預設 lightweight ceremony，先找 expected-versus-actual boundary。 |
+| `/dflow:bug-fix` 和 `/dflow:modify-existing` 有什麼差別？ | bug-fix 走同一套 modify-existing flow，tier 一樣由 cascade 判定（不由命令決定）；差別在它先找 expected-versus-actual boundary。 |
 | 已知 tech debt 被客戶撞上時怎麼處理？ | 從 `tech-debt.md` 反查來源，建立 `BUG-001`，再把 debt resolved。 |
 | bug 發生在 VIP 試用期間，為什麼不歸 VIP feature？ | host feature 依 defect source 判定；rounding debt 來自 SPEC-001 baseline capture。 |
 | `Money` VO 加 method 算不算 DDD 變更？ | 算 code-level implementation 收斂，但不新增 VO equality component、不新增 BR。 |
@@ -114,7 +114,7 @@ Dflow 先釐清 `/dflow:bug-fix` 的性質：
 Dflow:
 收到。這是 /dflow:bug-fix，
 不是 Git Flow 的 hotfix branch；
-它走 modify-existing flow 的 lightweight ceremony。
+它走 modify-existing flow，ceremony tier 由 cascade 判定，不由命令決定。
 
 我先跑 Step 1：Assess the Change。
 這一步同時判斷 Ceremony Tier 與 Feature Linkage。
@@ -124,21 +124,25 @@ Tier 判定：
 
 ```text
 Dflow:
-Part A - Tier 判定：
+Part A - Tier 判定（依 AI-AGENT-GUIDE.md § Ceremony Scaling 的 ordered cascade，
+步驟 0–4、先命中者勝）：
 
-- T1 Heavy？否。
+- 步驟 0（是不是新東西？）否。這是既有顯示行為的缺陷修正，屬修改分流。
+
+- 步驟 1（T1？）否。
   沒有新 BR、沒有新 Aggregate、沒有新 VO 結構變化、沒有 data structure change。
   Money VO 加 method 是 implementation contract 收斂，不是 architectural change。
 
-- T2 Light？是。
-  這是試用期間客戶撞上的明確 bug，
-  範圍包含 Domain Money VO 加 ToDisplay(precision = 2) method，
-  以及 Presentation 三個頁面改 call 同一 contract。
-  BR 不變，但 observable display 行為會被修正。
+- 步驟 2（Dflow 不追蹤？）否。
+  這是試用期間客戶撞上的明確 bug，observable display 行為會被修正。
 
-- T3 Trivial？否。
+- 步驟 3（T3？）否。
   這不是 typo、button color 或 copy fix；
   顯示精度會改變，且需要 root cause、fix approach 與 regression tests 的獨立紀錄。
+
+- 步驟 4（T2，catch-all）→ 命中。
+  範圍包含 Domain Money VO 加 ToDisplay(precision = 2) method，
+  以及 Presentation 三個頁面改 call 同一 contract。BR 不變。
 
 結論：T2 Light。
 ```
@@ -154,7 +158,7 @@ Bob:
 
 這是本篇第一個 lesson：**bug-fix 不等於最小 ceremony。**
 
-若只是 typo 或 UI copy，可能是 T3。若 bug 揭露新 BR 或新的 Domain concept，可能升級成
+若只是單一畫面上的顯示文案 typo，可能是 T3（同一處掃過多個畫面、或動到高後果內容則升 T2；內部註解或文件的 typo 連 T3 都不需要）。若 bug 命中 cascade 步驟 1 的任一軸——新業務規則、Domain 概念新增／結構變更／更名、資料結構或破壞性契約變更——則升級成
 T1。但這次介於中間：沒有 BR Delta，卻有 observable behavior fix、root cause、
 implementation tasks 與 regression test，所以是 T2。
 
@@ -507,26 +511,15 @@ BUG-001 的 Problem section：
 今天是同一個 defect 被實際客戶撞上。
 ```
 
-Behavior Delta 明確說沒有 BR 變動：
+Behavior Delta 用 no-BR 家族 (e) 明確說沒有 BR 變動——規則沒變、實作錯了。
+`Governing BR-IDs` 留下這個缺陷歸哪幾條規則管，
+所以「沒有 BR delta」不會連帶把追溯線一起抹掉：
 
 ```markdown
 ## Behavior Delta
 
-### ADDED - BR / behavior added
-
-None.
-
-### MODIFIED - behavior modified in this fix
-
-None.
-
-### REMOVED - BR removed
-
-None.
-
-### RENAMED - BR renamed
-
-None.
+BR Delta: none — implementation defect
+Governing BR-IDs: BR-001, BR-002, BR-003, BR-004
 
 ### UNCHANGED - explicitly unaffected
 
@@ -667,7 +660,7 @@ Dflow:
 |---|---|
 | Brownfield track | 不重寫 WebForms；只把三頁面顯示 rounding contract 收斂到 `Money.ToDisplay()`。 |
 | Spec-first development | 先建立 BUG-001，寫清 root cause / fix approach / regression tests，再交給工程師 implement。 |
-| Hybrid workflow control | `/dflow:bug-fix` 走 lightweight ceremony；Dflow 不自動升成 new feature。 |
+| Hybrid workflow control | `/dflow:bug-fix` 的 tier 由 cascade 決定；本案落 T2 lightweight ceremony，Dflow 不自動升成 new feature。 |
 | DDD semantic backbone | Dflow 判斷 `Money` method 不改 invariant、不新增 BR，保持 Domain docs 乾淨。 |
 | 三層文件分工 | BUG-001 管本次 fix，feature `_index.md` 記 lightweight row，`tech-debt.md` 記 disposition。 |
 | Drift verification readiness | Regression tasks 要求同一 Order 在 `OrderList` / `OrderEntry` / `OrderDetail` 顯示一致。 |
@@ -678,7 +671,7 @@ Dflow:
 |---|---|---|
 | bug 歸錯 feature | 因為發生在 VIP 試用期間，就塞進 SPEC-002。 | host feature 追 defect source，歸 SPEC-001。 |
 | 小 bug 變大重構 | 開始改全站 currency formatter、locale、invoice rounding。 | BUG-001 明確限制為三頁面 display precision contract。 |
-| BR index 污染 | 把「跨頁顯示一致」寫成新折扣 BR。 | Behavior Delta 全部寫 None / Unchanged，BR-001~004 不動。 |
+| BR index 污染 | 把「跨頁顯示一致」寫成新折扣 BR。 | Behavior Delta 走 no-BR 家族 (e)：`BR Delta: none — implementation defect` + `Governing BR-IDs: BR-001~004`，規則 wording 不動。 |
 | reviewer 誤判漏更 | BR Snapshot 沒更新但沒有說明。 | `_index.md` 加 intentionally not regenerated note。 |
 | tech debt 永遠 open | 客戶撞上後只修 code，不回寫 debt disposition。 | `tech-debt.md` resolved note 連回 BUG-001。 |
 
@@ -706,7 +699,7 @@ VIP feature，也不需要猜為什麼 BR Snapshot 沒變。
 
 ## Key takeaways
 
-- `/dflow:bug-fix` 走 lightweight ceremony，但仍要有 root cause、fix approach 與 regression tests。
+- `/dflow:bug-fix` 不預設 tier——由 cascade 判。本案是功能性 defect，落 T2 lightweight ceremony，就仍要有 root cause、fix approach 與 regression tests；只是單一畫面上的顯示文字打錯（同一處掃過多個畫面就升 T2；動到高後果內容也是 T2）的 bug 會落 T3（`_index.md` 一行、不建獨立 spec）。
 - Host feature 應追 defect source，不追 bug 被發現的時間點。
 - T2 bug 可用 `BUG-{NUMBER}-{slug}.md`，讓 bug queue、Slack thread 與 tests 對齊。
 - `Money.ToDisplay(precision = 2)` 是 implementation contract 收斂，不是新 BR。

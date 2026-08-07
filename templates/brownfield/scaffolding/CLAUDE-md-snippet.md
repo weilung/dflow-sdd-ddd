@@ -114,7 +114,7 @@ AI 的完整決策樹、Workflow Transparency、Ceremony Scaling 三層判準
 - `/dflow:new-feature` — 新功能開發
 - `/dflow:new-phase` — 在 active feature 內新增階段
 - `/dflow:modify-existing` — 修改既有功能
-- `/dflow:bug-fix` — 輕量修復
+- `/dflow:bug-fix` — Bug 修復
 - `/dflow:finish-feature` — feature 收尾
 - `/dflow:pr-review` — PR 審查
 - `/dflow:verify` — rules.md ↔ behavior.md 漂移檢查

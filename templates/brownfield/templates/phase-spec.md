@@ -17,7 +17,14 @@ Template note (for AI):
   This is the **phase-spec** template - one phase-spec captures one full
   "Kickoff -> Domain -> Design -> Build -> Verify" cycle inside a feature directory.
   A feature can have 1..N phase-specs; the feature-level dashboard lives in
-  the sibling `_index.md` (see templates/_index.md). The instance file name is
+  the sibling `_index.md` (see templates/_index.md).
+  Exception — a **minimal (zero-phase) host** has **0**: it records a small
+  standalone or follow-up change and is defined by carrying no phase-spec at
+  all (references/modify-existing-flow.md Step 1.7, or its Step 1.6 minimal
+  variant). Such a host never uses this template. If you are about to create a
+  phase-spec for one, stop: adding a phase makes it a phase-bearing feature,
+  and closeout will then check it as one.
+  The instance file name is
   `phase-spec-YYYY-MM-DD-{slug}.md` placed at
   `dflow/specs/features/active/{SPEC-ID}-{slug}/`.
 

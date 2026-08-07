@@ -40,7 +40,17 @@ The "使用位置" column refers to file paths where the term appears structural
 | Lightweight Change | 輕量修改 | `_index.md`, `lightweight-spec.md`, Git principles | T2 / small change 類型的固定術語 |
 | Lightweight Changes | 輕量修改紀錄 | `_index.md` | `_index.md` 中登記 T2 外連 + T3 inline 的 section heading |
 | Resume Pointer | 接續入口 | `_index.md` | `_index.md` 末段「目前進展 + 下一動作」的 section heading |
-| Behavior Delta | 行為變更 | `lightweight-spec.md` | lightweight-spec 中 BR delta 段的 section heading |
+| Behavior Delta | 行為變更 | `lightweight-spec.md` | lightweight-spec 中 BR delta 段的 section heading；no-BR 家族改在本段放單行 BR 宣告（`BR: none — {family}`，家族 (e) 為 `BR Delta:` + `Governing BR-IDs:` 兩行）而非 ADDED / MODIFIED / REMOVED / RENAMED 子段 |
+| Output Footprint | 輸出足跡 | `lightweight-spec.md` | no-BR 家族 (a) presentation 取代 Root Cause 的證據段：這次變更實際觸及哪些畫面 / 輸出（含高後果內容改成什麼） |
+| Contract Delta | 契約變更 | `lightweight-spec.md` | no-BR 家族 (b) machine-consumed contract 的證據段 |
+| Downstream consumers | 下游消費者 | `lightweight-spec.md` | Contract Delta 段內指出誰在讀這個 contract 的 inline bold label |
+| Operational Rationale | 操作面理由 | `lightweight-spec.md` | no-BR 家族 (c) operational / security 的證據段（security / compliance 理由） |
+| Trace | 追溯紀錄 | `lightweight-spec.md` | Operational Rationale 段內的 inline bold label（advisory / ticket / audit 出處） |
+| Performance Delta | 效能變更 | `lightweight-spec.md` | no-BR 家族 (d) performance 的證據段 |
+| SLA / resource context | SLA / 資源脈絡 | `lightweight-spec.md` | Performance Delta 段內說明 SLA 與資源影響的 inline bold label |
+| Governing BR-IDs | 治理中的 BR-ID | `lightweight-spec.md` | no-BR 家族 (e) implementation defect 專用欄：這個缺陷歸哪幾條既有規則管（真的無對應規則時記 `none`）；與 `BR Delta:` 分開兩欄，「沒有 BR delta」不等於「沒有治理規則」 |
+| Change Rationale | 變更理由 | `lightweight-spec.md` | no-BR 家族 (f) intentional change 的證據段（含 `Before` / `After` 行為描述） |
+| Regression | 迴歸驗證 | `lightweight-spec.md` | Change Rationale 段內說明如何防迴歸的 inline bold label |
 | Current Progress | 目前進展 | `_index.md` | Resume Pointer 段內描述當下狀態的 inline bold label（per F-04 / DD-A Path A）|
 | Next Action | 下一個動作 | `_index.md` | Resume Pointer 段內描述下一動作的 inline bold label（per F-04 / DD-A Path A）|
 | Before | 原本 | `lightweight-spec.md`, `phase-spec.md`, `references/modify-existing-flow.md` | Behavior Delta MODIFIED 段內描述變更前狀態的 inline bold label（per F-08 / DD-A Path A）|

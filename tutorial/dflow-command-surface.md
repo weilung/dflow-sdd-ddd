@@ -176,14 +176,14 @@ canonical `/dflow:<id>` 文字或 `/dflow-<id>` prompt 選單；Codex CLI 請用
 
 | Command | 什麼時候用 | 典型產出 |
 |---|---|---|
-| `/dflow:new-feature` | 新的使用者能力、業務行為、或第一個 bounded context。 | feature directory、phase spec、aggregate design、domain docs updates。 |
+| `/dflow:new-feature` | 真正新的功能、頁面、能力或第一個 bounded context（**新建**的可導航介面——自有 route 且自有內容樹、新的使用者可執行 domain 操作、或新的獨立可消費產出；對既有介面加控制項、或為既有 route 加選單項目，都算 modify-existing）。 | feature directory、phase spec、aggregate design、domain docs updates。 |
 | `/dflow:modify-existing` | 修改既有行為。 | impact analysis、delta / lightweight spec、updated rules / docs。 |
-| `/dflow:bug-fix` | 有明確 expected vs actual 的 defect。 | lightweight spec、reproduction、fix plan、regression check。 |
+| `/dflow:bug-fix` | 有明確 expected vs actual 的 defect。 | AI 依 AI-AGENT-GUIDE.md § Ceremony Scaling 的 ordered cascade 判 tier（多落 T2 lightweight spec，但 cascade 也會把 defect 判到其他層級）、reproduction、fix plan、regression check。 |
 | `/dflow:pr-review` | 變更準備 review。 | SDD / DDD compliance review、risks、gaps、follow-up。 |
 
 ### `/dflow:new-feature`
 
-用在新的業務能力。Greenfield 第一個 feature 幾乎一定從這裡開始。
+用在真正新的功能／頁面／能力（**新建**的可導航介面、新的使用者可執行 domain 操作、或新的獨立可消費產出；對既有介面加控制項、或為既有 route 加選單項目，都走 modify-existing）。Greenfield 第一個 feature 幾乎一定從這裡開始。
 
 本 tutorial 已有完整中文 walkthrough：
 
@@ -224,7 +224,7 @@ branch 策略仍依專案自己的 Git principles。
 /dflow:bug-fix Reject reason 包含 emoji 時前端截斷，Domain 收到 malformed string 後誤判長度不足。
 ```
 
-Dflow 會要求把現有行為、預期行為、根因、修復位置、regression check 記錄下來。
+tier 由 cascade 決定，不由命令決定。這個例子是功能性 defect（T2），所以 Dflow 會要求把現有行為、預期行為、根因、修復位置、regression check 記錄下來；若這個 bug 只是單一畫面上的顯示文字打錯，就是 T3（同一處掃過多個畫面則升 T2；動到高後果內容也是 T2），就只在所屬 feature 的 `_index.md` 記一行、不建獨立 spec 檔。
 
 ### `/dflow:pr-review`
 
@@ -455,7 +455,7 @@ Git branch 要叫 `bugfix/...`、`hotfix/...`、或直接短命 feature branch�
 
 | 情境 | 用哪個 |
 |---|---|
-| 新的業務能力，沒有 active feature 承接 | `/dflow:new-feature` |
+| 真正新的能力／頁面／獨立產出（非對既有 surface 加控制），沒有 active feature 承接 | `/dflow:new-feature` |
 | active feature 還在進行中，需要下一個完整 T1 phase slice | `/dflow:new-phase` |
 | completed feature 後來要改 | `/dflow:modify-existing` |
 

@@ -8,7 +8,121 @@
 
 ## Unreleased
 
-**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）
+**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）
+
+- **Standalone / minimal（zero-phase）host 生命週期（P-083）— 新能力，既有專案不需遷移**：
+  在此之前，**沒有所屬 feature** 的 T2／T3 改動沒有可執行的承接路徑——AI 只能回報
+  缺口、與你商量記在哪。現在 `/dflow:modify-existing` 會開一個 **zero-phase host**：
+  沒有 phase-spec，Lightweight Changes 的列在 checkpoint 1 **之前**寫好，依改動類別
+  切分支（**功能性 bug** → `bugfix/BUG-{NUMBER}-{slug}`，其餘 standalone T2／T3 →
+  `feature/{SPEC-ID}-{slug}`），最後照常用 `/dflow:finish-feature` 收尾。涵蓋
+  standalone、follow-up、**post-hoc hotfix**（已合併到主線的緊急修復事後補記，
+  Step 1.8）三種情境；brownfield 另有 **baseline capture** host。
+
+- **`_conventions.md` 補回兩個從未被投影出去的小節（P-083）— 既有專案需要手動補**：
+  `### SPEC-ID Format` 與 `### Slug Conventions (Project-Specific Fill-In)` 自
+  `v0.1.0` 起**從未**被 `dflow init` 寫進任何專案。模板一直正確地帶著它們，但兩節被
+  放在 `## Prose Language` 底下，而 init 會整段替換該節、連帶吞掉底下的 `###` 子節。
+  本版把兩節移到 `## Where Specs Live` 底下（它們原本的位置，語意上也對——ID 格式與
+  slug 慣例跟散文語言無關），新專案 init 即可拿到。
+
+  **既有專案不會自動取得**：`_conventions.md` 是你擁有的檔案，`dflow init` 與
+  `configure-agents` 都不覆寫它。若你依 `docs/upgrading.md` 的做法「用相同答案跑一次
+  全新 init，再逐項分類差異」，會看到多出這兩節——**那是預期的**，把它們複製進你的
+  `_conventions.md`、放在 `## Prose Language` **之前**即可。特別注意
+  `### Slug Conventions` 裡的 `Project-specific term list` 是要你填的空格：因為這個
+  缺陷，它從來沒有被問過任何人。
+
+  **`dflow doctor` 現在會替你發現這件事（P-082）**：它逐節檢查你的
+  `_conventions.md`，分兩種狀況報。**節整個不存在** → `info`（例如上面這兩節：沒有任何
+  已發布版本投影過，所以每個既有專案都一樣缺，那是「你從沒被提供過的內容」、不是健康
+  問題）。**節在、但少了現行規則** → `warn`（那是你自己的 convention 檔跟出貨流程當面
+  矛盾，例如 Ceremony Scaling 少了 escalate-only 那條，表格就變成可以把 cascade 判高的
+  tier 調低）。檢查是**逐節**做的，不是整檔搜字串——規則出現在別節不算數。Dflow 一律
+  只報告、不改寫你的檔案。
+
+- **Tier 判定改為順序 cascade（P-082）— 會改變既有專案的分級結果，升級前請讀完本條**
+  （本條講的是**進入 workflow 之後**的分級；決定 Dflow 何時**自己出現**的觸發面見
+  下一條——本版一併改了）：
+  原本的 T3「四準則 checklist」把 user-visible 的版面／文案修正和不可見的
+  code formatting、內部註解**並列在同一格**，導致同一份判準可以推出兩種答案。
+  現在兩軌 `AI-AGENT-GUIDE.md` § Ceremony Scaling 與 `modify-existing-flow.md`
+  改用**順序判定 cascade（步驟 0–4，先命中者勝）**，兩軌逐字一致：
+
+  - **步驟 0 scope**：cascade 只判「修改」。對**既有** surface 加呈現／互動控制
+    （copy 按鈕、日期 filter、排序、quick-view、補 `aria-label`）＝修改分流；
+    新 navigable surface、新獨立可消費產出／交付通道（Download-PDF、匯出、
+    排程 email）、新 user-executable domain 操作才是 `/dflow:new-feature`。
+  - **不可見 ≠ 不追蹤**：machine-consumed contract（structured log／匯出欄位／
+    API／event）、操作語意面（security／safety／resilience／compliance／payment）、
+    runtime 效能／資源／SLA 變更**一律進 workflow**，即使產品受眾看不見；
+    行為保持的 **routine** refactor 與 dependency bump 則落 below workflow，
+    **不論改動廣度**（廣度不是判準）。
+  - **T3 收窄且明確化**：限單一畫面／元件層級、語意保持的 copy／appearance
+    修正；高後果內容（安全警告、密碼提示、同意書、付款／法律聲明）、語意
+    翻轉的配色、影響可操作性／預設狀態／互動順序者（「只是 CSS」不豁免）、
+    補齊缺漏的 accessible name、以及跨畫面掃改，一律升 T2。code formatting
+    與內部註解**不再是 T3**，落 below workflow。
+  - **T3 tier-aware 路由**：判為 T3 後直接走 branch gate → 實作 → `_index.md`
+    inline 一行，明文 skip Domain／DDD 評估段（greenfield Step 2/3、
+    brownfield Step 2/3/4 的 baseline‧delivery‧extraction 段）——小修改不再
+    被迫跑 T1/T2 級分析。
+  - **前門命令選擇表對齊**：installed guide 的「Use when」表與 machine command
+    registry、六份 `docs/using-with-*`、tutorial 命令面，new-feature／
+    modify-existing 兩列都改為與步驟 0 一致——避免 agent 在**進 flow 之前**
+    就選錯命令、讓 cascade 根本不被觸達。
+
+- **自然語言觸發面跟上 cascade（P-082 決策 1A）— 會改變 Dflow「什麼時候自己出現」，
+  升級後要跑 `dflow configure-agents --skills`**：
+  在此之前，skill `description` 與 root shim 的排除句是**無限定**的：「refactors、
+  renames、chores、formatting、dependency bumps」一律不觸發，shim 還額外明寫
+  「你不需要先讀 guide」。但同一版的 cascade 判定 security／CVE 的 dependency bump、
+  碰 payment 等操作語意面的 refactor、Domain／schema rename 都**要**進 workflow。
+  兩邊直接打架：分類說要追蹤，進場那一關卻叫 agent 別來、順便叫它別去讀那份會告訴它
+  該來的文件。而且這種失敗是**安靜**的——沒有任何測試看得見一個「決定不出現」的觸發器。
+
+  現在 skill `description` 與 shim 的 routine 段都改成**具名的窄定義**：routine 只指
+  行為保持、**產品觀眾看不到**、且不碰 architecture／data structure／machine-consumed
+  contract（log‧export‧API‧event，以及 env var‧CLI flag‧exit code 這類 inbound 契約）
+  ／BR-ID／操作語意（security‧CVE、safety、resilience、compliance、payment）／效能‧
+  資源‧SLA 的工作。碰到任一項就不是 routine，由 guide 的 § Ceremony Scaling 裁決
+  ——不再由 shim 自己複述一份會漂移的清單。
+
+  ⚠ **觀眾這一條是後補的**：shim 第一版把 cascade 的軸清單抄齊了，卻漏掉 guide 判準裡
+  「沒有觀眾感知得到的輸出差異」那半句，於是換個按鈕文案、改個顏色這種碰不到任何一條
+  軸、但看得見的改動，被 shim 判成 routine 並附帶一句「你不需要先讀 guide」。**大小不是
+  判準**：單一元素的文案或外觀改動一樣算數。
+
+  **既有專案要做什麼**：skill 跑 `dflow configure-agents --skills` 換新。root shim
+  （`CLAUDE.md`／`AGENTS.md`／`.github/copilot-instructions.md`）若你**沒有自己編輯
+  過**，`dflow configure-agents` 會就地重生——0.10.0–0.14.0 的舊 shim 一樣認得。若你
+  編輯過、而且檔案裡沒有 Dflow 的 marker，Dflow 不會動它：`dflow doctor` 會點名，
+  routine 段要你手動換掉。
+
+- **no-BR 的 T2 有了合法形狀，不必再捏造 BR（P-082）**：cascade 把跨頁 copy／
+  appearance 掃改、非 breaking contract 變更、security／CVE 工作、效能工作、
+  實作缺陷、計畫性互動調整都收進 T2，但這些變更**沒有 BR delta 可填**。兩軌
+  `lightweight-spec.md` 新增 **no-BR 六家族**變體，每個家族各有自己的 BR 行與
+  必填證據段：(a) presentation → `Output Footprint`；(b) contract change →
+  `Contract Delta` + `Downstream consumers`；(c) operational → `Operational
+  Rationale` + `Trace`；(d) performance → `Performance Delta` + `SLA / resource
+  context`；(e) implementation defect → `BR Delta: none` + **`Governing BR-IDs:`
+  分欄**（「沒有 BR delta」不等於「沒有治理規則」——缺陷歸哪條規則管仍要留下
+  追溯線）＋保留 Problem／Root Cause／Fix Approach／regression；(f) intentional
+  change → `Change Rationale` + Before／After + Regression。兩軌
+  modify-existing 完成檢查與 `pr-review-checklist` 改為**依家族驗該家族的證據**，
+  BR／Domain 項對 no-BR spec 明記 N/A——既不 vacuous pass，也不逼 AI 生一條 BR
+  或假的 Domain 更新來過檢。**既有 spec 一律不遷移**：classic BR-delta 形與舊的
+  單欄 `BR:` bug 形都仍原生合法，readers 兩形容忍。
+
+- **README 瘦身重組＋「防過度設計」特點露出（P-081）**：兩語 README 重組——
+  重複叢集收斂（skill／configure-agents／升級機制／why 論證的機制細節整併到各自的 canonical 段落）、
+  「狀態」章收為四條、特點表 cell ≤2 句並新增「**防過度設計內建於引導**」
+  列、why 兩章壓成 teaser＋連結（證據語氣統一為第一方觀察）。升級 caveat
+  與 marker 狀態矩陣下放新雙語頁 `docs/upgrading.md`／`docs/upgrading.en.md`
+  （含 ownership × flag 對照表、latest 標示與「先升 npm latest」提示）；
+  `dflow doctor` 升級提示改指 canonical URL（`blob/main/docs/upgrading.en.md`，
+  套件內附離線副本），測試鎖定 URL 組合與目標存在。
 
 - **Formatting convention 從被動註解升級為主動投遞（P-078 phase 1）**：
   concise-cell/`<br>` 慣例（P-072）原本只存在於模板檔頭 HTML 註解——

@@ -30,7 +30,7 @@ baseline-only 為什麼不順手修 code；若想看完整文件家族的讀法�
 | 你關心的問題 | 本篇會展示的部分 |
 |---|---|
 | 沒有要改 code，還需要 Dflow 嗎？ | 需要。baseline capture 可把 confirmed behavior 與 tech debt 分流，避免後續修改盲飛。 |
-| 沒有 BR Delta，算哪個 tier？ | 不硬塞 T1/T2/T3；它是 Systematic Baseline Capture 的合法路徑。 |
+| 沒有 BR Delta，算哪個 tier？ | 不硬塞 T1/T2/T3；cascade 步驟 0 的 observation-only 例外讓它 tier-exempt。 |
 | 讀到其他頁面有奇怪邏輯，要不要順手修？ | 不順手修。confirmed 進 behavior，buggy / unknown 進 tech debt。 |
 | 跨頁面看到相同規則，要不要複製多條 BR？ | 不複製。行為只有一條，source pages 可以列多個。 |
 | Brownfield 如何控制 scope？ | 本篇只讀 `OrderList` / `OrderDetail` immediate neighbors，不擴張成三頁同步改造。 |
@@ -96,12 +96,17 @@ Dflow 先跑 modify-existing flow Step 1：Assess the Change。
 Dflow:
 Part A — Tier 判定：
 
-- T1 Heavy？否。沒有新增 Aggregate、Domain concept、BR 或 data structure。
-- T2 Light？否。T2 需要 BR Delta；這次沒有 ADDED / MODIFIED / REMOVED / RENAMED BR。
-- T3 Trivial？否。這不是 typo、button color、copy、formatting 或 pure comments；
-  它會讀跨頁面 Code-Behind 並更新 behavior 與 tech-debt。
+照 ordered cascade 逐步走（先命中者勝）：
 
-結論：這件事不在 T1 / T2 / T3 範疇內。
+- 步驟 0 Scope？**命中**。這是 observation-only 的 baseline capture——只記錄現況、
+  不改任何輸出，步驟 0 明文說它 carries no tier at all、但仍要記錄下來。
+  cascade 到此結束，後面幾步不用走。
+
+（若照舊習慣先問 T1/T2/T3，會走錯：步驟 1 否 → 步驟 2「無受眾可感知輸出 delta」
+會命中 below workflow、變成「直接 git commit、Dflow 不追蹤」，baseline 就不會被記下來。
+步驟 0 的例外就是為了擋這個。）
+
+結論：tier-exempt——不在 T1 / T2 / T3 內，但也不是 below workflow。
 ```
 
 Bob 問：
@@ -117,7 +122,7 @@ Dflow 回答：
 ```text
 Dflow:
 你的判斷是對的。
-依 modify-existing-flow.md Step 2 的 Systematic Baseline Capture，
+依 AI-AGENT-GUIDE.md § Ceremony Scaling 步驟 0 的 observation-only 例外，
 baseline-only 不是 Tier 表內的 modification tier，但它是合法路徑。
 
 這條路徑的規則是：
@@ -131,7 +136,7 @@ baseline-only 不是 Tier 表內的 modification tier，但它是合法路徑。
 
 這是本篇第一個重點：**Dflow 不是所有事情都硬套 tier。**
 
-如果沒有 BR Delta，就不要假裝是 T2。若不是 UI copy / typo，也不要假裝是 T3。
+baseline capture 是 observation-only、tier-exempt——不要硬塞成 T2，也不是 UI copy / typo 那種 T3（它根本不是 cascade 分類的 modification）。
 Brownfield 需要這種灰階路徑，因為你常常需要先看清楚 legacy 現況，才能安全修改。
 
 ## Step 1 Part B — 找到 host feature
@@ -457,7 +462,7 @@ Dflow:
 
 | 不做 | 原因 |
 |---|---|
-| 不建 `lightweight-spec` | 沒有 BR Delta。 |
+| 不建 `lightweight-spec` | baseline capture、observation-only，無 implementation。 |
 | 不建新 `phase-spec` | 沒有新 implementation slice。 |
 | 不更新 `rules.md` | 沒有新增或修改 BR。 |
 | 不改 code | Bob 明確要求 baseline-only。 |
@@ -524,15 +529,20 @@ Host feature dashboard 也要知道這次 baseline capture 發生過：
 ```markdown
 ## Lightweight Changes
 
-| Date | Type | Description | Commit |
+| Date | Tier | Description | Commit |
 |---|---|---|---|
-| 2026-05-04 | baseline-capture | Baseline-only capture：已補 OrderList.aspx.cs 與 OrderDetail.aspx.cs 的跨頁 confirmed behavior；新發現的 rounding / isVip debt 已記錄於 tech-debt.md。本 row 無對應 spec 檔。 | n/a - spec capture only |
+| 2026-05-04 | baseline | Baseline-only capture：已補 OrderList.aspx.cs 與 OrderDetail.aspx.cs 的跨頁 confirmed behavior；新發現的 rounding / isVip debt 已記錄於 tech-debt.md。本 row 無對應 spec 檔。 | n/a - spec capture only |
 ```
 
 完整文件範例：
 [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md)
 
-這個 row 不叫 T1 / T2 / T3。它的 Type 是 `baseline-capture`。這比硬塞 tier 更清楚。
+這個 row 不叫 T1 / T2 / T3。它的 `Tier` 欄填的是 **`baseline`**——這比硬塞一個 tier 更清楚，
+而且 `baseline` 是 closeout 與 `/dflow:pr-review` 的 reader 都認得的值。
+
+（`baseline` 是唯一正確的值；不要寫成 `baseline-capture` 之類的變體，reader 不認得。
+Brownfield 的 [〈Walkthrough 07 — 沒有相關 feature 的 baseline capture〉](walkthrough-07-baseline-minimal-host.md)
+示範同一個值用在**沒有 host 可掛**的情況——那時它會住在自己的 baseline 最小 host 裡。）
 
 ## 本步驟的文件地圖
 
@@ -541,7 +551,7 @@ Host feature dashboard 也要知道這次 baseline capture 發生過：
 | 修改 | [`outputs/dflow/specs/domain/Order/behavior.md`](outputs/dflow/specs/domain/Order/behavior.md) | `Confirmed across pages` 區塊，記錄 OrderList / OrderDetail 對 BR-004 的確認。 |
 | 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | rounding inconsistency 與 `isVip` multiplier 來源不明。 |
 | 修改 | [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md) | baseline-capture row 與後續 resume context。 |
-| 故意不建 | `lightweight-*.md` | 沒有 BR Delta，不建立 lightweight spec。 |
+| 故意不建 | `lightweight-*.md` | baseline capture（observation-only），不建立 lightweight spec。 |
 | 故意不建 | `phase-spec-*.md` | 沒有新的 implementation slice。 |
 | 故意不改 | `rules.md` | 沒有新增或修改 accepted BR。 |
 | 故意不改 | `models.md` / `context.md` | 沒有新增 Domain structure。 |
@@ -590,7 +600,7 @@ Host feature dashboard 也要知道這次 baseline capture 發生過：
 
 ## Key takeaways
 
-- Baseline-only work 不必硬塞 T1 / T2 / T3；它是 Systematic Baseline Capture 的合法路徑。
+- Baseline-only work 不必硬塞 T1 / T2 / T3；cascade 步驟 0 的 observation-only 例外讓它 tier-exempt——也不落 below workflow。
 - Confirmed behavior 進 `behavior.md`；buggy / unknown 進 `tech-debt.md` 或 open question。
 - 跨頁面看到同一條規則時，行為只寫一條，source pages 列清楚。
 - 看到 bug 不等於今天修 bug；如果要修，就要改 scope 並補 spec / tests。

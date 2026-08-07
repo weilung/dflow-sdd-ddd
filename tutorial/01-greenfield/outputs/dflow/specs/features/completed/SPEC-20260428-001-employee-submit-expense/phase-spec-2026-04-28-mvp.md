@@ -1,7 +1,7 @@
 ---
 id: SPEC-20260428-001
 title: 員工提交費用單 — MVP phase
-status: in-progress
+status: completed
 bounded-context: Expense
 created: 2026-04-28
 author: Alice

@@ -128,6 +128,18 @@ try {
   assert.match(conventions, /\[Glossary\]\(\.\.\/domain\/glossary\.md\)/);
   assert.match(conventions, /^> Dflow Version: \d+\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?$/m, 'Greenfield Dflow Version field present');
 
+  // P083: assert the PROJECTION, not the template — the template carried these
+  // two sections correctly the whole time and still never delivered them.
+  // `ensureProseLanguageSection` strips from `## Prose Language` to the next
+  // `## ` heading, and a `### ` subsection sitting after it is swallowed with
+  // the prose. Both sections were re-parented under `## Prose Language` by
+  // 59e0eb2 (2026-05-01) and were lost from v0.1.0 onward; they now sit under
+  // `## Where Specs Live`, ahead of it, which is why they arrive. That ordering
+  // is load-bearing — move them back below `## Prose Language` and this fails.
+  assert.match(conventions, /^### SPEC-ID Format$/m, 'SPEC-ID Format must survive the Prose Language strip');
+  assert.match(conventions, /^### Slug Conventions \(Project-Specific Fill-In\)$/m, 'Slug Conventions must survive the Prose Language strip');
+  assert.match(conventions, /Project-specific term list/, 'the slug term-list fill-in must reach the project — it is the blank the developer is asked to complete');
+
   // PROPOSAL-047: mandatory Git policy + AI commit marker recorded in _conventions.md
   assert.equal((conventions.match(/^## Git Policy$/gm) || []).length, 1, 'Git Policy section count');
   assert.match(conventions, /Selected Git policy: `trunk`/, 'greenfield Git policy recorded');
@@ -774,6 +786,12 @@ try {
   assert.equal((webformsConventions.match(/^## Prose Language$/gm) || []).length, 1, 'Brownfield Prose Language section count');
   assert.match(webformsConventions, /Project prose language: `fr-CA`/);
   assert.match(webformsConventions, /^> Dflow Version: \d+\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?$/m, 'Brownfield Dflow Version field present');
+
+  // Same projection assertion as greenfield — see the comment there for why the
+  // section order in the template is load-bearing.
+  assert.match(webformsConventions, /^### SPEC-ID Format$/m, 'brownfield SPEC-ID Format must survive the Prose Language strip');
+  assert.match(webformsConventions, /^### Slug Conventions \(Project-Specific Fill-In\)$/m, 'brownfield Slug Conventions must survive the Prose Language strip');
+  assert.match(webformsConventions, /Project-specific term list/, 'brownfield slug term-list fill-in must reach the project');
 
   // PROPOSAL-047: gitflow policy projects the gitflow principles file (and not trunk).
   assert.match(webformsConventions, /Selected Git policy: `gitflow`/, 'brownfield Git policy recorded');

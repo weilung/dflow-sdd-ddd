@@ -1,19 +1,21 @@
 ---
 name: dflow
 description: >
-  Dflow SDD/DDD workflow guardian for this project. PRIMARY: the canonical
-  /dflow:* commands (/dflow:new-feature, /dflow:modify-existing, /dflow:bug-fix,
+  Dflow SDD/DDD workflow guardian. PRIMARY: the canonical /dflow:* commands
+  (/dflow:new-feature, /dflow:modify-existing, /dflow:bug-fix,
   /dflow:new-phase, /dflow:finish-feature, /dflow:pr-review, /dflow:verify,
   /dflow:report-dflow-feedback, /dflow:status, /dflow:next, /dflow:cancel).
-  SECONDARY — engage ONLY for adding or changing product/user-facing/domain
-  behavior, a new requirement, a feature or bug-fix workflow, or spec-impacting
-  architecture/domain-model decisions. Includes indirect phrasings, e.g. "I want
-  to build/add ...", "let's add the ability to ...", "we need to support ...",
-  "can you implement ...", "users should be able to ...", "the app should also
-  ...". Do NOT engage for pure refactors, renames, infra/build chores,
-  formatting, dep bumps, or general code questions ("how does X work", "explain
-  this"). When engaged by natural language, DO NOT auto-enter a workflow: judge
-  the intent, suggest the matching /dflow: command, and wait for confirmation.
+  SECONDARY — engage for anything Dflow tracks: a product-visible change, or
+  one touching a machine-consumed contract (log/export/API/event, env
+  var/CLI flag/exit code), data structure, operational semantics
+  (security/CVE, safety, resilience, compliance, payment),
+  performance/resource/SLA, BR-ID, or architecture/domain model. Indirect
+  phrasings: "I want to build/add ...", "we need to support ...", "users
+  should be able to ...". Do NOT engage for behavior-preserving routine work
+  touching none of those — refactors, renames, chores, formatting, routine
+  dependency bumps — or code questions. When engaged by natural language, DO
+  NOT auto-enter a workflow: judge the intent, suggest the matching /dflow:
+  command, and wait for confirmation.
 ---
 
 <!-- dflow-generated: skill-adapter -->

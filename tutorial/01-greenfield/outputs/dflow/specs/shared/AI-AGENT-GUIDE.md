@@ -23,8 +23,8 @@ are not available in the current AI tool:
 
 | Workflow | Use when |
 |---|---|
-| `/dflow:new-feature` | A new user-visible capability or business behavior is requested. |
-| `/dflow:modify-existing` | Existing behavior needs to change. |
+| `/dflow:new-feature` | Genuinely new work is requested — a newly created navigable surface, a new user-executable domain operation, or a new independently-consumable output. Adding a control to an existing surface — or a menu entry pointing at a route that already exists — is modify-existing. |
+| `/dflow:modify-existing` | Existing behavior or an existing surface changes — including adding a presentation / interaction control (copy button, filter, sort, quick-view) to a screen that already exists. |
 | `/dflow:bug-fix` | A defect can be described with expected vs actual behavior. |
 | `/dflow:new-phase` | An active feature needs another implementation slice. |
 | `/dflow:finish-feature` | Implementation is complete and needs drift closure. |
@@ -81,6 +81,13 @@ This file is the canonical Dflow guide. Root-level files such as
 `AGENTS.md`, `CLAUDE.md`, and `.github/copilot-instructions.md`
 should stay thin and point back here.
 
+> **Tutorial fixture note.** This copy is abridged for the walkthrough — it
+> shows the shape of an installed guide, not its full text. Sections the
+> walkthroughs do not exercise (including § Ceremony Scaling, which carries
+> the ordered cascade the tier judgements come from) are present in a real
+> `dflow init` output but omitted here. The authoritative text is the
+> scaffolding `AI-AGENT-GUIDE.md` of the matching track in the Dflow repo.
+
 If a tool does not support Dflow slash commands, treat the command names as
-plain workflow names. This guide contains the installed runtime behavior
-contract; execute the workflow semantics defined here directly.
+plain workflow names. A real installed guide contains the runtime behavior
+contract and is executed directly; this abridged fixture is for reading.

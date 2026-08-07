@@ -121,18 +121,17 @@ Dflow 的判定：
 
 ```text
 Dflow:
-Part A — Tier 判定：
+Part A — Tier 判定（依 AI-AGENT-GUIDE.md § Ceremony Scaling 的 ordered cascade，
+步驟 0–4、先命中者勝）：
 
-- T1 Heavy？是。這次不是單純修一個判斷式，
+- 步驟 0（是不是新東西？）否。這是既有 OrderEntry 行為的重整，屬修改分流。
+
+- 步驟 1（T1？）**命中**。這次不是單純修一個判斷式，
   會建立第一個 Order BC structure，包含 Order Aggregate Root、
   OrderLine Entity、Money / Quantity / DiscountRate Value Objects、
   DiscountPolicy，而且會新增多條 BR。
 
-- T2 Light？否。光是建立首個 Aggregate，加上從 OrderEntry.aspx.cs
-  抽出 handler 裡的核心計算，已經超過 lightweight bug fix。
-
-- T3 Trivial？否。這不是 copy、button color、註解或格式調整；
-  它會改變訂單金額。
+  先命中者勝——步驟 1 命中就到此為止，不必再問 T3 或 catch-all。
 
 結論：T1 Heavy。
 ```

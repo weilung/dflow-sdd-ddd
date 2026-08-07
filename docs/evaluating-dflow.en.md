@@ -208,29 +208,47 @@ not to adopt.
 
 ## Cost Per Feature: A Rough Estimate
 
-Dflow scales ceremony to change risk through three tiers (see
-[`README.md` "Workflow Model"](../README.en.md#workflow-model) for full
-detail):
+Dflow scales ceremony to change risk through three tiers (the criteria live in
+`AI-AGENT-GUIDE.md` § Ceremony Scaling; see
+[`README.md` "Workflow Model"](../README.en.md#workflow-model) for the product
+overview):
 
 - **T1 Heavy** — new features, new phases, new Aggregates or Bounded
-  Contexts, architecture changes, new business rules. A full phase-spec
+  Contexts, architecture changes, new business rules, data-structure
+  changes, and any contract change that breaks a caller (API / event, or a
+  required env var / CLI flag / exit code). A full phase-spec
   with domain modeling, behavior examples, an implementation plan, and
   verification + finish checks. The cost is real but proportional to
   the risk being managed.
 - **T2 Light** — bug fixes (logic errors), UI verification adjustments,
-  small changes with a business-rule delta. A lightweight spec, focused
+  small changes with a business-rule delta, non-breaking contract changes,
+  performance-only work. A lightweight spec, focused
   verification, and confirmation that the fix lands in the correct
   architectural layer.
-- **T3 Trivial** — button colors, copy typos, pure formatting — **no
-  business-rule, Domain, or data-structure changes**. One line in
-  `_index.md`; no separate spec file.
+- **T3 Trivial** — a local, meaning-preserving display copy / appearance tweak
+  (button colors, copy typos / wording, layout polish) — **no business-rule,
+  Domain, or data-structure changes**, and not high-consequence content.
+  "Local" means element level on a single screen / component, or a single
+  independently-consumed page / file such as a public README or an API
+  reference page; a whole-screen rewrite or a cross-screen sweep escalates to
+  T2, and so does a cross-page sweep. When hosted
+  under an existing feature it is one line in that `_index.md`, with no separate
+  spec file; if no owning feature exists, `/dflow:modify-existing` opens a
+  minimal (zero-phase) host and records the row there.
+
+The list above is a summary. The one source that decides an actual change is
+`AI-AGENT-GUIDE.md` § Ceremony Scaling — the ordered cascade, steps 0–4, first
+match wins.
 
 Tier choice is not always manual: `/dflow:new-feature` and
 `/dflow:new-phase` default to T1; `/dflow:modify-existing` and
 `/dflow:bug-fix` let the AI judge T1/T2/T3 based on what is actually
-changing. Pure typo / formatting commits (e.g., `prettier`,
-`dotnet format`) can skip Dflow entirely and just `git commit` — Dflow
-is for changes with business semantics or structural impact.
+changing. Pure formatting commits (e.g., `prettier`, `dotnet format`),
+internal comments, and internal-doc typos can skip Dflow entirely and just
+`git commit` (a user-visible typo goes through the cascade: T3 on a single screen or a single independently-consumed page, T2 once it sweeps several or touches high-consequence content). The reverse also holds — invisible
+does not mean untracked: machine-consumed contracts, security / CVE and
+compliance work, and deliberate runtime performance / resource / SLA changes
+all stay inside Dflow.
 
 ## Project Language Compatibility
 

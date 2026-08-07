@@ -164,10 +164,10 @@ Bob 確認後，Dflow 寫入 baseline。
 
 | Path | 用途 |
 |---|---|
-| [`outputs/dflow/specs/shared/_conventions.md`](outputs/dflow/specs/shared/_conventions.md) | spec writing conventions，含 Brownfield modify-existing 補充與 `zh-TW` prose language。 |
+| [`outputs/dflow/specs/shared/_conventions.md`](outputs/dflow/specs/shared/_conventions.md) | spec writing conventions，含 Brownfield modify-existing 補充與 `zh-TW` prose language。（本 fixture 是節錄版：省略 `> Dflow Version:` 行與 `## Git Policy`／`## AI Commit Policy` 兩段；實際 `dflow init` 產出是完整的。） |
 | [`outputs/dflow/specs/shared/_overview.md`](outputs/dflow/specs/shared/_overview.md) | OrderManager overview、current architecture、migration context 與 pain points。 |
 | [`outputs/dflow/specs/shared/Git-principles-gitflow.md`](outputs/dflow/specs/shared/Git-principles-gitflow.md) | release / hotfix 節奏對應的 Git Flow guide。 |
-| [`outputs/dflow/specs/shared/AI-AGENT-GUIDE.md`](outputs/dflow/specs/shared/AI-AGENT-GUIDE.md) | AI tool-neutral canonical guide。 |
+| [`outputs/dflow/specs/shared/AI-AGENT-GUIDE.md`](outputs/dflow/specs/shared/AI-AGENT-GUIDE.md) | AI tool-neutral canonical guide（本 fixture 是節錄版：省略 walkthrough 沒走到的段落，例如帶 ordered cascade 的 § Ceremony Scaling；實際 `dflow init` 產出是完整的）。 |
 
 **AI tool shim**
 

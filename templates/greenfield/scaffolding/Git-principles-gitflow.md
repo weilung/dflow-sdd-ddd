@@ -24,12 +24,24 @@ trunk-based, GitHub Flow), use `Git-principles-trunk.md` instead.
 | `main` / `master` | `main` | — | release / hotfix only |
 | `develop` | `develop` | — | integration branch for features |
 | feature | `feature/{SPEC-ID}-{slug}` | `develop` | `develop` |
+| bugfix | `bugfix/{BUG-ID}-{slug}` | `develop` | `develop` |
 | release | `release/{version}` | `develop` | `main` + `develop` |
 | hotfix | `hotfix/{version}-hotfix{n}` | `main` | `main` + `develop` |
 
 The `feature/{SPEC-ID}-{slug}` pattern is a **Dflow requirement** (not
 a Git Flow requirement). It ties each feature branch to its
 corresponding `dflow/specs/features/active/{SPEC-ID}-{slug}/` directory.
+
+A **`bugfix/{BUG-ID}-{slug}`** branch is the same shape as a feature branch and
+follows the same topology — cut from the same base, pushed the same way,
+integrated the same way, and **closed out the same way**. It is used when a
+defect owns its own host rather than being picked up by a feature already in
+flight. Its host is a **minimal (zero-phase) host**, so it carries no
+phase-spec: the SPEC-ID lives in the directory name while the branch name
+carries the BUG-NUMBER, and the host `_index.md` `branch:` field is
+authoritative for both. Closeout is not optional because the branch prefix
+differs — `/dflow:finish-feature` runs and the directory is archived to
+`completed/` before the branch merges, exactly as for `feature/`.
 
 ### Feature Branch Workflow
 
@@ -108,10 +120,18 @@ git branch -d hotfix/{version}-hotfix{n}
 ```
 
 **Hotfix spec requirement (team convention)**: Hotfixes often skip the
-upfront SDD cycle for speed. This project commits to writing a
-lightweight spec within **24 hours** after the hotfix lands, documenting
-root cause + fix + (if applicable) a tech-debt entry in
-`dflow/specs/architecture/tech-debt.md` if the bug reveals a systemic issue.
+upfront SDD cycle for speed. This project commits to documenting the fix
+within **24 hours** after it lands. Run `/dflow:modify-existing` in
+**post-hoc mode** (`references/modify-existing-flow.md` Step 1.8): it opens a
+minimal host of its own for the fix, records the implementation checkpoint as
+`reconciled ({merged-hotfix-hash})`, and reconciles rather than re-running work
+that is already on the mainline.
+What gets written is whatever the cascade's tier calls for — a **T2** lands a
+lightweight spec (root cause + fix + a `dflow/specs/architecture/tech-debt.md` entry
+if the bug reveals a systemic issue); a **T3** lands one `_index.md` Lightweight
+Changes row and no spec file. Step 1.8 admits **T2 / T3 only**: a **T1**
+post-hoc keeps the normal phase-bearing route and documents the merged work
+there.
 This is a **human-to-human commitment** — Dflow / AI cannot track the
 24-hour clock; the team enforces it in retros.
 
@@ -156,7 +176,10 @@ Before making key Git operations:
       justification in the spec's notes section)
 - [ ] `_index.md` status reflects the current work (Phase Specs row
       updated, `Resume Pointer` refreshed if the commit reaches a meaningful
-      checkpoint)
+      checkpoint). A **minimal (zero-phase) host** has no Phase Specs row to
+      update — its record is the Lightweight Changes row, and that row must
+      already be written **before** this commit, not after it. Refresh the
+      Resume Pointer as usual.
 - [ ] Clean Architecture layer rules hold (Domain has no external
       package deps, no business logic leaked into handlers /
       controllers)
@@ -175,6 +198,21 @@ Before making key Git operations:
 - [ ] Domain project has zero external package dependencies
 - [ ] No ORM / serialization attributes on Domain entities
 - [ ] Domain unit tests pass (invariants + value object equality)
+
+> **Minimal (zero-phase) host.** The items about this host's own record —
+> `/dflow:finish-feature` having run, `_index.md` status `completed`, and the
+> archival move — apply **unchanged**: they are what stops a host merging with
+> its record still open. Every item naming a **Domain or bounded-context
+> artifact** applies only to what this change **actually touched**: a **no-BC**
+> host has no context to sync or document, and a **T3** does no Domain work at
+> all, so for those they read N/A. **Bounded-context-scoped only** —
+> `glossary.md` and the tech-debt file belong to no bounded context, stay in a
+> no-BC host's sweep, and are **not** N/A for it. **Code invariants are not
+> artifacts** — the items here that state a rule about the **source** rather
+> than name a document to update are **never N/A**: they hold for any change
+> that touches code at all, and a host wrongly claiming to be no-BC is exactly
+> what they catch. Record the N/A; do not create a context, a Domain document,
+> or a BR row to tick a box.
 
 ---
 
@@ -208,6 +246,32 @@ Domain Events introduced / modified: {Event names, or "(none)"}
 
 Related SPEC-IDs: {SPEC-ID}{, follow-up SPEC-IDs if any}
 ```
+
+**Zero-phase (minimal host) form.** A minimal host has no phases and may have
+no bounded context, so its Change Scope block carries the values that are
+actually true rather than padded ones:
+
+```
+Change Scope:
+- BC: none                          # or the real context, when the change has one
+- Aggregate(s) touched: none
+- Phase Count: 0
+- Lightweight Changes: 1 T2 + 0 T3  # at least one row, always
+
+Related BR-IDs: {empty, or the per-family no-BR marker this change carries}
+
+Domain Events introduced / modified: (none)
+```
+
+`none` and `0` are the honest values here, not placeholders waiting to be
+filled. **`Related BR-IDs` is the exception — never force it to `none`.**
+It reports what this change's own record carries, not what was synced, so it
+takes the same values a BC-bearing host would: empty, or the per-family no-BR
+marker when the T2 carries one. Writing `none` there erases the marker the
+zero-phase shape requires (`references/finish-feature-flow.md` Step 5 states
+this directly). A minimal host that genuinely touches a bounded context
+reports that context and its real BR delta exactly as a phase-bearing feature
+would — the zero is the **phase count**, not the significance.
 
 ### Concrete example
 

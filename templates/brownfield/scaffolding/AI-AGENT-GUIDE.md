@@ -64,8 +64,8 @@ are not available in the current AI tool:
 
 | Workflow | Use when |
 |---|---|
-| `/dflow:new-feature` | A new user-visible capability or business behavior is requested. |
-| `/dflow:modify-existing` | Existing behavior needs to change. |
+| `/dflow:new-feature` | A genuinely new feature, page, or capability — a **newly created** navigable surface (its own route and its own content tree), a new user-executable domain operation, or a new independently-consumable output. Adding a control to an existing surface — or a menu entry pointing at a route that already exists — is modify-existing. |
+| `/dflow:modify-existing` | Existing behavior or an existing surface changes — including adding a presentation / interaction control (copy button, filter, sort, quick-view) to an existing screen. |
 | `/dflow:bug-fix` | A defect can be described with expected vs actual behavior. |
 | `/dflow:new-phase` | An active feature needs another implementation slice. |
 | `/dflow:finish-feature` | Implementation is complete and needs drift closure. |
@@ -81,8 +81,8 @@ Machine-readable source for rendering tool-specific thin wrappers:
 <!-- dflow-command-registry:start -->
 | id | label | description | arg-hint | scope |
 |---|---|---|---|---|
-| new-feature | /dflow:new-feature | Start a new user-visible feature or business behavior. | feature request | workflow |
-| modify-existing | /dflow:modify-existing | Change existing behavior. | change request | workflow |
+| new-feature | /dflow:new-feature | Start a genuinely new feature, page, or capability (new navigable surface, domain operation, or consumable output). | feature request | workflow |
+| modify-existing | /dflow:modify-existing | Change existing behavior, or add a control to an existing surface. | change request | workflow |
 | bug-fix | /dflow:bug-fix | Investigate a defect described by expected vs actual behavior. | expected vs actual | workflow |
 | new-phase | /dflow:new-phase | Add another implementation slice to an active feature. | feature id or phase goal | workflow |
 | finish-feature | /dflow:finish-feature | Close implementation with drift checks and archived feature state. | feature id | workflow |
@@ -106,7 +106,8 @@ input like this (supporting files live in the workflow bundle at
 - **"What should I work on next?" / sprint planning** → review
   `dflow/specs/features/backlog/` and suggest work based on migration value.
 - **"I'm creating a branch"** → read `references/git-integration.md`; verify
-  branch naming and ensure a spec exists before coding starts.
+  branch naming, and make sure the tier's own record exists before coding starts
+  (T1 / T2: a spec; T3: the host `_index.md` row — a T3 branch has no spec file).
 - **"I'm designing a domain model" / "How should I model X?" / building or
   reshaping an Aggregate** → read `references/ddd-modeling-guide.md` (DDD
   tactical patterns: aggregates, invariants, value objects, domain events). It
@@ -121,10 +122,18 @@ input like this (supporting files live in the workflow bundle at
 - **"Dflow seems wrong" / "this template is confusing"** (or you notice Dflow
   guidance drift) → suggest `/dflow:report-dflow-feedback`; never submit
   anything upstream automatically.
-- **Anything else code-related** → assess whether it touches business logic. If
-  it does, use the auto-trigger safety net (suggest the matching `/dflow:*`
-  command and wait for confirmation — see § Workflow Transparency); if not, help
-  directly with no ceremony.
+- **Anything else code-related** → run it through § Ceremony Scaling's ordered
+  cascade rather than a business-logic yes/no. Only the cascade's step 2 sends
+  work outside Dflow, and it is narrower than "not business logic": a display
+  typo, an appearance change, a machine-consumed contract edit, security / CVE
+  work and a deliberate runtime performance change are all tracked. If the
+  cascade lands the request anywhere at or above T3, suggest the matching
+  `/dflow:*` command and wait for confirmation (see § Workflow Transparency);
+  only if it lands below workflow, help directly with no ceremony. If step 0
+  takes it out of the cascade instead — observation-only work — it is neither:
+  say so and record it, do not treat "no tier" as "no ceremony". This applies
+  once you are already reading this guide — what makes a tool load it in the
+  first place is that tool's own trigger configuration, which is narrower.
 
 ## Status / Control Commands
 
@@ -297,29 +306,112 @@ dflow/specs/
 ## Ceremony Scaling
 
 Not everything needs full ceremony — match effort to impact. Dflow uses three
-tiers — **T1 Heavy / T2 Light / T3 Trivial** — chosen by the AI per change.
-`/dflow:new-feature` and `/dflow:new-phase` always default to T1 (no judgement
-needed). The criteria below apply when `/dflow:modify-existing` or
-`/dflow:bug-fix` decides which tier fits a modification.
+tiers — **T1 Heavy / T2 Light / T3 Trivial** — plus a **below-workflow** level
+Dflow doesn't track at all. `/dflow:new-feature` and `/dflow:new-phase` are
+always T1 (no judgement). For `/dflow:modify-existing` and `/dflow:bug-fix`,
+classify the change with the **ordered cascade — the first step that matches
+wins** (order matters: a later catch-all would otherwise swallow the trivial and
+below-workflow cases):
 
-| Tier | Scenario | Output | Command / Trigger |
-|---|---|---|---|
-| **T1 Heavy** | New feature, new phase, architectural change, new BR | Independent `phase-spec-YYYY-MM-DD-{slug}.md` placed in the feature directory + `_index.md` Phase Specs row + refresh BR Snapshot | `/dflow:new-feature` / `/dflow:new-phase` |
-| **T2 Light** | Bug fix, UI input validation tweak, flow branch change — has BR Delta | Independent `lightweight-YYYY-MM-DD-{slug}.md` (or `BUG-{NUMBER}-{slug}.md`) inside the feature directory + `_index.md` Lightweight Changes row (outbound link) + refresh BR Snapshot | `/dflow:bug-fix` or `/dflow:modify-existing` (lightweight branch) |
-| **T3 Trivial** | Button colour, copy/text fix, typo, formatting, pure comments — **no BR change, no Domain concept change, no data structure change** | **Inline row in `_index.md` Lightweight Changes only** (no independent spec file) | `/dflow:modify-existing` (`_index-only` branch) |
+0. **Scope.** The cascade classifies a *modification*. Genuinely new work — a
+   new feature, page, or capability — is `/dflow:new-feature` (T1), even with no
+   new BR / Domain / schema. Adding a presentation or interaction control to an
+   **existing** surface (copy button, date-range filter, sort control, quick-view
+   drawer / tab, or filling a missing `aria-label`) is a *modification* (stays in
+   the cascade). A new user-executable domain operation (e.g. one-click return), a
+   new independently-consumable output or delivery channel (Download-PDF / export /
+   emailed report), or a **newly created** navigable surface (its own route and its
+   own content tree) **is** new-feature. Adding a menu entry or link that points at
+   a route that already exists is an access control on an existing surface —
+   a modification, not a new surface. **Unit of classification**: classify one
+   coherent requested change. Split a compound request into its atomic changes,
+   run each through the cascade, and let the highest tier govern the whole — each
+   lower-tier part still records its own artifact under the same host. Mechanical
+   fallout you did not ask for (formatter noise, lint churn) neither raises nor
+   lowers the result.
+   **Observation-only work is also outside the
+   cascade**: capturing existing behaviour as a baseline (Brownfield) changes no
+   output, so it carries no tier at all — record it and do not read step 2's
+   "below workflow" as permission to skip the record.
+1. **T1 — Heavy.** A **new** business rule or normative constraint (permission /
+   eligibility / threshold / approval / required outcome — regardless of whether a
+   BR-ID already exists). *New* means a rule that can be stated and broken on its
+   own: take the change away and the original rule still works exactly as before.
+   Changing an existing rule's parameters is **T2** — a different threshold value,
+   or adding to a set the rule already checks (one more allowed country, one more
+   approver role). Adding an independent condition the rule never had (an approver
+   predicate for a specific payment channel) is a new rule, and T1. A Domain concept (Aggregate / Entity / VO / Event)
+   **added or structurally changed** (identity, VO equality components, aggregate
+   boundary, or removing / renaming / redefining a spec-tracked member — a Domain
+   concept **rename** is T1); a persistent **data-structure** change (table /
+   column / relation / index added, removed, renamed, or its type / nullability /
+   constraint / logical definition changed); an **architectural** change
+   (inter-layer dependency direction, deployment / module boundary, runtime /
+   platform ownership, or overturning an architecture decision — behavior-
+   preserving still counts); or a **breaking** cross-consumer contract (API /
+   event). Contracts run **inbound** too — a required env var / deployment config
+   key, a CLI flag, an exit code, a scheduled-automation calling convention. What
+   breaks a caller is T1: removing or renaming one, changing what one means, or
+   adding a **required** key with no backward-compatible default (deployments must
+   act) — making an existing operation's parameter **required** breaks callers the
+   same way. Adding an *optional* key or parameter with a backward-compatible
+   default is non-breaking — T2 via step 4.
+2. **Below workflow — not tracked.** No audience-perceivable output delta **and**
+   no machine-consumed-contract or operational-semantics touch: auto-formatter
+   runs, whitespace, internal comments, internal-doc typos, commit messages, and
+   behavior-preserving **routine** refactors / dependency bumps. **Routine** =
+   touches no operational-semantics axis (security / safety / resilience /
+   compliance / payment) and is not architectural — **breadth is not the test** (a
+   behavior-preserving refactor across hundreds of call sites is still below
+   workflow; a single-file change that touches an operational axis is not). Never
+   below workflow, even when invisible: any BR-ID delta, any machine-consumed
+   structured-log / export / contract change, any deliberate runtime performance /
+   resource / SLA change, or any security / CVE / compliance work — those reach
+   step 1 or 4 by audience. `git commit` directly.
+3. **T3 — Trivial.** A **local, low-risk, meaning-preserving pure copy or
+   appearance change a product audience perceives** — display-text typo / wording
+   polish, colour, spacing, layout polish, or polishing existing alt / ARIA
+   wording — on a **single screen / component or single independently-consumed
+   page / file**, at the **element level**. **Excluded from T3**: high-consequence
+   content (security warnings, password hints, consent, payment / legal notices);
+   meaning-changing appearance (danger / status-colour semantics); anything
+   affecting operability, default state, interaction order, or task completion
+   ("just CSS" is no exemption); adding a **missing** accessible name (compliance
+   remediation); and text a machine consumes — an API error string or code a client
+   parses is contract, not display copy, so it is never T3: route it by the contract
+   axis instead (breaks the consumer → step 1, T1; otherwise → step 4, T2). **Locality is
+   the rendered audience footprint, not the number of source files**: one shared
+   component or localization key whose output appears on several screens is beyond
+   the local unit (T2), while edits to several files that surface in one place stay
+   T3. Anything beyond that unit is T2 — a typo swept across many screens, a
+   whole-screen visual rewrite, a cross-page sweep. The limit follows the whole
+   intent, so splitting one cross-screen typo sweep into per-screen requests does
+   not turn it into several T3s.
+4. **T2 — Light (catch-all — everything else).** Functional / semantic behavior
+   delta (logic, validation, interaction flow, display calculation, an
+   **existing** BR's delta, non-breaking contract semantics); performance-only
+   changes (perceivable or not); and copy / appearance sweeps escalated from step
+   3. Functional bug fixes are T2 (root-cause + regression notes).
 
-**T3 criteria** (the AI must satisfy **all four** before classifying T3):
+| Tier | Output | Command / Trigger |
+|---|---|---|
+| **T1 Heavy** | Independent `phase-spec-YYYY-MM-DD-{slug}.md` placed in the feature directory + `_index.md` Phase Specs row + refresh BR Snapshot | `/dflow:new-feature` / `/dflow:new-phase` — also where a `/dflow:modify-existing` or `/dflow:bug-fix` request goes when the cascade lands it at T1 |
+| **T2 Light** | Independent `lightweight-YYYY-MM-DD-{slug}.md` (or `BUG-{NUMBER}-{slug}.md`) inside the feature directory + `_index.md` Lightweight Changes row (outbound link) + refresh BR Snapshot | `/dflow:modify-existing` or `/dflow:bug-fix` — the usual landing for a functional defect |
+| **T3 Trivial** | **Inline row in the host `_index.md` Lightweight Changes only** (no independent spec file) | `/dflow:modify-existing` or `/dflow:bug-fix` (`_index`-only branch — e.g. a defect that is only a display-text typo) |
 
-1. No BR-ID change (no ADDED / MODIFIED / REMOVED / RENAMED business rule)
-2. No Domain concept added or changed (Aggregate / Entity / VO / Event)
-3. No data structure change (table, column, relation, index)
-4. Only changes UI surface (colour, text, layout), pure comments, or pure formatting
+**Audience** = any human audience of the product perceives the output: UI
+(including alt / ARIA read by assistive tech), email, exports. Public / adopter-
+facing docs (product README, public API reference) and operator surfaces
+(dashboard labels, alerts) are product-audience: pure wording = T3 (single page;
+a cross-page sweep escalates to T2 at step 3), meaning change = T2. Raw internal
+diagnostic logs / traces are internal (copy-only fixes are below workflow).
+Structured logs / machine-readable exports a downstream consumer depends on are
+contract: breaking cross-consumer = step 1 T1, non-breaking = step 4 T2.
 
-If any criterion fails → drop to T2; if Domain / BR / data structure is touched → escalate to T1.
-
-**Below T3 — Dflow doesn't track at all**: pure typo fixes, commit-message
-typos, pure formatting commits (e.g. `prettier` / `dotnet format` auto-runs).
-You can `git commit` directly without writing even a T3 inline row.
+**Project conventions can only escalate.** `_conventions.md` Ceremony (Project
+Application) rows are a floor-raising overlay applied *after* the cascade: a
+project may push a T2 up to T1, but may not lower a cascade T1, nor drop a
+tracked class below workflow.
 
 **Lightweight spec** = Problem + Expected behavior + 1–2 Given/When/Then. The
 instantiated file is placed inside the feature directory (see
@@ -411,7 +503,7 @@ directory first. For example:
 |---|---|
 | `/dflow:new-feature` | `dflow/specs/shared/dflow-workflows/references/new-feature-flow.md` |
 | `/dflow:modify-existing` | `dflow/specs/shared/dflow-workflows/references/modify-existing-flow.md` |
-| `/dflow:bug-fix` | `dflow/specs/shared/dflow-workflows/references/modify-existing-flow.md` (lightweight-ceremony branch) |
+| `/dflow:bug-fix` | `dflow/specs/shared/dflow-workflows/references/modify-existing-flow.md` (same flow; tier comes from the cascade, not from the command) |
 | `/dflow:new-phase` | `dflow/specs/shared/dflow-workflows/references/new-phase-flow.md` |
 | `/dflow:finish-feature` | `dflow/specs/shared/dflow-workflows/references/finish-feature-flow.md` |
 | `/dflow:verify` | `dflow/specs/shared/dflow-workflows/references/drift-verification.md` |

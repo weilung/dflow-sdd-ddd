@@ -1,7 +1,7 @@
 ---
 id: SPEC-20260430-001-P1
 title: Baseline and Fix Order Discount Calculation
-status: in-progress
+status: completed
 bounded-context: Order
 created: 2026-04-30
 author: Bob

@@ -1,7 +1,7 @@
 ---
 id: SPEC-20260428-001-LW-20260430
 title: Approval reason bilingual length
-status: in-progress
+status: completed
 bounded-context: Expense
 created: 2026-04-30
 branch: feature/SPEC-20260428-001-employee-submit-expense

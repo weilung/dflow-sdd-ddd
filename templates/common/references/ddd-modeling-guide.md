@@ -76,10 +76,10 @@ never cross:
    BR-ID in `rules.md` and a scenario in `behavior.md`; `/dflow:verify` works
    the same. What shrinks is the *domain model's thickness*, not the spec's
    existence.
-2. **The Tier system is unchanged.** A bug fix in a generic context is still a
-   T2; a new feature still runs the flow. Subdomain governs *how deep to model
-   a context*; Tier governs *how much ceremony a single change needs* — they
-   are orthogonal.
+2. **The Tier system is unchanged.** A bug fix's tier is whatever the cascade
+   decides by the change itself (T3 / T2 / T1), not by the subdomain; a new
+   feature still runs the flow. Subdomain governs *how deep to model a context*;
+   Tier governs *how much ceremony a single change needs* — they are orthogonal.
 3. **Criticality is not downgraded.** Security, tests, SLA, audit,
    permissions, and data integrity do **not** drop with the subdomain type —
    auth or notifications can be generic *and* mission-critical. Generic lowers
@@ -119,9 +119,14 @@ or value objects directly.
 1. **Protect invariants** — The Aggregate exists to enforce business rules that span
    multiple objects within it.
 
-2. **One Aggregate per transaction** — A single operation should modify only ONE
-   Aggregate. If you need to modify two Aggregates, use Domain Events for eventual
-   consistency.
+2. **One Aggregate per transaction — by default** — A single operation should
+   normally modify one Aggregate. If it appears to need multiple roots, first
+   challenge whether the boundary is wrong and whether Domain Events with eventual
+   consistency can separate the work. If a multi-root local transaction remains
+   justified, record the domain rationale, the shared atomic boundary / operational
+   coupling, and when to re-evaluate the choice. A local database transaction cannot
+   make an external provider or service fact atomic with local state; that workflow
+   still needs idempotency plus reliable delivery / retry or compensation.
 
 3. **Reference other Aggregates by ID only** — Never hold a direct object reference
    to another Aggregate. Store its ID instead.
@@ -479,9 +484,10 @@ the values that changed — not a snapshot of the whole Aggregate.
   event** decision (record the Delivery expectation in `events.md`; Brownfield —
   see the Edition note) and treat
   the payload as a published contract: add fields if you must, never change
-  their meaning. Ceremony-wise, extending an event payload that crosses
-  contexts is a T1 contract change (see the ceremony examples in
-  `_conventions.md`).
+  their meaning. Ceremony-wise it follows the contract axis of the ordered
+  cascade — classify the change in AI-AGENT-GUIDE.md § Ceremony Scaling, which
+  is where breaking versus non-breaking and the resulting tier are decided; a
+  project's own `_conventions.md` may escalate from there.
 
 ### Event Flow
 
@@ -673,13 +679,19 @@ build. (Read model ≠ event sourcing.)
 ## Domain Services
 
 Use Domain Services for operations that:
-- Involve multiple Aggregates (read-only access to the second Aggregate)
+- Require a domain decision spanning information from multiple Aggregates
+  (read-only access by default)
 - Require external information (through interfaces) to make domain decisions
 - Don't naturally belong to any single Entity
 
-A Domain Service can make a **stateless** cross-Aggregate decision. It is
-not a home for process progress, retries, deadlines, or compensation state.
-When the flow has state, use the "Long-Running Processes" ladder.
+A Domain Service expresses a **stateless domain operation or decision** and may
+read multiple Aggregate roots. A justified multi-root mutation is rare rather
+than automatically invalid: it must trigger a boundary / transaction review and
+the service itself must carry a real domain rule or decision. A service that only
+orders calls to multiple roots is Application-layer orchestration in the wrong
+place. A Domain Service is not a home for process progress, retries, deadlines,
+or compensation state. Application code owns ordinary workflow sequencing; when
+the flow has business-visible state, use the "Long-Running Processes" ladder.
 
 ```csharp
 // Domain Service — in Domain layer
@@ -791,8 +803,13 @@ The less-obvious three — when to reach for them:
 4. **Business logic in Infrastructure** — Rules in SQL queries or EF configurations
    → Domain defines WHAT, Infrastructure defines HOW
 
-5. **Direct cross-Aggregate modification** — One command modifying two Aggregates
-   → Use Domain Events for the second Aggregate
+5. **Unreviewed direct cross-Aggregate modification** — One command modifies
+   multiple Aggregate roots without challenging the boundaries or recording why
+   one local transaction is justified
+   → Prefer Domain Events and eventual consistency; if the local-transaction
+   exception is justified, record the rationale and re-evaluation condition from
+   Aggregate Design Rule 2. External provider / service facts are never atomic
+   with the local database transaction.
 
 6. **Set-based invariant guarded only in memory** — A "unique" / "only one active"
    rule enforced solely by an in-app check, with no DB unique constraint or

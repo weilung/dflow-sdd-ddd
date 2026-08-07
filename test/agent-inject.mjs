@@ -183,6 +183,7 @@ try {
   {
     const root = await newProject('1,2,3');
     const claudePath = join(root, 'CLAUDE.md');
+    const freshShim = await readFile(claudePath, 'utf8');
     const legacyV090 = `# CLAUDE.md - Dflow Project Instructions
 
 This project uses Dflow for spec-first AI-assisted development.
@@ -207,10 +208,15 @@ If your tool supports Markdown imports, the canonical guide is imported below:
     assert.doesNotMatch(upgraded, /@dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/, 'legacy @import is removed on upgrade');
     assert.doesNotMatch(upgraded, /Before planning or editing code/, 'old eager-read wording is replaced');
     assert.match(upgraded, /For spec-impacting work/, 'regenerated to the current scoped wording');
-    assert.match(upgraded, /proceed normally/, 'scoped wording tells routine work to proceed without the guide');
     assert.match(upgraded, /dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/, 'upgraded shim still points to the canonical guide');
     assert.equal(count(upgraded, AGENT_SHIM_START), 0, 'regenerated whole-file shim stays marker-free');
     assert.equal(await exists(join(root, 'dflow/specs/shared/CLAUDE-md-snippet.md')), false, 'legacy shim regenerated in place, not parked as a snippet');
+    // The invariant, stated as equality rather than as phrases. A phrase pin has
+    // to be re-chosen every time the body changes and silently keeps passing when
+    // it is not: this file asserted `/proceed normally/`, which matched both the
+    // pre-P082 body and the one that replaced it, so it could not see the reword
+    // it was standing guard over.
+    assert.equal(upgraded, freshShim, 'a recognized legacy shim is regenerated to exactly what a fresh init writes today');
   }
 
   // ---------------------------------------------------------------------------
@@ -250,6 +256,129 @@ If your tool supports Markdown imports, the canonical guide is imported below:
     const after = await readFile(agentsPath, 'utf8');
     assert.match(after, /@dflow\/specs\/shared\/AI-AGENT-GUIDE\.md/, 'user-added @import in a non-Claude shim is preserved (legacy strip is Claude-scoped)');
     assert.equal(after, edited, 'AGENTS.md with a user-added import is left byte-identical (skipped, not regenerated)');
+  }
+
+  // ---------------------------------------------------------------------------
+  // 3e. PROPOSAL-082 batch 3 — the 0.10.0–0.14.0 whole-file shim (scoped wording,
+  //     but the unqualified "routine work" paragraph) is recognized as pristine
+  //     and regenerated to the narrowed wording. This is the upgrade every
+  //     existing adopter takes, and it is the case a body change breaks: miss the
+  //     frozen-set entry and the shim stops matching, degrades to the
+  //     "not marker-managed" branch, and keeps the superseded body forever.
+  //
+  //     One case per FROZEN_SHIM_BODY_BUILDERS entry — 3b covers the v0.9.0 body,
+  //     this covers 0.10–0.14. Adding a body means adding a case here.
+  // ---------------------------------------------------------------------------
+  {
+    const root = await newProject('1,2,3');
+    const claudePath = join(root, 'CLAUDE.md');
+    const freshShim = await readFile(claudePath, 'utf8');
+    const unqualifiedRoutine = `# CLAUDE.md - Dflow Project Instructions
+
+This project uses Dflow for spec-first AI-assisted development.
+
+For spec-impacting work — a new feature, a change to product, user-facing, or
+domain behavior, a new requirement, or a bug-fix workflow — read and follow:
+
+- \`dflow/specs/shared/AI-AGENT-GUIDE.md\` — command registry, routing rules, and project context.
+- \`dflow/specs/shared/dflow-workflows/\` — vendored workflow bundle with executable step definitions.
+
+For routine work (refactors, renames, chores, formatting, dependency bumps, or
+general code questions), proceed normally; you need not read the guide first.
+
+Keep tool-specific instruction files small. The guide and workflow bundle are
+the authoritative sources for Dflow workflow rules, slash-command behavior,
+spec locations, and SDD/DDD constraints.
+`;
+    await writeFile(claudePath, unqualifiedRoutine);
+
+    const upgrade = configure(root, '1,2,3');
+    assert.equal(upgrade.code, 0, `0.14 shim upgrade failed\nSTDOUT:\n${upgrade.stdout}\nSTDERR:\n${upgrade.stderr}`);
+    const upgraded = await readFile(claudePath, 'utf8');
+    assert.equal(upgraded, freshShim, 'a 0.10–0.14 shim is regenerated to exactly what a fresh init writes today');
+    assert.notEqual(upgraded, unqualifiedRoutine, 'the upgrade actually rewrote the body — a no-op here would mean the shim was skipped, not regenerated');
+    assert.equal(count(upgraded, AGENT_SHIM_START), 0, 'regenerated whole-file shim stays marker-free');
+    assert.equal(await exists(join(root, 'dflow/specs/shared/CLAUDE-md-snippet.md')), false, '0.14 shim regenerated in place, not parked as a snippet');
+    assert.doesNotMatch(upgrade.all ?? `${upgrade.stdout}${upgrade.stderr}`, /stays frozen on upgrade/, 'a recognized shim must not fall through to the frozen-wording warning');
+  }
+
+  // ---------------------------------------------------------------------------
+  // 3f. The v0.1.1–v0.7.0 whole-file shim (one guide bullet, no workflow-bundle
+  //     bullet, "The Dflow guide above is the single source of truth") is
+  //     recognized and regenerated.
+  //
+  //     This body was MISSING from the frozen set when the list was introduced,
+  //     while the list's own comment said "oldest first". Seven released
+  //     versions' worth of projects were stranded, and no test could see it
+  //     because every case used a newer body.
+  //
+  //     The range starts at v0.1.1, not v0.1.0: at v0.1.0 init wrote CLAUDE.md
+  //     from the packaged snippet through a different path, with per-project
+  //     substitutions, so there is no fixed body to freeze. See the ⚠ note on
+  //     buildPreBundleAgentShimBody.
+  // ---------------------------------------------------------------------------
+  {
+    const root = await newProject('1,2,3');
+    const claudePath = join(root, 'CLAUDE.md');
+    const freshShim = await readFile(claudePath, 'utf8');
+    const preBundle = `# CLAUDE.md - Dflow Project Instructions
+
+This project uses Dflow for spec-first AI-assisted development.
+
+Before planning or editing code, read and follow:
+
+- \`dflow/specs/shared/AI-AGENT-GUIDE.md\`
+
+Keep tool-specific instruction files small. The Dflow guide above is the
+single source of truth for project workflow rules, slash-command behavior,
+spec locations, and SDD/DDD constraints.
+`;
+    await writeFile(claudePath, preBundle);
+
+    const upgrade = configure(root, '1,2,3');
+    assert.equal(upgrade.code, 0, `v0.1-v0.7 shim upgrade failed\nSTDOUT:\n${upgrade.stdout}\nSTDERR:\n${upgrade.stderr}`);
+    const upgraded = await readFile(claudePath, 'utf8');
+    assert.equal(upgraded, freshShim, 'a v0.1-v0.7 shim is regenerated to exactly what a fresh init writes today');
+    assert.doesNotMatch(upgraded, /single source of truth/, 'the pre-bundle wording is gone');
+    assert.doesNotMatch(`${upgrade.stdout}${upgrade.stderr}`, /stays frozen on upgrade/, 'a recognized pre-bundle shim must not fall through to the frozen-wording warning');
+  }
+
+  // ---------------------------------------------------------------------------
+  // 3g. The composition case: AGENTS.md carrying a codex trigger block. This is
+  //     the only path where stripCodexTriggerBlock participates in the frozen
+  //     match, and every other frozen-body case is CLAUDE.md-only. The body must
+  //     upgrade while the trigger region survives.
+  // ---------------------------------------------------------------------------
+  {
+    const root = await newProject('1,2,3');
+    const agentsPath = join(root, 'AGENTS.md');
+    const withTriggers = configure(root, '1,2,3', ['--command-adapters']);
+    assert.equal(withTriggers.code, 0, `trigger install failed\nSTDOUT:\n${withTriggers.stdout}\nSTDERR:\n${withTriggers.stderr}`);
+    const freshWithTriggers = await readFile(agentsPath, 'utf8');
+    assert.ok(freshWithTriggers.includes(TRIGGER_START), 'precondition: AGENTS.md carries a trigger block');
+
+    // Rewind just the body to the 0.10–0.14 wording, keeping the trigger block.
+    const staleBody = freshWithTriggers.replace(
+      // ⚠ BOTH anchors are whitespace-tolerant on purpose: they are literals on a
+      // paragraph that gets re-wrapped whenever a clause is added, and a rewrap
+      // that moves a line break silently turns this replace into a no-op. The
+      // `notEqual` precondition below still proves the rewind happened, so
+      // widening the match cannot produce a false pass. (The tail was relaxed
+      // first and the head left alone — which put the identical latent break one
+      // clause over, since the head also ends exactly at a line boundary.
+      // Relaxing one literal and not its twin is this repo's recurring shape.)
+      /For\s+routine\s+work\s+\(refactors,\s+renames,\s+chores,\s+formatting,\s+routine\s+dependency[\s\S]*?it\s+decides,\s+not\s+this\s+page\./,
+      'For routine work (refactors, renames, chores, formatting, dependency bumps, or\ngeneral code questions), proceed normally; you need not read the guide first.'
+    );
+    assert.notEqual(staleBody, freshWithTriggers, 'precondition: the body was actually rewound');
+    await writeFile(agentsPath, staleBody);
+
+    const upgrade = configure(root, '1,2,3', ['--command-adapters']);
+    assert.equal(upgrade.code, 0, `AGENTS.md trigger-variant upgrade failed\nSTDOUT:\n${upgrade.stdout}\nSTDERR:\n${upgrade.stderr}`);
+    const upgraded = await readFile(agentsPath, 'utf8');
+    assert.equal(upgraded, freshWithTriggers, 'an AGENTS.md with a trigger block upgrades its body and keeps the trigger region');
+    assert.equal(count(upgraded, TRIGGER_START), 1, 'the trigger block is neither dropped nor duplicated');
+    assert.doesNotMatch(`${upgrade.stdout}${upgrade.stderr}`, /stays frozen on upgrade/, 'the trigger block must not defeat the frozen match');
   }
 
   // ---------------------------------------------------------------------------
@@ -623,6 +752,146 @@ If your tool supports Markdown imports, the canonical guide is imported below:
     assert.equal(await readFile(filePath2, 'utf8'), guideOrphan, 'the file is left untouched');
     assert.equal(await exists(join(root2, 'dflow/specs/shared/AGENTS-md-snippet.md')), false, 'a non-adapter run does not write a pointless base snippet for a configured file');
     assert.equal(await exists(join(root2, 'dflow/specs/shared/AGENTS-md-command-adapters-snippet.md')), false, 'a non-adapter run never writes the trigger-only snippet');
+  }
+
+  // ---------------------------------------------------------------------------
+  // 15. PROPOSAL-082 batch 3 — the six docs/using-with-*.md each quote the shim
+  //     for their own agent verbatim inside a ```markdown fence, introduced by a
+  //     sentence saying this is what `dflow init` writes. Nothing verified that
+  //     claim and it went false: on 2026-08-01 all six docs narrowed the routine
+  //     paragraph while lib/init.js kept emitting the old one, so for two days the
+  //     docs described output the CLI did not produce. Byte equality, so it breaks
+  //     whichever side drifts.
+  // ---------------------------------------------------------------------------
+  {
+    const firstMarkdownFence = (content, context) => {
+      const lines = content.replace(/\r\n/g, '\n').split('\n');
+      const start = lines.indexOf('```markdown');
+      assert.ok(start >= 0, `${context}: expected a \`\`\`markdown fence quoting the generated shim`);
+      const end = lines.indexOf('```', start + 1);
+      assert.ok(end > start, `${context}: the \`\`\`markdown fence is unterminated`);
+      return lines.slice(start + 1, end).join('\n').trimEnd();
+    };
+
+    const root = await newProject('1,2,3');
+    const quotedBy = [
+      ['docs/using-with-codex.md', 'AGENTS.md'],
+      ['docs/using-with-codex.en.md', 'AGENTS.md'],
+      ['docs/using-with-claude-code.md', 'CLAUDE.md'],
+      ['docs/using-with-claude-code.en.md', 'CLAUDE.md'],
+      ['docs/using-with-github-copilot.md', '.github/copilot-instructions.md'],
+      ['docs/using-with-github-copilot.en.md', '.github/copilot-instructions.md']
+    ];
+
+    for (const [docRel, shimRel] of quotedBy) {
+      const doc = await readFile(join(repoRoot, docRel), 'utf8');
+      const quoted = firstMarkdownFence(doc, docRel);
+      const generated = (await readFile(join(root, shimRel), 'utf8')).replace(/\r\n/g, '\n').trimEnd();
+      assert.equal(quoted, generated, `${docRel} quotes the ${shimRel} shim; it must byte-match what dflow init writes`);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 16. PROPOSAL-082 batch 3 — the tutorial shim / skill fixtures are verbatim
+  //     projections, so they are checkable rather than curated. They went stale
+  //     the same way the docs did: templates/common/skill/SKILL.md was rewritten
+  //     on 2026-08-01 and all four skill fixtures kept the superseded
+  //     description, with nothing to say so.
+  //
+  //     Scope note: this covers ONLY the fixtures that are verbatim projections.
+  //     Other tutorial outputs are deliberately abridged walkthrough evidence
+  //     (cf. the `_conventions` fixtures, marked abridged by user decision in
+  //     cf0ef17) and must NOT be pulled into a byte-equality rule.
+  // ---------------------------------------------------------------------------
+  {
+    const root = await newProject('1,2,3');
+
+    const shimFixtures = [
+      ['tutorial/01-greenfield/outputs/AGENTS.md', 'AGENTS.md'],
+      ['tutorial/01-greenfield/outputs/CLAUDE.md', 'CLAUDE.md'],
+      ['tutorial/01-greenfield/outputs/.github/copilot-instructions.md', '.github/copilot-instructions.md'],
+      ['tutorial/02-brownfield/outputs/CLAUDE.md', 'CLAUDE.md']
+    ];
+    for (const [fixtureRel, shimRel] of shimFixtures) {
+      const fixture = (await readFile(join(repoRoot, fixtureRel), 'utf8')).replace(/\r\n/g, '\n').trimEnd();
+      const generated = (await readFile(join(root, shimRel), 'utf8')).replace(/\r\n/g, '\n').trimEnd();
+      assert.equal(fixture, generated, `${fixtureRel} is a verbatim shim projection; it must match what dflow init writes`);
+    }
+
+    const skillSource = (await readFile(join(repoRoot, 'templates/common/skill/SKILL.md'), 'utf8')).replace(/\r\n/g, '\n').trimEnd();
+    const skillFixtures = [
+      'tutorial/01-greenfield/outputs/.agents/skills/dflow/SKILL.md',
+      'tutorial/01-greenfield/outputs/.claude/skills/dflow/SKILL.md',
+      'tutorial/01-greenfield/outputs/.github/skills/dflow/SKILL.md',
+      'tutorial/02-brownfield/outputs/.claude/skills/dflow/SKILL.md'
+    ];
+    for (const fixtureRel of skillFixtures) {
+      const fixture = (await readFile(join(repoRoot, fixtureRel), 'utf8')).replace(/\r\n/g, '\n').trimEnd();
+      assert.equal(fixture, skillSource, `${fixtureRel} is a verbatim projection of templates/common/skill/SKILL.md`);
+    }
+
+    // The architecture-decisions README is projected verbatim too — no
+    // placeholders — so it belongs in the byte-pinned class. It was found
+    // carrying a superseded seed comment (`Template maintained by Dflow …`
+    // instead of `Seeded by Dflow.`) precisely because nothing compared it.
+    const readmeFixture = 'tutorial/01-greenfield/outputs/dflow/specs/architecture/decisions/README.md';
+    assert.equal(
+      (await readFile(join(repoRoot, readmeFixture), 'utf8')).replace(/\r\n/g, '\n').trimEnd(),
+      (await readFile(join(repoRoot, 'templates/greenfield/scaffolding/architecture-decisions-README.md'), 'utf8')).replace(/\r\n/g, '\n').trimEnd(),
+      `${readmeFixture} is a verbatim projection of its scaffolding template`
+    );
+
+    // ⚠ SCOPE, stated precisely because the first version of this block claimed
+    // more than it enforced. This rule governs the fixtures projected VERBATIM —
+    // no placeholder substitution — which is the shim / skill / decisions-README
+    // set below. It does NOT govern filled scaffolding (`_overview.md`,
+    // `_conventions.md`, `Git-principles-*.md`) or the walkthrough's domain
+    // documents: the tutorial legitimately fills those in, so byte-equality is
+    // the wrong rule for them and asserting it would be noise, not a guard.
+    //
+    // Those filled fixtures consequently have NO drift guard at all. That is a
+    // real gap, not a covered case — 12 of them still carry a seed comment
+    // retired long ago, which is how it was found. Recorded as debt 11 in
+    // `planning/p082-p083-implementation-handoff.md` rather than left implied.
+    const pinned = new Set([...shimFixtures.map(([f]) => f), ...skillFixtures, readmeFixture]);
+    // `_conventions.md` and `AI-AGENT-GUIDE.md` stay on this list even though
+    // they are NOT byte-pinned: they are the files the abridgement arm exists
+    // for. Narrowing the list to the pinned basenames made every candidate a
+    // member of `pinned`, so the `continue` fired every time and the
+    // abridgement branch became unreachable — a check that cannot execute,
+    // while its comment still cited those very fixtures as the case it governs.
+    const projectedNames = ['SKILL.md', 'CLAUDE.md', 'AGENTS.md', 'copilot-instructions.md', '_conventions.md', 'AI-AGENT-GUIDE.md'];
+    const abridgementMarkers = ['節錄版', 'abridged'];
+    // git ls-files, not a glob: the skill fixtures live under `.claude/`,
+    // `.agents/` and `.github/`, and a default glob skips dot-directories —
+    // which silently dropped exactly the fixtures this rule is about.
+    const listed = spawnSync('git', ['ls-files', 'tutorial'], { cwd: repoRoot, encoding: 'utf8' });
+    assert.equal(listed.status, 0, `git ls-files failed: ${listed.stderr}`);
+    const candidates = listed.stdout.split('\n')
+      .map((p) => p.trim().replace(/\\/g, '/'))
+      .filter((p) => /^tutorial\/[^/]+\/outputs\//.test(p) && projectedNames.includes(p.split('/').pop()));
+    // Membership, not a count. Comparing sizes left the guard satisfied when a
+    // pinned fixture was renamed away, because some other file kept the total up.
+    for (const rel of pinned) {
+      if (rel === readmeFixture) continue; // asserted directly above, different basename set
+      assert.ok(candidates.includes(rel), `pinned fixture ${rel} is no longer listed by git — it was renamed or deleted without updating this section`);
+    }
+    // The abridgement arm must actually run. It silently became unreachable once
+    // already, when every candidate was also pinned — the check reported success
+    // by never executing, which is the shape this whole section is against.
+    const unpinned = candidates.filter((rel) => !pinned.has(rel));
+    assert.ok(
+      unpinned.length > 0,
+      'the abridgement arm has no candidates left to check — every projected-artifact fixture is byte-pinned, so this branch is dead code. Either it is genuinely obsolete (delete it) or projectedNames was narrowed too far.'
+    );
+    for (const rel of unpinned) {
+      const body = await readFile(join(repoRoot, rel), 'utf8');
+      const abridged = abridgementMarkers.some((marker) => body.includes(marker));
+      assert.ok(
+        abridged,
+        `${rel} is a tutorial copy of a projected artifact but is neither byte-pinned in this section nor marked abridged. Add it to the lists above, or give it an in-file abridgement note saying what it omits.`
+      );
+    }
   }
 
   await rm(tempRoot, { recursive: true, force: true });

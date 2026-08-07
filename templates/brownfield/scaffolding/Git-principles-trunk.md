@@ -35,6 +35,17 @@ happens on short-lived feature / bugfix branches cut from `main` and
 merged back into `main` quickly (ideally within a day, always
 within a week).
 
+A **`bugfix/{BUG-ID}-{slug}`** branch is the same shape as a feature branch and
+follows the same topology — cut from the same base, pushed the same way,
+integrated the same way, and **closed out the same way**. It is used when a
+defect owns its own host rather than being picked up by a feature already in
+flight. Its host is a **minimal (zero-phase) host**, so it carries no
+phase-spec: the SPEC-ID lives in the directory name while the branch name
+carries the BUG-NUMBER, and the host `_index.md` `branch:` field is
+authoritative for both. Closeout is not optional because the branch prefix
+differs — `/dflow:finish-feature` runs and the directory is archived to
+`completed/` before the branch merges, exactly as for `feature/`.
+
 The `feature/{SPEC-ID}-{slug}` pattern is a **Dflow requirement** (not
 a trunk-based requirement). It ties each feature branch to its
 corresponding `dflow/specs/features/active/{SPEC-ID}-{slug}/` directory.
@@ -120,7 +131,10 @@ and circle the chosen one.
       justification in the spec's notes section)
 - [ ] `_index.md` status reflects the current work (Phase Specs row
       updated, `Resume Pointer` refreshed if the commit reaches a meaningful
-      checkpoint)
+      checkpoint). A **minimal (zero-phase) host** has no Phase Specs row to
+      update — its record is the Lightweight Changes row, and that row must
+      already be written **before** this commit, not after it. Refresh the
+      Resume Pointer as usual.
 
 ### Gate Checks — Before merging a feature PR to `main`
 
@@ -135,6 +149,23 @@ and circle the chosen one.
 - [ ] Domain layer (`src/Domain/`) has no delivery-framework references
 - [ ] CI green
 - [ ] PR has at least one review approval
+
+> **Minimal (zero-phase) host.** The items about this host's own record —
+> `/dflow:finish-feature` having run, `_index.md` status `completed`, and the
+> archival move — apply **unchanged**: they are what stops a host merging with
+> its record still open. Every item naming a **Domain or bounded-context
+> artifact** applies only to what this change **actually touched**: a **no-BC**
+> host has no context to sync or document, a **T3** does no Domain work at all,
+> and a **baseline capture** wrote the BC layer directly rather than syncing to
+> it — so for those they read N/A. **Bounded-context-scoped only** —
+> `glossary.md` and `migration/tech-debt.md` belong to no bounded context, stay
+> in a no-BC host's sweep, and are a baseline capture's own capture
+> destinations, so they are **not** N/A for either. **Code invariants are not
+> artifacts** — the items here that state a rule about the **source** rather
+> than name a document to update are **never N/A**: they hold for any change
+> that touches code at all, and a host wrongly claiming to be no-BC is exactly
+> what they catch. Record the N/A; do not create a context, a Domain document,
+> or a BR row to tick a box.
 
 ---
 
@@ -169,6 +200,31 @@ Related BR-IDs:
 
 Related SPEC-IDs: {SPEC-ID}{, follow-up SPEC-IDs if any}
 ```
+
+**Zero-phase (minimal host) form.** A minimal host has no phases and may have
+no bounded context, so its Change Scope block carries the values that are
+actually true rather than padded ones:
+
+```
+Change Scope:
+- BC: none                          # or the real context, when the change has one
+- Phase Count: 0
+- Lightweight Changes: 1 T2 + 0 T3  # at least one row, always
+
+Related BR-IDs: {empty, or the per-family no-BR marker this change carries}
+```
+
+`none` and `0` are the honest values here, not placeholders waiting to be
+filled. **`Related BR-IDs` is the exception — never force it to `none`.**
+It reports what this change's own record carries, not what was synced, so it
+takes the same values a BC-bearing host would: empty, or the per-family no-BR
+marker when the T2 carries one. Writing `none` there erases the marker the
+zero-phase shape requires (`references/finish-feature-flow.md` Step 5 states
+this directly, and a baseline host leaves the field empty). A minimal host that genuinely touches a bounded context reports that
+context and its real BR delta exactly as a phase-bearing feature would — the
+zero is the **phase count**, not the significance. A **baseline capture** is
+the one variant that always reports a real `BC:` — capturing it is the whole
+point of the host.
 
 Example:
 
@@ -208,10 +264,16 @@ losing the feature-level summary.
 
 ### 4.3 Fast-forward (feature has exactly 1 commit)
 
-If the entire feature was a single commit (common for T2 / T3-only
-features or minimal features), fast-forward is fine. Use the commit
+If the entire feature was a single commit (a hosted T2 / T3 whose work and
+record landed together), fast-forward is fine. Use the commit
 message format from § 4.1 (squash) for that single commit — it already
 reads as the feature's single narrative.
+
+**A minimal (zero-phase) host is never this case.** It records **exactly two**
+commits — the implementation (or `spec-baseline`) checkpoint, then the closeout
+commit that carries the archival `git mv` — so it does not arrive here with
+one. A minimal host showing a single commit has not closed out: run
+`/dflow:finish-feature` first rather than fast-forwarding it as it stands.
 
 ```bash
 git checkout main

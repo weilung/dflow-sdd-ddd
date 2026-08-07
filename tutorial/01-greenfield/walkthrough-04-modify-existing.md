@@ -133,19 +133,26 @@ Tier 判定：
 
 ```text
 Dflow:
-Part A — Tier 判定：
+Part A — Tier 判定（依 AI-AGENT-GUIDE.md § Ceremony Scaling 的 ordered cascade，
+步驟 0–4、先命中者勝）：
 
-- T1 Heavy？否。
-  這次沒有新的 Aggregate、沒有新的 Domain Event、沒有新的資料結構，
-  也不是 Aggregate overhaul；只是既有 ApprovalReason Value Object 的驗證規則調整。
+- 步驟 0（是不是新東西？）否。
+  這是既有 ApprovalReason Value Object 的驗證規則調整，屬修改分流。
 
-- T2 Light？是。
-  它有 BR Delta：BR-007 從「至少 10 字元」改成 bilingual length rule，
-  而且會改變 Domain layer validation 的通過 / 拒絕結果。
+- 步驟 1（T1？）否。
+  BR-007 是既有規則的門檻調整，不是新規則；沒有新增、結構變更或
+  更名任何 Domain 概念（Aggregate ／ Entity ／ VO ／ Event），
+  也沒有資料結構或跨消費者契約變更。
 
-- T3 Trivial？否。
-  這不是 copy、typo、button color 或純註解；
+- 步驟 2（Dflow 不追蹤？）否。
+  BR-007 有 delta，而且會改變 Domain layer validation 的通過 / 拒絕結果。
+
+- 步驟 3（T3？）否。
+  這不是顯示文案的 typo、措辭潤飾、顏色、間距或版面 polish；
   會改變 reject 是否成立，所以不能只寫 _index.md inline row。
+
+- 步驟 4（T2，catch-all）→ 命中。
+  BR-007 從「至少 10 字元」改成 bilingual length rule。
 
 結論：T2 Light。
 ```
@@ -672,7 +679,7 @@ Expense |
    沒有。`ApprovalReason` 是既有 Value Object，只有 validation rule 改變。
 
 3. **為什麼不是 T3？**
-   因為 reject 是否成立會改變，且需要 tests；這不是 copy 或 formatting。
+   因為 reject 是否成立會改變，且需要 tests；這不是純顯示文案或外觀的修改。
 
 4. **為什麼不是 T1？**
    因為 Aggregate boundary、Domain Events、data structure、cross-context relationship 都不變。

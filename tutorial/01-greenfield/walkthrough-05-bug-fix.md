@@ -27,7 +27,7 @@ completed snapshot 的完整讀法，再讀
 
 | 你關心的問題 | 本篇會展示的部分 |
 |---|---|
-| `/dflow:bug-fix` 是不是另一套流程？ | 它走 modify-existing flow，但 ceremony 預設偏 lightweight，先找 expected-versus-actual boundary。 |
+| `/dflow:bug-fix` 是不是另一套流程？ | 它走 modify-existing flow，tier 一樣由 cascade 決定（不由命令決定）；多數功能性 defect 落 T2，先找 expected-versus-actual boundary。 |
 | bug-fix 何時需要獨立 spec？ | 這次不是 typo；它有 observable behavior、root cause、fix approach、regression tests，所以是 T2。 |
 | 既有 BR 沒變，要不要更新 BR Snapshot？ | 不 regenerate；只加 note 說明 BUG-001 是 implementation-level，不是 BR-level delta。 |
 | invalid surrogate 算不算新的 business rule？ | 不算。它是 malformed input / sanitization，不是主管會用來決策的業務語言。 |
@@ -134,7 +134,7 @@ Dflow 先釐清 `/dflow:bug-fix` 的性質：
 Dflow:
 收到。這是 /dflow:bug-fix，
 不是 Git Flow 的 hotfix branch；
-它走 modify-existing flow 的 lightweight ceremony。
+它走 modify-existing flow，ceremony tier 由 cascade 判定，不由命令決定。
 
 我先跑 Step 1：Assess the Change。
 這一步同時判斷 Ceremony Tier、Feature Linkage、Affected Layer。
@@ -144,20 +144,25 @@ Tier 判定：
 
 ```text
 Dflow:
-Part A — Tier 判定：
+Part A — Tier 判定（依 AI-AGENT-GUIDE.md § Ceremony Scaling 的 ordered cascade，
+步驟 0–4、先命中者勝）：
 
-- T1 Heavy？否。
+- 步驟 0（是不是新東西？）否。
+  這是既有行為的缺陷修正，屬修改分流。
+
+- 步驟 1（T1？）否。
   沒有新的 Aggregate、Domain Event、資料結構或新的 business rule；
   BR-007 wording 不變。
 
-- T2 Light？是。
-  這是 production trial 回報的 logic bug，
-  會改 Presentation 截字邏輯、補 Domain guard 與測試；
-  不是單純 copy / 色彩 / typo。
+- 步驟 2（Dflow 不追蹤？）否。
+  這是 production trial 回報的 logic bug，使用者看得到的行為會被修正。
 
-- T3 Trivial？否。
+- 步驟 3（T3？）否。
   雖然 BR 不變，但這不是 _index.md inline row 能描述的純表面修正；
   需要獨立 lightweight spec 記錄 root cause、fix approach 和 regression tests。
+
+- 步驟 4（T2，catch-all）→ 命中。
+  會改 Presentation 截字邏輯、補 Domain guard 與測試。
 
 結論：T2 Light。
 ```
@@ -173,7 +178,7 @@ Carol 的文字本來就應該過，
 
 這是本篇第一個 lesson：**bug-fix 不等於最小 ceremony。**
 
-若只是 typo 或 copy，可以是 T3。若 bug 揭露新的業務規則或 Aggregate redesign，可能升級 T1。
+若只是單一畫面上的顯示文案 typo，可能是 T3（同一處掃過多個畫面、或動到高後果內容則升 T2；內部註解或文件的 typo 連 T3 都不需要）。若 bug 命中 cascade 步驟 1 的任一軸——新業務規則、Domain 概念新增／結構變更／更名、資料結構或破壞性契約變更——則升級 T1，不限於 Aggregate redesign。
 這次介於中間：沒有 BR Delta，但有 observable behavior、root cause、fix approach、
 implementation tasks 與 regression tests，所以是 T2。
 
@@ -570,15 +575,24 @@ BR-007 的 rule wording 維持不變；
 
 這兩句讓 reviewer 不會把 BUG-001 看成新規則設計。
 
-## 文件片段 2 — Behavior Delta 是 implementation behavior modified
+## 文件片段 2 — Behavior Delta 用 no-BR 家族 (e)：implementation defect
 
-BUG-001 的 Delta 故意不寫成 BR modified：
+BUG-001 的 Delta 故意不寫成 BR modified。規則沒變、實作錯了，
+所以它宣告 no-BR 家族 (e)，並用 `Governing BR-IDs` 留下「這個缺陷歸哪條規則管」：
 
 ```markdown
-### MODIFIED - implementation behavior modified in this fix
+## Behavior Delta
 
-#### Rule: BR-007 Reject 必須附註原因
+BR Delta: none — implementation defect
+Governing BR-IDs: BR-007
+```
 
+兩欄分開是刻意的：**沒有 BR delta 不等於沒有治理規則**。
+只寫一句「沒有 BR」會把 BR-007 的追溯線一起抹掉。
+
+接著的 before / after 描述的是實作行為，不是 BR delta：
+
+```markdown
 **Before**:
 Given 一份 ExpenseReport 處於 Submitted 狀態
 And ApproverId != SubmitterId
@@ -604,7 +618,7 @@ BR-007 本身已允許中文短語與 emoji 視覺字元；
 而不是 business rule wording。
 ```
 
-ADDED / REMOVED / RENAMED 都是 none；UNCHANGED 明確列 BR-001..007，並特別寫：
+UNCHANGED 明確列 BR-001..007，並特別寫：
 
 ```text
 BR-007 wording unchanged — root cause is implementation-level, not BR-level.
@@ -755,7 +769,7 @@ Bug-fix path 的價值，是讓團隊修掉真實缺陷，同時不把 bug 的�
 
 ## Key takeaways
 
-- `/dflow:bug-fix` 走 modify-existing flow 的 lightweight ceremony；它不是 Git branch hotfix 的同義詞。
+- `/dflow:bug-fix` 走 modify-existing flow，tier 由 cascade 判定：本案是功能性 defect 落 T2，只是單一畫面上的顯示文字打錯（同一處掃過多個畫面就升 T2；動到高後果內容也是 T2）會落 T3（`_index.md` 一行、不建 spec），命中 cascade 步驟 1 任一軸（新業務規則、Domain 概念新增／結構變更／更名、資料結構或破壞性契約變更）則升 T1，不只 Domain 結構重整。它不是 Git branch hotfix 的同義詞。
 - T2 bug spec 要記錄 expected-versus-actual、root cause、fix approach、regression tasks。
 - BUG-NUMBER 命名適合試用或 production 回報的明確 defect。
 - BR-007 wording unchanged 時，Current BR Snapshot 不 regenerate；用 note 說明原因。

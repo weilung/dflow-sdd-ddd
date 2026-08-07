@@ -1,13 +1,13 @@
 ---
 id: BUG-001
 title: Fix rounding inconsistency across Order pages
-status: in-progress
+status: completed
 bounded-context: Order
 created: 2026-05-08
 reported_date: 2026-05-08
 tier: T2
 related_tech_debt: OrderList / OrderEntry / OrderDetail rounding 策略不一致
-branch: bugfix/BUG-001-rounding-inconsistency
+branch: feature/SPEC-20260430-001-order-discount-calculation
 ---
 
 # Fix rounding inconsistency across Order pages
@@ -20,21 +20,8 @@ branch: bugfix/BUG-001-rounding-inconsistency
 
 ## Behavior Delta
 
-### ADDED - BR / behavior added
-
-None.
-
-### MODIFIED - behavior modified in this fix
-
-None.
-
-### REMOVED - BR removed
-
-None.
-
-### RENAMED - BR renamed
-
-None.
+BR Delta: none — implementation defect
+Governing BR-IDs: BR-001, BR-002, BR-003, BR-004
 
 ### UNCHANGED - explicitly unaffected
 
@@ -67,7 +54,7 @@ Presentation 層改成：
 - [ ] WEBFORMS-1: `OrderList.BindGrid()` column formatter 改用 `Money.ToDisplay()`。
 - [ ] WEBFORMS-2: `OrderDetail.LoadDiscountSummary()` 改用 `Money.ToDisplay()`。
 - [ ] WEBFORMS-3: `OrderEntry` 顯示折扣後金額時確認 align 到同一 display contract。
-- [ ] TEST-1: 同一 Order 在 `OrderList` / `OrderEntry` / `OrderDetail` 顯示折扣後金額一致。
+- [ ] TEST-1: Regression — 同一 Order 在 `OrderList` / `OrderEntry` / `OrderDetail` 顯示折扣後金額一致。
 - [ ] TEST-2: `Money.ToDisplay` edge cases：0、負數、大數、boundary precision。
 - [ ] DOC-1: 更新 `_index.md` Lightweight Changes、BR Snapshot note 與 `tech-debt.md` resolved note。
 

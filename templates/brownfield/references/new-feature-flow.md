@@ -12,7 +12,7 @@ Crossing any step gate above also updates the host feature's `_index.md` Resume 
 
 All other step transitions are **step-internal**: announce "Step N complete, entering Step N+1" and proceed without waiting. See AI-AGENT-GUIDE.md § Workflow Transparency for the full transparency protocol and confirmation signals.
 
-**Ceremony**: this flow always defaults to **T1 Heavy** — the first phase of a brand-new feature is by definition a full SDD cycle. Tier judgement (T1 / T2 / T3) only applies to `/dflow:modify-existing` (see `references/modify-existing-flow.md` and AI-AGENT-GUIDE.md § Ceremony Scaling).
+**Ceremony**: this flow always defaults to **T1 Heavy** — the first phase of a brand-new feature is by definition a full SDD cycle. Tier judgement (the ordered cascade — T1 / T2 / T3 / below workflow) applies to `/dflow:modify-existing` and `/dflow:bug-fix`; the criteria live in AI-AGENT-GUIDE.md § Ceremony Scaling, and `references/modify-existing-flow.md` is where they are applied.
 
 ## Step 1: Intake — Understand the Request
 
@@ -25,7 +25,26 @@ Ask these questions (naturally, not as a checklist dump):
 
 1. **What's the feature?** Get a plain-language description.
 2. **Who needs it?** Identify the stakeholder or user role.
-3. **Why now?** Understand priority and urgency (affects ceremony level).
+3. **Why now?** Understand priority and urgency.
+
+> **`/dflow:new-feature` is always T1 — it does not re-run the cascade.**
+> Entering here declares "genuinely new work" (a new capability, page, or
+> navigable surface). If the request is really a **modification** of existing
+> behaviour — a tweak, a bug fix, an appearance change, or anything that would
+> land at T2 / T3 / below-workflow — it belongs in `/dflow:modify-existing`,
+> whose Step 1 cascade (step 0) is the only place a misroute is caught. So
+> sanity-check at intake: if this looks like a small change to something that
+> already exists, redirect to `/dflow:modify-existing` rather than minting a T1
+> feature. ⚠ **Do not redirect a request that already came from there.** A
+> `/dflow:modify-existing` or `/dflow:bug-fix` request the cascade landed at T1
+> — including one a project convention escalated to T1, which the overlay may
+> only ever raise — is routed here **by** step 0 and has already been caught;
+> sending it back is a loop, because step 0 provably returns the same answer.
+> `AI-AGENT-GUIDE.md` § Ceremony Scaling's T1 row says so directly. The guard
+> is for a request that arrived at `/dflow:new-feature` **without** passing the
+> cascade. (A follow-up to a *completed* feature is the one new-feature-shaped
+> case that may still be lightweight — it arrives through `modify-existing`
+> Step 1.6's minimal variant, not here.)
 
 Then check existing assets:
 - Search `dflow/specs/domain/` for related concepts
@@ -186,7 +205,31 @@ If the developer asks to change the slug, re-propose and re-confirm.
 
 ## Step 4: Write the Spec
 
-Create the **feature directory** + **`_index.md`** + **first phase-spec**:
+> **Minimal hosts do not come here (defensive guard).** Step 4 creates a first
+> phase-spec, which only a genuinely **T1** new feature has. A **minimal host**
+> is zero-phase and is recorded through its own path in `modify-existing-flow.md`,
+> **not here**: Step 1.6 explicitly does **not** delegate to this step. If you
+> reached Step 4 while handling a minimal / zero-phase host, **stop and re-enter
+> `modify-existing-flow.md` at Step 1** — *not* at Step 1.6, 1.7 or 1.8.
+>
+> Those steps each assume work Step 1 has already done: Part A has decided the
+> tier (or routed an observation-only **baseline capture**, which is tier-exempt
+> and has its own two routes), and Part B has done the host linkage. An entry
+> that arrived *here* ran neither, so recovering into one of them skips the
+> authoritative cascade and the completed-feature scan — which is how a change
+> that should have been a follow-up gets archived as an unlinked standalone.
+> Step 1 routes it from there, and its Part B hotfix callout is what sends a
+> **T2 / T3 post-hoc** to Step 1.8 — the only route that attaches `reconciled
+> ({merged-hotfix-hash})`, the identity citation, and the per-tier hotfix
+> trace, all of which a host recovered straight into 1.6 / 1.7 would silently
+> lack. (A **T1** post-hoc is not a minimal host and is not this guard's
+> business.)
+>
+> Either way, do not create a phase-spec, and do not treat this step as a
+> zero-phase execution path.
+
+Create the **feature directory** + **`_index.md`** + **first phase-spec** (T1
+new feature):
 
 ```
 dflow/specs/features/active/{SPEC-ID}-{slug}/
@@ -388,7 +431,7 @@ AI reports `✓` / `✗` for every item before touching docs. Items marked *(pos
 - [ ] Every `EC-*` edge case is handled
 - [ ] Domain layer has **no** delivery-framework references (grep `src/Domain/`)
 - [ ] *(post-8.3)* `dflow/specs/domain/{context}/behavior.md` contains a section anchor for every `BR-*` introduced by this spec (mechanical input for `/dflow:verify`)
-- [ ] *(post-8.3)* `dflow/specs/domain/{context}/rules.md` `last-updated` is later than this spec's `created` date (mechanical drift guard)
+- [ ] *(post-8.3)* for **every `BR-*` this spec introduced or changed**, that rule's row in `dflow/specs/domain/{context}/rules.md` carries a `Last updated` not earlier than this spec's `created` date (mechanical drift guard). ⚠ Quantified per-BR on purpose, like the item above: a T1 may legitimately introduce **no** BR (§ Ceremony Scaling step 0 admits it), and this then passes vacuously rather than blocking. `rules.md` has no document-level `last-updated` — it is a column in the Rule Index, which is what 8.3 sub-step B4 updates.
 
 If any item fails, report the gap and pause — don't proceed to 8.2.
 

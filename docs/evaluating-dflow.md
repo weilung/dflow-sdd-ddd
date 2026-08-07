@@ -161,14 +161,16 @@ Dflow 的設計讓試用成本低、退出成本也低：
 
 ## 每個 Feature 的成本：概略估算
 
-Dflow 依改動深淺將流程份量調整為三個 tier（完整說明見
-[`README.md` "Workflow 模型"](../README.md#workflow-模型)）：
+Dflow 依改動深淺將流程份量調整為三個 tier（判準全文見 `AI-AGENT-GUIDE.md` § Ceremony Scaling；
+產品面說明見 [`README.md` "Workflow 模型"](../README.md#workflow-模型)）：
 
-- **T1 Heavy** — 新 feature、新 phase、新 Aggregate 或 Bounded Context、架構變更、新業務規則。需要完整的 phase-spec，包含領域建模、行為例子、實作計畫、以及驗證與收尾檢查。成本確實存在，但與所管理的風險成正比。
-- **T2 Light** — bug fix（邏輯錯誤）、UI 驗證調整、有業務規則 delta 的小幅修改。需要 lightweight spec、聚焦驗證、以及確認修復落在正確的架構層。
-- **T3 Trivial** — 按鈕顏色、文案 typo、純 formatting — **不動業務規則、不動 Domain 概念、不動資料結構**。只需在 `_index.md` 寫一行，不另開 spec 檔。
+- **T1 Heavy** — 新 feature、新 phase、新 Aggregate 或 Bounded Context、架構變更、新業務規則、資料結構變更，以及會讓呼叫端壞掉的契約變更（API／event，或必填的環境變數／CLI 參數／exit code）。需要完整的 phase-spec，包含領域建模、行為例子、實作計畫、以及驗證與收尾檢查。成本確實存在，但與所管理的風險成正比。
+- **T2 Light** — bug fix（邏輯錯誤）、UI 驗證調整、有業務規則 delta 的小幅修改、不破壞呼叫端的契約調整、純效能調整。需要 lightweight spec、聚焦驗證、以及確認修復落在正確的架構層。
+- **T3 Trivial** — 局部、語意保持的顯示文案／外觀小修（按鈕顏色、文案 typo／措辭、版面 polish）— **不動業務規則、Domain 概念、資料結構**，也非高後果內容。「局部」指單一畫面／元件上的元素層級，或單一獨立閱讀的頁面／檔案（例如公開 README、公開 API reference 頁）；整頁改版或跨畫面的掃改升 T2，跨頁的掃改同理。掛在所屬 feature 下時，只需在其 `_index.md` 寫一行，不另開 spec 檔；沒有所屬 feature 時，`/dflow:modify-existing` 會開一個 minimal（zero-phase）host 把該行記在那裡。
 
-Tier 不是每次都由 user 手動決定：`/dflow:new-feature` 與 `/dflow:new-phase` 預設一律 T1；`/dflow:modify-existing` 與 `/dflow:bug-fix` 則由 AI 依實際改動內容判斷 T1 / T2 / T3。純 typo / formatting commit（例如 `prettier`、`dotnet format`）可以完全跳過 Dflow 直接 `git commit` — Dflow 是給有業務語意或結構影響的變更使用的。
+上面是摘要。判定實際變更的唯一依據是 `AI-AGENT-GUIDE.md` § Ceremony Scaling 的 ordered cascade（步驟 0–4，先命中者勝）。
+
+Tier 不是每次都由 user 手動決定：`/dflow:new-feature` 與 `/dflow:new-phase` 預設一律 T1；`/dflow:modify-existing` 與 `/dflow:bug-fix` 則由 AI 依實際改動內容判斷 T1 / T2 / T3。純 formatting commit（例如 `prettier`、`dotnet format`）、內部註解、內部文件的 typo 可以完全跳過 Dflow 直接 `git commit`（使用者看得到的 typo 依 cascade 判：單一畫面、或單一獨立閱讀頁面上的顯示文案是 T3，掃過多個畫面／頁面或高後果內容升 T2）。反過來，人眼看不到不代表不用追蹤：machine-consumed contract、security／CVE 與 compliance 工作、runtime 效能／資源／SLA 變更都仍在 Dflow 內。
 
 ## 專案語言相容性
 

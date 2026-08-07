@@ -49,8 +49,17 @@ domain behavior, a new requirement, or a bug-fix workflow — read and follow:
 - `dflow/specs/shared/AI-AGENT-GUIDE.md` — command registry, routing rules, and project context.
 - `dflow/specs/shared/dflow-workflows/` — vendored workflow bundle with executable step definitions.
 
-For routine work (refactors, renames, chores, formatting, dependency bumps, or
-general code questions), proceed normally; you need not read the guide first.
+For routine work (refactors, renames, chores, formatting, routine dependency
+bumps, or general code questions), proceed normally; you need not read the guide
+first. **Routine is narrower than it sounds** — it excludes anything a product
+audience perceives (UI, email, exports, public docs such as a product README or
+API reference, and operator surfaces like dashboard labels and alerts), where
+**size is not the test**: a single-element wording or appearance change still
+counts. It also excludes anything touching architecture, data structure, a
+machine-consumed contract, a BR-ID, operational semantics (security / CVE,
+safety, resilience, compliance, payment), or deliberate performance / resource /
+SLA work. When unsure, read the guide's § Ceremony Scaling —
+it decides, not this page.
 
 Keep tool-specific instruction files small. The guide and workflow bundle are
 the authoritative sources for Dflow workflow rules, slash-command behavior,
@@ -142,8 +151,8 @@ guide 中記為 `/dflow:*`）。
 
 | Codex 輸入 | 適用情境 |
 |---|---|
-| `dflow:new-feature` | 需要新增一個使用者可見的功能或業務行為。 |
-| `dflow:modify-existing` | 需要修改現有行為。 |
+| `dflow:new-feature` | 真正新的功能、頁面或能力——**新建**的可導航介面（自有 route 且自有內容樹）、新的使用者可執行 domain 操作、或新的獨立可消費產出；對既有介面加控制項、或為既有 route 加選單入口，都屬 modify-existing。 |
+| `dflow:modify-existing` | 既有行為或既有介面要改——含對既有畫面加呈現／互動控制項（copy 按鈕、filter、排序、quick-view）。 |
 | `dflow:bug-fix` | 可以用預期行為 vs 實際行為描述的缺陷。 |
 | `dflow:new-phase` | 進行中的 feature 需要另一個實作 slice。 |
 | `dflow:finish-feature` | 實作完成後需要進行漂移（drift）收尾。 |

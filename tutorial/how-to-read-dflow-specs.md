@@ -94,7 +94,7 @@ phase spec 或 lightweight / BUG spec 的 Delta。
 | 文件 | 何時出現 | 讀法 |
 |---|---|---|
 | `phase-spec-YYYY-MM-DD-{slug}.md` | T1 feature phase 或 new-phase | 讀本 phase 的 problem、behavior scenarios、BR Delta、Implementation Tasks、implementation / verification outcome。 |
-| `lightweight-YYYY-MM-DD-{slug}.md` | T2 modify-existing，仍需 spec 但不開新 phase | 讀小範圍 BR / behavior delta 和 scoped implementation tasks。 |
+| `lightweight-YYYY-MM-DD-{slug}.md` | T2 modify-existing，仍需 spec 但不開新 phase | 讀小範圍 BR / behavior delta（或 no-BR 變更的 trace）和 scoped implementation tasks。 |
 | `BUG-NNN-{slug}.md` | bug-fix，有 expected vs actual | 讀 reproduction、root cause、fix approach、regression checks。 |
 
 判斷重點不是檔名，而是 Delta 的性質。

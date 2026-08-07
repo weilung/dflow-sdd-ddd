@@ -140,8 +140,11 @@ to the following design habits. Expand / adapt each to this project:
 - **Domain at the Center** — Business rules live in `*.Domain`. If you
   find business logic in `*.Application` handlers or (worse) in
   controllers, raise a tech-debt entry.
-- **Aggregate Boundaries** — Each transaction modifies exactly one
-  Aggregate. Cross-aggregate workflows go through Domain Events.
+- **Aggregate Boundaries** — By default, each transaction modifies one
+  Aggregate and cross-Aggregate workflows use Domain Events. Any justified
+  local multi-Aggregate exception must follow and record the contract in
+  `dflow/specs/shared/dflow-workflows/references/ddd-modeling-guide.md`
+  "Aggregate Design Rules"; external facts cannot join the local transaction.
 - **Dependency Inversion** — The Domain declares interfaces; the
   Infrastructure layer implements them. No Domain code imports
   `Microsoft.EntityFrameworkCore`.
