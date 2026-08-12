@@ -11,7 +11,7 @@ Dflow 有兩層命令表面：
 
 | 層級 | 形式 | 在哪裡執行 | 用途 |
 |---|---|---|---|
-| npm CLI | `dflow init`、`dflow doctor`、`dflow configure-agents` | shell / terminal | 建立或檢查 Dflow workspace、AI tool shim 與選配 command adapters。 |
+| npm CLI | `dflow init`、`dflow configure-agents`、`dflow doctor`、`dflow render`（共四個子命令） | shell / terminal | 建立或檢查 Dflow workspace、AI tool shim 與選配 command adapters；`render` 另把 specs 投影成可瀏覽的 HTML。 |
 | AI workflow command | `/dflow:new-feature`、`/dflow:modify-existing` 等 | AI coding agent 對話 | 引導 feature、phase、bug fix、finish、verify、review 等日常協作流程。 |
 
 兩者不是替代關係。CLI 負責把 Dflow 裝進專案；`/dflow:*` workflow 負責讓 AI
@@ -58,28 +58,53 @@ dflow init
 ```
 
 > **npx 替代路徑**：若不想做全域安裝（無 admin 權限、暫時性環境、或只想一次性評估），
-> 可改用 `npx dflow-sdd-ddd init`。使用此路徑時，後續所有 CLI 命令（`doctor`、
-> `configure-agents`）也必須使用 `npx dflow-sdd-ddd <subcommand>` 形式。
+> 可改用 `npx dflow-sdd-ddd init`。使用此路徑時，後續所有 CLI 命令（`configure-agents`、
+> `doctor`、`render`）也必須使用 `npx dflow-sdd-ddd <subcommand>` 形式。
 > 完整說明見 [README.md 的「Alternative: try without installing」段](../README.md)。
 
-它會詢問：
+它會依序詢問九個問題：
 
-- greenfield 或 brownfield
-- tech stack
-- migration context
-- prose language
-- optional starter files
-- 要建立哪些 AI tool shim
+1. greenfield 或 brownfield
+2. tech stack
+3. migration context
+4. prose language
+5. **Git policy**（Git Flow 或 Trunk / GitHub Flow，二選一；決定 branch gates、
+   finish-stage merge guidance，也決定投影哪一份 `Git-principles-*.md`）
+6. **AI commit marker**（none / `Co-Authored-By` trailer / `[ai-assisted]` 前綴；
+   寫進 `_conventions.md` 的 `## AI Commit Policy`）
+7. optional starter files（目前只有 `_overview.md` 一個選項）
+8. 要建立哪些 AI tool shim
+9. **要不要安裝 project-level skill**（自然語言自動觸發；預設 Y）
 
-它會建立或準備：
+⚠ 第 5、6 題都是團隊決策，不在 optional starter 裡；`Git-principles-*.md`
+是第 5 題的產物，不是第 7 題選來的。兩題的「強制程度」不同：**第 5 題沒有預設值，
+必須明選**（按 Enter 會被判 invalid，三次中止 init）；**第 6 題有預設值，按 Enter 取
+`none`**。判準寫在提示上，但要看的是「有沒有宣告預設」而不只是 `(default: …)` 字樣：
+`(default: …)`（第 3、6、8 題）、`press Enter for recommended [1]`（第 7 題）、
+`(Y/n)`（第 9 題）都能按 Enter 過。一種都沒宣告的才得自己答——實測是第 2、4、5 題，
+偵測到既有 source 時第 1 題也算。
+⚠ **但「能按 Enter」不等於「該按」**，第 8 題（AI agents）是例子——**而且它的預設值會變**。
+在**還沒有任何 AI tool 檔**的專案裡它標 `(default: none)`，按 Enter 等於一家都不建：
+選幾家就少幾個 shim 與幾份 `SKILL.md`，**而且 canonical 的 `AI-AGENT-GUIDE.md` 也不會建**。
+實測的規則是：**少掉的 = 1 份 guide ＋ 每選一家 2 列**（一個 shim ＋ 一份 `SKILL.md`）。
+兩軌 walkthrough 的例子就是這條規則的兩個代入：greenfield 40 → 33（Alice 選三家）、
+brownfield 32 → 29（Bob 只選一家）。
+但若 repo 已經**已經有別的工具留下的 `AGENTS.md`** 之類的 shim，提示會變成 `(default: 1)`
+這種形式——那時按 Enter 是**沿用既有選擇**，不是不建。
+預設值本身沒有錯，錯的是把「有預設」讀成「可以不管」。
+
+它會建立或準備（以下為 Greenfield；Brownfield 沒有 `architecture/`，改建
+`dflow/specs/migration/`）：
 
 ```text
 dflow/specs/
   shared/
+    dflow-workflows/     # Dflow 管理的 workflow bundle
   domain/
   architecture/
   features/
 AGENTS.md / CLAUDE.md / .github/copilot-instructions.md
+.claude/skills/dflow/SKILL.md 等 project-level skill（預設安裝）
 ```
 
 它不會做的事：
@@ -103,7 +128,17 @@ Brownfield 範例可看：
 dflow configure-agents
 ```
 
-它只處理 AI instruction files，不重跑 init，也不重新建立 specs。
+它處理 AI instruction files **與 Dflow 管理的 workflow bundle**
+（`dflow/specs/shared/dflow-workflows/`）；它不重跑 init，也不動你自己寫的 specs。
+
+⚠ bundle 是**每次都重新投影**的：實測在 bundle 裡手改一個檔、再刪掉一個檔，
+然後跑一次不帶旗標的 `configure-agents`——手改被覆蓋、被刪的檔被還原，
+而同一次執行裡使用者自己寫的 `_overview.md` 完全沒被動。這正是升級機制
+（新版移除的檔會依 manifest 差集自動清掉），所以不要手動編輯 bundle 內的檔。
+
+（想自己重現的話注意：`configure-agents` 和 `init` 一樣有 `Create these files? (y/N)`
+這道 gate，而且同樣只認 `y` / `yes`。在那裡按 Enter 等於答 N，它會印出計畫然後中止、
+什麼都不改——看起來就像「bundle 沒被重投影」。）
 
 若需要 Claude Code / GitHub Copilot 的工具原生命令入口，可使用 opt-in 版本：
 
@@ -145,6 +180,36 @@ dflow doctor
 - upgrade 後殘留、已退役的 workflow bundle 檔
 
 它不會修檔，只回報 findings。
+
+### `dflow render`
+
+把 specs 的 Markdown 樹投影成一份可用瀏覽器閱讀的靜態 HTML 鏡像，給不跑 Dflow
+的人（PM、reviewer、新人）看。
+
+```bash
+dflow render --src dflow/specs --out dflow-specs-html --title "我的專案 specs"
+```
+
+| 選項 | 預設 | 說明 |
+|---|---|---|
+| `--src <dir>` | `dflow/specs` | 要投影的 specs 根目錄。 |
+| `--out <dir>` | `dflow-specs-html` | 輸出目錄；產生 `index.html` 檔案樹，`file://` 直接開得起來。 |
+| `--title <text>` | `dflow specs` | `index.html` 的頁面標題。 |
+
+要點：
+
+- **Markdown 仍是 AI 面的 source of truth**；HTML 只是給人讀的投影，每次執行都是全量重建。
+- 它**只寫 `--out`，不碰 `--src`**。輸出目錄由 render 擁有（每個產出檔內嵌
+  generated-by 標記，另有 `.dflow-render-manifest.json` 帳本），來源被刪或改名的殘檔會在
+  下次執行時清掉。輸出目錄通常該 gitignore。
+- 它是**人類可讀性工具，不是 workflow command**：不在 `/dflow:*` 那 11 個命令裡，
+  也沒有 command adapter。
+
+本 tutorial 的 fixture 就可以直接拿來試：
+
+```bash
+dflow render --src tutorial/01-greenfield/outputs/dflow/specs --out /tmp/expense-html
+```
 
 ## AI workflow command：日常開發流程
 
@@ -273,7 +338,7 @@ Implementation Tasks 實作與驗證，最後把該 phase 標記 completed。
 - 確認所有 phase spec 狀態
 - 做 drift / completion checklist
 - 將 feature-level BR snapshot 同步到 bounded-context layer
-- 更新 `rules.md`、`behavior.md`、`models.md`、`events.md` 等 system docs
+- 更新 `rules.md`、`behavior.md`、`models.md` 等 system docs（Greenfield 另含 `events.md`；Brownfield 沒有這一份）
 - 將 feature directory 從 `active/` 移到 `completed/`
 - 產出 integration summary
 
@@ -478,6 +543,8 @@ Git branch 要叫 `bugfix/...`、`hotfix/...`、或直接短命 feature branch�
 
 - `dflow init`（全域安裝後）是 shell CLI；`/dflow:*` 是 AI workflow。
 - `dflow doctor` 是 CLI health check；`/dflow:verify` 是 AI drift verification。
+- CLI 共四個子命令：`init`、`configure-agents`、`doctor`、`render`。`render` 把 specs
+  投影成給人讀的 HTML，不是 workflow command。
 - `/dflow:new-feature`、`/dflow:modify-existing`、`/dflow:bug-fix` 是日常工作入口。
 - `/dflow:new-phase` 只適用 active feature 的下一個 phase，會一路做到 phase-level implementation / verification / completion。
 - `/dflow:finish-feature` 是 closeout，不是 merge、publish 或 release。

@@ -81,15 +81,15 @@ API 收到 malformed payload 後仍進入 Domain validation。`ApprovalReason` �
 >
 > Recommended layer tags (Core): `DOMAIN` / `APP` / `INFRA` / `API` / `TEST` / `DOC`
 
-- [ ] PRESENTATION-1: 將 reject reason 的 `substring(0, maxLen)` truncation 改為 grapheme-aware 截斷（優先使用 `Intl.Segmenter`；`Array.from(str)` fallback 不可切開 surrogate pairs）。
-- [ ] PRESENTATION-2: 讓 reject reason counter 使用與 truncation logic 相同的 counting strategy。
-- [ ] DOMAIN-1: 在 BR-007 length checks 前，將 `ApprovalReason` input normalize 成 NFC。
-- [ ] DOMAIN-2: 在 length calculation 前偵測 invalid / unpaired surrogate，並拋出有明確訊息的 `InvalidApprovalReasonException`。
-- [ ] TEST-1: 新增 Presentation test，確認 `金額對不上👍` truncation 後仍是 valid string，且 counter 仍顯示 `6 字 ✓`。
-- [ ] TEST-2: 新增 Domain unit test，確認 `ApprovalReason("金額對不上👍")` 通過 BR-007。
-- [ ] TEST-3: 新增 regression test，確認手動建出的 half-surrogate input 會 raise `InvalidApprovalReasonException`，而不是泛用 calculation error。
-- [ ] TEST-4: 新增 integration/API test，確認使用 `金額對不上👍` reject 會進入正常 reject path。
-- [ ] DOC-1: 更新 `_index.md` Lightweight Changes 與 `dflow/specs/architecture/tech-debt.md`；不要 regenerate Current BR Snapshot，因為 BR wording 不變。
+- [x] PRESENTATION-1: 將 reject reason 的 `substring(0, maxLen)` truncation 改為 grapheme-aware 截斷（優先使用 `Intl.Segmenter`；`Array.from(str)` fallback 不可切開 surrogate pairs）。
+- [x] PRESENTATION-2: 讓 reject reason counter 使用與 truncation logic 相同的 counting strategy。
+- [x] DOMAIN-1: 在 BR-007 length checks 前，將 `ApprovalReason` input normalize 成 NFC。
+- [x] DOMAIN-2: 在 length calculation 前偵測 invalid / unpaired surrogate，並拋出有明確訊息的 `InvalidApprovalReasonException`。
+- [x] TEST-1: 新增 Presentation test，確認 `金額對不上👍` truncation 後仍是 valid string，且 counter 仍顯示 `6 字 ✓`。
+- [x] TEST-2: 新增 Domain unit test，確認 `ApprovalReason("金額對不上👍")` 通過 BR-007。
+- [x] TEST-3: 新增 regression test，確認手動建出的 half-surrogate input 會 raise `InvalidApprovalReasonException`，而不是泛用 calculation error。
+- [x] TEST-4: 新增 integration/API test，確認使用 `金額對不上👍` reject 會進入正常 reject path。
+- [x] DOC-1: 更新 `_index.md` Lightweight Changes 與 `dflow/specs/architecture/tech-debt.md`；不要 regenerate Current BR Snapshot，因為 BR wording 不變。
 
 Layer tag list above is the recommended set；這次 bug-fix 額外使用 `PRESENTATION`，因為主要缺陷在 React form。
 

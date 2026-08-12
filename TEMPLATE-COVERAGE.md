@@ -31,9 +31,12 @@ The matrix lists Brownfield / Greenfield logical template parity so reviewers ca
 
 Common reference flows under `templates/brownfield/references/` and
 `templates/greenfield/references/` must stay synchronized unless a
-track-specific difference is explicit. This includes
-`dflow-feedback-flow.md`; it is a governance/support flow and should not grow
-GitHub CLI submission behavior without a separate proposal.
+track-specific difference is explicit.
+
+`dflow-feedback-flow.md` is the exception: it is single-sourced at
+`templates/common/references/` and projected into both editions, so there is no
+pair to keep synchronized. It remains a governance/support flow and should not
+grow GitHub CLI submission behavior without a separate proposal.
 
 ## Section Anchors
 

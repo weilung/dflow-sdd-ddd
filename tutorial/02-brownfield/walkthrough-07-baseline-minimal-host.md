@@ -321,7 +321,14 @@ Step 1 — Validate（最小 host 相關項）：
     (a) 4b17d92 是 commit
     (b) 是 HEAD 的 ancestor
     (c) 它改動過的路徑包含這一列宣告的
-        dflow/specs/domain/Shipment/behavior.md
+        dflow/specs/domain/Shipment/behavior.md，
+        而且那份文件**存在於它的樹裡**
+        —— 這是 baseline 列在**最小 host** 上的加強條款
+        （Step 1 那組檢查整組標著 Minimal host (zero-phase) only）：
+        capture 必須由這個 commit 新增或修改，刪掉或改名走的
+        commit 一樣會動到同一個路徑，但它不可能是捕捉它的那一個。
+        同一種 baseline 列掛在 phase-bearing host 上時 Step 1 不跑，
+        改由 pr-review-checklist.md 接手，那裡沒有 tree 這一半
 ✓ **baseline 專項**：Checkpoint Log 第一列是 `spec-baseline`
   且 Result = committed (4b17d92)
 ✓ Checkpoint Log 此刻恰好一列
@@ -349,6 +356,10 @@ Step 6 — skip（本 host 沒有 follow-up-of，它是 (c) no-feature 那條路
 
 ## 產出 4 — Integration Summary（baseline 的形狀）
 
+> ⚠ **摘要之前還有一件事，本篇壓縮掉了。** flow 規定 Step 5 要先印 closeout
+> verification 的**推導過程**（不是「通過了」，而是「怎麼算出來的」）。那是真實驗證
+> 才會有的內容，本教材不編造；規定見 `finish-feature-flow.md` Step 5 開頭。
+
 ```text
 == Integration Summary: SPEC-20260511-001-shipment-fee-baseline ==
 
@@ -368,8 +379,10 @@ Phase List:
 （空 —— zero-phase）
 
 Next Steps (developer) — Integration / PR gate (needs network):
-- 依 _conventions.md 選定的 Git policy 選擇 merge 策略並執行
-- Push / 開 PR
+- Per the selected Git policy (`gitflow` / `trunk` in `_conventions.md`), choose
+  a merge strategy (merge commit / squash / rebase / fast-forward) and execute
+- Push to remote / open a PR — the AI can run `git push` / `gh pr create` for
+  you, but only when you explicitly ask; it never pushes on its own
 ```
 
 `BC:` 是 **`Shipment`** 而不是 `none`——這是 baseline host 與 no-BC standalone host 最明顯的

@@ -3,7 +3,6 @@ spec-id: SPEC-20260511-001
 slug: login-banner-typo
 status: completed
 created: 2026-05-11
-completed_date: 2026-05-11
 branch: feature/SPEC-20260511-001-login-banner-typo
 ---
 
@@ -96,7 +95,8 @@ feature 的 follow-up。
 本次走查的 Integration Summary 逐欄形狀、生命週期與 Outstanding 討論，都在 walkthrough 正文：
 tutorial/01-greenfield/walkthrough-07-standalone-minimal-host.md
 
-（`completed/SPEC-20260428-001-employee-submit-expense/_index.md` 確實帶著 Integration
-Summary——那是本 repo 既有的慣例，`how-to-read-dflow-specs.md` 也是那樣教的。那個慣例與
-上面 Step 5 那句話是否相牴觸，是一個真實的問題，但**不屬於 2D**，留待後續 pass。）
+（那個 pass 已經做了：`SPEC-20260428-001-employee-submit-expense/_index.md` 與
+brownfield 的 `SPEC-20260430-001-order-discount-calculation/_index.md` 原本各帶著一段
+`## Integration Summary`，現已移除，內容搬進各自的 walkthrough 06 對話敘事；
+`how-to-read-dflow-specs.md` 也同批更正。**慣例已與上面 Step 5 那句話對齊。**）
 -->

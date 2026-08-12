@@ -3,7 +3,6 @@ spec-id: SPEC-20260512-001
 slug: reject-not-persisted
 status: completed
 created: 2026-05-12
-completed_date: 2026-05-12
 branch: bugfix/BUG-002-reject-not-persisted
 follow-up-of: SPEC-20260428-001
 ---

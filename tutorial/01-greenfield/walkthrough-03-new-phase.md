@@ -685,7 +685,7 @@ Dflow:
 如果想知道 BR-002 怎麼從 phase 1 變 phase 2，要讀 phase spec 的 Delta。
 如果想知道此刻 feature 的累積規則，要讀 `_index.md` snapshot。
 
-## Step 5 → Step 6 step gate — branch timing
+## Branch gate —— 它屬於 Step 1，而且比你想的早
 
 Alice 問：
 
@@ -700,14 +700,23 @@ Dflow 回答：
 
 ```text
 Dflow:
-依 git-integration.md，
-Dflow 對 trunk-based / GitHub Flow / Git Flow 不做 base branch 決策，
-但要求 SDD feature work 能 trace 回 spec。
+不開新的。new-phase 是延長一個既有的 active feature，
+不是啟動一個新的——new-phase-flow.md 的 branch gate 明寫
+「Never create a new feature branch here」。
 
-你現在 phase 1 已 merge main，
-trunk-based 比較自然的做法是從最新 main 開一個短 branch，
-例如 feature/SPEC-20260428-001-employee-submit-expense
-重新建立或 sync 同名 branch，PR title 標 phase 2。
+而且這道 gate 在 Step 1 就要過，不是等到要實作才處理：
+它的原文是「ensure you are on this feature's branch
+(before any commit)」。
+
+所以正確動作是：切回這個 feature 既有的
+feature/SPEC-20260428-001-employee-submit-expense；
+如果你有理由不切（例如那個 branch 已經被合併刪掉），
+那是一個 override，要記進 _index.md 的 Checkpoint Log。
+
+⚠ Dflow 確實不替你決定 base branch 策略
+（trunk-based / GitHub Flow / Git Flow 都行），
+但「用哪條 branch 承載這個 feature 的 commit」不是策略問題，
+是 traceability 要求。
 
 關鍵 gate 是：
 phase 2 spec / Aggregate design / BR Delta 先就緒，
@@ -719,12 +728,19 @@ Alice 確認：
 
 ```text
 Alice:
-OK，我實作前從最新 main 開 branch，PR title 加 phase 2。
+了解，不開新 branch。我切回 feature/SPEC-20260428-001-employee-submit-expense，
+需要的話先把它 rebase 到最新 main，PR title 加 phase 2。
 spec 先落地。
 ```
 
-這裡的重點不是 branch name，而是順序：spec 與 BR Delta 先落地，通過 Step 5 -> Step 6
-gate 後才開始 implementation commit。
+這裡有**兩件**事，不要只記得後面那件。
+
+**其一，branch 這一題已經在 Step 1 被判掉了**：`new-phase` 延長既有的 active
+feature，flow 寫的是 **Never create a new feature branch here**。所以 Alice 不是
+「選擇」沿用舊 branch，是根本沒有開新 branch 這個選項。
+
+**其二才是順序**：spec 與 BR Delta 先落地，通過 Step 5 → Step 6 gate 後才開始
+implementation commit。
 
 ## Step 6 — Implement and verify the phase
 
@@ -826,7 +842,7 @@ docs 已同步、feature 目錄位於 `completed/`。但在 `/dflow:new-phase` �
 | 修改 | [`outputs/dflow/specs/domain/Expense/events.md`](outputs/dflow/specs/domain/Expense/events.md) | ExpenseReportApproved / ExpenseReportRejected。 |
 | 修改 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) | Approver、ApprovalDecision、ApprovalReason。 |
 | 修改 | [`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md) | Expense 對 Identity 的 external reference。 |
-| 故意不建 | `outputs/dflow/specs/domain/Expense/behavior.md` | phase 2 當下 behavior scenarios 仍由 phase spec 承載；本 outputs tree 沒有此檔。 |
+| 本步驟不動 | `outputs/dflow/specs/domain/Expense/behavior.md` | phase 2 當下 Given/When/Then 仍由 phase spec 承載（Step 8.3 才 merge），**骨架則在 walkthrough 02 的 Step 3 就已建立**、且只涵蓋 BR-001~004。outputs 樹裡那一份是 closeout 之後填滿七條 BR 的最終狀態。 |
 
 ## 本篇展示的 Dflow 能力
 
@@ -876,7 +892,9 @@ New-phase 的價值是讓同一個 feature 可以自然長大，但每次長大�
 - `ApprovalDecision` 留在 Expense BC，但作為第二個 Aggregate Root 保留 audit trail。
 - `_index.md` Current BR Snapshot 是 current state，Step 5 regenerate、Step 7 reconcile，不是歷史流水帳。
 - BC-level living docs（rules、models、events、glossary、context-map）等 `/dflow:finish-feature` 才同步。
-- Behavior scenarios 在 phase 2 當下仍由 phase spec 承載；不要硬建不存在的 `behavior.md`。
+- Behavior **scenarios** 在 phase 2 當下仍由 phase spec 承載，Step 8.3 才 merge 進
+  `behavior.md`；但 `behavior.md` 的**骨架**在 new-feature Step 3 就該建好了
+  （`new-feature-flow.md` Step 3），不是延後建立。
 
 ## 下一個 walkthrough
 

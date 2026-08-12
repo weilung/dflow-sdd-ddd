@@ -6,13 +6,19 @@
 
 ## Context List
 
-| Bounded Context | Responsibility | Owner / Team | Primary Code Area | Notes |
-|---|---|---|---|---|
-| Order | 接單、訂單狀態、訂單明細、金額計算與提交流程。 | OrderManager 維運團隊 | `OrderManager.Web/Pages/Order/` / `src/Domain/Order/` | 第一個已確認 BC；`SPEC-20260430-001` 先抽折扣計算。 |
-| Customer | 客戶資料、付款條件、啟用狀態、VIP eligibility、合約有效期與信用額度。 | 業務 / 客戶資料 owner | `OrderManager.Web/Pages/Customer/` / Customer repositories | Candidate BC；2026-05-05 起 partially referenced via reference data，未正式建 BC。 |
-| Inventory | 庫存、預留、可售量與庫存查詢。 | 倉儲 / Inventory owner | `OrderManager.Web/Pages/Inventory/` / Stored Procedures | 與 OrderLine 的責任邊界待釐清。 |
-| Shipment | 出貨、貨運整合與物流狀態回寫。 | 倉儲 / 出貨團隊 | `OrderManager.Web/Pages/Shipment/` / Web Service integrations | 可能依賴 Order 狀態。 |
-| Invoice | 發票、應收帳款與財務狀態。 | 財務團隊 | `OrderManager.Web/Pages/Invoice/` | 可能是 Order / Shipment 的 downstream context。 |
+| Bounded Context | Responsibility | Subdomain Type | Owner / Team | Primary Code Area | Notes |
+|---|---|---|---|---|---|
+| Order | 接單、訂單狀態、訂單明細、金額計算與提交流程。 | `core` | OrderManager 維運團隊 | `OrderManager.Web/Pages/Order/` / `src/Domain/Order/` | 第一個已確認 BC；`SPEC-20260430-001` 先抽折扣計算。 |
+| Customer | 客戶資料、付款條件、啟用狀態、VIP eligibility、合約有效期與信用額度。 | _(未分類)_ | 業務 / 客戶資料 owner | `OrderManager.Web/Pages/Customer/` / Customer repositories | Candidate BC；2026-05-05 起 partially referenced via reference data，未正式建 BC。 |
+| Inventory | 庫存、預留、可售量與庫存查詢。 | _(未分類)_ | 倉儲 / Inventory owner | `OrderManager.Web/Pages/Inventory/` / Stored Procedures | 與 OrderLine 的責任邊界待釐清。 |
+| Shipment | 出貨、貨運整合與物流狀態回寫。 | _(未分類)_ | 倉儲 / 出貨團隊 | `OrderManager.Web/Pages/Shipment/` / Web Service integrations | 可能依賴 Order 狀態。 |
+| Invoice | 發票、應收帳款與財務狀態。 | _(未分類)_ | 財務團隊 | `OrderManager.Web/Pages/Invoice/` | 可能是 Order / Shipment 的 downstream context。 |
+
+> **為什麼只有 Order 有 Subdomain Type。** Brownfield 的 BC 是**從抽離過程中浮現**的，
+> 不是一開始就畫好的。只有 `Order` 走過 BC 確認、被分類為 `core`（折扣業務規則正是這套
+> 訂單系統的差異化所在，所以值得做完整戰術建模）。其餘四個目前仍是 candidate，還沒有
+> feature 走到它們身上，**所以刻意留白而不是先猜一個** —— `modify-existing-flow.md`
+> 對「target context 沒有 Subdomain Type」本來就有處理分支。
 
 ## Relationships
 
@@ -25,7 +31,7 @@
 
 ## Integration Notes
 
-- 這份 context map 起源於 Day-0 baseline；`SPEC-20260430-001` 已確認 Order BC 的第一個 scope：訂單明細總額與折扣計算。
+- 這份 context map 是在 `SPEC-20260430-001` 確認 Order BC 時第一次建立的（Brownfield 的 init 不建 context-map，BC 由抽離過程浮現）；該 feature 已確認 Order BC 的第一個 scope：訂單明細總額與折扣計算。
 - `SPEC-20260505-002` 確認 VIP discount calculation 仍屬 Order BC；Customer 只提供 reference data，Customer BC 的正式建立應由 Customer-owned feature 觸發。
 - 後續 `/dflow:modify-existing` 仍應從具體 Code-Behind 行為開始，逐步確認 Customer / Inventory / Shipment / Invoice 邊界。
 - 若第一個修改同時碰到 Order、Customer 與 Inventory，Bob 應先記錄 dependency，不急著一次切出多個完整 BC。

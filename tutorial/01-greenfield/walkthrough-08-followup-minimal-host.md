@@ -369,6 +369,80 @@ Step 5 — Integration Summary。
 Step 6 — **Reverse-Update Follow-up Tracking**（本案不 skip）。
 ```
 
+## Step 5 — Integration Summary（zero-phase，而且是 **BC-bearing** 的那一種）
+
+> ⚠ **本篇同樣壓縮掉了 Step 5 的第一件事**：flow 規定要先印 closeout verification
+> 的推導過程，再印摘要。那是真實驗證才會有的內容，本教材不編造；規定見
+> `finish-feature-flow.md` Step 5 開頭。
+
+這一步不能跳過，也不能只寫「Step 5 — Integration Summary。」了事：
+**Step 5 → Step 6 的 gate 就是「Integration Summary emitted → follow-up reverse-link」**
+（`finish-feature-flow.md` 的 gate 清單）。摘要沒印出來，下一節那個 flip 就沒有前提。
+
+```text
+== Integration Summary: SPEC-20260512-001-reject-not-persisted ==
+
+Feature Goal: 修正 reject flow 的持久化缺陷——主管 Reject 後 ApprovalDecision 有建立，
+但 ExpenseReport 自己的狀態變更沒有被 flush，列表仍顯示 Submitted。
+
+Change Scope:
+- BC: Expense
+- Aggregates affected: none
+- Phase Count: 0
+- Lightweight Changes: 1 T2 lightweight specs + 0 T3 inline rows
+
+Related BR-IDs (post-closeout state):
+- BR Delta: none — implementation defect
+- Governing BR-IDs: BR-002, BR-006
+
+Domain Events Changes:
+- none
+
+Phase List:
+（空）
+
+Next Steps (developer) — Integration / PR gate (needs network):
+- Per the selected Git policy (`gitflow` / `trunk` in `_conventions.md`), choose
+  a merge strategy (merge commit / squash / rebase / fast-forward) and execute
+- Push to remote / open a PR — the AI can run `git push` / `gh pr create` for
+  you, but only when you explicitly ask; it never pushes on its own
+```
+
+**拿它跟 walkthrough 07 的那份對照著看，有三欄不同：`BC:`、`Lightweight Changes`
+與 `Related BR-IDs`。**
+
+`Lightweight Changes` 的差別最單純，先把它放一邊：07 這個 host 掛的是一列 T3 inline
+（`0 T2 lightweight specs + 1 T3 inline rows`），本篇掛的是一份 T2 spec
+（`1 T2 lightweight specs + 0 T3 inline rows`）——純粹反映兩個 host 各自帶了什麼
+artifact，不是欄位語意上的差別。另外兩欄才是。
+
+07 是 no-BC host，所以 `BC: none`；本篇是 **BC-bearing** follow-up，`BC: Expense`。
+
+而 `Aggregates affected` 與 `Domain Events Changes` 在兩篇都是 `none`，理由卻不同：
+07 是「這個 host 根本沒做 sync」；本篇是 flow 說的**「填它實際動到的，沒動到的填
+`none`」**——這次的修正在 Application 層的 `SaveChanges`，**沒有改到任何 Aggregate
+或 Domain Event**，所以是 `none`。
+
+`Related BR-IDs` 這一欄的理由**又不一樣**，而且**它既不是 `none`、也不是空的**。
+flow 對這一欄寫得很直白：它報的是「**這次變更自己的紀錄帶了什麼**」，取值是
+「a real set、**per-family no-BR marker（當那份 T2 帶了一個）**，或 no-BR host 就留空」。
+
+打開這個 host 的 T2 就知道該填什麼——`BUG-002-reject-not-persisted.md` 帶的正是
+family (e) 的 marker：
+
+```text
+BR Delta: none — implementation defect
+Governing BR-IDs: BR-002, BR-006
+```
+
+所以摘要要把這個 marker 照抄過去。**留空是給「連 marker 都沒有」的 host 用的**
+（walkthrough 07 那個 T3-only host 就是，所以它留空是對的）。
+⚠ 也別把它改成 `none`：flow 明講「Forcing `none` here would erase a marker the
+approved zero-phase shape requires」——`none` 是給 `BC:` / `Aggregates affected:` /
+`Domain Events Changes:` 那三個「報告有沒有做 sync」的欄用的。
+而 lightweight-spec 範本對 family (e) 也說了同一件事：「**no BR delta」不等於「no
+governing rule」，不要把這一對塌成單一個 `BR: none`**。
+
 ## 產出 3 — Step 6 的 flip：一個不入任何 ledger 的 commit
 
 ```text

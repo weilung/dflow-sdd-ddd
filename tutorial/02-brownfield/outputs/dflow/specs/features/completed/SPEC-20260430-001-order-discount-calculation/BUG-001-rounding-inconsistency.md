@@ -50,13 +50,13 @@ Presentation 層改成：
 <!-- dflow:section implementation-tasks -->
 ## Implementation Tasks
 
-- [ ] DOMAIN-1: `Money` VO 加 `ToDisplay(precision = 2)` method，維持既有 amount + currency invariants。
-- [ ] WEBFORMS-1: `OrderList.BindGrid()` column formatter 改用 `Money.ToDisplay()`。
-- [ ] WEBFORMS-2: `OrderDetail.LoadDiscountSummary()` 改用 `Money.ToDisplay()`。
-- [ ] WEBFORMS-3: `OrderEntry` 顯示折扣後金額時確認 align 到同一 display contract。
-- [ ] TEST-1: Regression — 同一 Order 在 `OrderList` / `OrderEntry` / `OrderDetail` 顯示折扣後金額一致。
-- [ ] TEST-2: `Money.ToDisplay` edge cases：0、負數、大數、boundary precision。
-- [ ] DOC-1: 更新 `_index.md` Lightweight Changes、BR Snapshot note 與 `tech-debt.md` resolved note。
+- [x] DOMAIN-1: `Money` VO 加 `ToDisplay(precision = 2)` method，維持既有 amount + currency invariants。
+- [x] DELIVERY-1: `OrderList.BindGrid()` column formatter 改用 `Money.ToDisplay()`。
+- [x] DELIVERY-2: `OrderDetail.LoadDiscountSummary()` 改用 `Money.ToDisplay()`。
+- [x] DELIVERY-3: `OrderEntry` 顯示折扣後金額時確認 align 到同一 display contract。
+- [x] TEST-1: Regression — 同一 Order 在 `OrderList` / `OrderEntry` / `OrderDetail` 顯示折扣後金額一致。
+- [x] TEST-2: `Money.ToDisplay` edge cases：0、負數、大數、boundary precision。
+- [x] DOC-1: 更新 `_index.md` Lightweight Changes、BR Snapshot note 與 `tech-debt.md` resolved note。
 
 <!-- dflow:section open-questions -->
 ## Open Questions

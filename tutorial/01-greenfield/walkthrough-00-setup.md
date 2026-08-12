@@ -47,9 +47,13 @@ ExpenseTracker/
 ├── ExpenseTracker.sln
 ├── src/
 │   ├── ExpenseTracker.Domain/
+│   │   └── ExpenseTracker.Domain.csproj
 │   ├── ExpenseTracker.Application/
+│   │   └── ExpenseTracker.Application.csproj
 │   ├── ExpenseTracker.Infrastructure/
+│   │   └── ExpenseTracker.Infrastructure.csproj
 │   └── ExpenseTracker.WebAPI/
+│       └── ExpenseTracker.WebAPI.csproj
 └── tests/
     ├── ExpenseTracker.Domain.Tests/
     ├── ExpenseTracker.Application.Tests/
@@ -62,6 +66,7 @@ ExpenseTracker/
 |---|---|
 | `.git/` 已存在 | 可以在 init 時建立治理文件，但不需要初始化 Git repo。 |
 | `src/` 已有 Domain / Application / Infrastructure / WebAPI | Greenfield track 可以假設 Clean Architecture 方向已就位。 |
+| `ExpenseTracker.WebAPI.csproj` 是 `Microsoft.NET.Sdk.Web` + `net9.0` | init 靠**讀 `.csproj` 內容**判斷技術方向（`.sln` 不算）。判得出來是 .NET Core 系，Alice 才不會在 preview 看到「考慮改選 Brownfield」那則提醒——見 walkthrough-01 Step 3。 |
 | `tests/` 已分 Domain / Application / Integration | 後續 feature 可以把 business rules 對到測試層級。 |
 | 還沒有 `dflow/specs/` | 這會是第一次 Dflow baseline。 |
 

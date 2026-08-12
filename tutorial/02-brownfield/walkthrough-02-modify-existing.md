@@ -207,7 +207,9 @@ Dflow 轉入 new-feature 後，先做 intake，再判斷 BC：
 ```text
 Dflow:
 這個 feature 涉及訂單明細、訂單總額、折扣與提交流程。
-從 context-map.md 來看，這應該落在 Order Bounded Context。
+這應該落在 Order Bounded Context。
+Brownfield 的 BC 是從抽離過程中浮現的，init 不會預先建 context-map.md，
+所以現在還沒有這一份；我會在確認 Order BC 之後建立它。
 
 Customer 目前只提供 CustomerTier reference data；
 Inventory、Shipment、Invoice 都不是本 phase 的 owner。
@@ -418,12 +420,12 @@ OrderList.aspx.cs、OrderDetail.aspx.cs 或其他頁面若也有相同規則，
 
 ## Current BR Snapshot
 
-| BR-ID | Current Rule | Status |
-|---|---|---|
-| BR-001 | 訂單折扣前總金額等於所有 OrderLine.UnitPrice * Quantity 的加總。 | draft |
-| BR-002 | 訂單折扣前總金額 >= NT$50,000 時，套用滿額 10% off。 | draft |
-| BR-003 | CustomerTier = Senior 時，額外套用 5% off。 | draft |
-| BR-004 | 多個折扣率以乘法累積。 | draft |
+| BR-ID | Current Rule | First Seen (phase) | Last Updated (phase) | Status |
+|---|---|---|---|---|
+| BR-001 | 訂單折扣前總金額等於所有 OrderLine.UnitPrice * Quantity 的加總。 | phase-1 | phase-1 | active |
+| BR-002 | 訂單折扣前總金額 >= NT$50,000 時，套用滿額 10% off。 | phase-1 | phase-1 | active |
+| BR-003 | CustomerTier = Senior 時，額外套用 5% off。 | phase-1 | phase-1 | active |
+| BR-004 | 多個折扣率以乘法累積。 | phase-1 | phase-1 | active |
 ```
 
 完整文件範例：
@@ -482,12 +484,12 @@ Scenario: 既有 Code-Behind 只套用滿額折扣
 Dflow 把折扣規則寫成 BR：
 
 ```markdown
-| BR-ID | Rule |
-|---|---|
-| BR-001 | 訂單折扣前總金額等於所有 OrderLine.UnitPrice * Quantity 的加總。 |
-| BR-002 | 訂單折扣前總金額大於或等於 NT$50,000 時，套用滿額折扣率 10% off。 |
-| BR-003 | CustomerTier = 'Senior' 的老客戶可額外套用客戶等級折扣率 5% off。 |
-| BR-004 | 多個折扣率以乘法累積，順序為先套滿額折扣、再套客戶等級折扣。 |
+| BR-ID | Rule | Notes |
+|---|---|---|
+| BR-001 | 訂單折扣前總金額等於所有 OrderLine.UnitPrice * Quantity 的加總。 | 從 OrderEntry baseline capture。 |
+| BR-002 | 訂單折扣前總金額大於或等於 NT$50,000 時，套用滿額折扣率 10% off。 | 門檻以 TWD 計。 |
+| BR-003 | CustomerTier = 'Senior' 的老客戶可額外套用客戶等級折扣率 5% off。 | Customer BC 仍未建模，本 phase 使用 reference value。 |
+| BR-004 | 多個折扣率以乘法累積，順序為先套滿額折扣、再套客戶等級折扣。 | bug fix 核心。 |
 ```
 
 Bob 特別要求公式要寫清楚：
@@ -576,8 +578,8 @@ Dflow 接受，並產生 Brownfield 適合的 task list：
 - [ ] DOMAIN-1: 建立 Order Aggregate Root
 - [ ] DOMAIN-2: 建立 OrderLine 與 Money / Quantity / DiscountRate
 - [ ] DOMAIN-3: 建立 DiscountPolicy
-- [ ] WEBFORMS-1: 把 OrderEntry.aspx.cs input map 成 Domain objects
-- [ ] WEBFORMS-2: 用 DiscountPolicy 取代 inline discount arithmetic
+- [ ] DELIVERY-1: 把 OrderEntry.aspx.cs input map 成 Domain objects
+- [ ] DELIVERY-2: 用 DiscountPolicy 取代 inline discount arithmetic
 - [ ] TEST-1: 補 BR-001~BR-004 unit tests
 - [ ] TEST-2: 補 INV 與 NT$50,000 boundary tests
 ```
@@ -652,12 +654,12 @@ Order BC 負責接單流程中的訂單主體、訂單明細、金額計算與�
 ```markdown
 # Business Rules
 
-| BR-ID | Rule summary | Status |
-|---|---|---|
-| BR-001 | 訂單折扣前總金額等於所有 OrderLine.UnitPrice * Quantity 的加總。 | active |
-| BR-002 | 訂單折扣前總金額大於或等於 NT$50,000 時，套用滿額折扣率 10% off。 | active |
-| BR-003 | CustomerTier = 'Senior' 的老客戶可額外套用客戶等級折扣率 5% off。 | active |
-| BR-004 | 多個折扣率以乘法累積，順序為先套滿額折扣、再套客戶等級折扣。 | active |
+| BR-ID | Rule summary | Behavior anchor | Status | Last updated |
+|---|---|---|---|---|
+| BR-001 | 訂單折扣前總金額等於所有 OrderLine.UnitPrice * Quantity 的加總。 | [BR-001](./behavior.md#br-001-pre-discount-total) | active | 2026-04-30 |
+| BR-002 | 訂單折扣前總金額大於或等於 NT$50,000 時，套用滿額折扣率 10% off。 | [BR-002](./behavior.md#br-002-full-threshold-discount) | active | 2026-04-30 |
+| BR-003 | CustomerTier = 'Senior' 的老客戶可額外套用客戶等級折扣率 5% off。 | [BR-003](./behavior.md#br-003-senior-customer-discount) | active | 2026-04-30 |
+| BR-004 | 多個折扣率以乘法累積，順序為先套滿額折扣、再套客戶等級折扣。 | [BR-004](./behavior.md#br-004-compound-discount-accumulation) | active | 2026-04-30 |
 ```
 
 完整文件範例：
@@ -707,9 +709,9 @@ Dflow 記錄的意思是：
 | 新建 | [`outputs/dflow/specs/domain/Order/context.md`](outputs/dflow/specs/domain/Order/context.md) | Order BC responsibilities、scope、out-of-scope。 |
 | 新建 | [`outputs/dflow/specs/domain/Order/models.md`](outputs/dflow/specs/domain/Order/models.md) | Order、OrderLine、Money、Quantity、DiscountRate、DiscountPolicy。 |
 | 新建 | [`outputs/dflow/specs/domain/Order/rules.md`](outputs/dflow/specs/domain/Order/rules.md) | BR-001~004 的 rule index。 |
-| 新建 | [`outputs/dflow/specs/domain/Order/behavior.md`](outputs/dflow/specs/domain/Order/behavior.md) | 折扣行為的 Given/When/Then。 |
+| 新建（骨架） | [`outputs/dflow/specs/domain/Order/behavior.md`](outputs/dflow/specs/domain/Order/behavior.md) | 為 BR-001~004 各加一個 section anchor。折扣行為的 Given/When/Then 要到 closeout 才從 phase spec merge 進來；`outputs/` 樹是最終狀態，所以你在那裡看到的是已填滿的版本。 |
 | 修改 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) | Order / OrderLine / DiscountPolicy 等 ubiquitous language。 |
-| 修改 | [`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md) | Order 與 Customer / Inventory / Shipment / Invoice 的邊界。 |
+| 新建 | [`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md) | Order 與 Customer / Inventory / Shipment / Invoice 的邊界。⚠ Brownfield 的 init **不建**這一份（BC 由抽離過程浮現），所以它是在本篇確認 Order BC 時才第一次建立。 |
 | 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | 本次不擴張的頁面與剩餘 Code-Behind debt。 |
 | 故意不建 | `events.md` | 本 phase 不引入 Domain Events。 |
 | 故意不建 | `aggregate-design.md` | Brownfield step 以 phase spec + models.md 承載抽離設計。 |

@@ -44,6 +44,12 @@ closeout 順序；若想看 completed snapshot 的完整讀法，再讀
 | 2026-05-04 | BUG-001：emoji surrogate truncation | implemented |
 | 2026-05-07 | 3 天穩定試用，Carol 與另外兩位主管確認 | ready to close |
 
+⚠ **「3 天穩定試用」是本範例的驗收訊號，不是 Dflow 的 gate。** `finish-feature-flow.md`
+沒有任何觀察期或天數要求——它檢查的是文件狀態（七個必要段落、phase-spec 都 completed、
+`Commit` 格解得開……），完成與否由你的團隊用自己的 DoD / sign-off 證據判定。
+Alice 用三天試用，是因為這個 feature 動到主管的審核路徑；換一個 feature 可能是
+「regression 全綠就收」。
+
 上一篇 [〈Walkthrough 05 — `/dflow:bug-fix` 修正 reject reason emoji 截斷〉](walkthrough-05-bug-fix.md) 中，
 BUG-001 修正了「金額對不上👍」被錯誤拒絕的問題。Carol 重新測試後，這個 reject path
 可以正常退回，其他主管也確認一般 reject flow 沒問題。
@@ -157,6 +163,11 @@ Driftcheck result：
 - BR-007 的 2026-04-30 lightweight modification 在 rules.md 有保留歷史註記
 - ApprovalDecision Aggregate 已存在於 models.md
 - ExpenseReportApproved / ExpenseReportRejected 已存在於 events.md
+- ⚠ dflow/specs/domain/Expense/behavior.md 只有 new-feature Step 3 建的骨架，
+  而那時只存在 BR-001~004，所以檔內也只有這四個 anchor、還沒有場景。
+  BR-005~007 是 phase 2 新增的，new-phase 不同步 BC 層文件，anchor 還沒建
+  → Step 3 的 BC sync 要補建 BR-005~007 的 anchor，並把 Given/When/Then
+    場景補進全部七個
 - Unicode character counting strategy under i18n tech debt 仍是 open
 - Minor drift：phase 2 spec 裡的 Open Question「要不要支援批次 Approve」沒有明示移到哪裡
 ```
@@ -201,10 +212,12 @@ Dflow:
 Step 2: Flip _index.md Status to completed。
 
 - front matter status: in-progress → completed
-- add completed_date: 2026-05-07
-- Phase Specs table：phase 1 / phase 2 都標 completed
-- Resume Pointer 改成：
-  Feature completed 2026-05-07; see Integration Summary below.
+  （只翻 status。branch: 永遠不改寫，也不新增 front matter 欄位——
+   關帳後的驗證會把「沒有任何步驟要求的差異」判成 edit fallout 並擋下來。）
+- Phase Specs table：不動。每一列早在 Step 1 就必須已經是 completed，
+  那是通過條件，不是這一步的工作。
+- Resume Pointer 改成 cursor 的終局狀態：
+  Feature 已於 2026-05-07 完成；所有 phase-spec status = completed。
 ```
 
 完整文件範例：
@@ -218,21 +231,38 @@ spec-id: SPEC-20260428-001
 slug: employee-submit-expense
 status: completed
 created: 2026-04-28
-completed_date: 2026-05-07
 branch: feature/SPEC-20260428-001-employee-submit-expense
 ---
 ```
+
+⚠ **只有 `status` 這一個欄位變了。** front matter 沒有 `completed_date` 這種欄位——
+`templates/_index.md` 沒定義它，Step 2 也沒有命令寫它。關帳後的驗證是拿 commit 進去的
+`_index.md` 跟 Step 1 讀到的比，**差異必須恰好等於 Step 2 與 Step 4 指令 1 命令的那些**，
+多出來的欄位會被判成 edit fallout 並擋下 closeout。完成日期不必另存一格：
+closeout commit 自己就是時間戳（`git log -1 -- completed/{SPEC-ID}-{slug}`）。
 
 Resume Pointer：
 
 ```markdown
 **Current Progress**:
-Feature 已於 2026-05-07 完成；請看 features-index.md 或下方的 Integration Summary。
+Feature 已於 2026-05-07 完成；所有 phase-spec status = completed。
 
 **Next Action**:
 未來變更請透過 /dflow:modify-existing 視為 follow-up feature 處理；
 不要把 T2/T3 changes 直接追加到這個 completed feature directory。
+
+**Active Workflow**: none
+
+**Current Step**: n/a
+
+**Gates Passed**: n/a
+
+**Awaiting**: none
 ```
+
+⚠ **六行都要寫。** Resume Pointer 是 cursor，範本定義六個欄位；Step 2 明文列出
+closeout 後的終局值（`none` / `n/a` / `n/a` / `none`）。只寫前兩行等於把 cursor
+停在半路——下一個接手的人讀不出「這裡沒有 workflow 在跑」。
 
 這是本篇第二個 lesson：**completed feature 的 Next Action 是 follow-up，不是 continued work。**
 
@@ -309,20 +339,27 @@ phase-spec history 或 implementation tests 裡。
 Rule Index 的 final state：
 
 ```markdown
-| BR-ID | Rule summary | Aggregate | Status | Last updated |
-|---|---|---|---|---|
-| BR-001 | 提交 ExpenseReport 時必須至少含 1 個 ExpenseItem，否則拒絕。 | ExpenseReport | active | 2026-04-28 |
-| BR-002 | ExpenseReport 提交成功後狀態變為 Submitted，不可再被編輯；唯一例外是被 Reject 後可重新編輯並再次 Submit（會建立新的 ApprovalDecision）。 | ExpenseReport | active | 2026-04-29 |
-| BR-003 | ExpenseItem 的 Money.Amount 必須 > 0。 | ExpenseReport | active | 2026-04-28 |
-| BR-004 | 同一 ExpenseReport 內，相同 ReceiptReference 不允許重複加入。 | ExpenseReport | active | 2026-04-28 |
-| BR-005 | 主管不可審核自己提交的 ExpenseReport；SubmitterId != ApproverId 必須由 Domain 層強制。 | ApprovalDecision | active | 2026-04-29 |
-| BR-006 | 只有 Status = Submitted 的 ExpenseReport 能被 Approve / Reject；其他狀態一律 raise DomainException。 | ExpenseReport | active | 2026-04-29 |
-| BR-007 | Reject 必須附註原因；ApprovalReason 至少 5 個中文字或至少 10 個英數字，否則 raise DomainException；空白不計，半形 / 全形視覺等價，emoji 算字。 | ApprovalDecision | active | 2026-04-30 |
+| BR-ID | Rule summary | Behavior anchor | Aggregate | Status | Last updated |
+|---|---|---|---|---|---|
+| BR-001 | 提交 ExpenseReport 時必須至少含 1 個 ExpenseItem，否則拒絕。 | [BR-001](./behavior.md#br-001-submit-requires-at-least-one-item) | ExpenseReport | active | 2026-04-28 |
+| BR-002 | ExpenseReport 提交成功後狀態變為 Submitted，不可再被編輯；唯一例外是被 Reject 後可重新編輯並再次 Submit（會建立新的 ApprovalDecision）。 | [BR-002](./behavior.md#br-002-submitted-report-is-immutable-except-rejected-rework) | ExpenseReport | active | 2026-04-29 |
+| BR-003 | ExpenseItem 的 Money.Amount 必須 > 0。 | [BR-003](./behavior.md#br-003-item-amount-must-be-positive) | ExpenseReport | active | 2026-04-28 |
+| BR-004 | 同一 ExpenseReport 內，相同 ReceiptReference 不允許重複加入。 | [BR-004](./behavior.md#br-004-duplicate-receipt-rejected) | ExpenseReport | active | 2026-04-28 |
+| BR-005 | 主管不可審核自己提交的 ExpenseReport；SubmitterId != ApproverId 必須由 Domain 層強制。 | [BR-005](./behavior.md#br-005-approver-cannot-approve-own-report) | ApprovalDecision | active | 2026-04-29 |
+| BR-006 | 只有 Status = Submitted 的 ExpenseReport 能被 Approve / Reject；其他狀態一律 raise DomainException。 | [BR-006](./behavior.md#br-006-only-submitted-report-can-be-approved-or-rejected) | ExpenseReport | active | 2026-04-29 |
+| BR-007 | Reject 必須附註原因；ApprovalReason 至少 5 個中文字或至少 10 個英數字，否則 raise DomainException；空白不計，半形 / 全形視覺等價，emoji 算字。 | [BR-007](./behavior.md#br-007-reject-requires-reason) | ApprovalDecision | active | 2026-04-30 |
 ```
 
-## Step 3 — Lifecycle section
+## Step 3 — Lifecycle section（Alice 團隊自訂，**不是 Dflow 產生的**）
 
-`rules.md` 也新增 Lifecycle 段，記錄 BR 從 feature snapshot finalize 到 BC layer：
+⚠ **先講歸屬，因為這段最容易被誤讀成產品行為。** `rules.md` 範本只有三段——
+`Rule Index`、`Status Legend`、`Open Questions`；`finish-feature-flow.md` Step 3 對
+`rules.md` 的規定也只有「增 / 改 / 刪 BR 段」與「更新 Rule Index 的 `Last updated`」。
+**`## Lifecycle` 這一段 Dflow 不會寫，範本裡也沒有。** 它是 Alice 團隊自己加的慣例。
+
+之所以留在本篇，是因為它示範了一個真實會遇到的缺口：feature 歸檔之後，
+「這條 BR 是哪個 feature 定案的」只剩 `Last updated` 一個日期可查。
+**但照著做的人要知道這一步得自己動手**，Dflow 不會幫你生成：
 
 ```markdown
 ## Lifecycle
@@ -344,6 +381,8 @@ Lifecycle table：
 ```
 
 這是本篇第三個 lesson：**finish-feature 把 feature history 轉成 system state。**
+（做這件事的是 Step 3 對 `rules.md` / `behavior.md` 的 sync；上面那張 Lifecycle 表
+是團隊自己補的稽核面，不是 Dflow 的產出。）
 
 ## Step 3 — 其他 BC layer checks
 
@@ -353,8 +392,12 @@ Dflow 也檢查其他 living docs：
 Dflow:
 Step 3 其他 BC layer checks：
 
-- models.md：ApprovalDecision Aggregate 已存在
+- models.md：ApprovalDecision Aggregate 已存在；ApprovalReason 的門檻同步成
+  2026-04-30 lightweight 之後的雙語條文（closeout sweep 明文包含 models.md）
 - events.md：ExpenseReportSubmitted / Approved / Rejected 都存在
+- behavior.md：骨架已在 new-feature Step 3 建好，但只涵蓋當時存在的 BR-001~004。
+  BR-005~007 的 anchor 要在這裡補建，七條的 scenario 內容也在這裡補上；
+  萬一檔案不存在，從 `templates/behavior.md` 建立
 - context-map.md：Identity external relationship 已存在；Reimbursement 仍是 future context，不更新
 - glossary.md：ApprovalReason 已包含 2026-04-30 bilingual length wording，不更新
 - architecture/tech-debt.md：Unicode character counting strategy under i18n remains open，
@@ -372,6 +415,37 @@ Step 3 其他 BC layer checks：
 
 BUG-001 修了 reject reason truncation，但更廣泛的 Unicode counting policy 不因 feature closeout
 而自動消失。
+
+### `behavior.md` lifecycle note
+
+`behavior.md` 的**骨架**在 walkthrough 02 的 new-feature Step 3 就建好了——但只涵蓋
+**當時存在的 BR-001~004**，每條一個 anchor。BR-005~007 是 walkthrough 03 的 phase 2
+才新增的，而 `new-phase-flow.md` 明寫 phase 不同步 BC 層文件（「`rules.md` /
+`behavior.md` … are **NOT updated here** — that synchronisation happens at
+`/dflow:finish-feature`」），所以**它們的 anchor 要等這次 closeout 才會出現**。
+從 walkthrough 02 到 05，**場景**則一律留在 phase spec 裡
+（見 [walkthrough 03 的文件表](walkthrough-03-new-phase.md)）。**到了 closeout，要求就變了。**
+`finish-feature-flow.md` 的 BC sync 明文規定：
+
+> For every BR-ID still active after this feature, ensure
+> `dflow/specs/domain/{context}/behavior.md` has a scenario section (anchor)
+> matching the BR-ID
+
+而且同一段還說：檔案不存在時，**只要這次 sync 會寫進去就從 template 建立它**
+（在正常流程裡骨架早就在了，這句是防漏的）。BR-001~BR-007 在 closeout 後全部仍
+active，所以跑完這次 closeout，`dflow/specs/domain/Expense/behavior.md` 會**對七條 BR
+各有一段填好內容的 scenario**——不是這時才第一次出現，而是骨架被填滿。
+
+`outputs/dflow/specs/domain/Expense/behavior.md` 就是跑完這一步之後的樣子：七條 BR
+各一段 scenario，anchor 與 `rules.md` 的 `Behavior anchor` 欄一一對應。它跟這棵樹裡
+其他文件一樣是**最終狀態**，所以你在那裡看到的是**填滿之後**的版本，不是 walkthrough 02
+當下那份只有 BR-001~004 的骨架——這個「outputs 是最終狀態、內嵌片段是當步狀態」的差別，
+每一篇開頭都提醒過。
+
+之後 `/dflow:verify` 會拿 `rules.md` ↔ `behavior.md` 做 drift check，用的正是這組對應。
+
+Brownfield 那一軌有走到這一步，可以對照
+[Brownfield walkthrough 06 的 `behavior.md` lifecycle note](../02-brownfield/walkthrough-06-finish-feature.md)。
 
 ## Step 4 — Archive feature directory
 
@@ -409,7 +483,42 @@ git status
 補充：這裡描述的是 Dflow 在真實專案中的 archive 動作；本 tutorial 連到的是已保留的
 closeout 後完整文件範例。
 
+### Step 4 還做了一件容易被忽略的事：回填 hosted `Commit` 格
+
+`git mv` 不是 Step 4 的全部。同一次編輯裡，Dflow 還要把 Lightweight Changes 表上
+**還沒填的 `Commit` 格補起來**：
+
+```text
+Dflow:
+Step 4 指令 1: 回填未填的 hosted Commit 格。
+
+| Date | Tier | Description | Commit |
+|---|---|---|---|
+| 2026-04-30 | T2 | Reject reason 從至少 10 字元放寬為 5 中文字 OR 10 英數字。見 [lightweight-2026-04-30-approval-reason-bilingual-length.md](./lightweight-2026-04-30-approval-reason-bilingual-length.md) | f10c6b3 |
+| 2026-05-04 | T2 | Bug-fix: 前端 substring 截斷 emoji surrogate pair 導致 reject reason 被拒。見 [BUG-001-emoji-surrogate-truncation.md](./BUG-001-emoji-surrogate-truncation.md) | 2ad57e9 |
+
+第一列的 `Commit` 早在 05-04 那次 commit 就回填過了，這次不動；
+**本次回填的是第二列的 `2ad57e9`**。
+寫進去的是「那一列自己的實作 commit」，不是 closeout 這個 commit 的 hash。
+```
+
+**為什麼會有沒填的格子？** 因為一列的 hash 不可能由它自己那個 commit 寫進去——
+commit 還沒發生就沒有 hash，commit 發生後檔案已經定版了。所以 hosted row 的格子
+一律由 host 的**下一個** commit 回填。04-30 那列等到了 05-04 的 commit；05-04 那列
+之後沒有新的 phase 了，**closeout 就是它等的那個「下一個 commit」**。
+
+**沒有下一次了，所以這裡漏掉就永遠是空的。** 這正是 Step 4 把回填寫成指令、而不是
+建議的原因；`references/pr-review-checklist.md` 也在 PR 端再檢一次每一格是否**解得開**
+（不是「非空就算數」——`{pending}` 這種佔位字串是非空的，卻什麼也不是）。
+
 ## Step 5 — Emit Integration Summary
+
+> ⚠ **本篇壓縮掉了 Step 5 的第一件事，但它必須先發生。** flow 規定
+> 「**First, print the closeout verification's derivation.**」——在摘要之前，先說明
+> Step 4 的 post-commit 驗證**是怎麼算出來的**（baseline、逐項差異各由哪一步指示、
+> 接受了哪些外部路徑、以及有什麼是它判定不了、該由誰承擔）。那是一次真實驗證的推導
+> 結果，本教材不編造它；要看完整規定請讀
+> `finish-feature-flow.md` 的 Step 5 開頭。以下從摘要本身開始。
 
 Dflow 接著產出 Integration Summary。它先說明 audience：
 
@@ -424,58 +533,140 @@ Dflow:
 你可以把它改寫成 PR description、release note、merge commit message，或貼到團隊同步文件。
 ```
 
-完整文件範例將 Integration Summary inline 到 completed feature `_index.md`：
+⚠ **這份 summary 印在對話裡，不會被寫進任何檔案。** `finish-feature-flow.md` Step 5
+的原文是「Print the summary to the conversation; do not write it to a file
+(it is ephemeral closeout output)」。
+
+⚠⚠ **這是一條 flow 的明文指示，不是一道 gate——不要把它說成 gate。** Step 1 檢查的是
+「七個必要段落**都在**」，不是「除此之外什麼都不准有」；關帳後的驗證比的是「Step 1 讀到的
+東西有沒有被改動」，所以一段從頭到尾都在、closeout 也沒動過的 `## Integration Summary`
+**不會**被擋下。何況 Step 5 跑在 Step 4 的 commit 與那道驗證**之後**——這時候寫進檔案的
+東西根本不在那個 commit 裡，**closeout 自己的檢查都看不到它**。
+⚠ 但「closeout 看不到」不等於「沒人看得到」：`references/pr-review-checklist.md`
+就有一項「**Integration Summary** was emitted to the conversation (not written to a
+file — it's ephemeral)」，兩軌都有。而且 Step 5 明寫這時 host 已經歸檔凍結、
+**不得再改 archived `_index.md`**，Step 2 也說 closeout commit 之後不要再動 cursor。
+「Step 4 之後沒人管」是錯的推論。
+**照 Step 5 做的理由是 Step 5 這麼說，不是因為不這麼做會被擋。**
+（對照上面的 `completed_date`：那一條**確實**有 gate 撐著，因為 Step 2 寫在 Step 4 的
+commit **之前**，它會成為基準的差異而被擋。兩者的差別值得看清楚。）
+
+所以下面每一段都是**對話輸出**。歸檔後的檔案長什麼樣，見
 [`outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/_index.md)
+——它有七個必要段落（含 Checkpoint Log），**沒有** Integration Summary 段。
+要把這份 summary 留給日後的 reviewer，貼進 PR description、release note 或團隊同步文件，
+那才是它的去處。
 
-### Feature Overview
+`finish-feature-flow.md` Step 5 有一個 `Format:` 區塊，逐欄規定這份摘要長什麼樣。
+下面就是照它印出來的：
 
-```markdown
-SPEC-20260428-001-employee-submit-expense 交付了 ExpenseTracker 第一個端到端 feature：
-員工可以建立、編輯並提交 ExpenseReport，
-主管可以對 Submitted 狀態的 ExpenseReport 執行 Approve 或 Reject，
-並留下可稽核的 ApprovalDecision。
+```text
+== Integration Summary: SPEC-20260428-001-employee-submit-expense ==
 
-它建立初始的 Expense Bounded Context，
-並驗證第一條從 Aggregate design 到試用回饋的完整 Domain-driven 路徑。
+Feature Goal: 員工可以建立、編輯並提交 ExpenseReport；主管可以對 Submitted 狀態的
+ExpenseReport 執行 Approve 或 Reject，並留下可稽核的 ApprovalDecision。本 feature
+建立初始的 Expense Bounded Context。
+
+Change Scope:
+- BC: Expense
+- Aggregates affected: ExpenseReport, ApprovalDecision
+- Phase Count: 2 (phase-spec-2026-04-28-mvp phase-spec-2026-04-29-supervisor-approval)
+- Lightweight Changes: 2 T2 lightweight specs + 0 T3 inline rows
+
+Related BR-IDs (post-closeout state):
+- ADDED: BR-001, BR-002, BR-003, BR-004, BR-005, BR-006, BR-007
+- MODIFIED: none
+- REMOVED: none
+
+Domain Events Changes:
+- ADDED: ExpenseReportSubmitted, ExpenseReportApproved, ExpenseReportRejected
+- MODIFIED: none
+- REMOVED: none
+
+Phase List:
+- phase-1 (2026-04-28): mvp — 建立 ExpenseReport、ExpenseItem、Money、
+  ReceiptReference、ExpenseCategory、Submit 流程與 ExpenseReportSubmitted。
+- phase-2 (2026-04-29): supervisor-approval — 加入主管 Approve / Reject、
+  ApprovalDecision、ApprovalReason、ExpenseReportApproved、ExpenseReportRejected，
+  以及 Rejected 後重編行為。
+
+Next Steps (developer) — Integration / PR gate (needs network):
+- Per the selected Git policy (`gitflow` / `trunk` in `_conventions.md`), choose
+  a merge strategy (merge commit / squash / rebase / fast-forward) and execute
+- Push to remote / open a PR — the AI can run `git push` / `gh pr create` for
+  you, but only when you explicitly ask; it never pushes on its own
 ```
 
-### Change Scope
+兩個欄位值得停下來看：
 
-```markdown
-| Area | Final State |
-|---|---|
-| Bounded Context | Expense |
-| Phase Count | 2 份 phase specs |
-| Lightweight Changes | 2 份 T2 lightweight specs，0 筆 T3 inline changes |
-| Aggregates Introduced | ExpenseReport, ApprovalDecision |
-| Domain Events Introduced | ExpenseReportSubmitted, ExpenseReportApproved, ExpenseReportRejected |
-| Feature Status | 2026-05-07 完成，並已通過 3 天穩定試用 |
-```
+**`Related BR-IDs` 這一欄最容易被讀錯，而且錯法很固定：把它當成「這次 sync 做了
+什麼」。** 它不是。flow 在**兩軌的 Step 3、Step 5，以及兩軌的 `Git-principles-*`
+scaffolding**裡都寫了同一句話：
 
-### Lightweight Changes Summary
+> **`Related BR-IDs` is not one of those**: it reports what this change's own
+> record carries, **not what was synced**
 
-```markdown
-| Date | Type | Summary |
-|---|---|---|
-| 2026-04-30 | T2 modify | 將 BR-007 從單一 10 字元門檻放寬為雙語長度驗證。 |
-| 2026-05-04 | T2 bug-fix | 修正 reject reason 處理中的 emoji surrogate truncation。 |
-```
+同一段還特別點名：`BC`、`Aggregates affected`、`Domain Events Changes` 才是「報告
+有沒有做 sync」的那一組，**`Related BR-IDs` 不屬於那一組**。
+
+所以它的值要去**這個 host 自己的 `_index.md` Current BR Snapshot** 拿。本 feature 的
+snapshot 七列的 `First Seen (phase)` 全是 `phase-1 (mvp)` 或
+`phase-2 (supervisor-approval)`——**沒有一列是 `inherited from rules.md`**（範本為
+「繼承來的規則」保留的那個值）。也就是說這份紀錄自己說：這七條都是本 feature 引入的。
+因此是 `ADDED: BR-001…BR-007 / MODIFIED: none`。
+
+⚠ **不要拿上面 Step 3 的 sync 結果來反推這一欄。** Step 3 印的「BR-003 already
+exists；收斂成 snapshot wording」講的是 `rules.md` 那邊的動作，而 Step 3→4 gate 的
+`{n_added} added, {n_modified} modified` 也是 sync 的計數——**那些跟這一欄是兩件事，
+flow 特地寫了一句話來擋這個誤讀**。
+
+**`Related BR-IDs` 不等於 `_index.md` 的 Current BR Snapshot。** 內容看起來重疊，
+角色不同：檔案裡那張是 feature 的當前狀態、會被後續步驟 regenerate；摘要這一行是
+closeout 當下把**這份紀錄自己帶了什麼**讀出來一次，印完就沒了（flow 明寫這份摘要
+不寫進檔案）。**它報的不是「closeout 對 BC 做了什麼」**——那是 `BC`、
+`Aggregates affected`、`Domain Events Changes` 那一組的工作，就是上面那句 flow 原文
+特地把它排除在外的那一組。**不要因為「重複」就把檔案裡那張刪掉**——它正是
+Step 3 同步到 BC layer 的來源。
+
+**最後那段 `Next Steps` 不能省。** 它是整份摘要裡唯一寫著「AI 可以幫你 `git push` /
+開 PR，**但只有你明講時才會做，它不會自己推**」的地方。省掉它，讀者就少了這個保證。
 
 這是本篇第四個 lesson：**Integration Summary 是 feature story 的壓縮版，不是 Git 操作紀錄。**
 
 它讓日後 reviewer 不必逐一讀兩份 phase spec、兩份 T2 spec 和多個 domain docs，先取得整體脈絡。
 
-## Step 5 — Outstanding / Deferred 與 Sign-off
+### 團隊自加的三段（**規範的 `Format:` 沒有這些**）
 
-Integration Summary 也保留 deferred items：
+⚠ 接下來三段——Tech Debt Outstanding、Outstanding / Deferred、Sign-off——
+**都不在 `finish-feature-flow.md` Step 5 的 `Format:` 區塊裡**。它們是 Alice 團隊
+在規定欄位之外自己補的，因為 closeout 也要回答 stakeholder「誰確認過、還有什麼沒做」。
+放進本篇是為了展示這個真實需求，**但照著做的人要分得清哪些是 Dflow 規定的、
+哪些是自己加的**：上面那個 `== Integration Summary ... ==` 區塊是規範欄位，
+下面這些不是。
+
+```markdown
+### Tech Debt Outstanding
+
+- Unicode i18n 下的字元計數策略: status 在 dflow/specs/architecture/tech-debt.md
+  中仍為 open。BUG-001 已修 reject reason truncation 與 malformed-input handling，
+  但針對 grapheme clusters、code points、UTF-16 units、Intl.Segmenter 與 ICU support
+  的更廣泛產品層級策略，仍是獨立 architecture 後續事項。
+```
+
+deferred items：
 
 ```markdown
 ### Outstanding / Deferred
 
-- Batch approval：phase 2 已延後；如果重新啟動，請在 features/backlog/ 下建立 follow-up feature。
-- Approval notification email：不在 phase 2 範圍。
-- Approval SLA timer / escalation：在真實 policy complexity 出現前先不納入範圍。
-- Reimbursement BC：approval 穩定後規劃的未來 context。
+- Batch approval：phase 2 刻意只交付單筆 report 的 Approve / Reject。如果試用回饋
+  證明需要 batch approval，請在 features/backlog/ 下建立 follow-up feature 並連回
+  這個 completed feature；不要直接在這裡追加新的 T2/T3 work。
+- Approval notification email：已延後，因為 phase 2 將 notification concerns 保持在
+  Expense Domain model 之外；可能是 Notification concern 或 Application Layer integration。
+- Approval SLA timer / escalation：延後到 policy 複雜度明確後；可能代表未來需要
+  Approval policy model 或獨立 BC review。
+- Reimbursement BC：approval 穩定後規劃的未來 context；可能會接在
+  `ExpenseReportApproved` 之後，消費 Expense 的 approved report information。
 ```
 
 Sign-off：
@@ -506,6 +697,14 @@ SPEC-20260428-001-employee-submit-expense 沒有 follow-up-of metadata。
 
 這一步在本案是 skip，但它很重要。若某個 feature 是從 completed feature 派生的 follow-up，
 finish-feature 時要回頭更新原 feature 的 Follow-up Tracking，讓歷史鏈完整。
+
+⚠ **所以你在完整文件範例裡看到的那一列 Follow-up Tracking，不是本篇產生的。**
+打開 `_index.md` 會看到
+`| SPEC-20260512-001 | reject-not-persisted | 2026-05-12 | completed |`——
+那是 **walkthrough 08** 的 follow-up host 在**它自己的** closeout（Step 6）反向翻上來的，
+發生在本篇之後五天。fixture 反映的是 tutorial 跑完整條劇情後的**最終**狀態，
+不是本篇 closeout 當下的快照。本篇當下那一段還不存在（它是選配的第八段，
+只在這個 feature 長出 follow-up 時才出現）。
 
 ## Completed feature 是 frozen history
 
@@ -540,7 +739,7 @@ new-phase 和 modify-existing 是「繼續這個 active feature」。finish-feat
 | 狀態 | Path | 讀者看什麼 |
 |---|---|---|
 | 移動 | [`outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/`](outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/) | Feature 從 active archive 到 completed 後的完整目錄。 |
-| 修改 | [`outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/_index.md) | completed status、Phase Specs completed、BR snapshot、Lightweight Changes、Integration Summary、Outstanding / Deferred。 |
+| 修改 | [`outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/_index.md) | completed status（只翻 `status`）、Resume Pointer 終局狀態、Checkpoint Log 的 closeout 列、Lightweight Changes 回填的 `Commit` 格。⚠ Integration Summary **不寫進檔案**，見 Step 5。 |
 | 修改 | [`outputs/dflow/specs/domain/Expense/rules.md`](outputs/dflow/specs/domain/Expense/rules.md) | BC-level Rule Index 與 Lifecycle section，從 feature snapshot finalize。 |
 | 修改 | [`outputs/dflow/specs/architecture/tech-debt.md`](outputs/dflow/specs/architecture/tech-debt.md) | Unicode counting debt 保持 open，補 related completed feature context。 |
 | 故意不改 | `outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/phase-spec-*.md` | phase specs 保留 frozen history，不在 closeout 重寫。 |
@@ -559,7 +758,7 @@ new-phase 和 modify-existing 是「繼續這個 active feature」。finish-feat
 | Spec-first development | closeout 前先檢查 spec / tasks / tests，再 archive feature directory。 |
 | DDD semantic backbone | Current BR Snapshot 被 reconcile 到 BC-level `rules.md`，不是只留在 feature history。 |
 | 三層文件分工 | phase / T2 specs 是 frozen history，feature `_index.md` 是 completed summary，BC docs 是 durable system state。 |
-| Drift verification readiness | Integration Summary、Lifecycle section、Outstanding / Deferred 讓後續 reviewer 能判斷 future changes 是否應開 follow-up。 |
+| Drift verification readiness | 印出的 Integration Summary（含 Outstanding / Deferred）與 BC layer 的 Lifecycle section 讓後續 reviewer 能判斷 future changes 是否應開 follow-up。 |
 
 ## 這一段帶來的實際好處
 
@@ -568,7 +767,7 @@ new-phase 和 modify-existing 是「繼續這個 active feature」。finish-feat
 | active feature 不會關 | 完成後仍留在 active，AI 誤以為可以繼續追加工作。 | status flip + archive 到 completed。 |
 | BR system state 漂移 | feature snapshot 已更新，但 BC `rules.md` 還是舊 wording。 | Step 3 sync / reconciliation。 |
 | deferred scope 變 dangling question | batch approval、notification、SLA 留在 open question。 | Outstanding / Deferred 明確 disposition。 |
-| 完成內容難以溝通 | stakeholder 只能讀 commit 或聊天紀錄。 | Integration Summary inline 到 `_index.md`。 |
+| 完成內容難以溝通 | stakeholder 只能讀 commit 或聊天紀錄。 | closeout 產出一份 git-strategy-neutral 的 Integration Summary，可直接貼成 PR description / release note。 |
 | completed feature 被 reopen | 後續 T2/T3 直接塞回 completed directory。 | Resume Pointer 與 Outstanding 明確要求 follow-up feature。 |
 
 ## 對不熟 finish-feature 的讀者的讀法
@@ -579,7 +778,9 @@ new-phase 和 modify-existing 是「繼續這個 active feature」。finish-feat
    本篇答案是 phase 1 / phase 2 / T2 modify / BUG-001 都完成，試用與 regression tests 通過。
 
 2. **關 feature 時要同步什麼？**
-   `_index.md` status、Phase Specs status、BR Snapshot、BC `rules.md`、tech-debt context、Integration Summary。
+   `_index.md` status、BR Snapshot、Checkpoint Log、BC `rules.md`、tech-debt context。
+   ⚠ **Phase Specs status 不在這裡**——每一列在 Step 1 就必須已經是 `completed`，那是
+   **進場條件**，不是 closeout 同步的東西（closeout 去動它反而會被判成 edit fallout）。
 
 3. **為什麼要 archive 到 completed？**
    completed directory 表示 frozen history。它讓 active work surface 乾淨，也保護完成後的審計紀錄。

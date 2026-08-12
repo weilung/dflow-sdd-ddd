@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import init from '../lib/init.js';
+
+const { REQUIRED_COMMON_BUNDLE_FILES } = init;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
@@ -718,6 +721,56 @@ try {
     webformsBundleManifest.files.includes('dflow/specs/shared/dflow-workflows/references/ddd-modeling-guide.md'),
     'PROPOSAL-064: brownfield bundle manifest should list the common ddd-modeling-guide.md'
   );
+  // dflow-feedback-flow.md is likewise an edition-neutral COMMON bundle
+  // reference (2026-08-10); it was a per-track pair whose copies differed by one
+  // example sentence. Same three assertions as the guide above, for the same
+  // reason: existence, content proving the COMMON source was read, manifest
+  // membership.
+  assert.equal(
+    await exists(join(webformsBundleDir, 'references/dflow-feedback-flow.md')),
+    true,
+    'brownfield bundle should contain the common dflow-feedback-flow.md'
+  );
+  // Assert the source→destination RELATION, not a magic string: compare the
+  // projected body against the actual common source. An earlier version pinned
+  // the prose example "new internal service", which meant an ordinary copy edit
+  // to that sentence failed smoke while source and projection were both correct
+  // — a build guard coupled to editable copy.
+  const brownfieldFeedback = await readFile(join(webformsBundleDir, 'references/dflow-feedback-flow.md'), 'utf8');
+  const commonFeedbackSource = await readFile(
+    join(repoRoot, 'templates/common/references/dflow-feedback-flow.md'),
+    'utf8'
+  );
+  // Non-vacuity only: two empty strings compare equal and would prove nothing.
+  // Deliberately NOT a size threshold — an earlier `> 1000` imposed an
+  // undocumented content-size policy and would have rejected a legitimate short
+  // flow whose projection was exactly correct. readFile throws rather than
+  // returning a truncated string, so length proves nothing beyond non-emptiness.
+  assert.ok(
+    commonFeedbackSource.length > 0,
+    'common feedback-flow source must be non-empty or the equality below is vacuous'
+  );
+  // Assert the EXACT transformation instead of deleting evidence before
+  // comparing. injectBundleMarker() prepends the marker plus a blank line and
+  // changes nothing else, so the projected file is predictable to the byte —
+  // including the trailing newline, which a .trim() comparison cannot see.
+  //
+  // An earlier version filtered out every line containing "dflow-generated:"
+  // and compared the remainder. That both HID a projector emitting an extra
+  // marker line (stripped, so it passed) and would FALSELY FAIL if the source
+  // ever documented the marker itself (stripped from the projection only).
+  // Removing evidence before a comparison is not a safe operation — this repo
+  // has already paid for that lesson once, in the doctor reader (p084-sol1).
+  assert.equal(
+    brownfieldFeedback,
+    `<!-- dflow-generated: workflow-bundle -->\n\n${commonFeedbackSource}`,
+    'brownfield-projected feedback flow must be exactly the common source with the bundle marker prepended'
+  );
+  assert.ok(
+    webformsBundleManifest.files.includes('dflow/specs/shared/dflow-workflows/references/dflow-feedback-flow.md'),
+    'brownfield bundle manifest should list the common dflow-feedback-flow.md'
+  );
+
   // aggregate-design.md / events.md TEMPLATES stay greenfield-only (not promoted).
   assert.equal(
     await exists(join(webformsBundleDir, 'templates/aggregate-design.md')),
@@ -1078,6 +1131,273 @@ try {
     const swM2 = JSON.parse(await readFile(swManifestPath, 'utf8'));
     assert.equal(swM2.files.includes(`${BUNDLE_REL}/references/ddd-modeling-guide.md`), true, 'edition-switch: rebuilt manifest still lists the common guide');
     assert.equal(swM2.files.includes(`${BUNDLE_REL}/templates/aggregate-design.md`), false, 'edition-switch: rebuilt manifest drops greenfield-only aggregate-design.md');
+  }
+
+  // --- doctor must not print a clean bill of health on a BROKEN INSTALL ---
+  //
+  // `feedbackcommon-xv6` reproduced this end-to-end: with one required file removed
+  // from templates/common/, `doctor` printed `All checks passed` and exited 0 while
+  // `configure-agents` hard-failed before writing anything. The cause was a bare
+  // `catch { return; }` in checkWorkflowBundleSourceAndOrphans (then still named
+  // checkOrphanedWorkflowBundleFiles) swallowing the three source-integrity asserts.
+  //
+  // ⚠ This has to run against a COPY of the package. The pure guards in
+  // test/bundle-guards.mjs cannot reach it — they assert on synthetic descriptor
+  // lists, and the defect lives in what doctor DOES with the exception, not in
+  // whether the exception is raised. Mutating the real templates/ tree to get here
+  // is not an option a test suite should take.
+  {
+    const brokenPkg = join(tempRoot, 'broken-package');
+    await cp(repoRoot, brokenPkg, {
+      recursive: true,
+      // Copy only what the CLI needs to run. node_modules/.git would make this
+      // minutes instead of milliseconds.
+      filter: (src) => {
+        const rel = relative(repoRoot, src);
+        if (rel === '') return true;
+        const top = rel.split(/[\\/]/)[0];
+        return ['bin', 'lib', 'templates', 'package.json'].includes(top);
+      }
+    });
+    const brokenBin = join(brokenPkg, 'bin', 'dflow.js');
+
+    const bpRoot = join(tempRoot, 'broken-package-project');
+    await mkdir(bpRoot, { recursive: true });
+    // ⚠ The fixture must be a project doctor calls COMPLETELY clean, and that is
+    // load-bearing rather than tidiness. A first attempt answered `none` to the AI
+    // agents question; the project then carried an unrelated `[warn] AI-AGENT-GUIDE.md
+    // is missing`, which meant `All checks passed` never appeared in EITHER direction
+    // and the "must not claim all checks passed" assertion below passed for a reason
+    // that had nothing to do with the defect. Selecting the agents is what lets this
+    // reproduce the reported symptom instead of merely correlating with it.
+    const bpInitAnswers = [
+      '1',       // edition: greenfield
+      'ASP.NET Core 9, EF Core 8',
+      'none',
+      '1',       // prose: zh-TW
+      '2',       // Git policy: trunk
+      '1',       // AI commit marker: none
+      '1',       // optional starter files: overview
+      '1,2,3',   // AI agents: all — projects AI-AGENT-GUIDE.md
+      'y'
+    ].join('\n') + '\n';
+    const bpInit = await runDflow(bpRoot, bpInitAnswers, ['init']);
+    assert.equal(bpInit.code, 0, `broken-package: fixture init failed\nSTDOUT:\n${bpInit.stdout}\nSTDERR:\n${bpInit.stderr}`);
+    // ⚠ This first fixture depends on the project HAVING a projected bundle, because
+    // it is also the fixture for the ORPHAN SCAN path. The two fixtures below cover
+    // what happens when that is not true.
+    assert.equal(await exists(join(bpRoot, BUNDLE_REL, 'references')), true, 'broken-package: fixture must have a projected workflow bundle, or this case is vacuous');
+
+    // Second fixture: the SAME initialized project with its workflow bundle removed.
+    // `projgate-x1` found that the first version of this fix sat below the
+    // bundle-directory early return, so this exact state — a real Dflow project, no
+    // projected bundle, broken package — still printed `All checks passed`. The
+    // manifest lives inside the bundle, so removing it also forces edition inference
+    // down to the structural fallback, which is the path a real user would hit.
+    const bpNoBundleRoot = join(tempRoot, 'broken-package-project-no-bundle');
+    await cp(bpRoot, bpNoBundleRoot, { recursive: true });
+    await rm(join(bpNoBundleRoot, BUNDLE_REL), { recursive: true, force: true });
+    assert.equal(await exists(join(bpNoBundleRoot, BUNDLE_REL)), false, 'broken-package/no-bundle: the bundle must actually be gone');
+    assert.equal(await exists(join(bpNoBundleRoot, 'dflow/specs/architecture/tech-debt.md')), true, 'broken-package/no-bundle: the structural edition signal must survive, or the check bails for the wrong reason');
+
+    // Third fixture: a Dflow project whose EDITION cannot be inferred at all. This is
+    // where `projgate-x2` found the second version of the fix still false-cleaning —
+    // the gate had moved from "is a bundle projected" to "is an edition known", and
+    // both were guesses at a boundary that turned out not to exist. Strip the
+    // manifest (it lives inside the bundle) and every signal `inferExistingEdition`
+    // reads. A real project reaches this by damage, not by design, which is exactly
+    // when a user runs doctor.
+    const bpNoEditionRoot = join(tempRoot, 'broken-package-project-no-edition');
+    await cp(bpRoot, bpNoEditionRoot, { recursive: true });
+    await rm(join(bpNoEditionRoot, BUNDLE_REL), { recursive: true, force: true });
+    await rm(join(bpNoEditionRoot, 'dflow/specs/architecture/tech-debt.md'), { force: true });
+    await rm(join(bpNoEditionRoot, 'dflow/specs/migration/tech-debt.md'), { force: true });
+    await rm(join(bpNoEditionRoot, 'dflow/specs/domain/context-map.md'), { force: true });
+    assert.equal(await exists(join(bpNoEditionRoot, 'dflow/specs/shared/_conventions.md')), true, 'broken-package/no-edition: it must still be recognisably a Dflow project, or the fixture proves nothing');
+
+    const runCopiedDoctor = (cwd = bpRoot) => {
+      const result = spawnSync(process.execPath, [brokenBin, 'doctor'], {
+        cwd,
+        encoding: 'utf8',
+        timeout: RUN_TIMEOUT_MS,
+        maxBuffer: 1024 * 1024
+      });
+      if (result.error) throw result.error;
+      return { code: result.status, stdout: result.stdout || '', stderr: result.stderr || '' };
+    };
+
+    // FALSE-REJECTION DIRECTION FIRST. The copy is still intact here, so the new
+    // finding must NOT appear — otherwise a green mutation test below would only
+    // prove the finding fires always. Run before the mutation so this cannot be
+    // an artefact of restoring the file.
+    const intactDoctor = runCopiedDoctor();
+    assert.equal(intactDoctor.code, 0, `broken-package control: doctor on an INTACT package copy should exit 0\nSTDOUT:\n${intactDoctor.stdout}\nSTDERR:\n${intactDoctor.stderr}`);
+    assert.doesNotMatch(intactDoctor.stdout, /installed dflow package looks incomplete/i, 'broken-package control: an intact package must NOT be reported as incomplete');
+    // This is what makes the mutation assertion below non-vacuous: the fixture DOES
+    // reach `All checks passed` when the package is whole, so losing that line later
+    // can only be the deleted file talking.
+    assert.match(intactDoctor.stdout, /All checks passed/, 'broken-package control: the fixture must be otherwise clean, or the mutation direction proves nothing');
+
+    // Same control for the no-bundle project: with the package INTACT, a missing
+    // workflow bundle must not be reported as a broken install. Without this, the
+    // no-bundle assertion below could pass simply because the warning fires whenever
+    // the bundle is absent — which would be a new false positive, not a fix.
+    const intactNoBundleDoctor = runCopiedDoctor(bpNoBundleRoot);
+    assert.equal(intactNoBundleDoctor.code, 0, `broken-package/no-bundle control: doctor should exit 0\nSTDOUT:\n${intactNoBundleDoctor.stdout}\nSTDERR:\n${intactNoBundleDoctor.stderr}`);
+    assert.doesNotMatch(intactNoBundleDoctor.stdout, /installed dflow package looks incomplete/i, 'broken-package/no-bundle control: an intact package must NOT be reported as incomplete just because the project has no bundle');
+    assert.match(intactNoBundleDoctor.stdout, /All checks passed/, 'broken-package/no-bundle control: this fixture must reach `All checks passed` intact, or its mutation direction proves nothing');
+
+    const intactNoEditionDoctor = runCopiedDoctor(bpNoEditionRoot);
+    assert.equal(intactNoEditionDoctor.code, 0, `broken-package/no-edition control: doctor should exit 0\nSTDOUT:\n${intactNoEditionDoctor.stdout}\nSTDERR:\n${intactNoEditionDoctor.stderr}`);
+    assert.doesNotMatch(intactNoEditionDoctor.stdout, /installed dflow package looks incomplete/i, 'broken-package/no-edition control: an intact package must NOT be reported as incomplete just because the edition is unknown');
+    assert.match(intactNoEditionDoctor.stdout, /All checks passed/, 'broken-package/no-edition control: this fixture must reach `All checks passed` intact, or its mutation direction proves nothing');
+
+    // MUTATION DIRECTION. Derived from the real list, never a hardcoded name: a
+    // hardcoded one goes stale the moment the list changes and then silently tests
+    // the absence of a file that was never required.
+    const [requiredCommonRel] = REQUIRED_COMMON_BUNDLE_FILES;
+    assert.ok(requiredCommonRel, 'broken-package: REQUIRED_COMMON_BUNDLE_FILES must be non-empty or this case proves nothing');
+    const victim = join(brokenPkg, 'templates', 'common', requiredCommonRel);
+    assert.equal(await exists(victim), true, `broken-package: fixture precondition — ${requiredCommonRel} must exist in the copy`);
+    await rm(victim, { force: true });
+
+    const brokenDoctor = runCopiedDoctor();
+    assert.equal(brokenDoctor.code, 0, `broken-package: doctor must stay read-only and exit 0\nSTDOUT:\n${brokenDoctor.stdout}\nSTDERR:\n${brokenDoctor.stderr}`);
+    // The defect itself: this exact line is what shipped over a broken install.
+    assert.doesNotMatch(brokenDoctor.stdout, /All checks passed/, 'broken-package: doctor must NOT claim all checks passed on a package whose bundle source is incomplete');
+    assert.match(brokenDoctor.stdout, /\[warn\] The installed dflow package looks incomplete/, 'broken-package: doctor must report the broken install as a warn finding');
+    // Name the missing file, so the reader can tell a broken install from project drift.
+    assert.match(brokenDoctor.stdout, new RegExp(requiredCommonRel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), 'broken-package: the finding must name the missing common file');
+    assert.match(brokenDoctor.stdout, /not with anything in your project/, 'broken-package: the action must point at the package, not at project content');
+
+    // ⚠ THE `projgate-x1` CASE. An initialized project with NO projected bundle must
+    // reach the same verdict: the package is what is broken, and doctor may not hand
+    // out a clean bill of health because one early return happened to fire first.
+    const brokenNoBundleDoctor = runCopiedDoctor(bpNoBundleRoot);
+    assert.equal(brokenNoBundleDoctor.code, 0, `broken-package/no-bundle: doctor must stay read-only and exit 0\nSTDOUT:\n${brokenNoBundleDoctor.stdout}\nSTDERR:\n${brokenNoBundleDoctor.stderr}`);
+    assert.doesNotMatch(brokenNoBundleDoctor.stdout, /All checks passed/, 'broken-package/no-bundle: doctor must NOT claim all checks passed — this is the exact state projgate-x1 reproduced against the first version of the fix');
+    assert.match(brokenNoBundleDoctor.stdout, /\[warn\] The installed dflow package looks incomplete/, 'broken-package/no-bundle: the broken install must be reported even with no projected bundle to scan');
+
+    // ⚠ THE `projgate-x2` CASE — the third fixture, and the one that ended the
+    // boundary-guessing: no manifest, no structural signal, so no edition at all.
+    const brokenNoEditionDoctor = runCopiedDoctor(bpNoEditionRoot);
+    assert.equal(brokenNoEditionDoctor.code, 0, `broken-package/no-edition: doctor must stay read-only and exit 0\nSTDOUT:\n${brokenNoEditionDoctor.stdout}\nSTDERR:\n${brokenNoEditionDoctor.stderr}`);
+    assert.doesNotMatch(brokenNoEditionDoctor.stdout, /All checks passed/, 'broken-package/no-edition: doctor must NOT claim all checks passed — this is the state projgate-x2 reproduced against the second version of the fix');
+    assert.match(brokenNoEditionDoctor.stdout, /\[warn\] The installed dflow package looks incomplete/, 'broken-package/no-edition: the common tree is edition-neutral, so a broken one must be reported without knowing the edition');
+    // The consequence clause must NOT appear here: with no edition there was no
+    // retired-file scan to lose, and claiming one was lost would be the same class of
+    // false operational claim this fix removes.
+    assert.doesNotMatch(brokenNoEditionDoctor.stdout, /retired-bundle-file scan did not run/, 'broken-package/no-edition: doctor must not claim it lost a scan that was never going to run');
+    // ⚠ The no-bundle project has an edition but nothing projected, so that scan was
+    // not going to run either. `projgate-y1` F5 caught the first version claiming it
+    // was lost there. The clause needs BOTH conditions.
+    assert.doesNotMatch(brokenNoBundleDoctor.stdout, /retired-bundle-file scan did not run/, 'broken-package/no-bundle: with no projected bundle there was no scan to lose either');
+    assert.match(brokenDoctor.stdout, /retired-bundle-file scan did not run/, 'broken-package: where an edition IS known AND a bundle IS projected, the lost scan must be disclosed — otherwise the clause is dead code');
+
+    // ⚠ THE `projgate-y1` CASE, and the one that ended three rounds of boundary
+    // guessing. A common-tree-only scan reaches only ONE of the three integrity
+    // asserts, so a CROSS-TREE COLLISION — the same file name in common and in an
+    // edition — was invisible without an inferred edition while `configure-agents`
+    // hard-failed on it. That shape is not exotic for this release: single-sourcing
+    // MOVED a file between trees, so any install overwritten in place rather than
+    // replaced leaves the per-track copy beside the new common one.
+    // ⚠ Restore the deleted file FIRST, from the repo's real tree. Otherwise the
+    // package carries two defects at once and a pass would not say which one was
+    // seen — the collision has to be the only thing wrong for this to measure it.
+    await cp(join(repoRoot, 'templates', 'common', requiredCommonRel), victim);
+    const collisionVictim = REQUIRED_COMMON_BUNDLE_FILES[0];
+    await cp(
+      join(repoRoot, 'templates', 'common', collisionVictim),
+      join(brokenPkg, 'templates', 'greenfield', collisionVictim)
+    );
+    const collisionDoctor = runCopiedDoctor(bpNoEditionRoot);
+    assert.equal(collisionDoctor.code, 0, `broken-package/collision: doctor must stay read-only and exit 0\nSTDOUT:\n${collisionDoctor.stdout}`);
+    assert.doesNotMatch(collisionDoctor.stdout, /All checks passed/, 'broken-package/collision: a cross-tree collision must be reported even when the edition is unknown — this is the state projgate-y1 reproduced against the third version of the fix');
+    assert.match(collisionDoctor.stdout, /\[warn\] The installed dflow package looks incomplete/, 'broken-package/collision: the finding must name the broken install');
+    assert.match(collisionDoctor.stdout, /exists in both/, 'broken-package/collision: the message must say what is actually wrong, not just that something is');
+
+    // And the pairing that made all of this a defect rather than a cosmetic gap: the
+    // two commands must not disagree about whether the package is usable. The copy
+    // now carries the collision, so this checks that half of the pair — and it is the
+    // half that was still disagreeing one round ago.
+    const brokenConfigure = spawnSync(process.execPath, [join(brokenPkg, 'bin', 'dflow.js'), 'configure-agents'], {
+      cwd: bpRoot, input: '1,2,3\ny\n', encoding: 'utf8', timeout: RUN_TIMEOUT_MS, maxBuffer: 1024 * 1024
+    });
+    assert.notEqual(brokenConfigure.status, 0, 'broken-package/collision: configure-agents must hard-fail — if it stops failing, this test is no longer measuring the disagreement it was written for');
+    assert.match(`${brokenConfigure.stdout}${brokenConfigure.stderr}`, /exists in both/, 'broken-package/collision: configure-agents must fail for the SAME reason doctor reported, or the two commands still disagree');
+
+    // ⚠ DISCLOSE-NOT-BLOCK (`projgate-x3`, user decision 2026-08-11). A track this
+    // project does not use can be damaged while nothing it runs ever fails. That is
+    // NOT the false-clean the warn exists for — doctor and configure-agents agree
+    // here, and both are right — but a bare `All checks passed` would still imply a
+    // completeness that was never checked. It is disclosed at `info`, and raising it
+    // to `warn` would re-create the original disagreement in the opposite direction.
+    // A separate package copy, so the collision above cannot bleed into this case.
+    const otherTrackPkg = join(tempRoot, 'other-track-damaged-package');
+    await cp(repoRoot, otherTrackPkg, {
+      recursive: true,
+      filter: (src) => {
+        const rel = relative(repoRoot, src);
+        if (rel === '') return true;
+        return ['bin', 'lib', 'templates', 'package.json'].includes(rel.split(/[\\/]/)[0]);
+      }
+    });
+    await rm(join(otherTrackPkg, 'templates', 'brownfield', 'references'), { recursive: true, force: true });
+    const otherTrackDoctor = spawnSync(process.execPath, [join(otherTrackPkg, 'bin', 'dflow.js'), 'doctor'], {
+      cwd: bpRoot, encoding: 'utf8', timeout: RUN_TIMEOUT_MS, maxBuffer: 1024 * 1024
+    });
+    assert.equal(otherTrackDoctor.status, 0, `other-track-damaged: doctor must exit 0\nSTDOUT:\n${otherTrackDoctor.stdout}`);
+    assert.doesNotMatch(otherTrackDoctor.stdout, /All checks passed/, 'other-track-damaged: a bare clean bill implies a completeness that was not checked');
+    assert.match(otherTrackDoctor.stdout, /\[info\] The installed dflow package is damaged in the brownfield track/, 'other-track-damaged: must be disclosed at info, naming the track');
+    assert.doesNotMatch(otherTrackDoctor.stdout, /\[warn\]/, 'other-track-damaged: must NOT be a warn — warn is for what blocks you, and nothing here does');
+    assert.match(otherTrackDoctor.stdout, /Nothing here blocks this project/, 'other-track-damaged: the reader must be told plainly that it does not block them');
+    // The half that makes `info` the right level rather than a softer `warn`: the two
+    // commands must AGREE here. If configure-agents starts failing, this is a warn.
+    const otherTrackConfigure = spawnSync(process.execPath, [join(otherTrackPkg, 'bin', 'dflow.js'), 'configure-agents'], {
+      cwd: bpRoot, input: '1,2,3\ny\n', encoding: 'utf8', timeout: RUN_TIMEOUT_MS, maxBuffer: 1024 * 1024
+    });
+    assert.equal(otherTrackConfigure.status, 0, `other-track-damaged: configure-agents must still SUCCEED — that agreement is what makes info the honest level\nSTDOUT:\n${otherTrackConfigure.stdout}\nSTDERR:\n${otherTrackConfigure.stderr}`);
+
+    // ⚠ RESOLVER MISMATCH (`projgate-sol1` F1). doctor prefers the MANIFEST when
+    // deciding which edition a project uses; `configure-agents` resolves by STRUCTURE
+    // alone. Where they disagree, the "which this project does not use" claim names a
+    // tree configure-agents is about to read and hard-fail on — the original
+    // false-clean rebuilt through a different mechanism, and a claim this code only
+    // started making one round earlier. Neither the `info` nor the flat
+    // "configure-agents will fail" wording may appear here.
+    const mismatchPkg = join(tempRoot, 'resolver-mismatch-package');
+    await cp(repoRoot, mismatchPkg, {
+      recursive: true,
+      filter: (src) => {
+        const rel = relative(repoRoot, src);
+        if (rel === '') return true;
+        return ['bin', 'lib', 'templates', 'package.json'].includes(rel.split(/[\\/]/)[0]);
+      }
+    });
+    const mismatchRoot = join(tempRoot, 'resolver-mismatch-project');
+    await cp(bpRoot, mismatchRoot, { recursive: true });
+    // The project is structurally greenfield; make its manifest claim brownfield.
+    const mmManifestPath = join(mismatchRoot, BUNDLE_REL, '.dflow-bundle-manifest.json');
+    const mmManifest = JSON.parse(await readFile(mmManifestPath, 'utf8'));
+    mmManifest.edition = 'brownfield';
+    await writeFile(mmManifestPath, `${JSON.stringify(mmManifest, null, 2)}\n`);
+    assert.equal(await exists(join(mismatchRoot, 'dflow/specs/architecture/tech-debt.md')), true, 'resolver-mismatch: the project must still look structurally greenfield, or there is no disagreement to test');
+    // Damage the tree STRUCTURE points at — the one configure-agents will read.
+    await rm(join(mismatchPkg, 'templates', 'greenfield', 'templates'), { recursive: true, force: true });
+
+    const mismatchDoctor = spawnSync(process.execPath, [join(mismatchPkg, 'bin', 'dflow.js'), 'doctor'], {
+      cwd: mismatchRoot, encoding: 'utf8', timeout: RUN_TIMEOUT_MS, maxBuffer: 1024 * 1024
+    });
+    assert.equal(mismatchDoctor.status, 0, `resolver-mismatch: doctor must exit 0\nSTDOUT:\n${mismatchDoctor.stdout}`);
+    assert.doesNotMatch(mismatchDoctor.stdout, /does not use/, 'resolver-mismatch: doctor must NOT call a track unused when the two resolvers disagree about which track this project uses');
+    assert.match(mismatchDoctor.stdout, /\[warn\] The installed dflow package looks incomplete/, 'resolver-mismatch: with the resolvers disagreeing, every track counts as depended-on, so this is a warn');
+    assert.doesNotMatch(mismatchDoctor.stdout, /will fail on this package too/, 'resolver-mismatch: doctor cannot assert configure-agents will fail when it does not know which track configure-agents will pick');
+    assert.match(mismatchDoctor.stdout, /depends on which track it resolves this project to/, 'resolver-mismatch: the conditional wording must be used instead');
+    // The half that proves the warn was right: configure-agents does hit the damage.
+    const mismatchConfigure = spawnSync(process.execPath, [join(mismatchPkg, 'bin', 'dflow.js'), 'configure-agents'], {
+      cwd: mismatchRoot, input: '1,2,3\ny\n', encoding: 'utf8', timeout: RUN_TIMEOUT_MS, maxBuffer: 1024 * 1024
+    });
+    assert.notEqual(mismatchConfigure.status, 0, 'resolver-mismatch: configure-agents DOES read the structure track and must fail — that is why doctor may not call it unused');
   }
 
   console.log(`Smoke test passed in ${tempRoot}`);

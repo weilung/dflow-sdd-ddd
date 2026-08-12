@@ -3,7 +3,7 @@ context: Expense
 chinese-name: 費用申報
 owner: 差旅費用平台小組
 created: 2026-04-28
-last-updated: 2026-04-29
+last-updated: 2026-04-30
 ---
 
 # Expense Bounded Context
@@ -43,7 +43,7 @@ last-updated: 2026-04-29
 - **Money** — 金額 + 幣別（MVP 先固定 TWD，但用 VO 預留多幣別擴充）
 - **ReceiptReference** — 收據編號 / 檔案參照（Domain 不存影像，只持參照）
 - **ExpenseCategory** — 費用類別（高鐵、住宿、餐費…）
-- **ApprovalReason** — 退回原因；Reject 時必填，至少 10 字元
+- **ApprovalReason** — 退回原因；Reject 時必填，至少 5 個中文字或至少 10 個英數字
 
 ### Domain Services
 - _(phase 2 仍無 Domain Service；審核規則可由 ExpenseReport + ApprovalDecision 自身處理)_

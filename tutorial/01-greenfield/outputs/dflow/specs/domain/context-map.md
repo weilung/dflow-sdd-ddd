@@ -6,10 +6,10 @@
 
 ## Contexts
 
-| Bounded Context | Responsibility | Owner / Team | Primary Module | Notes |
-|---|---|---|---|---|
-| Expense | 員工的費用申報資料生命週期：建立 / 編輯 / 提交 / 審核 / 後續核銷狀態追蹤的 ExpenseReport 主體。 | 差旅費用平台小組 | `ExpenseTracker.Domain.Expense` | 由 SPEC-20260428-001 建立；phase 2 決定 ApprovalDecision 留在 Expense BC |
-| Identity (external) <!-- phase-2 ADDED --> | 員工身分、主管階層、部門與授權資料。 | 公司 SSO / HR master data owner | external service / OIDC claims | Expense BC 只引用 SubmitterId / ApproverId，不持有組織模型 |
+| Bounded Context | Responsibility | Subdomain Type | Owner / Team | Primary Module | Notes |
+|---|---|---|---|---|---|
+| Expense | 員工的費用申報資料生命週期：建立 / 編輯 / 提交 / 審核 / 後續核銷狀態追蹤的 ExpenseReport 主體。 | `core` | 差旅費用平台小組 | `ExpenseTracker.Domain.Expense` | 由 SPEC-20260428-001 建立；phase 2 決定 ApprovalDecision 留在 Expense BC |
+| Identity (external) <!-- phase-2 ADDED --> | 員工身分、主管階層、部門與授權資料。 | `generic` | 公司 SSO / HR master data owner | external service / OIDC claims | Expense BC 只引用 SubmitterId / ApproverId，不持有組織模型。由外部 SSO 提供，本系統不建模、不做戰術建模 |
 
 ## Relationships
 

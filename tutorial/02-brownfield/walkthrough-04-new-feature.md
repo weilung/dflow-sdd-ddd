@@ -122,7 +122,16 @@ Daniel 剛提出新需求。VIP 客戶如果訂單在合約有效期內，要額
 /dflow:new-feature
 ```
 
-## Step 0 — 先處理 legacy unknown disposition
+## 進 Step 1 之前 — 先處理 legacy unknown disposition
+
+> ⚠ 這一段**不是 Dflow 的流程步驟**。`new-feature-flow.md` 的步驟從
+> `Step 1: Intake — Understand the Request` 開始，**沒有編號為 Step 0 的步驟**。
+> 這裡講的是 Bob 在啟動指令**之前**自己要先收拾的事。
+>
+> （別的文件確實有叫 "step 0" 的東西，但兩者性質不同、別混在一起：
+> `AI-AGENT-GUIDE.md` § Ceremony Scaling 的 "step 0" 是**分類階段**；
+> `pr-review-checklist.md` 的 `Step 0` 則是那份 checklist **真正的第一步，而且強制**
+> ——`/dflow:pr-review` 就是從它進入的。兩者都不是**這份**流程的步驟編號。）
 
 Dflow 沒有立刻進入 intake。它先把前一篇留下的 unknown debt 做 disposition：
 
@@ -131,7 +140,7 @@ Dflow:
 收到。這是 /dflow:new-feature，預設 T1 Heavy。
 這次會建立新的 feature directory，而不是回改 SPEC-20260430-001。
 
-先做 Step 0：legacy unknown disposition。
+進 Step 1 之前，先處理 legacy unknown disposition。
 你剛補上的業務確認很重要：
 walkthrough 03 的 isVip * 0.93 unknown 已解決，
 但它不是新 VIP feature 的 BR source。
@@ -451,12 +460,12 @@ BR-005 到 BR-008 先唸一次。
 Dflow 產生：
 
 ```markdown
-| BR-ID | Current Rule |
-|---|---|
-| BR-005 | CustomerTier 含 VIP eligibility 且 ContractValidUntil >= OrderDate 時，訂單額外套用 VIP 7% off。 |
-| BR-006 | VIP 客戶合約已過期時不套用 VIP 7% off，但仍依 BR-002~BR-004 評估一般滿額折扣與客戶等級折扣。 |
-| BR-007 | VIP 折扣與其他折扣可 stack；順序為先套滿額折扣，再套 VIP 折扣，最後套 Senior customer-tier 折扣。 |
-| BR-008 | VIP eligibility 與 Senior customer-tier 可以同時存在；若同一客戶同時符合 VIP 合約與 Senior 條件，業務允許依 BR-007 stack。 |
+| BR-ID | Current Rule | First Seen (phase) | Last Updated (phase) | Status |
+|---|---|---|---|---|
+| BR-005 | CustomerTier 含 VIP eligibility 且 ContractValidUntil >= OrderDate 時，訂單額外套用 VIP 7% off。 | phase-1 | phase-1 | active |
+| BR-006 | VIP 客戶合約已過期時不套用 VIP 7% off，但仍依 BR-002~BR-004 評估一般滿額折扣與客戶等級折扣。 | phase-1 | phase-1 | active |
+| BR-007 | VIP 折扣與其他折扣可 stack；順序為先套滿額折扣，再套 VIP 折扣，最後套 Senior customer-tier 折扣。 | phase-1 | phase-1 | active |
+| BR-008 | VIP eligibility 與 Senior customer-tier 可以同時存在；若同一客戶同時符合 VIP 合約與 Senior 條件，業務允許依 BR-007 stack。 | phase-1 | phase-1 | active |
 ```
 
 BR 編號不從 001 重來，因為它們仍屬於同一個 Order BC。這是 cumulative
@@ -757,9 +766,9 @@ Dflow 寫入 task list：
 - [ ] DOMAIN-2: 建立 `ContractValidUntil` Value Object，實作合法日期、10 年外 suspicious date、inclusive boundary validation。
 - [ ] DOMAIN-3: 擴張 `DiscountPolicy`，新增 VIP discount path，保留既有 BR-001~004 方法與行為。
 - [ ] DOMAIN-4: 實作 full-threshold -> VIP -> Senior stacking order，並覆蓋 VIP 與 Senior 同時符合的組合。
-- [ ] WEBFORMS-1: 在 `OrderEntry.aspx.cs` 讀取 Customer reference data，將 VIP eligibility 與 `ContractValidUntil` map 成 Domain input。
-- [ ] WEBFORMS-2: 移除 `OrderList.aspx.cs` 的 legacy `isVip * 0.93` dead code；此清理對應 `tech-debt.md` resolved item，不寫成 BR。
-- [ ] INFRA-1: 在 Customer reference repository 增加 `GetVipContractInfo(customerId)` 或等價 query。
+- [ ] DELIVERY-1: 在 `OrderEntry.aspx.cs` 讀取 Customer reference data，將 VIP eligibility 與 `ContractValidUntil` map 成 Domain input。
+- [ ] DELIVERY-2: 移除 `OrderList.aspx.cs` 的 legacy `isVip * 0.93` dead code；此清理對應 `tech-debt.md` resolved item，不寫成 BR。
+- [ ] DATA-1: 在 Customer reference repository 增加 `GetVipContractInfo(customerId)` 或等價 query。
 - [ ] TEST-1: 新增 BR-005 到 BR-008 的 Domain unit tests。
 - [ ] TEST-2: 新增 `ContractValidUntil` 到期日當天、前一秒、後一秒與 invalid/far-future validation tests。
 - [ ] TEST-3: 新增 stacking order tests，確認 VIP 不會破壞 BR-001~004 的既有結果。
@@ -813,7 +822,7 @@ Step 7 implementation 尚未開始，所以 Step 8 completion checklist 不執�
 | 修改 | [`outputs/dflow/specs/domain/Order/context.md`](outputs/dflow/specs/domain/Order/context.md) | Order BC 新增 VIP 合約折扣責任，但 Customer BC 仍 out of scope。 |
 | 修改 | [`outputs/dflow/specs/domain/Order/models.md`](outputs/dflow/specs/domain/Order/models.md) | `ContractValidUntil`、擴張後的 `DiscountPolicy`、Customer reference repository。 |
 | 修改 | [`outputs/dflow/specs/domain/Order/rules.md`](outputs/dflow/specs/domain/Order/rules.md) | BR-005~008 加入 Order BC cumulative rule index。 |
-| 修改 | [`outputs/dflow/specs/domain/Order/behavior.md`](outputs/dflow/specs/domain/Order/behavior.md) | VIP discount policy 的 Given/When/Then 與 edge cases。 |
+| 修改（只加骨架） | [`outputs/dflow/specs/domain/Order/behavior.md`](outputs/dflow/specs/domain/Order/behavior.md) | 為 BR-005~008 各加一個 section anchor。⚠ Given/When/Then **不在這一步寫入**——它們留在 phase spec，要到 Step 8.3 / `finish-feature` 才 merge 進來，因為本檔記錄的是系統「現在」的行為，而 VIP 尚未落地。 |
 | 修改 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) | `VIP`、`ContractValidUntil`、`VIP discount policy` 等 ubiquitous language。 |
 | 修改 | [`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md) | Customer 標為 candidate BC / reference data supplier。 |
 | 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | `isVip * 0.93` 從 unknown debt 變成 resolved dead code cleanup。 |

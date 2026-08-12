@@ -129,10 +129,23 @@ Template note (for AI):
 > ⚠ **`Commit` 還沒填就留空 —— 不要寫佔位字串。** 上面的 `{hash}` 是**範本佔位符**
 > （代表「這裡放一個 commit hash」），不是可以留在真實 `_index.md` 裡的值。
 > 自己發明 `{pending}`、`（待 commit）` 這類字樣會讓那一格變成**非空**，而
-> closeout 的每一條規則都是照**空／非空**判的 —— 於是它在最小 host 上被當成
-> 「填了但填錯」（給出的理由是錯的），在 phase-bearing host 上**整條溜過去**：
-> 回填只認得「空」的格、關帳後檢查看不出與基準有差異、`pr-review-checklist.md`
-> 的存在性項把非空讀成「有 hash」。**留空是有名字的狀態；佔位字串不是。**
+> **凡是照「空／非空」判的規則都會把它讀成已經填好**。在 phase-bearing host 上更徹底：
+> `_index.md` 對 checkpoint 1 的那些證據檢查全都標明「minimal host（zero-phase）限定」，
+> 所以**關帳（closeout）那條線上**沒有任何檢查會去看那一格 —— 要到下面說的回填與
+> PR review 才有人真的去讀它。
+> ⚠ **抓得到它的判準是「那條檢查會不會去解析這個值」**，不是照空／非空判的那些。
+> 目前這樣的檢查有：`references/finish-feature-flow.md` **Step 1**（minimal host 的
+> 關帳檢查：把佔位字串判為「**從未填入**」，與「空」和「填錯 hash」分成三種不同訊息，
+> 一律**擋**）、同檔 **Step 4 指令 1**（hosted 列回填：unfilled 指「空**或**放著佔位
+> 字串」，兩者以同一種方式回填）、以及 `references/pr-review-checklist.md` 的**兩項**
+> ——存在性那項要 `git cat-file -t` 逐個 resolve，hosted identity 那項再用
+> `git show --stat` 確認那個 hash 真的是該列自己的實作 commit（該檔明寫這兩項
+> 「不可互換」）。⚠ 另有數處**複述**同一條規則但把執行交給上面那些檢查（例如
+> `references/modify-existing-flow.md` 的「Commit evidence goes to two surfaces」），
+> 那些是指標、不是額外的關卡。**日後新增的檢查照同一個判準算，這裡列幾項不是重點。**
+> 別把它們的存在讀成「所以放佔位字串沒差」：在它們之前，每一條機械規則都已經把
+> 那一格當成填好了。
+> **留空是有名字的狀態；佔位字串不是。**
 
 > **post-hoc hotfix 的列自成一個 host，不會和上面的一般列並存**
 > （見 references/modify-existing-flow.md Step 1.8）：上面兩列的 checkpoint 1
@@ -154,6 +167,14 @@ Template note (for AI):
 > T1 三點（spec 完 / impl 完 / closeout）、T2 兩點（spec+impl 合併 / closeout）、
 > T3 單一實作 commit（其 inline row 與本列的 hash 由 host 的下一個 commit 一併帶進；
 > host 若沒有後續 commit，允許一個只動 ledger 的 tracking commit 收尾，該 commit 不另成列）。
+> ⚠ **上面那些「點」在本表 `Checkpoint` 欄各有固定的字面值**：spec 里程碑寫
+> **`spec-baseline`**、實作寫 **`implementation`**、關帳寫 **`closeout`**（下表的
+> `spec-baseline` / `implementation` / `closeout` 三列就是這幾個值；表中另有一列
+> `branch-override`——本例排在最前——是紀錄列、不是生命週期 checkpoint，見下方說明）。散文裡的
+> 「spec 完」是在說那個里程碑，**不是欄位值** —— 不要照著它造一個 `spec` 出來。
+> ⚠ 這條只管**本表的 `Checkpoint` 欄**。`references/git-integration.md` 的選配 trailer
+> `Dflow-Checkpoint: {SPEC-ID} {spec|impl|closeout}` 有它自己的三個角色名（其中就有
+> `spec`）——那是另一個地方的詞彙，**不要拿本條去「修正」一個寫對的 trailer**。
 >
 > **Minimal host（zero-phase）例外**——見 references/modify-existing-flow.md
 > Step 1.7（standalone）、Step 1.6 的 follow-up minimal 變體，或 Step 1.8 的

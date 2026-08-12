@@ -66,47 +66,37 @@ And 兩個頁面預期都反映 BR-004 compound discount accumulation
 - Baseline-capture scenarios remain here as accepted cross-page behavior history; do not delete them during SPEC-001 archive.
 - BR-005~008 remain owned by in-progress `SPEC-20260505-002-vip-discount-policy`; their behavior sections stay in this cumulative Order BC document but are not finalized by SPEC-001 closeout.
 
-## VIP Discount Policy
-
-### BR-005: VIP contract-valid discount
-
-Given customer reference data 顯示客戶具備 VIP eligibility
-And `ContractValidUntil >= OrderDate`
-When DiscountPolicy evaluates the order
-Then 額外套用 VIP discount 7% off
-And VIP discount multiplier 為 `0.93`
-
-### BR-006: Expired VIP contract fallback
-
-Given customer reference data 顯示客戶具備 VIP eligibility
-And `ContractValidUntil < OrderDate`
-When DiscountPolicy evaluates the order
-Then 不套用 VIP discount
-And 訂單仍依 BR-002、BR-003、BR-004 的一般折扣規則計算
-
-### BR-007: VIP discount stacking order
-
-Given order 同時符合 full-threshold discount、VIP discount 與 Senior customer-tier discount
-When DiscountPolicy calculates the final discount
-Then discount order 為 full-threshold -> VIP -> Senior
-And total discount rate 為 `1 - (1 - fullRate) * (1 - vipRate) * (1 - tierRate)`
-
-### BR-008: VIP and Senior can stack
-
-Given 同一客戶同時具備有效 VIP contract 與 Senior customer-tier
-When DiscountPolicy evaluates discounts
-Then 業務允許 VIP discount 與 Senior customer-tier discount 同時套用
-And 不因 customer 同時屬於 VIP 與 Senior 而互斥
-
 #### Edge cases
 
 - EC-001: Given Order 沒有 OrderLine items When 建立 Order Then 拒絕 construction。
 - EC-002: Given OrderLine 有 zero 或 negative UnitPrice When 建立 OrderLine Then 拒絕 construction。
 - EC-003: Given DiscountRate 超出 `[0.0, 1.0]` When 建立 DiscountRate Then 拒絕 construction。
 - EC-004: Given order total 剛好 NT$50,000 When DiscountPolicy evaluates it Then 套用 full-threshold discount。
-- EC-005: Given `ContractValidUntil` 等於 `OrderDate` When DiscountPolicy evaluates VIP eligibility Then 視為合約有效。
-- EC-006: Given `ContractValidUntil` 早於 `OrderDate` When DiscountPolicy evaluates VIP eligibility Then 視為合約過期。
-- EC-007: Given Customer reference data 找不到 VIP contract info When DiscountPolicy evaluates discounts Then 不套用 VIP discount。
+
+## VIP Discount Policy
+
+> ⚠ **這一節目前只有骨架。** `SPEC-20260505-002-vip-discount-policy` 的 phase 1 仍在
+> implementation，尚未跑 `/dflow:finish-feature`。依 `new-feature-flow.md`，這一步只建
+> 「每條 `BR-*` 一個 section anchor」的骨架，Given/When/Then 要到 Step 8.3 / closeout
+> 才從 phase spec merge 進來。**本檔記錄的是系統「現在」的行為**，而 VIP 規則尚未
+> 落地，所以場景還不能寫在這裡——它們現在住在
+> `features/active/SPEC-20260505-002-vip-discount-policy/` 的 phase spec 裡。
+
+### BR-005: VIP contract-valid discount
+
+_(scenario pending — merges at finish-feature)_
+
+### BR-006: Expired VIP contract fallback
+
+_(scenario pending — merges at finish-feature)_
+
+### BR-007: VIP discount stacking order
+
+_(scenario pending — merges at finish-feature)_
+
+### BR-008: VIP and Senior can stack
+
+_(scenario pending — merges at finish-feature)_
 
 ---
 

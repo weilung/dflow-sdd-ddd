@@ -49,9 +49,9 @@ completed snapshot 的完整讀法，再讀
 `walkthrough-03` 當時已經留下這個 debt：
 
 ```markdown
-| Item | Location | Description | Severity | Status |
-|---|---|---|---|---|
-| OrderList / OrderEntry / OrderDetail rounding 策略不一致 | OrderList.aspx.cs / OrderEntry.aspx.cs / OrderDetail.aspx.cs | OrderList 使用 decimal.Round(value, 0)，OrderEntry / OrderDetail 使用 two-decimal display，可能造成跨頁視覺金額差異。 | Medium | open |
+| Item | Location | Description | Severity | Migration impact | Status |
+|---|---|---|---|---|---|
+| OrderList / OrderEntry / OrderDetail rounding 策略不一致 | OrderList.aspx.cs / OrderEntry.aspx.cs / OrderDetail.aspx.cs | OrderList 使用 decimal.Round(value, 0)，OrderEntry / OrderDetail 使用 two-decimal display，可能造成跨頁視覺金額差異。 | Medium | Domain 層應統一 `Money` rounding / display precision contract，避免 ASP.NET Core migration 時把頁面差異一起搬過去。 | open |
 ```
 
 當時它還只是風險。Bob 沒有順手修，因為 session scope 是 baseline-only。
@@ -60,8 +60,8 @@ completed snapshot 的完整讀法，再讀
 
 ## 劇情背景
 
-2026-05-08 週五早上，`SPEC-20260505-002-vip-discount-policy` 已完成 implementation
-並上線試用 2 天。Bob 原本準備整理本週收尾計畫，結果在 Slack 看到試用主管 Carol
+2026-05-08 週五早上，`SPEC-20260505-002-vip-discount-policy` 的 phase 1 **還在
+implementation**，但已經有一個內部試用版本，讓幾位主管試跑了 2 天。Bob 原本準備整理本週收尾計畫，結果在 Slack 看到試用主管 Carol
 的訊息：
 
 ```text
@@ -276,7 +276,7 @@ BUG-001 直接掛在 active SPEC-001 下。
 這裡要注意：完整文件範例裡 SPEC-001 後來已經移到 completed，但那是 06 closeout 之後的結果。
 在 05 當下，SPEC-001 仍 active，所以不需要 reopen completed feature。
 
-## Step 2 — Check Documentation：先讀文件，不直接改 code
+## Step 2 — Document Current Behavior：先讀文件，不直接改 code
 
 Dflow 先讀現有文件：
 
@@ -323,17 +323,31 @@ Bob:
 跨頁面顯示不一致是 observable bug，但修正點在 display contract。若把它寫成新的
 business rule，會讓 Order BC 的 BR index 變得不乾淨。
 
-## Step 3 — Assess DDD Impact
+## Step 3 — Analyze the Delivery/Entrypoint Layer
 
-Dflow 依 bug-fix ceremony 先採保守判斷：
+⚠ **這是 brownfield 的 Step 3 名稱，而且兩軌不同名也不同事。** greenfield 的 Step 3
+叫 `Assess DDD Impact`；brownfield 這一步規定的產出是兩樣具體東西——
+**Business Logic to Extract** 與 **Tech Debt to Record**（後者要寫進
+`dflow/specs/migration/tech-debt.md`）。
+
+⚠⚠ **底下這段不是那兩樣。** 它是一份 Aggregate / Domain Events / VO / BR /
+資料結構的影響檢查——形狀上是 greenfield 那一軌的 DDD impact 檢查。本篇保留它，
+是因為對一個「要不要動 Domain」還沒把握的讀者，這個 sanity check 有教學價值；
+**但它不是 brownfield Step 3 規定的產出，照著做的人不要以為做完這段就等於做完 Step 3。**
+本篇真正屬於 Step 3 的部分，是稍後那個「把 display rounding contract 收斂到
+`Money.ToDisplay()`」的判斷——那才是 delivery 層的觀察。
+
+Dflow 先採保守判斷：
 
 ```text
 Dflow:
-Step 3 - DDD Impact。
+Step 3 - 分析 delivery / entrypoint 層。
 
-依 /dflow:bug-fix 的 ceremony adjustment，
-Step 3 預設是 no DDD impact, fix in place，
-除非 bug 本身在 Domain logic 或揭露 business rule 設計錯誤。
+/dflow:bug-fix 不設定 tier——照一般修改跑同一套 ordered cascade；
+多數功能性缺陷會落在 T2，而 Step 4（extraction）除非 bug 本身就在
+可抽離的邏輯裡，否則可能預設「defer and record in tech-debt.md」。
+
+先看這個 bug 有沒有動到 Domain：
 
 我的初判：
 
@@ -397,7 +411,12 @@ Bob:
 這段是本篇的 DDD 重點：**Value Object 可以承接 implementation contract，
 但不代表每個 method 都要升格成 domain rule。**
 
-## Step 3 — Implementation tasks
+## Step 4 — Implementation tasks
+
+⚠ 這一段屬於 **Step 4**，不是 Step 3：產生任務清單的是
+`modify-existing-flow.md` Step 4 底下的 `Generate Implementation Tasks List`
+（T2 也要產，不能跳過）。在 flow 裡它排在 extraction decision **之後**；
+本篇為了先讓讀者看見「決議長成什麼任務」而把它放在前面，兩段都屬 Step 4。
 
 Dflow 把決議整理成 tasks：
 
@@ -405,9 +424,9 @@ Dflow 把決議整理成 tasks：
 ## Implementation Tasks
 
 - [ ] DOMAIN-1: `Money` VO 加 `ToDisplay(precision = 2)` method，維持既有 amount + currency invariants。
-- [ ] WEBFORMS-1: `OrderList.BindGrid()` column formatter 改用 `Money.ToDisplay()`。
-- [ ] WEBFORMS-2: `OrderDetail.LoadDiscountSummary()` 改用 `Money.ToDisplay()`。
-- [ ] WEBFORMS-3: `OrderEntry` 顯示折扣後金額時確認 align 到同一 display contract。
+- [ ] DELIVERY-1: `OrderList.BindGrid()` column formatter 改用 `Money.ToDisplay()`。
+- [ ] DELIVERY-2: `OrderDetail.LoadDiscountSummary()` 改用 `Money.ToDisplay()`。
+- [ ] DELIVERY-3: `OrderEntry` 顯示折扣後金額時確認 align 到同一 display contract。
 - [ ] TEST-1: 同一 Order 在 `OrderList` / `OrderEntry` / `OrderDetail` 顯示折扣後金額一致。
 - [ ] TEST-2: `Money.ToDisplay` edge cases：0、負數、大數、boundary precision。
 - [ ] DOC-1: 更新 `_index.md` Lightweight Changes、BR Snapshot note 與 `tech-debt.md` resolved note。
@@ -465,13 +484,43 @@ Ready to update documentation.
 
 這就是 Brownfield bug-fix 的克制：修到讓 bug 不再發生，但不把所有周邊問題一次拉進來。
 
-## Step 5 — Update Documentation
+## Step 5 — Implement the Change（本篇把它壓縮了，但**它必須先發生**）
 
-Dflow 產生 documentation package：
+Bob 上面說「我下午再讓工程師照 BUG-001 implement」，所以本篇的敘事在這裡跳了一段。
+**這一跳不能不交代**：flow 的 Step 5 就是 Implement the Change，而 Step 6 是被
+**Step 5 → Step 6 的 step gate** 觸發的：
+
+```text
+"Implementation appears complete. Ready to update artifacts
+ (spec, rules.md, models.md, glossary, tech-debt)?"
+```
+
+也就是說，下一節那些文件更新——特別是把 `tech-debt.md` 的 rounding item 從 `open`
+翻成 `resolved`——**是在實作完成、過了這道 gate 之後才做的**，不是在還沒動 code 的
+星期五早上做的。
+
+```text
+Bob（當天下午）:
+BUG-001 的三個 DELIVERY task 都完成了，
+regression test 也綠了。
+
+Dflow:
+Implementation appears complete.
+Ready to update artifacts (spec, rules.md, models.md, glossary, tech-debt)?
+```
+
+⚠ **順序這件事有實際後果**：`tech-debt.md` 的 `resolved` note 寫的是「三頁面改 call
+同一 contract」——那是一句**對已完成事實的斷言**。如果在實作之前就寫下去，
+debt backlog 會出現一筆「已解決但其實還沒做」的紀錄，而那正是 backlog 失真的起點。
+flow 把 artifacts 更新放在 gate 後面，就是為了擋這個。
+
+## Step 6 — Update Artifacts
+
+過了 gate 之後，Dflow 產生 documentation package：
 
 ```text
 Dflow:
-Step 5 - Update Documentation。
+Step 6 - Update Artifacts。
 
 我會做三件事：
 
@@ -556,10 +605,17 @@ Root Cause 與 Fix Approach：
 `_index.md` 新增 T2 row：
 
 ```markdown
-| Date | Type | Description | Commit |
+| Date | Tier | Description | Commit |
 |---|---|---|---|
-| 2026-05-08 | T2 | Bug-fix: 修正 `OrderList` / `OrderEntry` / `OrderDetail` 跨頁 display rounding inconsistency，見 [`BUG-001-rounding-inconsistency.md`](./BUG-001-rounding-inconsistency.md)。 | n/a - implemented before closeout |
+| 2026-05-08 | T2 | Bug-fix: 修正 `OrderList` / `OrderEntry` / `OrderDetail` 跨頁 display rounding inconsistency，見 [`BUG-001-rounding-inconsistency.md`](./BUG-001-rounding-inconsistency.md)。 |  |
 ```
+
+⚠ **`Commit` 欄留空，不要寫 `n/a - implemented before closeout`。** 「已經實作完了」正是
+這一格**該有** hash 的情況，不是不必填的理由。它現在空著只因為一列的 hash 不可能由它自己
+那個 commit 寫進去——hosted row 一律由 host 的**下一個** commit 回填，而本 feature 之後
+沒有新的 phase，所以回填的會是 closeout（見 walkthrough 06 Step 4）。
+而這個 commit **同時**替 walkthrough 03 那一列做了一件事：它就是 05-04 那列在等的
+「host 的下一個 commit」，所以 05-04 那格在這次一併被回填。
 
 Current BR Snapshot 下方加 note：
 
@@ -615,7 +671,7 @@ Follow-up note：
 完整文件範例：
 [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md)
 
-## Step 5 — 故意不改的文件
+## Step 6 — 故意不改的文件
 
 Dflow 明確列出不改項：
 

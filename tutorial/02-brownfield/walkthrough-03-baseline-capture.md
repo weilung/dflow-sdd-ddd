@@ -509,10 +509,10 @@ And 兩個頁面預期都反映 BR-004 compound discount accumulation
 本步驟當下新增的重點片段：
 
 ```markdown
-| Item | Location | Description | Severity | Status |
-|---|---|---|---|---|
-| OrderList / OrderEntry / OrderDetail rounding 策略不一致 | OrderList.aspx.cs / OrderEntry.aspx.cs / OrderDetail.aspx.cs | OrderList 使用 decimal.Round(value, 0)，OrderEntry / OrderDetail 使用 two-decimal display，可能造成跨頁視覺金額差異。 | Medium | open |
-| OrderList isVip multiplier 0.93 規則來源不明 | OrderList.aspx.cs BindGrid() | if (customer.IsVip) discountedTotal *= 0.93m 沒有註解或 ticket reference，且可能與 Senior 5% off 互斥。 | Medium | open |
+| Item | Location | Description | Severity | Migration impact | Status |
+|---|---|---|---|---|---|
+| OrderList / OrderEntry / OrderDetail rounding 策略不一致 | OrderList.aspx.cs / OrderEntry.aspx.cs / OrderDetail.aspx.cs | OrderList 使用 decimal.Round(value, 0)，OrderEntry / OrderDetail 使用 two-decimal display，可能造成跨頁視覺金額差異。 | Medium | Domain 層應統一 `Money` rounding / display precision contract，避免 ASP.NET Core migration 時把頁面差異一起搬過去。 | open |
+| OrderList isVip multiplier 0.93 規則來源不明 | OrderList.aspx.cs BindGrid() | if (customer.IsVip) discountedTotal *= 0.93m 沒有註解或 ticket reference，且可能與 Senior 5% off 互斥。 | Medium | 來源未明前不寫成 BR；migration 前需業務確認保留或移除，避免把 legacy promotion 殘留帶進 ASP.NET Core。 | open |
 ```
 
 完整文件範例：
@@ -531,8 +531,25 @@ Host feature dashboard 也要知道這次 baseline capture 發生過：
 
 | Date | Tier | Description | Commit |
 |---|---|---|---|
-| 2026-05-04 | baseline | Baseline-only capture：已補 OrderList.aspx.cs 與 OrderDetail.aspx.cs 的跨頁 confirmed behavior；新發現的 rounding / isVip debt 已記錄於 tech-debt.md。本 row 無對應 spec 檔。 | n/a - spec capture only |
+| 2026-05-04 | baseline | Baseline-only capture：已補 `OrderList.aspx.cs` 與 `OrderDetail.aspx.cs` 的跨頁 confirmed behavior，詳見 [`behavior.md`](../../../domain/Order/behavior.md#confirmed-across-pages-baseline-capture-2026-05-04)；新發現的 rounding / `isVip` debt 已記錄於 [`tech-debt.md`](../../../migration/tech-debt.md)。本 row 無對應 spec 檔。 |  |
 ```
+
+⚠ **Description 要宣告的是「它寫進去的 BC 層文件」，不是它讀過的檔案。** 上面那一列
+點名 `behavior.md` 的錨點，正是因為 baseline capture **沒有原始碼變更**——
+`OrderList.aspx.cs` / `OrderDetail.aspx.cs` 只是它**讀**的對象，`behavior.md` 才是它
+**寫**的產物。範本對 `Tier = baseline` 列的要求就是寫實際寫入的 BC 層文件路徑。
+
+⚠ **`Commit` 欄先留空——不要寫 `n/a - spec capture only` 這種說明文字。** 「沒有 spec 檔」
+不等於「沒有 commit」：baseline capture 也是一個 commit，它把 confirmed behavior 寫進
+`behavior.md`，那一格要填的就是它。
+⚠ **誰會檢查這一格？不是 closeout 的 Step 1。** 這一列掛在 `SPEC-20260430-001` 這個
+**phase-bearing** host 底下，而 Step 1 的 hash evidence 整組都標著
+`Minimal host (zero-phase) only`——bf `finish-feature-flow.md` 還特地寫明「phase-bearing
+host 可以合法持有 `Tier = baseline` 列……它不是 zero-phase，**永遠到不了這個檢查**」。
+接手的是 `pr-review-checklist.md` 的 hosted `Commit` 欄 identity 項。
+填說明文字會讓那一格變成「非空」——所有照空／非空判的規則都會把它讀成「已經有 hash」。
+（Step 4 指令 1 與 PR review 仍然抓得到，因為它們是去**解析**這個值、不是看它空不空；
+但那是最後兩道，別把它們當成第一道。）留空是有名字的狀態，說明文字不是。
 
 完整文件範例：
 [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md)

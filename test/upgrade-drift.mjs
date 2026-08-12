@@ -19,9 +19,9 @@
 
 import assert from 'node:assert/strict';
 import { PassThrough } from 'node:stream';
-import { mkdir, mkdtemp, readFile, rm, writeFile, unlink } from 'node:fs/promises';
+import { mkdir, mkdtemp, readdir, readFile, rm, writeFile, unlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import init from '../lib/init.js';
@@ -793,6 +793,167 @@ try {
   assert.match(pcGoneDoctor.stdout, /has no "## Project Context" section/, 'doctor: marker-managed guide without the section is reported');
   assert.equal(await inferTechStackSummary(pcGone), 'unknown', 'inference falls back without the Project Context section');
 
+  // (11h3) debt 23 gap G: an HTML comment opened ABOVE the heading puts it inside
+  // an HTML block, so the section reads as absent while it is sitting right there
+  // in the file. What used to fire is the opaque finding asserted at (11h2) —
+  // whose action ("restore a section") is impossible advice for a file that
+  // already has one, and whose "ignore this if you removed it on purpose" invites
+  // dismissing a real malformation.
+  // ⚠⚠ THE FIXTURE IS THE MARKER-MANAGED GUIDE ON PURPOSE, and the last assertion
+  // here is why: the guide-canonical marker below carries `-->`, so the comment
+  // CLOSES and the block is well-formed at EOF. `unclosedHtmlBlockLine` — the
+  // obvious predicate, and the one the review recommended — returns -1 on exactly
+  // the shape this defect takes in a real guide. Measured before implementing.
+  // ⚠ The negative direction is (11h2) directly above: with the heading genuinely
+  // renamed away, the opaque info finding is still what fires.
+  const pcHidden = await newProject('2');
+  const pcHiddenPath = join(pcHidden, GUIDE_REL);
+  await writeFile(pcHiddenPath, (await readFile(pcHiddenPath, 'utf8')).replace('## Project Context', '<!-- editing note\n\n## Project Context'));
+  const pcHiddenDoctor = await runDoctorAt(pcHidden);
+  assert.equal(pcHiddenDoctor.code, 0, 'doctor must stay exit 0 on a guide whose Project Context is hidden');
+  assert.match(pcHiddenDoctor.stdout, /^\[info\] .*has a "## Project Context" heading at line \d+ that is inside an HTML block/m, 'doctor: the HTML block is named as the cause, with the heading line');
+  assert.match(pcHiddenDoctor.stdout, /The block opens at line \d+ \(`<!-- editing note`\)/, 'the opening line is quoted so the reader can see which block it is');
+  assert.doesNotMatch(pcHiddenDoctor.stdout, /has no "## Project Context" section/, 'doctor must not claim the section is absent while the heading is there but unreadable');
+  assert.doesNotMatch(pcHiddenDoctor.stdout, /Ignore this if you removed the section on purpose/, 'the opaque wording this replaces must not also appear');
+  // ⚠ The finding must NOT diagnose which of the two situations it is
+  // (`debt212223-xv1` finding 1). The same shape is produced by a comment left
+  // open by accident and by a section commented out deliberately, so a claim that
+  // the section is live — and an instruction not to re-add it — is unsupportable.
+  assert.doesNotMatch(pcHiddenDoctor.stdout, /do not add a second one/, 'doctor must not instruct against re-adding a section it cannot prove is live');
+  assert.match(pcHiddenDoctor.stdout, /doctor cannot tell them apart/, 'the finding must say it reports the shape rather than the cause');
+  assert.equal(
+    doctorChecks.unclosedHtmlBlockLine(await readFile(pcHiddenPath, 'utf8')), -1,
+    "the fixture's comment is CLOSED by the marker below it — this is the fixture-validity assertion for why the check cannot be unclosedHtmlBlockLine"
+  );
+
+  // ⚠ The opener must be the block that actually CONTAINS the heading
+  // (`debt212223-xv1` finding 2): a closed `<!-- note -->` sitting directly above an
+  // open one is part of the same unbroken run of html-typed lines, so walking back
+  // to the run's start names a comment that is already fine and sends the reader to
+  // repair the wrong line.
+  const pcTwoBlocks = await newProject('2');
+  const pcTwoPath = join(pcTwoBlocks, GUIDE_REL);
+  await writeFile(pcTwoPath, (await readFile(pcTwoPath, 'utf8')).replace('## Project Context', '<!-- closed note -->\n<!-- open note\n\n## Project Context'));
+  const pcTwoDoctor = await runDoctorAt(pcTwoBlocks);
+  assert.match(pcTwoDoctor.stdout, /The block opens at line \d+ \(`<!-- open note`\)/, 'the opener is the block containing the heading, not the closed comment above it');
+  assert.doesNotMatch(pcTwoDoctor.stdout, /`<!-- closed note -->`/, 'a comment that closes on its own line is not the container and must not be named as one');
+
+  // ⚠ Not every HTML block is a comment (`debt212223-xv1` finding 1): `<details>`
+  // has no `-->` to add, so that repair must not be offered for it. ⚠ No blank line
+  // before the heading here — `<details>` is a type-6 block and a blank line would
+  // END it, leaving the heading visible and this fixture testing nothing.
+  const pcDetails = await newProject('2');
+  const pcDetailsPath = join(pcDetails, GUIDE_REL);
+  await writeFile(pcDetailsPath, (await readFile(pcDetailsPath, 'utf8')).replace('## Project Context', '<details>\n## Project Context'));
+  const pcDetailsDoctor = await runDoctorAt(pcDetails);
+  assert.match(pcDetailsDoctor.stdout, /The block opens at line \d+ \(`<details>`\)/, 'a non-comment HTML block is named by what it actually is');
+  assert.doesNotMatch(pcDetailsDoctor.stdout, /close it with `-->`/, 'the `-->` repair must not be offered for a block that has no `-->`');
+  // ⚠⚠ AND THE REPAIR IT *DOES* GET MUST WORK (`debt212223-y4` finding 1). This
+  // fixture used to assert only the negative — that no `-->` advice appeared — and
+  // the wording it silently certified told the adopter to "close" a `<details>`.
+  // A closing tag does not end a type-6 block; only a blank line does, so that
+  // repair left the finding identical with nothing saying why. Asserting the absence
+  // of wrong advice is not asserting the presence of right advice.
+  assert.match(pcDetailsDoctor.stdout, /ends at a BLANK LINE, not at a closing tag/, 'a type-6 block must be told the truth about how it ends');
+  assert.doesNotMatch(pcDetailsDoctor.stdout, /with its own end marker/, 'the end-marker repair belongs to blocks that have one');
+  // The end-condition branch, so the two are pinned against each other rather than
+  // one of them being free to drift into the other's case.
+  const pcScript = await newProject('2');
+  const pcScriptPath = join(pcScript, GUIDE_REL);
+  await writeFile(pcScriptPath, (await readFile(pcScriptPath, 'utf8')).replace('## Project Context', '<script>\n## Project Context'));
+  const pcScriptDoctor = await runDoctorAt(pcScript);
+  assert.match(pcScriptDoctor.stdout, /with its own end marker/, 'a block that ends on a marker is told to use it');
+  assert.doesNotMatch(pcScriptDoctor.stdout, /ends at a BLANK LINE/, 'the blank-line rule must not be offered to a block with an end condition');
+
+  // ⚠ A mid-line `<!--` opens nothing (`debt212223-xv2` finding 1): an HTML block
+  // begins only at a line whose START satisfies the opener condition, so comment
+  // text inside an already-open block is not the container. Naming it sent the
+  // reader to close a comment that never opened, on a block whose real opener was
+  // the `<details>` above it.
+  const pcNested = await newProject('2');
+  const pcNestedPath = join(pcNested, GUIDE_REL);
+  await writeFile(pcNestedPath, (await readFile(pcNestedPath, 'utf8')).replace('## Project Context', '<details>\nprose <!-- nested-looking text\n## Project Context'));
+  const pcNestedDoctor = await runDoctorAt(pcNested);
+  assert.match(pcNestedDoctor.stdout, /The block opens at line \d+ \(`<details>`\)/, 'the container is the block that actually opened, not mid-line comment text inside it');
+  assert.doesNotMatch(pcNestedDoctor.stdout, /nested-looking text/, 'mid-line comment text must never be reported as the opener');
+
+  // ⚠ Tag-shaped CONTENT inside an open block is not an opener either
+  // (`debt212223-xv3` finding 1) — `<div>` / `<p>` lines under a `<details>` look
+  // exactly like block starts from the outside. This is the doctor-level companion
+  // to the `blockStart` pins on `classifyLines`.
+  const pcInnerTags = await newProject('2');
+  const pcInnerPath = join(pcInnerTags, GUIDE_REL);
+  await writeFile(pcInnerPath, (await readFile(pcInnerPath, 'utf8')).replace('## Project Context', '<details>\n<div>inner shell</div>\n<p>content row</p>\n## Project Context'));
+  const pcInnerDoctor = await runDoctorAt(pcInnerTags);
+  assert.match(pcInnerDoctor.stdout, /The block opens at line \d+ \(`<details>`\)/, 'the opener is the block that opened, not the last tag-shaped line before the heading');
+  assert.doesNotMatch(pcInnerDoctor.stdout, /content row/, 'HTML content inside an open block must never be reported as the opener');
+
+  // ⚠⚠ A COMMENT MARKER ON THE OPENER LINE DOES NOT MAKE IT A COMMENT BLOCK
+  // (`debt212223-xv4` finding 1). `<details><!-- note` opens a type-6 TAG block that
+  // happens to contain `<!--`, so the `-->` repair does not work — the reviewer ran
+  // it and the heading stayed inside the `<details>`. The advice branch must use the
+  // same line-start rule the opener scan uses; this fixture is what keeps the two
+  // sites of that rule from drifting apart again.
+  const pcTagComment = await newProject('2');
+  const pcTagCommentPath = join(pcTagComment, GUIDE_REL);
+  await writeFile(pcTagCommentPath, (await readFile(pcTagCommentPath, 'utf8')).replace('## Project Context', '<details><!-- note\n## Project Context'));
+  const pcTagCommentDoctor = await runDoctorAt(pcTagComment);
+  assert.match(pcTagCommentDoctor.stdout, /The block opens at line \d+ \(`<details><!-- note`\)/, 'the opener line is reported as it is');
+  assert.doesNotMatch(pcTagCommentDoctor.stdout, /close it with `-->`/, 'a tag block that merely contains `<!--` must not be given the comment repair');
+  // ⚠ `<details><!-- note` is a type-6 TAG block, so it gets the blank-line rule —
+  // not the `-->` repair (it has no `-->` to add) and not the end-marker repair
+  // (type 6 has no end marker). This assertion used to pin the wording
+  // `close it or move the section above it`, which was the advice `debt212223-y4`
+  // finding 1 showed does not work for this class.
+  assert.match(pcTagCommentDoctor.stdout, /ends at a BLANK LINE, not at a closing tag/, 'a tag block that merely contains `<!--` gets the type-6 repair');
+
+  // ⚠⚠ THE PER-EDITION `Will defer:` LIST, PINNED BY WHAT `dflow init` ACTUALLY
+  // PRINTS (`debt212223-y1` finding 3). debt 22 was the CLI promising every
+  // brownfield adopter a `dflow/specs/architecture/` tree it never creates, because
+  // a greenfield-only row lived in a list named COMMON — and when that was fixed,
+  // `Will defer`, `buildDeferredItems` and `ADR` each had **zero** matches across
+  // `test/`, with both lists module-private. So the cheapest way to bring the defect
+  // back was to move one row between the two lists: the whole suite, the cross-ref
+  // checker, the lifecycle checker and the tier-cascade checker all stay green while
+  // the promise is wrong again. The other two items in that batch shipped with new
+  // pins; this one shipped with none, which is why it is here.
+  // ⚠ ORDER IS ASSERTED, not just membership: greenfield's list was produced by a
+  // `splice` before the fix and by an append after it, and "same five paths" was the
+  // claim that had to survive that rewrite.
+  for (const [edition, projectType, expected] of [
+    ['greenfield', '1', [
+      'dflow/specs/domain/{context}/behavior.md',
+      'dflow/specs/domain/{context}/models.md',
+      'dflow/specs/domain/{context}/rules.md',
+      'dflow/specs/domain/{context}/events.md',
+      'dflow/specs/architecture/decisions/ADR-*.md'
+    ]],
+    ['brownfield', '2', [
+      'dflow/specs/domain/{context}/behavior.md',
+      'dflow/specs/domain/{context}/models.md',
+      'dflow/specs/domain/{context}/rules.md'
+    ]]
+  ]) {
+    const deferDir = join(tempRoot, `defer-${edition}`);
+    await mkdir(deferDir, { recursive: true });
+    const deferOut = captureStream(false);
+    const deferCode = await runInit({
+      cwd: deferDir,
+      stdin: pipeStdin(initAnswers('2', projectType)),
+      stdout: deferOut,
+      stderr: captureStream(false)
+    });
+    assert.equal(deferCode, 0, `${edition} init for the deferral pin failed:\n${deferOut.text}`);
+    const deferred = deferOut.text
+      .split(/\r?\n/)
+      .filter((line) => /\|\s*defer\s*\|/.test(line))
+      .map((line) => line.split('|')[1].trim());
+    assert.deepEqual(
+      deferred, expected,
+      `${edition} \`Will defer:\` must list exactly these paths, in this order — a row that applies to one edition only must never sit in the shared list`
+    );
+  }
+
   const pcBrown = await newProject('2', '2');
   const pcBrownGuidePath = join(pcBrown, GUIDE_REL);
   await writeFile(pcBrownGuidePath, (await readFile(pcBrownGuidePath, 'utf8')).replace(/^\| Migration \/ legacy context \|.*\n/m, ''));
@@ -1001,6 +1162,1451 @@ try {
       'an absent _conventions.md produces exactly ONE finding across all four checks'
     );
 
+    // (debt 23 gap F) The unclosed-block finding must name BOTH directions. It
+    // used to say only that findings below it "may be caused by the unclosed
+    // block rather than by real drift" — false positives — from which a reader
+    // concludes the block can ADD findings but never remove them. Removal is the
+    // dangerous half: the hidden text is text a check would have judged, so a
+    // rule that genuinely drifted below the block is reported by nobody
+    // (`p082-b3-k2` finding 4). Wording pins are weak in general, but this one
+    // can fail — delete the suppression half of the sentence and it goes red.
+    const unclosedProj = await newProject('2');
+    const unclosedPath = join(unclosedProj, CONVENTIONS_REL);
+    await writeFile(unclosedPath, `${await readFile(unclosedPath, 'utf8')}\n<!-- left open mid-edit\n`);
+    const unclosedDoctor = await runDoctorAt(unclosedProj);
+    // ⚠ THESE FOUR MESSAGES NAME THE SOURCE FILE AND THE FUNCTION, and that is a
+    // requirement rather than a courtesy. This block is the FIRST thing a broken
+    // `unclosedHtmlBlockLine` trips, so its message is the one a maintainer reads —
+    // and for three consecutive rounds (`p084gate-x15`, `p084gate-y8r`,
+    // `p084gate-x17`) it named only the symptom, sending the reader to the test
+    // instead of to the function that changed. The other four detectors reach the
+    // `DETECTOR_SOURCE` map further down; this one is checked earlier and bypassed
+    // it, which is exactly the kind of hole a map cannot close on its own.
+    const UNCLOSED_SOURCE = 'lib/doctor-checks.js `unclosedHtmlBlockLine`';
+    assert.match(unclosedDoctor.stdout, /_conventions\.md has an unclosed HTML block at line \d+/, `${UNCLOSED_SOURCE} stopped reporting \`unclosed-html-block\` with the line it opens on, through the real CLI`);
+    assert.match(unclosedDoctor.stdout, /cuts both ways/, `${UNCLOSED_SOURCE}: the detail must say the effect goes in both directions, not only false positives`);
+    assert.match(unclosedDoctor.stdout, /can go unreported entirely/, `${UNCLOSED_SOURCE}: the detail must name the SUPPRESSION direction explicitly`);
+    assert.match(unclosedDoctor.stdout, /as unknown — not as passing/, `${UNCLOSED_SOURCE}: the detail must tell the reader what to conclude about everything below the block`);
+
+    // ===================================================================
+    // PROPOSAL-084 — the `uncertain` result state.
+    //
+    // Five invariants, each with a pin that was VERIFIED to fail against a
+    // broken build rather than assumed to. The module's own lesson applies with
+    // full force here: "asserts existence" is not "asserts relationship", and a
+    // pin that cannot fail against the defect it names is decoration.
+    // ===================================================================
+    {
+      const uncertainLines = (stdout) => stdout.split(/\r?\n/).filter((l) => l.startsWith('[uncertain] '));
+      const uncertainIds = (stdout) => [...stdout.matchAll(/^\[uncertain\] .*\(([a-z0-9-]+)\)$/gm)].map((m) => m[1]);
+
+      // --- INVARIANT 4 first, because everything else is worthless if a fresh
+      // project trips a detector: an adopter who sees `uncertain` on day one
+      // learns to ignore it, and the feature has then made things worse.
+      //
+      // ⚠ BE HONEST ABOUT WHAT PROVED THIS ONE. The other four invariants below
+      // were each mutation-verified — break the rule, this block goes red naming
+      // it. This one was NOT: adding the inline-comment shape to the packaged
+      // greenfield template does turn the suite red, but on the far earlier
+      // `doctor must stay clean on a fresh init` assertion, which aborts the run
+      // long before this block executes. So the INVARIANT is genuinely watched;
+      // it is these three lines whose adequacy is unproven, and saying otherwise
+      // would be the decorative-pin defect this file exists to catch.
+      // What they add over the end-to-end assertion is a different LAYER, not a
+      // better message: they read the template SOURCE, while the fresh-init
+      // assertion reads a BUILT project, and `init` substitution sits between the
+      // two. A shape that substitution introduces is caught only there; a shape
+      // that substitution strips is caught only here.
+      for (const edition of ['greenfield', 'brownfield']) {
+        const packaged = await readFile(join(repoRoot, 'templates', edition, 'scaffolding', '_conventions.md'), 'utf8');
+        for (const [id, fn] of [
+          ['inline-html-comment', doctorChecks.inlineHtmlCommentLine],
+          ['comment-inside-container', doctorChecks.containerHtmlCommentLine],
+          ['html-block-type-7', doctorChecks.htmlBlockType7Line],
+          ['unclosed-html-block', doctorChecks.unclosedHtmlBlockLine]
+        ]) {
+          assert.equal(
+            fn(packaged), -1,
+            `the packaged ${edition} _conventions.md trips the ${id} detector, so every fresh init would report uncertain — invariant 4`
+          );
+          // ⚠ The GUIDE is scanned too since `p084-y1` finding 8, so its packaged
+          // copy carries the same obligation. Adding the surface without adding
+          // this line would have left the widened scope pinned by nothing.
+          const guide = await readFile(join(repoRoot, 'templates', edition, 'scaffolding', 'AI-AGENT-GUIDE.md'), 'utf8').catch(() => null);
+          if (guide !== null) {
+            assert.equal(
+              fn(guide), -1,
+              `the packaged ${edition} AI-AGENT-GUIDE.md trips the ${id} detector — invariant 4 for the surface added after y1`
+            );
+          }
+        }
+      }
+
+      // ⚠⚠ INVARIANT 4 REACHES THE TUTORIAL OUTPUTS TOO, and until 2026-08-10 it did
+      // not — which is how the greenfield tutorial shipped a file that trips
+      // `comment-inside-container` (`p084-y2` finding 6, still live when
+      // `p084-sol3` finding 1 re-found it and called it the one thing that should
+      // block public projection). The loop above reads only
+      // `templates/*/scaffolding/`, so nothing watched the door an adopter actually
+      // walks through: **working the tutorial is a guaranteed path**, and the
+      // invariant's whole point is that nobody meets `uncertain` on day one and
+      // learns to ignore it. A true positive in reference material is still a
+      // teaching failure.
+      // ⚠ DISCOVERED, not listed. A hardcoded pair would let `tutorial/03-*` escape
+      // silently, which is the defect class this file keeps finding. The count pin
+      // below is the other half: a glob that stops matching would otherwise make
+      // this block vacuously pass, and a check nobody has watched fail is not a
+      // check.
+      {
+        const tutorialScanned = [];
+        const tutorialRoot = join(repoRoot, 'tutorial');
+        const walk = async (dir) => {
+          for (const entry of await readdir(dir, { withFileTypes: true })) {
+            const p = join(dir, entry.name);
+            if (entry.isDirectory()) await walk(p);
+            else if (entry.name === '_conventions.md' || entry.name === 'AI-AGENT-GUIDE.md') {
+              if (p.split(/[\\/]/).includes('outputs')) tutorialScanned.push(p);
+            }
+          }
+        };
+        await walk(tutorialRoot);
+        assert.ok(
+          tutorialScanned.length >= 4,
+          `expected at least the two tutorials' _conventions.md + AI-AGENT-GUIDE.md under tutorial/**/outputs/, found ${tutorialScanned.length} — the discovery walk is broken, not the tutorials`
+        );
+        for (const file of tutorialScanned) {
+          const text = await readFile(file, 'utf8');
+          for (const [id, fn] of [
+            ['inline-html-comment', doctorChecks.inlineHtmlCommentLine],
+            ['comment-inside-container', doctorChecks.containerHtmlCommentLine],
+            ['html-block-type-7', doctorChecks.htmlBlockType7Line],
+            ['unclosed-html-block', doctorChecks.unclosedHtmlBlockLine]
+          ]) {
+            assert.equal(
+              fn(text), -1,
+              `${relative(repoRoot, file)} trips the ${id} detector, so a reader working the tutorial meets [uncertain] on the file the tutorial taught them to write — invariant 4, tutorial half`
+            );
+          }
+        }
+      }
+
+      // --- one project per shape, through the real CLI. Unit probes prove the
+      // detector; these prove the WIRING, which is where p082-b3-k4 said the risk
+      // actually sits ("a row of detectors hanging off a mechanism that does
+      // nothing").
+      const shapes = [
+        ['inline-html-comment', '\n## Notes\nprose <!-- ceremony scaling is escalate-only -->\n'],
+        ['comment-inside-container', '\n## Notes\n- item\n  <!-- TODO revisit\n  a rule\n'],
+        ['html-block-type-7', '\n## Notes\n\n<custom-element>\n---\n']
+      ];
+      // ⚠ WHICH SOURCE A FAILURE POINTS AT. This loop is the FIRST thing a broken
+      // detector trips, so its message is the one a maintainer reads — and for one
+      // round it named only the id and this line number, sending the reader to the
+      // test rather than to the function that changed (`p084gate-x13` item 4,
+      // `p084gate-y5` item 4, reported independently). An id is what an adopter
+      // greps; a file and a function name is what a maintainer needs.
+      const DETECTOR_SOURCE = {
+        'inline-html-comment': 'lib/doctor-checks.js `inlineHtmlCommentLine`',
+        'comment-inside-container': 'lib/doctor-checks.js `containerHtmlCommentLine`',
+        'html-block-type-7': 'lib/doctor-checks.js `htmlBlockType7Line`',
+        'unclosed-html-block': 'lib/doctor-checks.js `unclosedHtmlBlockLine`'
+      };
+      // A detector added without a row here would report through an `undefined`
+      // source, which is worse than the id-only message this replaced.
+      assert.deepEqual(
+        Object.keys(DETECTOR_SOURCE).sort(), [...init.DOCTOR_UNCERTAINTY_IDS].sort(),
+        'every shipped uncertainty id needs a source pointer here, or a failing mutation names no source at all'
+      );
+
+      const uncertainDoctorOut = new Map();
+      for (const [id, suffix] of shapes) {
+        const proj = await newProject('2');
+        const cPath = join(proj, CONVENTIONS_REL);
+        await writeFile(cPath, `${await readFile(cPath, 'utf8')}${suffix}`);
+        const run = await runDoctorAt(proj);
+        uncertainDoctorOut.set(id, run.stdout);
+
+        // INVARIANT 3 — a stable, searchable id is printed with the finding.
+        assert.ok(
+          uncertainIds(run.stdout).includes(id),
+          `${DETECTOR_SOURCE[id]} stopped reporting \`${id}\` through the real CLI on a project carrying its shape. The detector must report under its own stable id, since that id is what the explainer page is keyed by\n${run.stdout}`
+        );
+        // INVARIANT 1 — the clean verdict is unavailable, not merely caveated.
+        assert.doesNotMatch(
+          run.stdout, /All checks passed/,
+          `${DETECTOR_SOURCE[id]} (\`${id}\`): a project carrying a shape Dflow is known to misread received the SAME verdict as a clean one. This is the false-clean direction, measured through the real CLI`
+        );
+        // INVARIANT 2 — the checks whose results stopped being trustworthy are
+        // named, because doctor reports by exception and their silence would
+        // otherwise read as "current".
+        // ⚠⚠ THE WORDING IS PART OF THE INVARIANT AND IT WAS FALSE FOR ONE ROUND.
+        // This pin said `Not evaluated …` — and those checks DO run, so a user
+        // could see a `[warn]` from a check the same report called unevaluated
+        // (`p084-xv6` finding 1). The invariant is not "say they did not run"; it
+        // is "name them, and say their result cannot be trusted in EITHER
+        // direction". A pin that fixes the false half of a sentence in place is
+        // how the false half survives, so the assertion moved with the string.
+        assert.match(
+          run.stdout, /Ran, but cannot be trusted while this shape is present — their silence is NOT a pass, and anything they DO report may be an artefact of the shape: /,
+          `${id}: an uncertain finding must name the checks whose results stopped being trustworthy, and must not claim they did not run`
+        );
+        assert.doesNotMatch(
+          run.stdout, /[Nn]ot evaluated|did not run/,
+          `${id}: the report must not claim the affected checks were skipped — they run, and saying otherwise is a false statement printed at the exact boundary this feature exists to be honest about`
+        );
+        assert.match(run.stdout, /This report is INCOMPLETE/, `${id}: the report must say it is incomplete`);
+        assert.match(
+          run.stdout, /docs\/doctor-uncertainty\.en\.md/,
+          `${id}: the finding must point at the page that explains the shape — the container list lives there, not in this string`
+        );
+        // INVARIANT 5 — exit code unchanged (maintainer decision 2026-08-09).
+        // Without a pin, "we did not change the exit code" is an unwatched
+        // verbal promise.
+        assert.equal(run.code, 0, `${id}: doctor still exits 0; uncertain must not become the only finding class that fails a build`);
+        // Exactly one — `unclosed-html-in-container` is written as a differential
+        // against the document-level scan precisely so the two cannot both fire
+        // for one cause.
+        assert.equal(
+          uncertainLines(run.stdout).length, 1,
+          `${id}: one shape must produce one finding, not one per detector that happens to notice it\n${uncertainLines(run.stdout).join('\n')}`
+        );
+      }
+
+      // --- the document-level unclosed block keeps its own id and does NOT also
+      // fire the container detector.
+      assert.deepEqual(
+        uncertainIds(unclosedDoctor.stdout), ['unclosed-html-block'],
+        'a document-level unclosed block reports once, under the id that names it'
+      );
+      assert.equal(unclosedDoctor.code, 0, 'the unclosed-block finding is uncertain, and uncertain still exits 0');
+
+      // The same whole-document condition applies to the other scanned product
+      // file. At EOF there may be no secondary drift warning to reveal the parser
+      // failure, so both editions must still lose the clean verdict explicitly.
+      for (const [edition, projectType] of [['greenfield', '1'], ['brownfield', '2']]) {
+        const project = await newProject('2', projectType);
+        const guidePath = join(project, GUIDE_REL);
+        await writeFile(guidePath, `${await readFile(guidePath, 'utf8')}\n<!-- guide block left open\n`);
+        const run = await runDoctorAt(project);
+        assert.deepEqual(
+          uncertainIds(run.stdout),
+          ['unclosed-html-block'],
+          `${edition} guide EOF: an unclosed block is uncertain even when no narrower guide check happens to complain\n${run.stdout}`
+        );
+        assert.match(run.stdout, /AI-AGENT-GUIDE\.md has an unclosed HTML block/, `${edition} guide EOF: the finding names the affected file`);
+        assert.doesNotMatch(run.stdout, /All checks passed/, `${edition} guide EOF: parser uncertainty removes the clean verdict`);
+        assert.equal(run.code, 0, `${edition} guide EOF: uncertain preserves the doctor exit-code contract`);
+      }
+
+      // --- false-positive controls, at the unit level where they are cheap.
+      // ⚠ The code-span control is the load-bearing one: `` `<!-- x -->` `` IS
+      // rendered, so a reader DOES see it, and flagging it would be a plain false
+      // positive rather than a conservative warning.
+      assert.equal(doctorChecks.inlineHtmlCommentLine('# H\n`<!-- x -->` example\n'), -1, 'a comment inside a code span is visible to a reader and must not be flagged');
+      // Backslash escapes follow CommonMark parity. One or three backslashes
+      // escape `<`, so the apparent opener is visible text; zero or two leave a
+      // live opener (two render as one literal backslash followed by a comment).
+      // Keep all four directions together: pinning only the newly quiet cases
+      // would allow an over-broad suppression to turn real comments silent.
+      assert.notEqual(doctorChecks.inlineHtmlCommentLine('# H\nprose <!-- x -->\n'), -1, 'zero backslashes: a live inline comment must still be reported');
+      assert.equal(doctorChecks.inlineHtmlCommentLine('# H\nprose \\<!-- x -->\n'), -1, 'one backslash escapes `<`, so the reader sees the comment text');
+      assert.notEqual(doctorChecks.inlineHtmlCommentLine('# H\nprose \\\\<!-- x -->\n'), -1, 'two backslashes leave `<` live, so the inline comment must still be reported');
+      assert.equal(doctorChecks.inlineHtmlCommentLine('# H\nprose \\\\\\<!-- x -->\n'), -1, 'three backslashes escape `<`, so the reader sees the comment text');
+      assert.equal(doctorChecks.inlineHtmlCommentLine('# H\n```md\nprose <!-- x -->\n```\n'), -1, 'a fenced example must not be flagged');
+      assert.equal(doctorChecks.inlineHtmlCommentLine('# H\n<!-- an ordinary block comment -->\n'), -1, 'a comment that begins a line is a block and is read correctly');
+      assert.notEqual(doctorChecks.inlineHtmlCommentLine('# H\n<!-- a --> <!-- b -->\n'), -1, 'a SECOND comment on a line that opens with one is still inline — the tail is never re-scanned');
+      assert.equal(doctorChecks.containerHtmlCommentLine('# H\n```md\n- item\n  <!-- open\n```\n'), -1, 'a container comment inside a fence is an example, not a defect');
+      assert.equal(doctorChecks.containerHtmlCommentLine('# H\n<!-- an ordinary block comment -->\n'), -1, 'a column-0 comment opens a real HTML block and is not the container shape');
+      assert.equal(doctorChecks.containerHtmlCommentLine('# H\nprose <!-- x -->\n'), -1, 'a mid-line comment belongs to the inline id, not the container one — the two must not double-report');
+      assert.equal(doctorChecks.htmlBlockType7Line('# H\n<details>\n---\n'), -1, 'a type-6 tag IS implemented and must not be reported as type 7');
+      assert.equal(doctorChecks.htmlBlockType7Line('# H\n<custom-element>\ntext\n'), -1, 'type 7 only diverges where it meets a setext underline');
+      // ⚠⚠ THE MALFORMED-TABLE DETECTOR AND ITS ~800 LINES OF TESTS USED TO SIT
+      // HERE, AND THEIR ABSENCE IS THE DECISION, NOT A GAP IN THIS FILE.
+      // Six review rounds each found a document the detector stayed silent on, and
+      // silence is the direction that prints `All checks passed` over a drifted
+      // file. Narrowing it to measured shapes failed five times; widening it back
+      // to every cell-count mismatch failed on the sixth, because the remaining
+      // enumeration had moved into the delimiter-row recogniser. And one of those
+      // rounds measured the same silent false clean with a delimiter row whose
+      // cell count was CORRECT — so the detector's scope was a strict subset of
+      // the harm and no version of it could close it. The shape now ships as a
+      // stated gap, named on both explainer pages and recorded with owner and gate
+      // as `doctor-section-boundary-arbiter` in `planning/opt-in-backlog.md`.
+      // ⚠ If you are here to add it back, the durable fix is a different
+      // instrument, not a better shape list: `marked` is already a runtime
+      // dependency, so the section boundary can be taken FROM the renderer. A
+      // sixth hand-written recogniser is the thing this file's history says not to
+      // write. `lib/doctor-checks.js` GAP C carries the full account.
+      // ⚠ The id-to-page contract below is what keeps the removal honest in the
+      // other direction: drop the id without dropping its page section and the CLI
+      // links a heading that no longer exists.
+
+      // --- THE CONTRACT BETWEEN A SHIPPED ID AND ITS EXPLAINER SECTION.
+      // ⚠⚠ This is the guard that makes the whole design durable, so it is worth
+      // saying why it exists rather than only what it does. The action text this
+      // proposal replaced was rewritten SEVEN times across two review families,
+      // and every round found the next Markdown container it got wrong — because
+      // an open-ended list of containers cannot be finished inside a fixed
+      // string. Moving that list onto a page that can be revised without touching
+      // shipped text is the fix. It only works while the id and the section
+      // agree, and nothing else in this repo would notice them drifting apart:
+      // the CLI would keep printing a link to a heading that no longer exists.
+      // Asserted in BOTH directions and against BOTH languages, because a section
+      // left behind after a detector is renamed is as misleading as a missing one
+      // — it documents a shape the tool no longer reports under that name.
+      for (const page of ['docs/doctor-uncertainty.en.md', 'docs/doctor-uncertainty.md']) {
+        const text = await readFile(join(repoRoot, page), 'utf8');
+        const documented = [...text.matchAll(/^### `([a-z0-9-]+)`$/gm)].map((m) => m[1]).sort();
+        assert.deepEqual(
+          documented, [...init.DOCTOR_UNCERTAINTY_IDS].sort(),
+          `${page} documents a different set of detector ids than doctor can print. Every id needs a section (the CLI links this page for it), and every section needs an id (otherwise it explains a shape nothing reports).`
+        );
+      }
+      // The runtime pointer must be the English page, per the maintainer decision
+      // of 2026-08-09 — the zh page is one language-switch away, exactly as the
+      // upgrade finding already does it.
+      assert.match(
+        (await readFile(join(repoRoot, 'lib/init.js'), 'utf8')),
+        /blob\/main\/docs\/doctor-uncertainty\.en\.md/,
+        'the CLI must link the English explainer page'
+      );
+      // ⚠ Both pages carry the language switcher, so neither is a dead end. The
+      // zh page is reachable ONLY through it.
+      assert.match(await readFile(join(repoRoot, 'docs/doctor-uncertainty.md'), 'utf8'), /\[English\]\(doctor-uncertainty\.en\.md\)/, 'the zh page must link its English twin');
+      assert.match(await readFile(join(repoRoot, 'docs/doctor-uncertainty.en.md'), 'utf8'), /\[繁體中文\]\(doctor-uncertainty\.md\)/, 'the English page must link its zh twin');
+
+      // --- REGRESSION PINS FROM `p084-y1`, one per finding.
+      // ⚠⚠ The first two are the ones that matter, and they are pinned on the
+      // property rather than on a detector's return value: **no shape may be a
+      // silent pass AND undisclosed**. The first draft's repair advice moved a user
+      // from the first state to the second, which is strictly worse than the defect
+      // it was curing, and no assertion could have caught it — every detector was
+      // behaving exactly as written.
+      const noneFire = (md) => doctorChecks.inlineHtmlCommentLine(md) === -1
+        && doctorChecks.containerHtmlCommentLine(md) === -1
+        && doctorChecks.unclosedHtmlBlockLine(md) === -1
+        && doctorChecks.htmlBlockType7Line(md) === -1;
+
+      // y1 finding 1 — the documented repair for `inline-html-comment` used to land
+      // here, firing nothing while the text stayed hidden from readers.
+      assert.ok(
+        !noneFire('# H\n- Ceremony scaling\n  <!-- a rule -->\n'),
+        'a comment indented under a list item must be disclosed: it is exactly where the inline-comment repair advice sends a user, and its text is still read'
+      );
+      assert.equal(
+        doctorChecks.containerHtmlCommentLine('# H\n- Ceremony scaling\n  <!-- a rule -->\n'), 3,
+        'and it must be disclosed under the CONTAINER id, whose repair (leave the container) is the one that works'
+      );
+      // The repair the page actually prescribes must be genuinely clean.
+      assert.ok(
+        noneFire('# H\n- Ceremony scaling\n<!-- a rule -->\n'),
+        'a comment at column 0 outside the list is the prescribed repair and must silence every detector — if this fails the page is teaching a non-fix'
+      );
+
+      // y1 finding 2 — the retired `unclosed-html-in-container` fired only on an
+      // UNTERMINATED comment, so any later `-->` in the file silenced it, including
+      // the one `unclosed-html-block`'s own action tells the user to add.
+      assert.notEqual(
+        doctorChecks.containerHtmlCommentLine('# H\n- item\n  <!-- TODO\n  a rule\n\n<!-- Seeded by Dflow. -->\n'), -1,
+        'an unrelated closed comment elsewhere in the file must not silence the container finding — termination is not what makes this shape dangerous'
+      );
+      assert.notEqual(
+        doctorChecks.containerHtmlCommentLine('# H\n- item\n  <!-- a rule -->\n'), -1,
+        'a CLOSED comment inside a container is just as hidden from a reader, and must be reported'
+      );
+
+      // ===== `p084-xv1` (cross-vendor) — the partition had a hole =====
+      // ⚠⚠ THE ONE THAT MATTERS. A comment at column 0 inside a `<details>` block
+      // fell into NEITHER id: the container detector skipped it because the line is
+      // typed `html`, the inline detector skipped it because the comment starts the
+      // line's content — and `parseContextLine` then returned a policy value the
+      // reader cannot see, under a full `All checks passed`. Two independent
+      // predicates cannot be audited for gaps; `commentDisposition` is now one
+      // function returning one of three answers, and these pin all three.
+      {
+        const inDetails = '## Git Policy\n\n<details>\n<!-- Selected Git policy: `trunk` -->\n</details>\n\nSelected Git policy: not-machine-readable\n';
+        assert.notEqual(
+          doctorChecks.containerHtmlCommentLine(inDetails), -1,
+          'a comment inside an HTML block is inside a container: its text is still read while the reader sees nothing, and it must not fall between the two comment ids'
+        );
+        assert.equal(
+          doctorChecks.parseContextLine(inDetails, doctorChecks.GIT_POLICY_LINE_RE), 'trunk',
+          'the premise of that pin: doctor really does read the hidden value, which is why the shape has to be disclosed'
+        );
+        const escapedInDetails = '## Git Policy\n\n<details>\n\\<!-- Selected Git policy: `trunk` -->\n</details>\n\nSelected Git policy: not-machine-readable\n';
+        assert.notEqual(
+          doctorChecks.inlineHtmlCommentLine(escapedInDetails), -1,
+          'backslash escaping is inline Markdown syntax, not raw-HTML-block syntax: the comment is still hidden inside <details> and must be disclosed'
+        );
+        assert.equal(
+          doctorChecks.parseContextLine(escapedInDetails, doctorChecks.GIT_POLICY_LINE_RE), 'trunk',
+          'the escaped-opener guard is load-bearing: doctor still reads the hidden policy value from the raw HTML'
+        );
+        const backtickedInDetails = '# H\n\n<details>\n`<!-- Selected Git policy: trunk -->`\n</details>\n';
+        assert.notEqual(
+          doctorChecks.inlineHtmlCommentLine(backtickedInDetails), -1,
+          'backticks do not open a code span inside a raw HTML block, so they must not mask a real hidden comment'
+        );
+        const reportsCommentGap = (md) => doctorChecks.containerHtmlCommentLine(md) !== -1
+          || doctorChecks.inlineHtmlCommentLine(md) !== -1;
+        const { marked } = await import('marked');
+        for (const [container, open, prefix, close] of [
+          ['list', '- <details>', '  ', '  </details>'],
+          ['blockquote', '> <details>', '> ', '> </details>']
+        ]) {
+          assert.equal(
+            reportsCommentGap(`# H\n\n${open}\n${prefix}\\<!-- Selected Git policy: \`trunk\` -->\n${close}\n`), true,
+            `${container}: inline backslash escaping does not apply inside nested raw HTML, so the hidden policy must still be disclosed`
+          );
+          assert.equal(
+            reportsCommentGap(`# H\n\n${open}\n${prefix}\`<!-- Selected Git policy: trunk -->\`\n${close}\n`), true,
+            `${container}: backticks do not open a code span inside nested raw HTML, so they must not mask the hidden comment`
+          );
+          assert.equal(
+            reportsCommentGap(`# H\n\n${open}\n${prefix}\\\\<!-- Selected Git policy: \`trunk\` -->\n${close}\n`), true,
+            `${container}: an even backslash run also leaves the nested raw HTML comment live`
+          );
+        }
+        assert.equal(
+          reportsCommentGap('# H\n\n- prose \\<!-- visible example -->\n'), false,
+          'an odd-backslash apparent opener in ordinary list prose stays visible and must not become a false rejection'
+        );
+        assert.equal(
+          reportsCommentGap('# H\n\n> prose `<!-- visible example -->`\n'), false,
+          'a genuine code span in ordinary blockquote prose stays visible and must not become a false rejection'
+        );
+        assert.equal(
+          reportsCommentGap('# H\n\n> prose\n> 2. <details>\n> \\<!-- visible example -->\n'), false,
+          'an ordered marker above 1 cannot interrupt an open blockquote paragraph, so its apparent escaped comment stays visible'
+        );
+        assert.equal(
+          reportsCommentGap('# H\n\n> 2. <details>\n> \\<!-- Selected Git policy: `trunk` -->\n> </details>\n'), true,
+          'the same ordered marker at a genuine block start opens a list, so nested raw HTML must still be disclosed'
+        );
+        for (const [name, md] of [
+          ['loose-list type-1 odd backslash', '# H\n\n- <pre>\n  body\n\n  \\<!-- Selected Git policy: `trunk` -->\n  </pre>\n'],
+          ['loose-list type-1 backticks', '# H\n\n- <pre>\n  body\n\n  `<!-- Selected Git policy: trunk -->`\n  </pre>\n'],
+          ['tab-gap list', '# H\n\n-\t<details>\n\t\\<!-- Selected Git policy: `trunk` -->\n\t</details>\n'],
+          ['space-tab-gap list', '# H\n\n- \t<details>\n    `<!-- Selected Git policy: trunk -->`\n    </details>\n'],
+          ['nested quote/tab-gap list', '# H\n\n> -\t<details>\n> \t\\<!-- Selected Git policy: `trunk` -->\n> \t</details>\n'],
+          ['nested quote/space-tab-gap list', '# H\n\n> - \t<details>\n> \t`<!-- Selected Git policy: trunk -->`\n> \t</details>\n'],
+          // The masking syntax is deliberately away from the tab slice boundary.
+          // Replacing stringIndexAtVisualColumn with the raw visual column then
+          // cuts into `prose` and loses this hidden comment instead of producing
+          // a second error that happens to re-report it.
+          ['visual-offset continuation body', '# H\n\n- item\n\t<pre>\n\tprose `<!-- Selected Git policy: trunk -->`\n\t</pre>\n']
+        ]) {
+          assert.equal(
+            reportsCommentGap(md), true,
+            `${name}: nested raw-HTML state must survive the real list column and end-condition transitions`
+          );
+        }
+        for (const [name, md] of [
+          ['odd backslash', '# H\n\n> <pre>\n> body\noutside\n> \\<!-- visible example -->\n'],
+          ['code span', '# H\n\n> <pre>\n> body\noutside\n> `<!-- visible example -->`\n']
+        ]) {
+          assert.equal(
+            reportsCommentGap(md), false,
+            `blockquote markerless continuation / ${name}: leaving the quote ends nested raw-HTML state, so later visible prose must stay quiet`
+          );
+        }
+        for (const [name, md, readerHidden] of [
+          ['same depth', '# H\n\n> > <pre>\n> > \\<!-- QUOTE-DEPTH-CANARY -->\n> > </pre>\n', true],
+          ['deeper', '# H\n\n> <pre>\n> > \\<!-- QUOTE-DEPTH-CANARY -->\n> </pre>\n', true],
+          ['shallower', '# H\n\n> > <pre>\n> \\<!-- QUOTE-DEPTH-CANARY -->\n> > </pre>\n', false]
+        ]) {
+          assert.equal(
+            reportsCommentGap(md), readerHidden,
+            `${name}: doctor disclosure must follow the nested raw-HTML boundary across quote-depth transitions`
+          );
+          assert.equal(
+            marked.parse(md).includes('<!-- QUOTE-DEPTH-CANARY -->'), readerHidden,
+            `${name}: the shipped Marked renderer is the visibility arbiter for the quote-depth transition`
+          );
+        }
+        for (const [name, md] of [
+          ['outer list', '# H\n\n- <details>\n\\<!-- Selected Git policy: `trunk` -->\n</details>\n'],
+          ['list inside quote', '# H\n\n> - <details>\n\\<!-- Selected Git policy: `trunk` -->\n</details>\n'],
+          ['tab list', '# H\n\n-\t<pre>\nprose `<!-- Selected Git policy: trunk -->`\n</pre>\n'],
+          ['ordered list', '# H\n\n1. <div>\n\\<!-- Selected Git policy: `trunk` -->\n</div>\n']
+        ]) {
+          assert.equal(reportsCommentGap(md), true, `${name}: a lazy list continuation stays in nested raw HTML and must be disclosed`);
+          assert.ok(
+            marked.parse(md).includes('<!-- Selected Git policy:'),
+            `${name}: Marked keeps the lazy continuation comment raw, so the browser hides the policy value`
+          );
+        }
+
+        const nestedRawProject = await newProject('2');
+        const nestedRawPath = join(nestedRawProject, CONVENTIONS_REL);
+        const nestedRawSource = await readFile(nestedRawPath, 'utf8');
+        const nestedRawMutated = nestedRawSource.replace(
+          /^Selected Git policy: `trunk`$/m,
+          '- <pre>\n  body\n\n  \\<!-- Selected Git policy: `trunk` -->\n  </pre>'
+        );
+        assert.notEqual(nestedRawMutated, nestedRawSource, 'nested raw-HTML CLI guard must replace the live policy line');
+        await writeFile(nestedRawPath, nestedRawMutated);
+        const nestedRawDoctor = await runDoctorAt(nestedRawProject);
+        assert.ok(
+          uncertainIds(nestedRawDoctor.stdout).some((id) => id === 'inline-html-comment' || id === 'comment-inside-container'),
+          `the real CLI must disclose a policy value hidden by an escaped comment inside nested raw HTML\n${nestedRawDoctor.stdout}`
+        );
+        assert.doesNotMatch(
+          nestedRawDoctor.stdout, /All checks passed/,
+          'nested raw HTML must not restore the exact false-clean verdict this uncertainty feature removes'
+        );
+
+        const tabbedConventionsProject = await newProject('2');
+        const tabbedConventionsPath = join(tabbedConventionsProject, CONVENTIONS_REL);
+        const tabbedConventionsSource = await readFile(tabbedConventionsPath, 'utf8');
+        const tabbedConventionsMutated = tabbedConventionsSource.replace(
+          /^Selected Git policy: `trunk`$/m,
+          '-\t<details>\n\t\\<!-- Selected Git policy: `trunk` -->\n\t</details>'
+        );
+        assert.notEqual(tabbedConventionsMutated, tabbedConventionsSource, 'tabbed conventions guard must replace the live policy row');
+        await writeFile(tabbedConventionsPath, tabbedConventionsMutated);
+        const tabbedConventionsDoctor = await runDoctorAt(tabbedConventionsProject);
+        assert.ok(
+          uncertainIds(tabbedConventionsDoctor.stdout).some((id) => id === 'inline-html-comment' || id === 'comment-inside-container'),
+          `the real CLI must disclose a hidden policy after a tabbed list marker\n${tabbedConventionsDoctor.stdout}`
+        );
+        assert.doesNotMatch(tabbedConventionsDoctor.stdout, /All checks passed/, 'tabbed list columns must not produce a conventions false-clean');
+
+        const tabbedGuideProject = await newProject('2');
+        const tabbedGuidePath = join(tabbedGuideProject, GUIDE_REL);
+        const tabbedGuideSource = await readFile(tabbedGuidePath, 'utf8');
+        const tabbedGuideMutated = tabbedGuideSource.replace(
+          /^\| Tech stack \|.*$/m,
+          '- \t<pre>\n    \\<!-- | Tech stack | hidden-stack | -->\n    </pre>'
+        );
+        assert.notEqual(tabbedGuideMutated, tabbedGuideSource, 'tabbed guide guard must replace the live Tech stack row');
+        await writeFile(tabbedGuidePath, tabbedGuideMutated);
+        const tabbedGuideDoctor = await runDoctorAt(tabbedGuideProject);
+        assert.ok(
+          uncertainIds(tabbedGuideDoctor.stdout).some((id) => id === 'inline-html-comment' || id === 'comment-inside-container'),
+          `the real CLI must disclose a hidden guide row after a space-tab list marker\n${tabbedGuideDoctor.stdout}`
+        );
+        assert.doesNotMatch(tabbedGuideDoctor.stdout, /All checks passed/, 'visual list columns must not produce a guide false-clean');
+
+        // The inner-prefix path has its own visual columns and paragraph state.
+        // Exercise both product files and editions through the real CLI: unit
+        // probes alone cannot prove that doctor wires the classification into the
+        // final clean/uncertain verdict.
+        for (const [edition, projectType] of [['greenfield', '1'], ['brownfield', '2']]) {
+          for (const [surface, rel, anchor, hidden] of [
+            [
+              'conventions', CONVENTIONS_REL, /^Selected Git policy: `trunk`$/m,
+              '> -\t<details>\n> \t\\<!-- Selected Git policy: `trunk` -->\n> \t</details>'
+            ],
+            [
+              'guide', GUIDE_REL, /^\| Tech stack \|.*$/m,
+              '> - \t<pre>\n> \t\\<!-- | Tech stack | hidden-stack | -->\n> \t</pre>'
+            ]
+          ]) {
+            const hiddenProject = await newProject('2', projectType);
+            const hiddenPath = join(hiddenProject, rel);
+            const hiddenSource = await readFile(hiddenPath, 'utf8');
+            const hiddenMutated = hiddenSource.replace(anchor, hidden);
+            assert.notEqual(hiddenMutated, hiddenSource, `${edition}/${surface} nested-tab guard must replace its live row`);
+            await writeFile(hiddenPath, hiddenMutated);
+            const hiddenDoctor = await runDoctorAt(hiddenProject);
+            assert.ok(
+              uncertainIds(hiddenDoctor.stdout).some((id) => id === 'inline-html-comment' || id === 'comment-inside-container'),
+              `${edition}/${surface}: nested quote/list tab columns must disclose the hidden value\n${hiddenDoctor.stdout}`
+            );
+            assert.doesNotMatch(hiddenDoctor.stdout, /All checks passed/, `${edition}/${surface}: nested tab columns must not produce a false-clean`);
+
+            const visibleProject = await newProject('2', projectType);
+            const visiblePath = join(visibleProject, rel);
+            await writeFile(
+              visiblePath,
+              `${await readFile(visiblePath, 'utf8')}\n> prose\n> 2. <details>\n> \\<!-- visible example -->\n`
+            );
+            const visibleDoctor = await runDoctorAt(visibleProject);
+            assert.equal(
+              uncertainIds(visibleDoctor.stdout).length,
+              0,
+              `${edition}/${surface}: a non-interrupting ordered marker stays visible paragraph text\n${visibleDoctor.stdout}`
+            );
+            assert.match(visibleDoctor.stdout, /All checks passed/, `${edition}/${surface}: the visible paragraph control must retain the clean verdict`);
+
+            const mismatchedProject = await newProject('2', projectType);
+            const mismatchedPath = join(mismatchedProject, rel);
+            const mismatchedSource = await readFile(mismatchedPath, 'utf8');
+            const mismatchedBlock = surface === 'conventions'
+              ? '<pre>\n</script>\n\\<!-- Selected Git policy: `trunk` -->\n</pre>'
+              : '<pre>\n</script>\n\\<!-- | Tech stack | hidden-stack | -->\n</pre>';
+            const mismatchedMutated = mismatchedSource.replace(anchor, mismatchedBlock);
+            assert.notEqual(mismatchedMutated, mismatchedSource, `${edition}/${surface}: mismatched type-1 guard must replace its live row`);
+            await writeFile(mismatchedPath, mismatchedMutated);
+            const mismatchedDoctor = await runDoctorAt(mismatchedProject);
+            assert.ok(
+              uncertainIds(mismatchedDoctor.stdout).some((id) => id === 'inline-html-comment' || id === 'comment-inside-container'),
+              `${edition}/${surface}: </script> cannot close <pre>; doctor must disclose the hidden value\n${mismatchedDoctor.stdout}`
+            );
+            assert.doesNotMatch(mismatchedDoctor.stdout, /All checks passed/, `${edition}/${surface}: a mismatched type-1 closer must not produce a false-clean`);
+
+            for (const [transition, quoteShape, shouldReport] of [
+              ['same', '> > <pre>\n> > \\<!-- QUOTE-DEPTH-CLI -->\n> > </pre>', true],
+              ['deeper', '> <pre>\n> > \\<!-- QUOTE-DEPTH-CLI -->\n> </pre>', true],
+              ['shallower', '> > <pre>\n> \\<!-- QUOTE-DEPTH-CLI -->\n> > </pre>', false]
+            ]) {
+              const quoteProject = await newProject('2', projectType);
+              const quotePath = join(quoteProject, rel);
+              await writeFile(quotePath, `${await readFile(quotePath, 'utf8')}\n${quoteShape}\n`);
+              const quoteDoctor = await runDoctorAt(quoteProject);
+              const quoteIds = uncertainIds(quoteDoctor.stdout);
+              assert.equal(
+                quoteIds.includes('inline-html-comment'), shouldReport,
+                `${edition}/${surface}/${transition}: real CLI disclosure must match Marked quote-depth visibility\n${quoteDoctor.stdout}`
+              );
+              if (shouldReport) {
+                assert.doesNotMatch(quoteDoctor.stdout, /All checks passed/, `${edition}/${surface}/${transition}: hidden comment suppresses clean`);
+              } else {
+                assert.deepEqual(quoteIds, [], `${edition}/${surface}/${transition}: visible shallower-quote text must not produce uncertainty`);
+                assert.match(quoteDoctor.stdout, /All checks passed/, `${edition}/${surface}/${transition}: visible shallower-quote control retains clean`);
+              }
+            }
+
+            const lazyProject = await newProject('2', projectType);
+            const lazyPath = join(lazyProject, rel);
+            await writeFile(
+              lazyPath,
+              `${await readFile(lazyPath, 'utf8')}\n- <details>\n\\<!-- LAZY-LIST-CLI -->\n</details>\n`
+            );
+            const lazyDoctor = await runDoctorAt(lazyProject);
+            assert.ok(
+              uncertainIds(lazyDoctor.stdout).includes('inline-html-comment'),
+              `${edition}/${surface}: a markerless continuation of list-owned raw HTML must disclose the hidden comment\n${lazyDoctor.stdout}`
+            );
+            assert.doesNotMatch(lazyDoctor.stdout, /All checks passed/, `${edition}/${surface}: lazy list raw HTML must suppress clean`);
+          }
+        }
+
+        const quoteExitProject = await newProject('2');
+        const quoteExitPath = join(quoteExitProject, CONVENTIONS_REL);
+        await writeFile(
+          quoteExitPath,
+          `${await readFile(quoteExitPath, 'utf8')}\n> <pre>\n> body\noutside\n> \\<!-- visible example -->\n`
+        );
+        const quoteExitDoctor = await runDoctorAt(quoteExitProject);
+        assert.match(quoteExitDoctor.stdout, /All checks passed/, 'leaving a blockquote must not leak raw-HTML state into a later visible escaped example');
+        assert.equal(uncertainIds(quoteExitDoctor.stdout).length, 0, 'the blockquote state-leak control must stay free of uncertainty findings');
+      }
+      // The three dispositions, pinned against each other so a future edit cannot
+      // quietly move a shape from one id to the other — or to neither.
+      assert.equal(doctorChecks.containerHtmlCommentLine('# H\n<!-- plain note -->\n'), -1, 'a comment that opens its OWN block at column 0 is genuinely hidden: not a finding');
+      assert.equal(doctorChecks.inlineHtmlCommentLine('# H\n<!-- plain note -->\n'), -1, 'and it is not the inline shape either');
+      assert.notEqual(doctorChecks.inlineHtmlCommentLine('# H\n<!-- a --> <!-- b -->\n'), -1, 'a second comment on a block-opening line is still an inline span');
+      // Wrong-id risk: a prefix that only LOOKS like a container marker.
+      assert.equal(
+        doctorChecks.containerHtmlCommentLine('# H\nparagraph\n2. <!-- x -->\n'), -1,
+        'an ordered-marker-looking prefix inside a PARAGRAPH is prose, not a container — printing "move it out of the list item" there is advice about a container the user is not in'
+      );
+      assert.notEqual(
+        doctorChecks.inlineHtmlCommentLine('# H\nparagraph\n2. <!-- x -->\n'), -1,
+        'and because it is prose, the comment is an inline span and must still be reported under that id'
+      );
+      // A `<script>` block is already invisible to every check, so there is no
+      // divergence to disclose and a warning there would be pure noise.
+      assert.equal(doctorChecks.containerHtmlCommentLine('# H\n<script>\n<!-- x -->\n</script>\n'), -1, 'content of an invisible block is already hidden from doctor: nothing to report');
+      assert.equal(doctorChecks.inlineHtmlCommentLine('# H\n<script>\n<!-- x -->\n</script>\n'), -1, 'same, for the inline id');
+
+      // ===== `p084-xv2` (cross-vendor, third round) =====
+      // ⚠⚠ BLOCKER: the code-span mask created the silent pass it exists to prevent.
+      // `\`<!-- rule -->\`` has ESCAPED backticks, so it is not a code span at all —
+      // a reader sees two literal backticks and no rule, while doctor read the
+      // hidden value and printed `All checks passed`. The mask counted the escaped
+      // backticks as delimiters and skipped the comment as "visible".
+      {
+        const BT = String.fromCharCode(0x60);
+        const BS = String.fromCharCode(0x5c);
+        const escaped = `## Git Policy\n${BS}${BT}<!-- Selected Git policy: ${BT}trunk${BT} -->${BS}${BT}\n`;
+        assert.notEqual(
+          doctorChecks.inlineHtmlCommentLine(escaped), -1,
+          'a comment wrapped in ESCAPED backticks is not in a code span: the reader sees literal backticks, doctor reads the value, and the shape must be disclosed'
+        );
+        assert.equal(
+          doctorChecks.parseContextLine(escaped, doctorChecks.GIT_POLICY_LINE_RE), 'trunk',
+          'the premise: doctor really does read the hidden policy there'
+        );
+        // The real code span must still be exempt — that is the false positive this
+        // mask exists for, and closing the escape hole must not reopen it.
+        assert.equal(
+          doctorChecks.inlineHtmlCommentLine(`# H\n${BT}<!-- x -->${BT} example\n`), -1,
+          'an UNescaped code span is genuinely rendered and must stay exempt'
+        );
+      }
+      // Both boundary detectors describe a DOCUMENT-level section boundary moving.
+      // Inside a list item nothing at document level moves, so firing there is noise
+      // on legitimate content.
+      assert.equal(
+        doctorChecks.htmlBlockType7Line('## G\n- item\n  <custom-element>\n  ---\n'), -1,
+        'a bare tag inside a list item is list content to both readings — no section boundary is at stake'
+      );
+
+      // ⚠⚠ xv3 BLOCKER — THE ESCAPE REPAIR MOVED THE SILENT PASS RATHER THAN
+      // CLOSING IT. The first repair filtered escaped backticks out BEFORE pairing,
+      // which is circular: CommonMark §6.1 says escapes do not work inside a code
+      // span, so "is this backtick escaped" depends on whether a span is already
+      // open. In `` `foo\` `` the real closing delimiter was discarded as escaped,
+      // the opener paired with a later run, and the mask swallowed a comment no
+      // reader can see. Both directions are pinned here because the two blockers
+      // sat on opposite sides of the same line of code.
+      {
+        const BT = String.fromCharCode(0x60);
+        const BS = String.fromCharCode(0x5c);
+        const spanEndsInBackslash = `## Git Policy\n${BT}foo${BS}${BT} <!-- Selected Git policy: ${BT}trunk${BT} -->\n`;
+        assert.notEqual(
+          doctorChecks.inlineHtmlCommentLine(spanEndsInBackslash), -1,
+          'a code span whose content ends in a backslash closes at the NEXT backtick — the comment after it is live text and must be disclosed'
+        );
+        assert.equal(
+          doctorChecks.parseContextLine(spanEndsInBackslash, doctorChecks.GIT_POLICY_LINE_RE), 'trunk',
+          'the premise: doctor really does read the hidden policy there'
+        );
+        // The unpaired-run path is the one a naive rewrite drops: a lone backtick
+        // is literal text and must not swallow the rest of the line.
+        assert.notEqual(
+          doctorChecks.inlineHtmlCommentLine(`# H\nprose ${BT} and <!-- x -->\n`), -1,
+          'an UNPAIRED backtick opens no span, so a later comment on the same line is still live'
+        );
+        assert.equal(
+          doctorChecks.inlineHtmlCommentLine(`# H\n${BT}a${BT} t ${BT}<!-- x -->${BT}\n`), -1,
+          'a SECOND real code span on the line must still be exempt — scanning must resume past the first, not give up'
+        );
+      }
+
+      // xv3 finding 3 — the container test is spelled ONCE now (`inUnparsedContainer`).
+      // These two detectors used to say `list | blockquote` while the comment ids said
+      // `list | blockquote | html`, so the same `<details>` was container content to
+      // one pair and a document-level divergence to the other.
+      assert.equal(
+        doctorChecks.htmlBlockType7Line('## G\n\n<details>\n<custom-element>\n---\n</details>\n'), -1,
+        'a bare tag inside an HTML block is container content to both readings, exactly as it is inside a list item'
+      );
+      // ⚠ The other half, and it is the half that would fail silently: at document
+      // level neither shape is typed `html` (this module does not implement type 7 —
+      // that IS the gap — and a delimiter row is typed `table`), so widening the skip
+      // to HTML blocks cannot mute the real case. Without these two the widening
+      // could disable both detectors outright and the suite would stay green.
+      assert.notEqual(
+        doctorChecks.htmlBlockType7Line('# H\n\n<custom-element>\n---\n'), -1,
+        'the document-level type-7 divergence must still fire after the container skip was widened'
+      );
+
+      // ⚠⚠ THE REPAIR MATRIX. Every container the `comment-inside-container` advice
+      // names gets three cells, and the middle one is the whole point:
+      //   detected     — the shape really is reported
+      //   wrongRepair  — the repair the advice does NOT prescribe leaves it reported
+      //   rightRepair  — the repair it DOES prescribe clears it
+      // `p084-xv4` finding 3 killed the previous shape of this block: it asserted
+      // only the third cell for `<textarea>`, so it stayed green whether or not the
+      // detector still reached that container at all, and said nothing about the
+      // wrong repair. A repaired-form assertion on its own cannot tell "the advice
+      // works" from "the detector stopped looking".
+      // ⚠ The composite rows are here because two rounds of advice were written as
+      // if a comment sits in exactly one container. It can sit in two, and then only
+      // leaving the OUTER one repairs anything.
+      // ⚠ Known residual, unchanged: nothing reads the advice STRING, so a future
+      // edit could restate a rule universally and this stays green. A source
+      // substring pin was rejected as the brittle class this file already retracts
+      // once; the durable form would derive the sentence from `blockEndsOnBlank`.
+      for (const row of [
+        {
+          name: 'list item',
+          detected: '# H\n\n- item\n  <!-- x -->\n',
+          wrongRepair: '# H\n\n- item\n      <!-- x -->\n',
+          wrongWhy: 're-indenting deeper stays inside the item',
+          rightRepair: '# H\n\n- item\n\n<!-- x -->\n',
+          rightWhy: 'column 0, outside the item'
+        },
+        {
+          name: 'block quote',
+          detected: '# H\n\n> q\n> <!-- x -->\n',
+          wrongRepair: '# H\n\n> q\n>   <!-- x -->\n',
+          wrongWhy: 're-indenting after the `>` stays inside the quote',
+          rightRepair: '# H\n\n> q\n\n<!-- x -->\n',
+          rightWhy: 'column 0 with no `>`'
+        },
+        {
+          name: '<details> (type 6, ends at a blank line)',
+          detected: '# H\n\n<details>\n<!-- x -->\n</details>\n',
+          wrongRepair: '# H\n\n<details>\n</details>\n<!-- x -->\n',
+          wrongWhy: 'the closing tag does NOT end a type-6 block, so below it is still inside',
+          rightRepair: '# H\n\n<details>\n\n<!-- x -->\n',
+          rightWhy: 'a blank line is what ends it'
+        },
+        {
+          name: '<pre> (type 1, ends at its closing tag)',
+          detected: '# H\n\n<pre>\n<!-- x -->\n</pre>\n',
+          wrongRepair: '# H\n\n<pre>\n\n<!-- x -->\n</pre>\n',
+          wrongWhy: 'a blank line does NOT end a type-1 block — this is the type-6 rule misapplied',
+          rightRepair: '# H\n\n<pre>\n</pre>\n<!-- x -->\n',
+          rightWhy: 'below its own closing tag'
+        },
+        {
+          // ⚠ `<div>` is named in the shipped advice and had no row, while the
+          // block above claimed every named container has one (`p084-xv5`
+          // finding 3). A coverage claim nobody checks is the same shape as a
+          // check nobody watches fail.
+          name: '<div> (type 6, the other tag the advice names)',
+          detected: '# H\n\n<div>\n<!-- x -->\n</div>\n',
+          wrongRepair: '# H\n\n<div>\n</div>\n<!-- x -->\n',
+          wrongWhy: 'the closing tag does NOT end a type-6 block',
+          rightRepair: '# H\n\n<div>\n\n<!-- x -->\n',
+          rightWhy: 'a blank line is what ends it'
+        },
+        {
+          name: 'composite: <pre> inside a list item',
+          detected: '# H\n\n- <pre>\n  <!-- x -->\n  </pre>\n',
+          wrongRepair: '# H\n\n- <pre>\n  </pre>\n  <!-- x -->\n',
+          wrongWhy: 'applying only the <pre> rule leaves the comment in the list item',
+          rightRepair: '# H\n\n- <pre>\n  </pre>\n\n<!-- x -->\n',
+          rightWhy: 'leaving the OUTERMOST container is what repairs it'
+        },
+        {
+          name: 'composite: <details> inside a block quote',
+          detected: '# H\n\n> <details>\n> <!-- x -->\n> </details>\n',
+          wrongRepair: '# H\n\n> <details>\n>\n> <!-- x -->\n',
+          wrongWhy: 'applying only the blank-line rule leaves the comment in the quote',
+          rightRepair: '# H\n\n> <details>\n\n<!-- x -->\n',
+          rightWhy: 'leaving the OUTERMOST container is what repairs it'
+        }
+      ]) {
+        assert.notEqual(
+          doctorChecks.containerHtmlCommentLine(row.detected), -1,
+          `repair matrix / ${row.name}: the shape itself must be reported, or the other two cells prove nothing`
+        );
+        assert.notEqual(
+          doctorChecks.containerHtmlCommentLine(row.wrongRepair), -1,
+          `repair matrix / ${row.name}: ${row.wrongWhy} — it must STILL report, otherwise the advice is free to prescribe this`
+        );
+        assert.equal(
+          doctorChecks.containerHtmlCommentLine(row.rightRepair), -1,
+          `repair matrix / ${row.name}: the prescribed repair (${row.rightWhy}) must actually clear the finding`
+        );
+      }
+
+      // ⚠⚠ `<textarea>` IS A FALSE POSITIVE THAT IS REPORTED ON PURPOSE. Its interior
+      // is RAW TEXT: a reader sees `<!-- ... -->` verbatim, so nothing is hidden —
+      // which is why naming it as a repair case once shipped the single edit that
+      // would genuinely hide the text (`p084-xv4` finding 1). Suppressing it was then
+      // tried three times and each attempt produced a SILENT PASS instead, so the
+      // exemption was removed rather than patched a fourth time.
+      // Two things are pinned, and they are pinned for different reasons: that the
+      // shape IS reported (so nobody quietly reintroduces a suppressor), and that the
+      // reader really does see the text (which is the premise for leaving the cited
+      // line unchanged — if that ever became false, the advice would be wrong).
+      {
+        const ta = '## Git Policy\n\n<textarea>\n<!-- Selected Git policy: `trunk` -->\n</textarea>\n';
+        assert.notEqual(
+          doctorChecks.containerHtmlCommentLine(ta), -1,
+          'a comment inside <textarea> IS reported — the exemption that used to suppress it was removed after producing three silent passes'
+        );
+        // ⚠⚠ THIS PIN USED TO CHECK THE WRONG THING (`p084-y2` finding 8). It asserted
+        // `visibleTextLines(...)` contains the text — but that is DOCTOR's visibility
+        // flag, not the reader's, and it could only go red in a state the assertion
+        // above already catches first. The proposition the advice rests on is an HTML
+        // fact: a `<textarea>`'s content is RCDATA, so the comment is displayed rather
+        // than parsed as markup. Check THAT, against the renderer this package already
+        // depends on.
+        {
+          const { marked } = await import('marked');
+          const inside = /<textarea[^>]*>([\s\S]*?)<\/textarea>/i.exec(marked.parse(ta));
+          assert.ok(
+            inside && inside[1].includes('Selected Git policy'),
+            'the premise for the ADVICE: the comment really does land INSIDE the <textarea> element, where HTML shows it verbatim. If this ever fails, the leave-this-line-unchanged advice is wrong and both pages need rewriting'
+          );
+        }
+        assert.notEqual(
+          doctorChecks.containerHtmlCommentLine('# H\n\n<pre>\n<!-- x -->\n</pre>\n'), -1,
+          '<pre> shares type 1 with <textarea> but its interior is parsed as HTML, so a comment there IS hidden and must still be reported'
+        );
+        // ⚠⚠ THE NESTED CASE IS A RECORDED DECISION, NOT AN OVERSIGHT (`p084-xv5`
+        // finding 1; maintainer, 2026-08-09). The exemption needs the enclosing tag
+        // and this module does not parse container interiors, so a `<textarea>`
+        // inside a list item is invisible to it and the shape is still reported.
+        // The maintainer chose the noisy direction over a hand-rolled upward scan
+        // whose failure mode would be silence.
+        assert.notEqual(
+          doctorChecks.containerHtmlCommentLine('# H\n\n- <textarea>\n  <!-- x -->\n  </textarea>\n'), -1,
+          'a NESTED <textarea> is still reported — if this ever becomes -1 the exemption grew a container-aware path, and the advice below must be revisited with it'
+        );
+        // ⚠⚠⚠ THE `<textarea>` EXEMPTION WAS REMOVED, AND THESE ROWS ARE WHY.
+        // Three consecutive attempts to suppress that false positive each produced
+        // a SILENT PASS — the failure this proposal exists to remove:
+        //   `p084-xv9`  — the exemption skipped the whole line, so a comment after a
+        //                 same-line `</textarea>` was exempted although it really is
+        //                 hidden; doctor read a policy out of it under a clean verdict.
+        //   `p084-xv10` — the column version accepted `</textarea >` while the
+        //                 classifier closes only on `</textarea>`. Two consumers, one
+        //                 rule, no shared spelling — and a later exact close then
+        //                 suppressed the unclosed fallback, so nothing fired at all.
+        // Each row below is a shape that was silent under one of those versions.
+        // **They now all report.** Reporting is the noisy direction, which this
+        // module's own rule allows and which the maintainer twice chose in this same
+        // area. If one of these ever goes back to `false`, an exemption has been
+        // reintroduced — read the block comment in `doctor-checks` before deciding
+        // that is an improvement.
+        const reports = (md) => doctorChecks.containerHtmlCommentLine(md) !== -1
+          || doctorChecks.inlineHtmlCommentLine(md) !== -1;
+        assert.equal(
+          reports('# H\n\n<textarea><!-- x --></textarea>\n'), true,
+          'same-line <textarea>: reported'
+        );
+        assert.equal(
+          reports('# H\n\n<textarea></textarea><!-- x -->\n'), true,
+          'comment AFTER a same-line end tag — silent under the xv9 version'
+        );
+        assert.equal(
+          reports('# H\n\n<textarea>\nv\n</textarea >\n<!-- x -->\n</textarea>\n'), true,
+          'close tag with whitespace before `>`, then a later exact close — silent under the xv10 version, because two consumers spelled the same rule differently'
+        );
+        assert.equal(
+          reports('# H\n\n<textarea><!-- a --></textarea><textarea><!-- b --></textarea>\n'), true,
+          'two elements on one line: the single-cutoff model got this wrong in the noisy direction, and uniform reporting makes the question moot'
+        );
+        assert.equal(
+          reports('# H\n\n<textarea>\n<!-- x -->\n'), true,
+          'unclosed <textarea>: reported like every other shape now'
+        );
+        // ⚠ `<script>` / `<style>` are a DIFFERENT question and must stay exempt:
+        // their interiors are invisible to the reader, so nothing is hidden that was
+        // not hidden anyway. Removing the raw-text exemption must not reach them.
+        assert.equal(
+          reports('# H\n\n<script>\n<!-- x -->\n</script>\n'), false,
+          '<script> stays exempt — its content is invisible, which is the `invisible` flag, not the removed exemption'
+        );
+        // ⚠⚠ THE MITIGATION IS NOW ENTIRELY A SENTENCE, so the sentence has to reach
+        // EVERY id the shape can be reported under — and for one round it did not
+        // (`p084-xv11` finding 1). `<textarea><!-- rule --></textarea>` on one line
+        // does not start its line's content, so the partition correctly calls it
+        // `inline-html-comment`; that id's action said "move the comment to a line of
+        // its own at column 0", which is precisely the edit that hides displayed raw
+        // text. The multi-line form routes to `comment-inside-container` and was safe.
+        // One shape, two ids, one of them unprotected.
+        assert.notEqual(
+          doctorChecks.inlineHtmlCommentLine('# H\n\n<textarea><!-- x --></textarea>\n'), -1,
+          'the same-line form is reported under the INLINE id — that is the partition working, and it is why the advice has to be on both'
+        );
+        {
+          const initSource = await readFile(join(repoRoot, 'lib/init.js'), 'utf8');
+          const textareaClauseLine = initSource.split('\n').find((line) => line.startsWith('const TEXTAREA_LEAVE_IT_ALONE = '));
+          const rendererClauseLine = initSource.split('\n').find((line) => line.startsWith('const MARKED_COMMENT_CALIBRATION = '));
+          assert.ok(textareaClauseLine, 'could not locate the shared <textarea> action clause');
+          assert.match(textareaClauseLine, /do NOT ignore the overall uncertainty result/,
+            'a harmless first <textarea> hit must not waive the file-level uncertainty');
+          assert.match(textareaClauseLine, /first occurrence of each shape/,
+            'the action must disclose that the cited harmless line can shadow a later genuine hit');
+          assert.doesNotMatch(textareaClauseLine, /ignore this finding|does NOT apply/,
+            'the retired waiver and false reassurance must not return to the shipped action');
+          assert.ok(rendererClauseLine, 'could not locate the shared renderer-calibration action clause');
+          assert.match(rendererClauseLine, /`dflow render`, powered by Marked/,
+            'repair advice must name the shipped renderer it is calibrated against');
+          for (const id of ['inline-html-comment', 'comment-inside-container']) {
+            const m = initSource.match(new RegExp(`id: '${id}'[\\s\\S]*?\\n\\s*action: ([^\\n]*)`));
+            assert.ok(m, `could not locate the ${id} action — repoint this pin, do not delete it`);
+            assert.match(
+              m[1], /TEXTAREA_LEAVE_IT_ALONE/,
+              `${id}'s action must carry the shared <textarea> clause: doctor reports that shape under BOTH comment ids, and the id without the clause sends the user to hide their own visible text`
+            );
+            assert.match(
+              m[1], /MARKED_COMMENT_CALIBRATION/,
+              `${id}'s action must carry the same Marked renderer scope: either id can report the markerless list-owned raw-HTML shape`
+            );
+          }
+          assert.equal(
+            (initSource.match(/const TEXTAREA_LEAVE_IT_ALONE = /g) || []).length, 1,
+            'and the clause is spelled ONCE — two copies of a rule is this codebase\'s oldest defect class, and this rule has already been rewritten three times'
+          );
+          assert.equal(
+            (initSource.match(/const MARKED_COMMENT_CALIBRATION = /g) || []).length, 1,
+            'the renderer calibration is also spelled once and shared by both comment ids'
+          );
+        }
+        // A harmless first hit can shadow a genuine later hit under either id. The
+        // detector remains deliberately first-hit-only; the safe action above, not a
+        // fake clean bill of health, is what closes this noisy-direction residual.
+        assert.equal(
+          doctorChecks.inlineHtmlCommentLine('# H\n<textarea><!-- visible --></textarea>\nprose <!-- genuinely hidden -->\n'), 2,
+          'inline detector reports only the first same-id hit, so its action must keep the whole file uncertain'
+        );
+        assert.equal(
+          doctorChecks.containerHtmlCommentLine('# H\n<textarea>\n<!-- visible -->\n</textarea>\n- item\n  <!-- genuinely hidden -->\n'), 3,
+          'container detector reports only the first same-id hit, so its action must direct a rest-of-file inspection'
+        );
+
+        // ⚠⚠ PUBLIC-DOCUMENT CONTRACTS ARE GUARDED IN READER-VISIBLE, SCOPED
+        // PROSE IN BOTH LANGUAGES. `p084gate-x10` showed that no page semantics were
+        // guarded at all. The first repair then searched the whole raw Markdown for
+        // exact anchor strings; `p084gate-x11` defeated it by hiding those strings in
+        // HTML comments while reversing all six visible contracts, and also showed a
+        // meaning-preserving paraphrase went red. Runtime pins are not enough: these
+        // pages are shipped guidance, and a user can follow their unsafe edit even
+        // while the CLI itself prints the right sentence.
+        const maskNonReaderMarkdown = (markdown) => {
+          let fence = null;
+          const withoutFences = (markdown.match(/[^\n]*\n|[^\n]+$/g) || []).map((line) => {
+            const body = line.replace(/\r?\n$/, '');
+            if (fence) {
+              if (new RegExp(`^ {0,3}${fence.char}{${fence.length},}[ \\t]*$`).test(body)) fence = null;
+              return line.replace(/[^\r\n]/g, ' ');
+            }
+            const opener = /^ {0,3}(`{3,}|~{3,})/.exec(body);
+            if (!opener) return line;
+            fence = { char: opener[1][0], length: opener[1].length };
+            return line.replace(/[^\r\n]/g, ' ');
+          }).join('');
+          return withoutFences.replace(/<!--[\s\S]*?-->/g, (block) => block.replace(/[^\r\n]/g, ' '));
+        };
+        const markdownContractProse = (markdown) => maskNonReaderMarkdown(markdown)
+          .replace(/<[^>\n]+>/g, ' ')
+          .replace(/[*_`>#]+/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+        const markdownSection = (text, start, end) => {
+          const boundaries = maskNonReaderMarkdown(text);
+          const from = boundaries.indexOf(start);
+          const to = boundaries.indexOf(end, from + start.length);
+          assert.ok(from !== -1 && to !== -1 && to > from,
+            `public guidance section moved: ${start} -> ${end}; repoint the semantic guard, do not widen it to the whole page`);
+          return markdownContractProse(text.slice(from, to));
+        };
+        const publicDocContractFailures = (text, language) => {
+          const english = language === 'en';
+          const firstH2 = maskNonReaderMarkdown(text).indexOf('\n## ');
+          assert.notEqual(firstH2, -1, 'public guidance lost its first H2 boundary');
+          const preamble = markdownContractProse(text.slice(0, firstH2));
+          const inline = markdownSection(text, '### `inline-html-comment`', '### `comment-inside-container`');
+          const container = markdownSection(text, '### `comment-inside-container`', '### `unclosed-html-block`');
+          const commentAdvice = `${inline} ${container}`;
+
+          const textareaSafe = english
+            ? (/(?:do not|don\'t|must not)\s+(?:ignore|dismiss)|(?:keep|leave)\b.{0,45}\b(?:uncertainty|finding)\b.{0,30}\b(?:open|active)|\b(?:uncertainty|finding)\b.{0,35}\b(?:remain|stay)\w*\b.{0,20}\b(?:open|active)|\b(?:uncertainty|finding)\b.{0,25}\bcannot be (?:closed|dismissed)/i.test(commentAdvice)
+              && /(?:only|just)\b.{0,24}\b(?:first|earliest)|\b(?:first|earliest)\b.{0,35}\b(?:occurrence|instance|one)\b/i.test(commentAdvice)
+              && /\b(?:shadow|mask|hide|obscure|conceal)\w*\b.{0,65}\b(?:later|subsequent|following)\b.{0,65}\b(?:genuine|hidden|real)\b/i.test(commentAdvice)
+              && !/\b(?:can|may|should|must)\s+(?:safely\s+)?(?:ignore|dismiss)\b.{0,55}\b(?:uncertainty|finding)\b|\baffected checks\b.{0,35}\b(?:remain|are|stay)\s+(?:trusted|reliable)\b|\bclose\b.{0,35}\b(?:overall|file-level)\b.{0,25}\b(?:finding|uncertainty)\b/i.test(commentAdvice))
+            : (/(?:不要|不得).{0,12}(?:忽略|結束).{0,24}(?:不確定|finding)|(?:整體|這條).{0,18}(?:不確定|finding).{0,18}(?:仍|繼續|保持).{0,12}(?:成立|開著|開啟|保留|不能結案)|(?:不確定|finding).{0,18}(?:不能|不可).{0,12}(?:解除|結案|關閉)/.test(commentAdvice)
+              && /只.{0,12}(?:回報|列出).{0,12}(?:第一|最早|最先)|(?:第一|最早|最先).{0,12}(?:處|個|位置)/.test(commentAdvice)
+              && (/(?:遮住|蓋掉|掩蓋).{0,35}(?:後面|稍後|下一個).{0,35}(?:藏|真的|真正)/.test(commentAdvice)
+                || /讓.{0,12}(?:之後|後面).{0,35}(?:隱藏|藏).{0,28}(?:沒有出現|漏掉)/.test(commentAdvice))
+              && !/(?:可以|可|應該).{0,10}(?:忽略|結束).{0,24}(?:不確定|finding)|受影響.{0,24}(?:可信|可靠)|(?:整體\s*)?finding.{0,12}(?:可以|就能|能夠).{0,12}(?:結案|解除|關閉)/.test(commentAdvice));
+
+          const rendererSectionSafe = (section) => {
+            // Keep the alternate-renderer noun and its visibility direction in
+            // the SAME sentence. Whole-section matching let an unrelated code-span
+            // sentence (`會被 render 出來`, `看得到`) rescue a zh renderer sentence
+            // whose own verb had been reversed to "also hides" (`p084gate-y3`).
+            const sentences = section.split(/[.!?。！？]/).map((sentence) => sentence.trim()).filter(Boolean);
+            const alternateRendererMayExpose = english
+              ? sentences.some((sentence) =>
+                /\b(?:another|other|different|some)\b.{0,35}\b(?:renderer|publishing engine)/i.test(sentence)
+                && (/\b(?:may|might|can)\b.{0,45}\b(?:show|expose|display|render)\w*\b/i.test(sentence)
+                  || /\b(?:another|other|different|some)\b.{0,45}\b(?:renderers?|publishing engines?)\b.{0,45}\b(?:show|expose|display|render|make)\w*\b/i.test(sentence)))
+              : sentences.some((sentence) =>
+                /(?:其他|別的|有些|不同).{0,20}(?:renderer|引擎)/i.test(sentence)
+                && /(?:可能|也許|會).{0,30}(?:顯示|露出|看得到|看得見)/.test(sentence));
+            const universalClaim = english
+              ? /\b(?:every|all|any)\b.{0,25}\b(?:renderer|publishing engine)\b.{0,55}\b(?:same|hide|invisible|universal|appl(?:y|ies))\b|\buniversal renderer\b|\bregardless of\b.{0,35}\b(?:renderer|publishing engine)\b|\bwhichever\b.{0,20}\brenderer\b.{0,40}\bunchanged\b|\bunchanged\b.{0,40}\bwhichever\b.{0,20}\brenderer\b/i.test(section)
+              : /(?:所有|任何).{0,20}(?:renderer|發佈引擎).{0,35}(?:一律|都會|相同|適用)|無論.{0,30}(?:renderer|發佈引擎)|每一種.{0,20}發佈引擎/i.test(section);
+            return /dflow render/i.test(section)
+              && /Marked/i.test(section)
+              && alternateRendererMayExpose
+              && !universalClaim;
+          };
+          const rendererScope = rendererSectionSafe(inline) && rendererSectionSafe(container);
+
+          const sourceVsPublished = english
+            ? /\bmain\b/i.test(preamble)
+              && /Unreleased/i.test(preamble)
+              && /@latest/i.test(preamble)
+              && /published/i.test(preamble)
+              && (/(?:does not|doesn\'t|may not|might not|not guaranteed|is not guaranteed).{0,85}(?:every|all|feature|report|include|released)/i.test(preamble)
+                || /published package.{0,35}(?:may|might|can).{0,25}(?:lag|trail|fall behind)/i.test(preamble))
+              && !/@latest[^.!?\n]{0,55}(?:includes|contains|guarantees)[^.!?\n]{0,45}(?:every|all|each)/i.test(preamble)
+            : /main/i.test(preamble)
+              && /Unreleased/i.test(preamble)
+              && /@latest/i.test(preamble)
+              && /已發佈/.test(preamble)
+              && (/(?:不保證|未必|不一定).{0,55}(?:包含|納入|功能|回報)/.test(preamble)
+                || /已發佈套件.{0,20}(?:可能|也許).{0,15}(?:落後|晚於)/.test(preamble))
+              && !/@latest[^。！？：\n]{0,55}(?:(?<!不保證)已|會)[^。！？：\n]{0,4}(?:包含|納入|收錄)[^。！？：\n]{0,24}(?:所有|全部|每一)/.test(preamble);
+          return [
+            ['textarea-first-hit', textareaSafe],
+            ['renderer-scope', rendererScope],
+            ['main-vs-published', sourceVsPublished]
+          ].filter(([, ok]) => !ok).map(([name]) => name);
+        };
+        for (const row of [
+          {
+            language: 'en',
+            file: 'doctor-uncertainty.en.md',
+            mutations: [
+              ['textarea-first-hit', (s) => s.replace('do **not** ignore the overall uncertainty result', 'may safely ignore the overall uncertainty result')],
+              ['renderer-scope', (s) => s
+                .replace('Another Markdown renderer may expose an escaped apparent opener there', 'Every Markdown renderer hides this opener, so the repair applies universally')
+                .replace('Some other Markdown renderers expose an escaped apparent opener instead', 'All Markdown renderers hide this opener, so the repair applies universally')],
+              ['main-vs-published', (s) => s.replace(/This page tracks the source `main` branch[^\n]+/, 'Upgrade to `@latest`; it includes every report described on this page:')]
+            ],
+            paraphrase: (s) => s
+              .replace('do **not** ignore the overall uncertainty result', 'keep the overall uncertainty result open')
+              .replace('reports only the first occurrence of each shape in a file', 'emits just the earliest occurrence of each shape per file')
+              .replace('shadow a later, genuinely hidden comment', 'mask a subsequent comment that is genuinely hidden'),
+            extraContradictions: [
+              ['textarea-first-hit', (s) => s.replace('Inspect the rest of the cited file for other apparent comment openers before trusting the affected checks.', 'You may now close the overall finding without inspecting the rest of the file.')],
+              ['renderer-scope', (s) => s
+                .replace('if you publish through a different renderer, inspect its output before applying the repair.', 'regardless of the renderer you use, the opener is always hidden and this repair is safe without checking output.')
+                .replace('If you publish through another renderer, inspect that output before moving or deleting the comment.', 'These instructions apply unchanged to whichever renderer publishes the document.')],
+              ['renderer-scope', (s) => s
+                .replace('Another Markdown renderer may expose an escaped apparent opener there', 'Another Markdown renderer also hides the escaped apparent opener')
+                .replace('Some other Markdown renderers expose an escaped apparent opener instead', 'Some other Markdown renderers also hide the escaped apparent opener instead')],
+              ['main-vs-published', (s) => s.replace('> Everything on this page is done by editing your own Markdown', '> `@latest` is synchronized with `main` and includes each report described below.\n>\n> Everything on this page is done by editing your own Markdown')]
+            ],
+            extraParaphrases: [
+              (s) => s.replace('it does not guarantee that every `main`-branch feature below has been released', 'the published package may lag behind what this `main`-branch page describes'),
+              (s) => s
+                .replace('Another Markdown renderer may expose an escaped apparent opener there', 'A different publishing engine can make the escaped opener visible')
+                .replace('Some other Markdown renderers expose an escaped apparent opener instead', 'A different publishing engine can make the escaped opener visible instead'),
+              (s) => s.replace(
+                'But do **not** ignore the overall uncertainty result: doctor reports only the first occurrence of each shape in a file, so this harmless line can shadow a later, genuinely hidden comment with the same id.',
+                'The file-level uncertainty cannot be closed: doctor emits just the earliest instance of each shape, and this harmless line can conceal a subsequent real hidden comment with the same id.'
+              )
+            ]
+          },
+          {
+            language: 'zh',
+            file: 'doctor-uncertainty.md',
+            mutations: [
+              ['textarea-first-hit', (s) => s.replace('不要忽略整體的不確定結論', '可以忽略整體的不確定結論')],
+              ['renderer-scope', (s) => s
+                .replace('其他 Markdown renderer 可能會顯示被 escape 的註解開頭', '所有 Markdown renderer 都會藏起這個開頭，因此修法一律適用')
+                .replace('有些其他 Markdown renderer 反而會顯示被 escape 的註解開頭', '任何 Markdown renderer 都會藏起這個開頭，因此修法一律適用')],
+              ['main-vs-published', (s) => s.replace(/本頁隨源碼 `main` 更新[^\n]+/, '升級到 `@latest`；它已包含本頁描述的所有回報：')]
+            ],
+            paraphrase: (s) => s
+              .replace('不要忽略整體的不確定結論', '請讓整體 finding 保持開啟')
+              .replace('只回報第一處', '只列出最早的一個位置')
+              .replace('遮住後面同 id、真的被藏起來的註解', '掩蓋稍後同 id、真正隱藏的註解'),
+            extraContradictions: [
+              ['textarea-first-hit', (s) => s.replace('信任受影響的檢查以前，請繼續檢查該檔案其餘看似註解開頭的位置。', '現在整體 finding 就能結案，不必再檢查檔案後文。')],
+              ['renderer-scope', (s) => s
+                .replace('若你用別的 renderer 發佈，套用修法前請先檢查它的輸出。', '無論採用哪一個 renderer，這個開頭都會被藏起來，修法不需檢查輸出。')
+                .replace('若你用別的 renderer 發佈，移動或刪除註解前請先檢查那份輸出。', '這份修法對每一種發佈引擎都不需調整。')],
+              ['renderer-scope', (s) => s
+                .replace('其他 Markdown renderer 可能會顯示被 escape 的註解開頭', '其他 Markdown renderer 也會藏起被 escape 的註解開頭')
+                .replace('有些其他 Markdown renderer 反而會顯示被 escape 的註解開頭', '有些其他 Markdown renderer 也會藏起被 escape 的註解開頭')],
+              ['main-vs-published', (s) => s.replace('> 本頁所有修法都只是改你自己的 Markdown', '> `@latest` 與 `main` 同步，已收錄下方每一項回報。\n>\n> 本頁所有修法都只是改你自己的 Markdown')]
+            ],
+            extraParaphrases: [
+              (s) => s.replace('不保證已包含下面每一項 `main` 功能', '已發佈套件可能落後於本頁記載的 `main` 內容'),
+              (s) => s
+                .replace('其他 Markdown renderer 可能會顯示被 escape 的註解開頭', '不同的 Markdown 引擎可能讓被 escape 的註解開頭看得見')
+                .replace('有些其他 Markdown renderer 反而會顯示被 escape 的註解開頭', '不同的 Markdown 引擎反而可能讓被 escape 的註解開頭看得見'),
+              (s) => s.replace(
+                '但**不要忽略整體的不確定結論**：doctor 對每種形狀在一個檔案裡只回報第一處，所以這個無害位置可能遮住後面同 id、真的被藏起來的註解。',
+                '但整體不確定狀態不能解除：doctor 對每種形狀只指出最先遇到的位置，因此這個無害位置可能讓之後實際隱藏的同 id 註解沒有出現在首筆回報。'
+              )
+            ]
+          }
+        ]) {
+          const page = await readFile(join(repoRoot, 'docs', row.file), 'utf8');
+          assert.deepEqual(
+            publicDocContractFailures(page, row.language), [],
+            `${row.file}: shipped public guidance must retain all three semantic safety contracts`
+          );
+          for (const [contract, mutate] of row.mutations) {
+            const mutant = mutate(page);
+            assert.notEqual(mutant, page, `${row.file}/${contract}: mutation did not apply; update this adequacy probe with the prose`);
+            assert.ok(
+              publicDocContractFailures(mutant, row.language).includes(contract),
+              `${row.file}/${contract}: independently removing or reversing this public-document contract must make its semantic guard go red`
+            );
+            const inlineHeading = '### `inline-html-comment`';
+            const hiddenAnchor = contract === 'main-vs-published'
+              ? page.slice(0, page.indexOf('\n## '))
+              : markdownSection(page, inlineHeading,
+                contract === 'renderer-scope' ? '### `unclosed-html-block`' : '### `comment-inside-container`');
+            const anchorLocation = contract === 'main-vs-published' ? '# ' : inlineHeading;
+            const hiddenAnchorMutant = mutant.replace(anchorLocation, `${anchorLocation}\n<!-- ${hiddenAnchor.replaceAll('-->', '-- >')} -->`);
+            assert.ok(
+              publicDocContractFailures(hiddenAnchorMutant, row.language).includes(contract),
+              `${row.file}/${contract}: hiding the old anchors in an HTML comment must not rescue contradictory reader-visible guidance`
+            );
+          }
+          const paraphrased = row.paraphrase(page);
+          assert.notEqual(paraphrased, page, `${row.file}: meaning-preserving paraphrase probe did not apply`);
+          assert.deepEqual(
+            publicDocContractFailures(paraphrased, row.language), [],
+            `${row.file}: reasonable meaning-preserving paraphrases must not make the semantic guard needlessly word-literal`
+          );
+          for (const [contract, contradict] of row.extraContradictions) {
+            const mutant = contradict(page);
+            assert.notEqual(mutant, page, `${row.file}/${contract}: alternative contradiction probe did not apply`);
+            assert.ok(
+              publicDocContractFailures(mutant, row.language).includes(contract),
+              `${row.file}/${contract}: alternative visible contradiction must make the scoped semantic guard go red`
+            );
+          }
+          for (const paraphrase of row.extraParaphrases) {
+            const variant = paraphrase(page);
+            assert.notEqual(variant, page, `${row.file}: extra meaning-preserving paraphrase probe did not apply`);
+            assert.deepEqual(
+              publicDocContractFailures(variant, row.language), [],
+              `${row.file}: published, renderer, and three-concept paraphrases must remain green`
+            );
+          }
+          const fencedHeading = page.replace(
+            '### `inline-html-comment`',
+            '### `inline-html-comment`\n\n```markdown\n### `comment-inside-container`\n```'
+          );
+          assert.deepEqual(
+            publicDocContractFailures(fencedHeading, row.language), [],
+            `${row.file}: a heading lookalike inside a fenced example must not move semantic section boundaries`
+          );
+        }
+      }
+      // ⚠⚠ ACCEPTED NOISE, PINNED SO IT CANNOT DRIFT SILENTLY (`p084-xv8` finding 5;
+      // maintainer principle of 2026-08-09). `blankFencedBlocks` reads RAW document
+      // lines and never strips a container prefix, so two shapes are not masked and
+      // a comment inside them is reported: a fence opened inside a block quote, and
+      // a fence at FOUR OR MORE SPACES of raw indent — past `FENCE_OPEN_RE`'s
+      // `^ {0,3}`, which happens under an ordinary `- item`, not only a deep one
+      // (`p084-xv9` finding 3 corrected that description; `p084-xv10` finding 4
+      // caught this comment still carrying the old one). The module's own comment
+      // claimed fenced examples "therefore do not fire", without the qualifier, for
+      // eight rounds. Fixing it means a container-aware fence scanner whose failure
+      // direction is silence; the maintainer chose the gap over that scanner.
+      // ⚠⚠ AND THE GAP ITSELF PRODUCES SILENCE, not only noise (`p084-y2` finding 1):
+      // an unmasked fence's content is counted as section body, so an upstream rule
+      // quoted as an example inside one makes that rule look present while the live
+      // copy has changed — `All checks passed` over real drift, reproduced end to end.
+      // The decision was taken believing the cost was noise-only. Do not restate the
+      // noise-only framing anywhere; it is retired.
+      // ⚠ The two shapes clear DIFFERENTLY and the pages say so: un-indenting fixes
+      // the indent case, and nothing but leaving the quote fixes the other, because
+      // the line still starts with `>` at any depth (`p084-xv10` finding 2).
+      // ⚠ These assertions pin a DEFECT deliberately. If one starts failing, the
+      // masker grew container awareness — go and delete the paragraph on both pages
+      // rather than "fixing" the test.
+      assert.notEqual(
+        doctorChecks.containerHtmlCommentLine('# H\n\n> ```md\n> <!-- x -->\n> ```\n'), -1,
+        'accepted noise: a fence inside a block quote is not masked, so the comment in it is still reported'
+      );
+      assert.notEqual(
+        doctorChecks.containerHtmlCommentLine('# H\n\n- item\n    ```md\n    <!-- x -->\n    ```\n'), -1,
+        'accepted noise: FOUR spaces of RAW indent is past FENCE_OPEN_RE\'s `^ {0,3}`, so the fence is not masked — under an ordinary list item, not only a deep one'
+      );
+      assert.equal(
+        doctorChecks.containerHtmlCommentLine('# H\n\n- item\n   ```md\n   <!-- x -->\n   ```\n'), -1,
+        'and THREE spaces is masked — the boundary is the raw indent, which is what the comment and both pages must say'
+      );
+      // ⚠ The block-quote shape does NOT clear by re-indenting, at any depth, and
+      // both pages said it did for one round (`p084-xv10` finding 2). The `>` is
+      // still the first character, so `FENCE_OPEN_RE` never sees a fence at all.
+      for (const pad of ['', '  ', '   ']) {
+        assert.notEqual(
+          doctorChecks.containerHtmlCommentLine(`# H\n\n> ${pad}\`\`\`md\n> ${pad}<!-- x -->\n> ${pad}\`\`\`\n`), -1,
+          `a fence inside a block quote stays unmasked at indent ${JSON.stringify(pad)} — re-indenting is not a repair here, and the pages must not offer it as one`
+        );
+      }
+      // …but the shapes the claim IS true for must stay true, or the paragraph above
+      // is describing a masker that no longer masks anything.
+      assert.equal(
+        doctorChecks.containerHtmlCommentLine('# H\n\n```md\n<!-- x -->\n```\n'), -1,
+        'a fence at column 0 is masked — this is the case the "fenced examples do not fire" sentence is about'
+      );
+      assert.equal(
+        doctorChecks.containerHtmlCommentLine('# H\n\n- x\n  ```md\n  <!-- x -->\n  ```\n'), -1,
+        'and a fence at a shallow list content column is still within the three-space indent the fence rule allows'
+      );
+      // ⚠⚠ …AND THE PRICE OF THAT DECISION IS PAID HERE. Doctor reports a shape it
+      // should not, so the sentence the user acts on has to name it — otherwise the
+      // finding above sends them to make the one edit that genuinely hides the text.
+      // Four separate rounds found a repair instruction that read well and made
+      // things worse; this is the first assertion that reaches that layer at all.
+      // ⚠ It pins the MENTION, not the wording, and that is the honest limit: a
+      // rewrite that names `<textarea>` while advising the opposite still passes.
+      // The same file already pins a shipped string this way (the explainer URL),
+      // and counting occurrences — the brittle form — is what this file retracts.
+      // ⚠⚠ It must read the `action` LITERAL, not the file. The first version of
+      // this assertion matched `/<textarea>/` against all of `lib/init.js`, where
+      // the comments beside this detector name the tag several times — so deleting
+      // the clause from the shipped string left the pin green. A pin satisfied by
+      // the comment explaining it is not a pin.
+      // ⚠ SUPERSEDED, not dropped. It read ONE id's action literal, and the clause it
+      // looked for now lives in `TEXTAREA_LEAVE_IT_ALONE`, prefixed to BOTH comment
+      // ids — because protecting only one of the two ids the shape can be reported
+      // under is itself the defect (`p084-xv11` finding 1). The replacement is in the
+      // `<textarea>` block above: it checks both ids AND that the clause is spelled
+      // once. Two pins for one rule is the class this file keeps retracting.
+
+      // y1 finding 5 — indented code is rendered verbatim; warning there is noise.
+      assert.equal(
+        doctorChecks.inlineHtmlCommentLine('# H\n\nExample:\n\n    prose <!-- x -->\n'), -1,
+        'a comment inside an indented code block is visible to the reader — flagging it is the false-positive class gap D was rejected for'
+      );
+
+      // y1 finding 6 — a delimiter-shaped separator row in a table BODY is not a
+      // header/delimiter pair, and doctor and GFM agree about the whole block.
+
+      // y1 finding 7 — type 7 is DEFINED by not interrupting a paragraph, so a bare
+      // tag continuing one is not type 7 and there is no divergence to report.
+      assert.equal(
+        doctorChecks.htmlBlockType7Line('# H\nsome prose\n<my-widget>\n---\n'), -1,
+        'a bare tag continuing a paragraph is not HTML block type 7 — doctor already agrees with CommonMark there'
+      );
+      assert.notEqual(
+        doctorChecks.htmlBlockType7Line('# H\n<my-widget>\n---\n'), -1,
+        'a bare tag at a genuine block start above a setext underline must still fire'
+      );
+      // ⚠ `p084-xv5` finding 2 — CommonMark's type-7 start condition is an open tag
+      // OR A COMPLETE CLOSING TAG. The detector matched only the first while both doc
+      // pages described the shape in words that cover both, so `</my-widget>` above a
+      // setext underline diverged from the reference renderer and was never disclosed.
+      assert.notEqual(
+        doctorChecks.htmlBlockType7Line('# H\n\n</my-widget>\n---\n'), -1,
+        'a complete CLOSING tag also starts HTML block type 7 — the divergence is the same one and must be disclosed'
+      );
+      assert.equal(
+        doctorChecks.htmlBlockType7Line('# H\n\n</div>\n---\n'), -1,
+        'a type-6 closing tag is implemented and must not be reported as type 7 — widening the opener must not widen past the type-6 exclusion'
+      );
+      assert.equal(
+        doctorChecks.htmlBlockType7Line('# H\n\nprose\n</my-widget>\n---\n'), -1,
+        'a closing tag continuing a paragraph is not type 7 either — the paragraph-continuation rule must reach the widened shape'
+      );
+      // ⚠⚠ `p084-xv6` finding 2 — the widened opener shared the open-tag's attribute
+      // tail and `/?` with the closing form, and a closing tag may carry NEITHER.
+      // CommonMark's "complete closing tag" is `</`, a name, optional whitespace,
+      // `>`. So these two are ordinary paragraph text, `---` under them really is a
+      // setext heading, and this module already agrees with the spec — there is
+      // nothing to disclose and firing was noise.
+      // ⚠ Settled against the SPEC, not against `marked`: this repo has measured
+      // `marked` to be non-conformant exactly at setext boundaries, so it cannot
+      // arbitrate this pair.
+      assert.equal(
+        doctorChecks.htmlBlockType7Line('# H\n\n</my-widget attr>\n---\n'), -1,
+        'a closing tag with an attribute is not a complete closing tag, so it does not start type 7 and there is no divergence to report'
+      );
+      assert.equal(
+        doctorChecks.htmlBlockType7Line('# H\n\n</my-widget/>\n---\n'), -1,
+        'a closing tag cannot self-close either — same reason'
+      );
+      assert.notEqual(
+        doctorChecks.htmlBlockType7Line('# H\n\n<my-widget data-x=1>\n---\n'), -1,
+        'but an OPEN tag may carry attributes and must still fire — tightening the closing form must not tighten the open one'
+      );
+      // ⚠⚠ A GRAMMAR-LEVEL PIN SET, and it exists because case-by-case pins were
+      // measured to be the wrong instrument here (`p084-xv7` ITEM 5). Seven rounds
+      // of one-off examples left the open-tag tail as `[^<>]*` — "anything without
+      // angle brackets" — while CommonMark's raw-HTML grammar ALLOWS `>` inside a
+      // quoted attribute value. `<my-widget title="a > b">` is therefore a complete
+      // open tag that starts HTML block type 7 and swallows the underline below it,
+      // this module read that underline as a setext heading, no detector fired, and
+      // a real project got `All checks passed` over a genuinely stale section. That
+      // is the failure class this entire proposal exists to remove, reproduced end
+      // to end. So the pin follows the PRODUCTIONS — one row per thing the grammar
+      // permits or forbids — rather than the examples someone happened to think of.
+      // ⚠ Rejection rows are as load-bearing as acceptance rows: for each of them
+      // this module and the spec AGREE, so there is no divergence to disclose and
+      // firing is pure noise on user content.
+      for (const [tag, shouldFire, why] of [
+        ['<my-widget>', true, 'bare open tag'],
+        ['<my-widget data-x=1>', true, 'unquoted attribute value'],
+        ['<my-widget title="a b">', true, 'double-quoted value'],
+        ['<my-widget title="a > b">', true, 'a quoted value MAY contain `>` — this is the blocker case'],
+        ["<my-widget title='a > b'>", true, 'and so may a single-quoted one'],
+        ['<my-widget a=1 b="2">', true, 'more than one attribute'],
+        ['<my-widget hidden>', true, 'an attribute may have no value'],
+        ['<my-widget a = 1>', true, 'whitespace is allowed around the `=`'],
+        ['<my-widget/>', true, 'self-closing'],
+        ['<my-widget a="1" />', true, 'attribute then self-closing'],
+        ['<my-widget _x:y-z=1>', true, 'attribute names may start with `_` or `:` and carry `.:-`'],
+        ['<my-widget =x>', false, 'an attribute name may not start with `=`, so this is not a tag'],
+        ['<my-widget "x">', false, 'a bare quoted string is not an attribute'],
+        ['< my-widget>', false, 'no whitespace is allowed before the tag name'],
+        ['<my-widget a="1>', false, 'an unterminated quote never completes the tag'],
+        ['</my-widget>', true, 'complete closing tag'],
+        ['</my-widget >', true, 'whitespace before `>` is allowed in a closing tag'],
+        ['</my-widget attr>', false, 'a closing tag may not carry attributes'],
+        ['</my-widget/>', false, 'a closing tag may not self-close'],
+        ['<div class="x">', false, 'type 6 is implemented, so a known block tag is never type 7 — with or without attributes'],
+        // ⚠⚠ §4.6 attaches the name exclusion to the OPEN-TAG form only: "a
+        // complete open tag (with any tag name other than pre, script, style, or
+        // textarea) OR a complete closing tag". Relying on the classifier for this
+        // half was not enough — `htmlBlockStart` recognises `<pre>` but not
+        // `<pre/>`, so the self-closing forms escaped and were reported as
+        // divergences that do not exist (`p084-xv8` finding 4).
+        ['<pre/>', false, 'type 1 wins over type 7 for these four names, self-closing form included'],
+        ['<script/>', false, 'same'],
+        ['<style/>', false, 'same'],
+        ['<textarea/>', false, 'same'],
+        ['<pre>', false, 'and the plain open form'],
+        ['<pre class="x">', false, 'and with attributes'],
+        ['</pre>', true, 'but a complete CLOSING tag carries NO name exclusion — the spec parenthetical is on the open-tag form, so this really is type 7'],
+        ['</textarea>', true, 'same, and the asymmetry is the spec\'s, not an oversight'],
+        // ⚠ Productions round nine named as unpinned. Each expectation is the
+        // spec's, checked against it — not a transcript of current behaviour.
+        ['<my-widget a="">', true, 'an empty double-quoted value is a value'],
+        ["<my-widget a=''>", true, 'and an empty single-quoted one'],
+        ['<my-widget a=>', false, 'an `=` must be followed by a value'],
+        ['<my-widget a=1b=2>', false, 'attributes must be separated by whitespace'],
+        ['<my-widget a="x<y">', true, 'a quoted value may contain `<`'],
+        ['<my-widget a="x`y">', true, 'and a backtick'],
+        ['<my-widget a="x=y">', true, 'and an `=`'],
+        ['<my-widget />', true, 'whitespace is allowed before the self-closing slash'],
+        ['<my-widget / >', false, 'but not between the slash and the `>`'],
+        ['<my-widget  a=1>', true, 'more than one space before an attribute is fine'],
+        ['<my-widget a=1 >', true, 'and trailing whitespace before the `>`']
+      ]) {
+        const fired = doctorChecks.htmlBlockType7Line(`# H\n\n${tag}\n---\n`) !== -1;
+        assert.equal(
+          fired, shouldFire,
+          `type-7 grammar / ${JSON.stringify(tag)}: ${why} — expected ${shouldFire ? 'a finding' : 'silence'}, got ${fired ? 'a finding' : 'silence'}`
+        );
+      }
+
+      // y1 finding 9 — one rule, one spelling. The duplicated `affects` literal was
+      // this module's own defect class landing in the field whose accuracy the
+      // uncertain state exists to guarantee.
+      //
+      // ⚠ Pinned on BEHAVIOUR, not on a source substring count. The first version of
+      // this assertion counted occurrences of a sentence fragment in `lib/init.js`
+      // and required exactly one — which would have gone red if anyone quoted that
+      // sentence in a nearby comment. A guard that refuses correct work stops every
+      // run, while the defect it guards costs nothing until someone edits one copy;
+      // that trade is the wrong way round, and it is the false-rejection class this
+      // repo has paid for before. Comparing the rendered lines asks the real
+      // question — do these two findings state the same affected set — and cannot
+      // be tripped by prose.
+      {
+        const inlineAffects = (uncertainDoctorOut.get('inline-html-comment') || '')
+          .split('\n').find((l) => l.includes('their silence is NOT a pass'));
+        const unclosedAffects = unclosedDoctor.stdout
+          .split('\n').find((l) => l.includes('their silence is NOT a pass'));
+        assert.ok(inlineAffects && unclosedAffects, 'both findings must print an affected-checks line at all');
+        assert.equal(
+          inlineAffects, unclosedAffects,
+          'the two visibility-gap findings must state the SAME affected set, because they share one cause (text the classifier hides from every check that reads it). Two spellings of one rule is how they drift apart.'
+        );
+      }
+
+      // ⚠ The code-span rule pinned directly, not only through its two consumers:
+      // it is the boundary that separates "hidden from the reader" from "shown to
+      // the reader", and a consumer test cannot say which half broke.
+      assert.deepEqual(
+        doctorChecks.codeSpanMask('a `bc` d').map((x) => (x ? 1 : 0)),
+        [0, 0, 1, 1, 1, 1, 0, 0],
+        'a code span covers its delimiters and its contents, and nothing else'
+      );
+      assert.deepEqual(
+        doctorChecks.codeSpanMask('none here').map((x) => (x ? 1 : 0)),
+        new Array('none here'.length).fill(0),
+        'a line with no backticks has no masked positions'
+      );
+    }
+
     // The three sibling checks stay silent on absent/blank ONLY because the
     // drift check reports it. That coupling is invisible at each call site, so
     // it is pinned here: if the owner ever stops reporting, the two assertions
@@ -1149,7 +2755,9 @@ try {
     const guardedConstructs = {
       blockFunctions: [
         'isThematicBreak', 'parseAtxHeading', 'stripSpaceTab', 'blankFencedBlocks',
-        'htmlBlockStart', 'indentWidth', 'listContentColumn', 'classifyLines',
+        'htmlBlockStart', 'stripNestedContainerOpeners', 'nestedRawHtmlContext',
+        'nestedParagraphOpens', 'nestedContainerContext',
+        'indentWidth', 'listContentColumn', 'stringIndexAtVisualColumn', 'classifyLines',
         'extractHeadings', 'extractH2Headings', 'unclosedHtmlBlockLine',
         'classifiedVisible', 'visibleTextLines', 'maskCodeBlocks'
       ],
@@ -1157,9 +2765,21 @@ try {
         'LINE_SPLIT_RE', 'FENCE_MARKER', 'FENCE_OPEN_RE', 'FENCE_CLOSE_RE',
         'ATX_HEADING_RE', 'TABLE_DELIMITER_ROW_RE', 'HTML_BLOCK_TYPES',
         'HTML_TYPE1_INVISIBLE_TAGS',
+        // PROPOSAL-084 / `p084-xv8`. The type-1 tag names, named out of
+        // `HTML_BLOCK_TYPES` for the same reason `HTML_COMMENT_OPEN_RE` was: the
+        // type-7 detector needs the same list (§4.6 excludes these names from
+        // type 7) and a third copy is how the two inside `HTML_BLOCK_TYPES`
+        // drifted from the detector in the first place. Guarded because they are
+        // still a block rule — they decide what opens a type-1 block.
+        'HTML_TYPE1_TAGS', 'HTML_TYPE1_NAME_RE',
         'HTML_BLOCK_TAGS', 'HTML_BLOCK_TYPE6_RE', 'BULLET_MARKER', 'ORDERED_DELIM',
         'ORDERED_MARKER', 'LIST_ITEM_RE', 'EMPTY_LIST_ITEM_RE', 'INTERRUPTING_ITEM_RE',
-        'LIST_ITEM_PREFIX_RE', 'BLOCKQUOTE_RE', 'SETEXT_UNDERLINE_RE', 'BLANK_LINE_RE'
+        'LIST_ITEM_PREFIX_RE', 'BLOCKQUOTE_RE', 'SETEXT_UNDERLINE_RE', 'BLANK_LINE_RE',
+        // PROPOSAL-084 named it out of HTML_BLOCK_TYPES so the uncertainty
+        // detector could read the opener instead of writing a second copy of it.
+        // Guarded because it is still a block rule; the type-2 entry it composes
+        // into is unchanged.
+        'HTML_COMMENT_OPEN_RE'
       ]
     };
 
@@ -1300,13 +2920,156 @@ try {
       // invisible in two independent ways at once — unlisted, and (if listed)
       // read one line deep.
       {
-        const declaredFns = [...source.matchAll(/^function ([A-Za-z0-9_]+)\(/gm)].map((m) => m[1]);
+        // ⚠⚠ THE CENSUS'S COVERAGE IS THE LOAD-BEARING HALF, and `^function name(` is
+        // not the only spelling (`p084-y2` finding 8). Measured missed by the old
+        // pattern: `async function`, `function*`, `class X {`, and
+        // `exports.x =` / `module.exports.x =`. Three earlier defeats of this guard
+        // were all "the census failed to SEE a declaration", never "judged it
+        // wrongly" — so widen the spelling, do not narrow it.
+        // ⚠⚠⚠ AND THE REPAIR FOR THAT FINDING WAS ITSELF DEFEATED, BY A BYTE NOBODY
+        // COULD SEE (`p084-sol2` finding 2). The class branch was written `\b` and
+        // what landed in the file was a literal **U+0008 backspace**, so the pattern
+        // demanded a control character after the class name and could never match —
+        // `class Reader {` went unseen while the suite stayed green and the comment
+        // above went on claiming the gap was closed. It survived a review round.
+        // Two things follow, and the second is the general one:
+        //   - An editor, a diff and `Read` all render U+0008 as nothing. `cat -A`
+        //     shows it as `^H`; a scan for C0 bytes finds it. There is now exactly
+        //     zero of them in this file — **if you add one, this comment is wrong.**
+        //   - **A guard that is silently dead looks exactly like a guard that
+        //     passes.** Widening a census is not done when the regex is edited; it
+        //     is done when a fixture proving each new spelling MATCHES has been run.
+        // ⚠⚠⚠⚠ AND THE WIDENED VERSION STILL HAD FIVE HOLES (`p084-sol3` finding 5):
+        // `async(x) =>`, `async()=>1`, `(x = fn()) =>`, `exports['x'] =`, and
+        // `= class {}`. Every one of them lived in the same place — the clause that
+        // tried to decide whether the RIGHT-HAND SIDE was function-shaped.
+        // **So that clause is gone rather than patched a fourth time**, which is this
+        // repo's own rule about a check rewritten three times.
+        // Two facts made the deletion free and correct:
+        //   - `lib/doctor-checks.js` contains **zero** `exports.x =` statements (it
+        //     exports one `module.exports = { … }` object), so the RHS clause was
+        //     protecting nothing today while carrying five ways to under-cover
+        //     tomorrow.
+        //   - Over-inclusion is the SAFE direction: a name the census invents must be
+        //     classified by a human in `nonBlockFns`, which is the failure mode this
+        //     guard wants. Under-inclusion is invisible — and invisible is how all of
+        //     `p084-y2` F8, `p084-sol2` F2 and this finding happened.
+        // An aliased export (`exports.pred = somePredicate`) is now counted too, which
+        // the RHS clause had also been dropping.
+        //
+        // ⚠ SPELLED ONCE, read by both the live scan and the fixture table below that
+        // proves each spelling is actually seen. A fixture carrying its own copy of
+        // these expressions would prove nothing about the census — two expressions for
+        // one rule is this file's own named defect class.
+        const DECLARATION_CENSUS = [
+          /^(?:async\s+)?function\s*\*?\s*([A-Za-z0-9_]+)\s*\(/gm,
+          /^class\s+([A-Za-z0-9_]+)\b/gm,
+          // No RHS test, deliberately — see above. `m[2]` is the bracket form.
+          /^(?:module\.)?exports(?:\.([A-Za-z0-9_$]+)|\[\s*['"]([^'"]+)['"]\s*\])\s*=/gm
+        ];
+        const censusNames = (text) =>
+          DECLARATION_CENSUS.flatMap((re) => [...text.matchAll(re)]).map((m) => m[1] || m[2]);
+
+        // --- The fixture that makes "widened" mean something -------------------
+        // ⚠ `p084-sol3` finding 5's other half: the comment above claimed fixtures
+        // proved each spelling, and no committed fixture existed — the claim rested
+        // on one manual check. **Widening a census is not done when the regex is
+        // edited; it is done when a fixture proving each new spelling MATCHES has
+        // been run.** Every row below that names a round is a spelling that was
+        // silently missed at some point.
+        const CENSUS_MUST_SEE = [
+          ['function plainFn(a) {}', 'plainFn'],
+          ['async function asyncFn(a) {}', 'asyncFn'],
+          ['function* genFn(a) {}', 'genFn'],
+          ['async function* asyncGenFn(a) {}', 'asyncGenFn'],
+          ['class Reader {', 'Reader'],                                  // y2 F8, dead until sol2 F2
+          ['exports.fromFunction = function () {};', 'fromFunction'],
+          ['module.exports.fromModuleFn = function () {};', 'fromModuleFn'],
+          ['exports.fromArrow = (a) => a;', 'fromArrow'],
+          ['exports.fromBareArrow = a => a;', 'fromBareArrow'],
+          ['exports.fromAsyncArrow = async (a) => a;', 'fromAsyncArrow'],
+          ['exports.fromTightAsync = async(x) => x;', 'fromTightAsync'],  // sol3 F5
+          ['exports.fromTightAsyncNoArg = async()=>1;', 'fromTightAsyncNoArg'], // sol3 F5
+          ['exports.fromDefaultParam = (x = fn()) => x;', 'fromDefaultParam'],  // sol3 F5
+          ["exports['fromBracket'] = (x) => x;", 'fromBracket'],          // sol3 F5
+          ['exports.fromClassExpr = class {};', 'fromClassExpr'],         // sol3 F5
+          ['exports.fromAlias = somePredicate;', 'fromAlias']             // dropped by the old RHS clause
+        ];
+        for (const [line, expected] of CENSUS_MUST_SEE) {
+          assert.ok(
+            censusNames(line).includes(expected),
+            `the declaration census does not see \`${line}\` — a spelling it cannot see is a ` +
+              `construct that can be added to lib/doctor-checks.js without ever being classified`
+          );
+        }
+        // Negatives. Kept few and obvious on purpose: over-inclusion is safe here, so
+        // a long negative list would be pinning behaviour the guard does not need and
+        // would make future widening look like a regression.
+        for (const line of ['  function indentedHelper(a) {}', '// function commentedOut(a) {}']) {
+          assert.equal(
+            censusNames(line).length, 0,
+            `the census matched \`${line}\` — it is anchored at column 0 on purpose, ` +
+              'because only top-level declarations can be block-deciding constructs'
+          );
+        }
+        // ⚠ The census's own file must stay free of C0 control characters, because
+        // that is how the `class` branch died invisibly (`p084-sol2` finding 2): a
+        // literal U+0008 where `\b` was meant, rendered as nothing by every editor,
+        // diff and file reader, under a comment asserting the gap was closed.
+        // ⚠ Scans the TEST file as well as the module: the byte that killed the
+        // census lived in the test, so scanning only the thing under test would have
+        // missed it exactly where it happened.
+        for (const rel of ['test/upgrade-drift.mjs', 'lib/doctor-checks.js']) {
+          const text = await readFile(join(repoRoot, ...rel.split('/')), 'utf8');
+          const c0 = [...text].filter((ch) => ch.charCodeAt(0) < 32 && !'\n\r\t'.includes(ch));
+          assert.equal(
+            c0.length, 0,
+            `${rel} contains ${c0.length} C0 control character(s) ` +
+              `(${c0.map((ch) => 'U+' + ch.charCodeAt(0).toString(16).padStart(4, '0')).join(', ')}) — ` +
+              'one of these silently killed this very census once; they are invisible in every editor'
+          );
+        }
+
+        const declaredFns = censusNames(source);
         const nonBlockFns = [
           'parseContextLine', 'extractSectionRefs', 'normalizeHeading', 'headingResolves',
           'missingTemplateSections', 'matchesTemplateWithPlaceholders', 'escapeRegExp',
           'hasTableWithoutConventionComment', 'headingKey', 'conventionsSectionBodies',
           'conventionsSectionBody', 'normalizeForMarker', 'fingerprintAppliesTo',
-          'findConventionsDrift'
+          'findConventionsDrift',
+          // PROPOSAL-084 uncertainty detectors. Classified as NON-block
+          // deliberately, and the distinction is the one the guard actually asks
+          // about: these report whether a SHAPE is present, and nothing in the
+          // module consumes their output to decide where a block starts or ends.
+          // `classifyLines` remains the only thing that decides anything.
+          // ⚠ The failure direction if one of them is wrong is a noisy or missing
+          // WARNING, never a mis-parsed document — which is why the tight-
+          // whitespace rule is not the right instrument for them. They are pinned
+          // behaviourally instead (positive shape + false-positive control per
+          // detector) further down this file.
+          // ⚠ The one block rule any of them needs — what a comment-block opener
+          // looks like — is READ from `HTML_COMMENT_OPEN_RE`, which is guarded,
+          // rather than restated here. That was a real correction, not a
+          // formality: the first draft hand-wrote the regex a second time.
+          'codeSpanMask', 'commentOpenersOutsideCode', 'inlineHtmlCommentLine',
+          'containerHtmlCommentLine', 'commentContext', 'startsContent',
+          // ⚠ `commentDisposition` READS the classification (type, invisible,
+          // visibleFrom) to decide which uncertainty id owns a line. It never
+          // decides where a block begins or ends, and nothing consumes it for that
+          // — `classifyLines` remains the only thing that decides anything. It is
+          // the single point that partitions the comment shapes, which is why the
+          // two exported detectors are views over it rather than rival predicates.
+          'commentDisposition',
+          // ⚠ `inUnparsedContainer` READS the classification label and nothing
+          // else. It is the single answer to "is this line inside a container
+          // whose interior is not parsed", shared by the comment ids and the two
+          // boundary ids — which had each restated their own version until
+          // `p084-xv3` found them disagreeing about `<details>`. Non-block for the
+          // same reason `commentDisposition` is: `classifyLines` has already
+          // decided, this only consumes the label, and being wrong here makes a
+          // warning noisy or absent rather than moving a boundary.
+          'inUnparsedContainer',
+          'htmlBlockType7Line'
         ];
         const strayFns = declaredFns.filter((n) => !blockFunctions.includes(n) && !nonBlockFns.includes(n));
         assert.deepEqual(
@@ -1339,7 +3102,34 @@ try {
           'GIT_POLICY_LINE_RE', 'AI_COMMIT_MARKER_LINE_RE', 'PROSE_LANGUAGE_LINE_RE',
           'TECH_STACK_ROW_RE', 'MIGRATION_CONTEXT_ROW_RE', 'GIT_POLICY_VALUES',
           'AI_COMMIT_MARKER_VALUES', 'SPEC_FORMATTING_CONVENTION_SNIPPET',
-          'CONVENTIONS_FINGERPRINTS', 'CONVENTIONS_RETIRED'
+          'CONVENTIONS_FINGERPRINTS', 'CONVENTIONS_RETIRED',
+          // PROPOSAL-084. Describes a tag shape for the type-7 DETECTOR only; it
+          // is never read while classifying, so an invisible character in it can
+          // make a warning noisy or absent but cannot move a block boundary.
+          // Kept out of `blockConstants` for that reason — putting it there would
+          // claim the guard covers a decision this constant does not make.
+          'BARE_TAG_LINE_RE',
+          // PROPOSAL-084 / `p084-xv6`. The tag-name fragment `BARE_TAG_LINE_RE` is
+          // built from, so the open-tag and closing-tag branches can carry the
+          // different tails the spec gives them without the name shape being
+          // written twice. Detector-only, like the regex it feeds.
+          'BARE_TAG_NAME',
+          // PROPOSAL-084 / `p084-xv7`. CommonMark's raw-HTML attribute productions,
+          // transcribed so the open-tag branch stops being an approximation that
+          // forbids `>` inside a quoted value. Detector-only: they are read to
+          // decide whether to WARN about a shape, never to classify a line.
+          'HTML_ATTR_NAME', 'HTML_ATTR_VALUE', 'HTML_ATTR',
+          // PROPOSAL-084. Answers "does this line's content start here", used only
+          // to pick WHICH uncertainty id to report — never to decide a boundary.
+          // It is built from `BULLET_MARKER` / `ORDERED_MARKER` rather than
+          // restating them, so widening a list marker reaches it automatically.
+          'CONTAINER_PREFIX_ONLY_RE',
+          // PROPOSAL-084 / `p084-xv3`. The container-type list, spelled once and
+          // read by `inUnparsedContainer`. It holds classification LABELS that
+          // `classifyLines` already produced — no whitespace class, no opener
+          // shape — so it cannot carry the invisible-character defect the tight-
+          // whitespace rule exists for, and it decides no boundary.
+          'UNPARSED_CONTAINER_TYPES',
         ];
         const strayConsts = declaredConsts.filter((n) => !blockConstants.includes(n) && !nonBlockConsts.includes(n));
         assert.deepEqual(
@@ -1370,8 +3160,21 @@ try {
       for (const [i, line] of source.split('\n').entries()) {
         for (const ch of line) {
           const cp = ch.codePointAt(0);
+          // ⚠ `cp === 0` ADDED after `p084-xv1` found a literal NUL sitting in this
+          // module — inside a `.replace()` argument that was meant to be a space,
+          // where it silently changed the answer of the since-removed table
+          // cell counter for a cell
+          // holding only an escaped pipe (a space trims to empty and is dropped;
+          // NUL is not whitespace to JS and is not). The list above was written
+          // about characters that masquerade as SPACES, so it never considered the
+          // one that masquerades as nothing at all — and the cost is bigger than
+          // the arithmetic: `rg` stops reading a file as text at the first NUL, so
+          // every grep-based guard and every reviewer searching this module goes
+          // quiet from that offset on. ⚠ Two probes disagreed about whether it was
+          // there (`cat -A` said yes, `grep -P '\x00'` said no); the byte-level
+          // read settled it. Do not trust a grep to find this.
           assert.ok(
-            !(cp === 0xa0 || cp === 0x0b || cp === 0x0c || (cp >= 0x2000 && cp <= 0x200b) || cp === 0xfeff),
+            !(cp === 0 || cp === 0xa0 || cp === 0x0b || cp === 0x0c || (cp >= 0x2000 && cp <= 0x200b) || cp === 0xfeff),
             `lib/doctor-checks.js:${i + 1} contains a literal U+${cp.toString(16).toUpperCase().padStart(4, '0')}. Write it with String.fromCharCode, or delete it — an invisible character in the source of the module that exists to get invisible characters right is not a joke anyone catches twice.`
           );
         }
@@ -1440,6 +3243,40 @@ try {
         ['type 6 known tag', ['<div>']]
       ]) {
         assert.ok(keepsSentinel(block), `${label}: the block must end and let the following line through`);
+      }
+
+      // Type 1 closes on the tag that OPENED it. A shared four-name end regex
+      // lets a mismatched closer expose content that Marked keeps inside the raw
+      // block. Exercise the full 4x4 identity matrix in both disclosure modes:
+      // pre/textarea content is read and must warn; script/style content is
+      // already invisible and must stay excluded from every downstream check.
+      {
+        const tags = ['script', 'pre', 'style', 'textarea'];
+        for (const opener of tags) {
+          for (const closer of tags) {
+            const md = `# H\n\n<${opener}>\n</${closer}>\n\\<!-- HIDDEN-CANARY -->\n</${opener}>\n`;
+            const info = doctorChecks.classifyLines(md.split(/\r?\n/));
+            assert.equal(info[3].type, 'html', `${opener}/${closer}: the apparent closer line still belongs to the raw block`);
+            assert.equal(
+              info[4].type,
+              opener === closer ? 'paragraph' : 'html',
+              `${opener}/${closer}: only the opener's own closing tag may expose the following line`
+            );
+            const reports = doctorChecks.inlineHtmlCommentLine(md) !== -1
+              || doctorChecks.containerHtmlCommentLine(md) !== -1;
+            assert.equal(
+              reports,
+              opener !== closer && (opener === 'pre' || opener === 'textarea'),
+              `${opener}/${closer}: disclosure follows Marked's matching-tag boundary and the block's visibility mode`
+            );
+            if (opener !== closer && (opener === 'script' || opener === 'style')) {
+              assert.ok(
+                !doctorChecks.visibleTextLines(md).join('\n').includes('HIDDEN-CANARY'),
+                `${opener}/${closer}: a mismatched closer must not leak invisible script/style content into checks`
+              );
+            }
+          }
+        }
       }
 
       // (b) REGRESSION GUARD, NOT A BEHAVIOUR PIN — and labelled so nobody
@@ -1956,6 +3793,35 @@ try {
           doctorChecks.findConventionsDrift(closed).some((x) => x.id === 'ceremony-escalate-only'), false,
           '...and a section that really does carry the rule still reports nothing'
         );
+
+        // ⚠⚠ `blockStart` — the opener index every line of an HTML block carries.
+        // Added because three review rounds each defeated an attempt to recover it
+        // from OUTSIDE the classifier (`debt212223-xv1` F2 → `xv2` F1 → `xv3` F1);
+        // the pins below are the two shapes that defeated it, and they are here
+        // rather than only at the doctor level because the property belongs to this
+        // function. Both directions: content that merely LOOKS like an opener does
+        // not become one, and a block that really did open is not attributed to the
+        // block before it.
+        const blockStarts = (lines) => doctorChecks.classifyLines(lines).map((c) => c.blockStart);
+        assert.deepEqual(
+          blockStarts(['<details>', '<div>inner shell</div>', '<p>content row</p>', '## Project Context']),
+          [0, 0, 0, 0],
+          'tag-shaped lines inside an open HTML block all belong to the block that opened at line 0'
+        );
+        assert.deepEqual(
+          blockStarts(['<!-- outer', 'prose <!-- inner-looking', '## Project Context']),
+          [0, 0, 0],
+          'a mid-line `<!--` inside an open comment does not start a block of its own'
+        );
+        assert.deepEqual(
+          blockStarts(['<!-- closed note -->', '<!-- open note', '## Project Context']),
+          [0, 1, 1],
+          'a comment that closes on its own line owns only that line; the next opener starts its own block'
+        );
+        assert.deepEqual(
+          blockStarts(['prose', '<!-- note', 'hidden']).slice(0, 1), [undefined],
+          'a line outside any HTML block carries no blockStart'
+        );
       }
 
       // (g) PRESERVATION PINS — these pass on the old code as well, and are here
@@ -2161,8 +4027,16 @@ try {
           sites: 1, bodies: ['|---|---|'],
           run: (p, b) => type(['Intro.', '| a | b |', p + b], 2), shallow: 'table', deep: 'paragraph'
         },
+        // ⚠ Four sites, not five: PROPOSAL-084 lifted the type-2 opener into its
+        // own named constant so the inline-comment detector could read it instead
+        // of writing a second copy. The site moved, it did not disappear — the
+        // probe for it is `HTML_COMMENT_OPEN_RE` directly below.
         HTML_BLOCK_TYPES: {
-          sites: 5, bodies: ['<script>', '<!-- c -->', '<?x', '<!DOCTYPE', '<![CDATA['],
+          sites: 4, bodies: ['<script>', '<?x', '<!DOCTYPE', '<![CDATA['],
+          run: (p, b) => type([p + b], 0), shallow: 'html', deep: 'code'
+        },
+        HTML_COMMENT_OPEN_RE: {
+          sites: 1, bodies: ['<!-- c -->'],
           run: (p, b) => type([p + b], 0), shallow: 'html', deep: 'code'
         },
         HTML_BLOCK_TYPE6_RE: {
@@ -2185,6 +4059,14 @@ try {
           sites: 1, bodies: ['> q'],
           run: (p, b) => type([p + b], 0), shallow: 'blockquote', deep: 'code'
         },
+        stripNestedContainerOpeners: {
+          // Observable through the rawHtml field the helper feeds back into the
+          // one classifier; four spaces make the whole line indented code, so
+          // no nested raw-HTML context may be claimed there.
+          sites: 1, bodies: ['> <details>'],
+          run: (p, b) => (doctorChecks.classifyLines([p + b])[0].rawHtml ? 'raw-html' : 'not-raw-html'),
+          shallow: 'raw-html', deep: 'not-raw-html'
+        },
         // ⚠ An EMPTY item, and an UNINDENTED follower — not `- x` with an
         // indented continuation, which was the first attempt and did not
         // discriminate. This constant measures the item's content column, and
@@ -2202,6 +4084,17 @@ try {
         SETEXT_UNDERLINE_RE: {
           sites: 1, bodies: ['---'],
           run: (p, b) => type(['prose', p + b], 1), shallow: 'heading', deep: 'paragraph'
+        },
+        // PROPOSAL-084. Not reachable through `classifyLines` at all — it belongs
+        // to a DETECTOR, not to the parser — so this probe declares its own
+        // verdict vocabulary, which is the escape hatch this block documents for
+        // the fence regexes. The opener still has to obey the 0-3 rule: at four
+        // columns the line is indented code and warning about it would be the
+        // false-positive direction gap D was rejected for.
+        BARE_TAG_LINE_RE: {
+          sites: 1, bodies: ['<custom-element>'],
+          run: (p, b) => (doctorChecks.htmlBlockType7Line([p + b, '---'].join('\n')) !== -1 ? 'detected' : 'not-detected'),
+          shallow: 'detected', deep: 'not-detected'
         }
       };
 
@@ -2353,6 +4246,15 @@ try {
         // suite green while `<script<NBSP>x` opened a type-1 block that closes
         // only at `</script>`, swallowing the rest of the file.
         HTML_BLOCK_TYPES: (dc, c) => t(dc, [`<script${c}x`], 0) !== 'html' && t(dc, [`${c}<script>`], 0) !== 'html',
+        // ⚠ PINNED, NOT EXCUSED. The tempting excuse — "a fragment composed into
+        // HTML_BLOCK_TYPES, which is pinned" — is the FENCE_MARKER wording, and it
+        // is only honest for a fragment that carries no whitespace class of its
+        // own. This one carries `^ {0,3}`, and HTML_BLOCK_TYPES' pin exercises the
+        // type-1 opener, so widening THIS constant to `\s{0,3}` would leave that
+        // pin green. `\s` matches U+00A0 in JS, so the widened form opens a
+        // comment block on `<NBSP><!--` and hides the rest of the file from every
+        // check — the silent direction.
+        HTML_COMMENT_OPEN_RE: (dc, c) => t(dc, [`${c}<!-- x -->`], 0) !== 'html',
         HTML_BLOCK_TYPE6_RE: (dc, c) => t(dc, [`<div${c}>`], 0) !== 'html' && t(dc, [`${c}<div>`], 0) !== 'html',
         LIST_ITEM_RE: (dc, c) => t(dc, [`-${c}x`], 0) !== 'list' && t(dc, [`${c}- x`], 0) !== 'list',
         // ⚠ Isolated through the ONE observable this construct owns: an EMPTY
@@ -2389,8 +4291,25 @@ try {
           && dc.parseAtxHeading(`## Title${c}###`).text.endsWith('###'),
         extractHeadings: (dc, c) => dc.extractHeadings(`#${c}Not A Heading`).length === 0,
         extractH2Headings: (dc, c) => dc.extractH2Headings(`##${c}Not A Heading`).length === 0,
-        blankFencedBlocks: (dc, c) => dc.blankFencedBlocks(['## A', `${c}${BT}`, '## Visible', BT].join('\n'))[2].trim() !== '',
-        classifyLines: (dc, c) => t(dc, [`${c}# H`], 0) !== 'heading'
+        // ⚠ ASKS THROUGH ITS OWN API, and that is the entire reason this entry
+        // is allowed to exist separately: it used to be a CHARACTER-IDENTICAL
+        // copy of `FENCE_OPEN_RE`'s pin (`p082-b3-k3` gap H), certifying
+        // nothing its sibling did not already certify. What this function owns
+        // is the PROJECTION — which lines come back blank — so it is pinned in
+        // both directions at once: the content of a fence that DID open is
+        // blanked, and a fence that did NOT open does not blank what follows.
+        // The second half is what fails when FENCE_OPEN_RE's class is widened,
+        // which is the dependency ADEQUACY_VIA declares and the relation check
+        // below proves.
+        blankFencedBlocks: (dc, c) => {
+          const projected = dc.blankFencedBlocks(['## A', BT, 'hidden', BT, `${c}${BT}`, 'kept'].join('\n'));
+          return projected[2].trim() === '' && projected[5].trim() !== '';
+        },
+        classifyLines: (dc, c) => t(dc, [`${c}# H`], 0) !== 'heading',
+        // Isolate the optional space after `>` owned by
+        // stripNestedContainerOpeners. U+00A0 must remain content, so it keeps
+        // `<details>` from being a raw-HTML opener at the container boundary.
+        stripNestedContainerOpeners: (dc, c) => dc.classifyLines([`>${c}<details>`])[0].rawHtml !== true
       };
 
       // Excused, each with the reason. A construct is only excusable when an
@@ -2403,12 +4322,25 @@ try {
         ORDERED_DELIM: 'a fragment ([.)]) composed into ORDERED_MARKER; carries no whitespace class of its own',
         ORDERED_MARKER: 'a fragment composed into the three list regexes, all pinned',
         htmlBlockStart: 'reads HTML_BLOCK_TYPES and HTML_BLOCK_TYPE6_RE and adds no whitespace test; both are pinned',
+        nestedRawHtmlContext: 'reads htmlBlockStart and BLANK_LINE_RE and adds no whitespace test of its own; both dependencies are pinned',
+        nestedParagraphOpens: 'composes the guarded block predicates and indentWidth; it adds no whitespace spelling of its own, and its paragraph/list directions are pinned in the nested raw-HTML matrix',
+        nestedContainerContext: 'coordinates stripNestedContainerOpeners, nestedRawHtmlContext and nestedParagraphOpens; all whitespace decisions stay in those guarded dependencies',
         listContentColumn: 'measures a column through LIST_ITEM_PREFIX_RE and indentWidth, both pinned',
+        stringIndexAtVisualColumn: 'maps a visual column to a string index by comparing literal tab characters; an invisible Unicode space cannot reach its tab-stop decision, and the nested raw-HTML matrix pins a continuation whose masking syntax sits beyond the tab slice boundary',
         unclosedHtmlBlockLine: 'reads the flag classifyLines already set and returns its index; it applies no whitespace test of its own, and the decision it reports is made by HTML_BLOCK_TYPES / HTML_BLOCK_TYPE6_RE, which are pinned',
         maskCodeBlocks: 'masks code lines to same-length spaces so the write path can search without matching a marker shown inside an example; it applies no whitespace test of its own and asks classifyLines for what code is. Pinned behaviourally under "reader-invisible content" in both directions',
         classifiedVisible: 'the single application of the invisibility rule: it returns classifyLines output alongside the lines that flag blanked. Adds no whitespace test of its own; the decision belongs to HTML_BLOCK_TYPES / HTML_TYPE1_INVISIBLE_TAGS, and its BEHAVIOUR is pinned under "reader-invisible content" in both directions',
         visibleTextLines: 'blanks the lines classifyLines marked invisible; it applies no whitespace test of its own. ⚠ Its defect surface is NOT an invisible character — it is WHICH HTML types render text, and a widening cannot express that. Pinned behaviourally instead, both directions, under "reader-invisible content", exactly as indentWidth is pinned for its arithmetic',
-        HTML_TYPE1_INVISIBLE_TAGS: 'an alternation of two literal tag names with no whitespace class; which tags it names is pinned behaviourally under "reader-invisible content"'
+        HTML_TYPE1_INVISIBLE_TAGS: 'an alternation of two literal tag names with no whitespace class; which tags it names is pinned behaviourally under "reader-invisible content"',
+        HTML_TYPE1_TAGS: 'an alternation of literal tag names, composed into HTML_BLOCK_TYPES, which is pinned — exactly the HTML_BLOCK_TAGS case',
+        // ⚠ Not "composed into a pinned thing" — this one is used directly, so the
+        // argument has to be that an invisible character cannot REACH it. It is
+        // matched against a captured tag NAME, never against a line, and that name
+        // comes from BARE_TAG_NAME (`[A-Za-z][A-Za-z0-9-]*`), which cannot contain
+        // an invisible character: a name carrying one never matched in the first
+        // place and this regex is never consulted. Which four names it holds is
+        // pinned behaviourally in the type-7 grammar table.
+        HTML_TYPE1_NAME_RE: 'anchored `^…$` against a captured tag name produced by BARE_TAG_NAME, which admits no invisible character; the names it holds are pinned behaviourally in the type-7 grammar table'
       };
 
       const { blockFunctions, blockConstants } = guardedConstructs;
@@ -2424,6 +4356,38 @@ try {
       assert.deepEqual(strayPins, [], `pinned or excused but no longer a guarded construct: ${strayPins.join(', ')}`);
       const bothWays = Object.keys(INVISIBLE_PINS).filter((n) => n in NO_INVISIBLE_PIN);
       assert.deepEqual(bothWays, [], `both pinned and excused: ${bothWays.join(', ')}`);
+
+      // ⚠⚠ TWO PINS WITH THE SAME BODY ARE ONE PIN, and nothing in this file
+      // compared two pins to each other until `p082-b3-k3` (gap H) found
+      // `blankFencedBlocks` holding a character-identical copy of
+      // `FENCE_OPEN_RE`'s. Every invariant around it passed: it is a real pin,
+      // it is not double-classified, and its ADEQUACY_VIA relation is even
+      // machine-PROVEN — because a copy of X's pin trivially fails when X
+      // breaks. That is the shape of a decorative check; it satisfies the
+      // registry and observes nothing new. The registries could only ever ask
+      // "is this name accounted for", never "does this pin add an
+      // observation", so the copy read as coverage for as long as it existed.
+      // ⚠⚠ EXACT TEXT, NOT WHITESPACE-NORMALIZED (`debt212223-xv2` finding 3). The
+      // first version collapsed all whitespace runs, which in THIS registry destroys
+      // meaning rather than formatting: these pins feed whitespace into string
+      // literals as the test input (`- ${c}`, `-  ${c}x`, `## Title${c}`), so two
+      // legitimately different fixtures differing only inside a literal — `['a b']`
+      // vs `['a  b']` — compared equal and the guard would have blocked a valid
+      // future pin. A guard that refuses correct work stops every run; this one has
+      // no such direction now. The cost is deliberate and small: a copy that was
+      // re-indented on the way in escapes detection. The defect this exists for is a
+      // character-identical copy, which does not.
+      const pinBodySeen = new Map();
+      const duplicatePins = [];
+      for (const [name, pin] of Object.entries(INVISIBLE_PINS)) {
+        const body = pin.toString().replace(/\r\n/g, '\n');
+        if (pinBodySeen.has(body)) duplicatePins.push(`${name} == ${pinBodySeen.get(body)}`);
+        else pinBodySeen.set(body, name);
+      }
+      assert.deepEqual(
+        duplicatePins, [],
+        `these pins have character-identical bodies (after CRLF-to-LF normalization only), so the second certifies nothing the first does not: ${duplicatePins.join(', ')}. Rewrite it to ask about what its OWN construct decides (a consumer asks through its own api, as extractHeadings does), or drop the pin and record the relationship in ADEQUACY_VIA / NO_INVISIBLE_PIN instead.`
+      );
 
       // The pins themselves, over the whole character class rather than NBSP
       // alone — the ban list's own escape list already covers seven characters,
@@ -2524,7 +4488,7 @@ try {
         }
         const canaryBases = [
           '# H', '---', '***', '```js', '|---|---|', '<script>', '<!-- c -->', '<?x', '<!D', '<![CDATA[',
-          '<div>', '- x', '-', '1. x', '> q', '    code', '\tcode', 'prose', '', ' ', 'a | b',
+          '<div>', '- x', '-', '1. x', '> q', '> <details>', '- <details>', '    code', '\tcode', 'prose', '', ' ', 'a | b',
           ...derivedMarkerChars.flatMap((c) => [c.repeat(3), c, `${c} x`])
         ];
         // ⚠ The character must appear in EVERY position a whitespace class can
@@ -2575,7 +4539,10 @@ try {
           }
         }
         const canary = (dc) => canaryDocs.map((doc) => {
-          try { return dc.classifyLines(doc).map((c) => c.type).join(''); } catch { return 'THREW'; }
+          // `rawHtml` is a block-context decision consumed by the comment
+          // detectors even when the outer `type` remains list/blockquote. A
+          // canary that serialises type alone cannot see this construct move.
+          try { return dc.classifyLines(doc).map((c) => `${c.type}:${c.rawHtml ? 'raw' : 'inline'}`).join(''); } catch { return 'THREW'; }
         }).join(',') + '|' + [
           `## T${NB}`, `## ${NB}T`, '## T ', `##${NB}T`, `#${NB}T`, `## T${NB}##`
         ].map((h) => {

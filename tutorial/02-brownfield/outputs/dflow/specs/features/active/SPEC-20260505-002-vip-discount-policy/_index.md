@@ -50,12 +50,20 @@ Phase 1 `vip-rate-and-contract` 會擴張既有 `DiscountPolicy`，新增 `Contr
 > `dflow/specs/shared/dflow-workflows/templates/_index.md` 與
 > references/git-integration.md § Commit Checkpoints。
 >
-> 列數跟著本 host 自己的 Resume Pointer 走：它記著 implementation 尚未開始，
-> 所以目前只有 spec 這一列；impl 與 closeout 各於發生時補一列。
+> ⚠ **這張表現在是空的，而且這是對的。** T1 的第一個 checkpoint 叫 **`spec-baseline`**
+> （`new-feature-flow.md` 稱它「the spec baseline」，milestone 1 of 3；範本的合法值只有
+> `branch-override` / `spec-baseline` / `implementation` / `closeout` 四個，不要自己寫
+> `spec`），而它是在 **Step 6 裡、feature branch 建好之後**才被提供的——flow 的原話是
+> 「**now that the feature branch exists**（branch gate 先跑過，所以這個 commit 落在
+> feature branch 上、**絕不落在 base branch**），offer to commit the spec baseline」。
+>
+> 本 host 停在 review point、branch 還沒建（走查 04 的 Step 6：Dflow 建議了 branch 名稱，
+> Bob 決定先把 spec 給同事 review）。**所以此刻不可能有任何 checkpoint 列**：規格文件已經
+> 寫好躺在工作區，但承載它們的那個 commit 要等 branch。
+> branch 建好、spec baseline commit 之後補第一列；impl 與 closeout 各於發生時再補一列。
 
 | Timestamp | Checkpoint | Result |
 |---|---|---|
-| 2026-05-05 14:20 | spec | committed (7c4e8b2) |
 
 <!-- dflow:section resume-pointer -->
 ## Resume Pointer
@@ -63,3 +71,19 @@ Phase 1 `vip-rate-and-contract` 會擴張既有 `DiscountPolicy`，新增 `Contr
 **Current Progress**: phase 1 `vip-rate-and-contract` spec 已建立，BR-005~008、Domain concepts、implementation tasks 已整理；implementation 尚未開始。
 
 **Next Action**: 依 Git Flow 從 `develop` 建立 `feature/SPEC-20260505-002-vip-discount-policy`，實作 `ContractValidUntil`、擴張 `DiscountPolicy`、新增 Customer reference repository query，並在同一 phase implementation task 中移除 `OrderList.aspx.cs` 的 `isVip * 0.93` dead code。
+
+**Active Workflow**: new-feature
+
+**Current Step**: Step 6 — Git Branch
+
+**Gates Passed**: 3→3.5, 4→5
+
+**Awaiting**: none (mid-step)
+
+> ⚠ **這是本 tutorial 唯一一份 active host，所以四個 cursor 欄位在這裡才看得到「活的」值。**
+> 它們是 workflow 進度的宣告層：`/dflow:new-feature` 進來時設 Active Workflow，每過一個
+> step gate 更新後三個（本 flow 的 gate 是 3→3.5、4→5、6→7、7→8）。本 host 已經進到
+> **Step 6**（branch 名稱確認了、branch 還沒建），而 6→7 那道 gate 要等 branch 就緒才到，
+> 所以 `Awaiting` 記 `none (mid-step)`——**不是**指沒事可做，是指此刻沒有停在任何 gate 上。
+> closeout 或 `/dflow:cancel` 時 Active Workflow 設回 `none`——completed fixture 看到的
+> `none` / `n/a` 就是那個終局值。

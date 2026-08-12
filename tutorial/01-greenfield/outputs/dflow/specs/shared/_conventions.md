@@ -55,7 +55,7 @@ recorded as one row in `_index.md` Lightweight Changes.
 - **Project-specific term list**: {fill in project-specific abbreviation
   conventions here, e.g. "bounded context name shortenings",
   "Aggregate name → slug rules"; otherwise leave empty}
-  <!-- TODO: 等第一個 BC 命名落地後補上 ExpenseReport / Reimbursement 縮寫慣例 -->
+  — TODO：等第一個 BC 命名落地後補上 ExpenseReport / Reimbursement 縮寫慣例。
 - **Length target**: 2–4 English words or 2–6 Chinese characters
   (Dflow skill guidance)
 

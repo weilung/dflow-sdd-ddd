@@ -192,6 +192,35 @@ Alice:
 現在硬切會猜錯。
 ```
 
+**BC 確認完還沒結束——同一輪要順手把 Subdomain Type 定下來**（`new-feature-flow.md`
+Step 2 明寫這是「同一次確認的一部分，不是另一道 gate」）：
+
+```text
+Dflow:
+Is this capability core（差異化來源）、supporting（必要但非差異化），
+還是 generic（可買 / 可套件 / 簡單 CRUD）？
+我會記進 context-map.md。
+```
+
+```text
+Alice:
+core。費用申報的規則就是我們跟其他公司不一樣的地方，
+審核鏈跟金額規則都是自己長出來的。
+```
+
+**這一題不是形式問題，它會往下分兩次岔**：
+
+1. **Step 3 的建模深度**依它決定（`ddd-modeling-guide.md` §
+   Subdomain-Aware Modeling Depth）——`generic` 只做薄模型，不做完整戰術建模。
+2. **Step 4 要不要建 `aggregate-design.md` 也依它決定**：
+   `core` → 建；`supporting` → 建但保持精簡；`generic` → 預設跳過。
+   本篇後面會看到 Dflow 建了 `aggregate-design.md`，**理由就是 Expense 被分類成
+   `core`**，不是因為 Greenfield 一律要建。
+
+⚠ 這正是 flow 說「**若 `Subdomain Type` 欄不存在，補上這一欄、並保留既有每一列的
+內容**」的情境。`outputs/` 樹裡那份 `context-map.md` 就是補完之後的樣子——
+`Expense` 記 `core`，而外部的 `Identity` 記 `generic`（公司 SSO 提供，本系統不建模）。
+
 這裡的價值不是「選了 Expense 這個名字」。價值在於 Dflow 把 boundary decision
 外顯出來，讓 Alice 可以拒絕、修正或延後。AI 不會偷偷把主管審核、財務匯款、
 Identity model 全塞進第一個 feature。
@@ -347,31 +376,56 @@ Alice:
 
 ## Step 4 — Dflow 寫 spec，而不是寫 code
 
-Step 4 開始，Dflow 才寫文件。它列出會新增與修改的檔案：
+到這裡為止，Dflow 全程只寫規格、沒有寫任何 production code。它把 Step 2 到 Step 4
+新增與修改的檔案整理出來：
+
+⚠ **這些檔案不是同一個 step 產生的**，分清楚很重要——後面 `/dflow:next` 走到哪一步、
+resume 時該接哪裡，都靠它：
+
+**Step 2 的產物**（確認 BC 的當下就建）：
+
+| 類型 | Path | 用途 |
+|---|---|---|
+| 新建 BC context | `dflow/specs/domain/Expense/context.md` | Expense BC 的職責與邊界 |
+| 修改 context map | `dflow/specs/domain/context-map.md` | 記錄 Expense 的 Subdomain Type（`core`） |
+
+**Step 3 的產物**（domain modeling 時，foundational 文件缺哪份就從範本建哪份）：
+
+| 類型 | Path | 用途 |
+|---|---|---|
+| 新建 model catalog | `dflow/specs/domain/Expense/models.md` | Aggregate、Entity、VO、Repository |
+| 新建 rules index | `dflow/specs/domain/Expense/rules.md` | BR-ID 索引 |
+| 新建 behavior（骨架） | `dflow/specs/domain/Expense/behavior.md` | 每條 BR 一個 anchor，場景 Step 8.3 才 merge（見下一段） |
+| 新建 event catalog | `dflow/specs/domain/Expense/events.md` | Domain Event catalog |
+| 修改 glossary | `dflow/specs/domain/glossary.md` | 加入 ExpenseReport 等術語 |
+| （同上）context map | `dflow/specs/domain/context-map.md` | 它同時列在 Step 3 的 foundational 清單裡：**Step 2 寫的是 Subdomain Type，Step 3 負責「不存在就建」**。同一個檔被兩步碰到，不是矛盾。 |
+
+**Step 4 的產物**（feature directory 本身）：
 
 | 類型 | Path | 用途 |
 |---|---|---|
 | 新建 feature dashboard | `dflow/specs/features/active/SPEC-20260428-001-employee-submit-expense/_index.md` | feature 層索引、BR snapshot、resume pointer |
 | 新建 phase spec | `phase-spec-2026-04-28-mvp.md` | phase 1 的問題、場景、BR、edge cases、implementation plan |
-| 新建 aggregate design | `aggregate-design.md` | Greenfield track 特有的 Aggregate 決策文件 |
-| 新建 BC context | `dflow/specs/domain/Expense/context.md` | Expense BC 的職責與邊界 |
-| 新建 model catalog | `dflow/specs/domain/Expense/models.md` | Aggregate、Entity、VO、Repository |
-| 新建 rules index | `dflow/specs/domain/Expense/rules.md` | BR-ID 索引 |
-| 新建 event catalog | `dflow/specs/domain/Expense/events.md` | Domain Event catalog |
-| 修改 glossary | `dflow/specs/domain/glossary.md` | 加入 ExpenseReport 等術語 |
-| 修改 context map | `dflow/specs/domain/context-map.md` | 加入 Expense BC entry |
+| 新建 aggregate design | `aggregate-design.md` | **視 Subdomain Type 而定**：Expense 是 `core` 所以建；`supporting` 建但精簡，`generic` 預設跳過 |
 
-Dflow 同時明確說明它不建 `behavior.md`：
+⚠ **規範在這裡自己有一點張力，先講明白**：Step 3 → 3.5 的 gate 台詞是
+「Before I create any files, let me confirm the SPEC-ID…」，聽起來像「到這裡都還沒建檔」；
+但同一份 flow 的 Step 2 與 Step 3 各自明列了上面那些要建的文件。**逐份文件的歸屬是清楚的
+（照上表），gate 那句話的措辭則不精確**——它指的是「建 feature directory 之前」。
+
+`behavior.md` 這一份比較特別，Dflow 會說明它**現在只建骨架**：
 
 ```text
 Dflow:
-不建 dflow/specs/domain/Expense/behavior.md。
-這份會在完成 checklist 的 Step 8.3，從 phase-spec 的 Given/When/Then 場景 merge 進來。
-現在建只會留下空殼。
+建 dflow/specs/domain/Expense/behavior.md，但這一步只放骨架：
+每一條 BR-* 一個 section anchor，先不寫 Given/When/Then。
+場景會在完成 checklist 的 Step 8.3（finish-feature）從 phase-spec merge 進來。
 ```
 
-這個說明對讀者很重要。不是每個 template 都 day-0 建好；Dflow 會依生命週期
-控制文件何時出現，避免 system-level 文件被 placeholder 污染。
+這個說明對讀者很重要，而且**容易被反向記錯**：不是「先不要建」，而是
+「**先建骨架、內容晚點填**」。差別在於 `rules.md` 的 Rule Index 有一個
+`Behavior anchor` 欄，它從第一天就要指得到東西——骨架先在，anchor 才不會斷。
+（規範出處：`new-feature-flow.md` Step 3 的 foundational-docs 清單。）
 
 ## 文件片段 1 — `_index.md` 當下長什麼樣
 
@@ -410,19 +464,27 @@ branch: feature/SPEC-20260428-001-employee-submit-expense
 <!-- dflow:section current-br-snapshot -->
 ## Current BR Snapshot
 
-| BR-ID | Current Rule | First Seen | Status |
-|---|---|---|---|
-| BR-001 | 提交時必須至少含 1 個 ExpenseItem。 | phase-1 (mvp) | draft |
-| BR-002 | Submitted 後不可編輯。 | phase-1 (mvp) | draft |
-| BR-003 | ExpenseItem 的 Money.Amount 必須 > 0。 | phase-1 (mvp) | draft |
-| BR-004 | 同一 Report 內 ReceiptReference 不可重複。 | phase-1 (mvp) | draft |
+| BR-ID | Current Rule | First Seen (phase) | Last Updated (phase) | Status |
+|---|---|---|---|---|
+| BR-001 | 提交時必須至少含 1 個 ExpenseItem。 | phase-1 (mvp) | phase-1 (mvp) | active |
+| BR-002 | Submitted 後不可編輯。 | phase-1 (mvp) | phase-1 (mvp) | active |
+| BR-003 | ExpenseItem 的 Money.Amount 必須 > 0。 | phase-1 (mvp) | phase-1 (mvp) | active |
+| BR-004 | 同一 Report 內 ReceiptReference 不可重複。 | phase-1 (mvp) | phase-1 (mvp) | active |
 
 ## Resume Pointer
 
 **Current Progress**: phase-1 (mvp) phase-spec drafted;
-Aggregate design done; Implementation Tasks generated.
+Aggregate design done。
 
-**Next Action**: 建立 branch 後，從 Domain layer 開始實作。
+**Next Action**: 過 4→5 gate 後進 Step 5 規劃 implementation（layer by layer）。
+
+**Active Workflow**: new-feature
+
+**Current Step**: Step 4 — Write the Spec
+
+**Gates Passed**: 3→3.5
+
+**Awaiting**: none (mid-step)
 ```
 
 完整文件範例：
@@ -699,7 +761,7 @@ Alice 在這裡做了一個 scope 修正：MVP 不需要 `AddExpenseItemCommand`
 Alice:
 MVP 我想再簡化一點。
 CreateExpenseReportCommand 就直接帶 Items 一起進來。
-AddExpenseItemCommand 留到 phase 2 再加。
+AddExpenseItemCommand 之後真的需要再加。
 ```
 
 Dflow 接受這個調整，並把 task list 寫進 phase spec：
@@ -758,13 +820,28 @@ Dflow 更新 resume pointer，讓下一次 AI session 可以從 `_index.md` 接�
 
 **Current Progress**:
 phase-1 (mvp) phase-spec drafted; Aggregate design done;
-Implementation Tasks generated. 尚未進入 Step 6 git branch。
+Implementation Tasks generated. 已進入 Step 6，branch 尚未建立。
 
 **Next Action**:
-跑 /dflow:next 進入 Step 6 建 git branch
-feature/SPEC-20260428-001-employee-submit-expense，
-再進 Step 7 從 Domain layer 開始實作。
+建 git branch feature/SPEC-20260428-001-employee-submit-expense
+（Step 6 是 step-internal，不需要 /dflow:next）；
+branch 就緒後在 6→7 gate 跑 /dflow:next 進 Step 7，
+從 Domain layer 開始實作。
+
+**Active Workflow**: new-feature
+
+**Current Step**: Step 5 — Plan the Implementation (Layer by Layer)
+
+**Gates Passed**: 3→3.5, 4→5
+
+**Awaiting**: none (mid-step)
 ```
+
+⚠ **後面四行就是 cursor**，別漏。Resume Pointer 有六個欄位：前兩行給人讀，後四行是
+workflow 進度的宣告層——`/dflow:status` 會拿它去對 Checkpoint Log、phase-spec status
+與 git log，不一致會報 mismatch。本 flow 的 step gate 是 3→3.5、4→5、6→7、7→8
+（5→6 是 step-internal，所以停在建 branch 之前記 `none (mid-step)`）。
+closeout 時 Active Workflow 會被設回 `none`——那就是 completed fixture 裡看到的樣子。
 
 ## 本步驟的文件地圖
 
@@ -779,7 +856,7 @@ feature/SPEC-20260428-001-employee-submit-expense，
 | 新建 | [`outputs/dflow/specs/domain/Expense/events.md`](outputs/dflow/specs/domain/Expense/events.md) | ExpenseReportSubmitted event catalog。 |
 | 修改 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) | ExpenseReport、ExpenseItem、Approver、Reimbursement 等 ubiquitous language。 |
 | 修改 | [`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md) | Expense BC 加入 context map。 |
-| 延後 | `dflow/specs/domain/Expense/behavior.md` | Step 8.3 / finish-feature 時才從 phase spec merge。 |
+| 新建（骨架） | `dflow/specs/domain/Expense/behavior.md` | Step 3 建骨架：每條 BR 一個 anchor；Given/When/Then 到 Step 8.3 / finish-feature 才從 phase spec merge。⚠ `outputs/` 樹裡那一份是 **closeout 之後填滿的最終狀態**（七條 BR 都有場景），不是本步驟當下這份只涵蓋 BR-001~004 的骨架。 |
 
 上表連到完整文件範例；本篇重點是 step 02 如何建立這些文件的第一個可審視版本。
 

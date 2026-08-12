@@ -84,7 +84,6 @@ intentionally track-specific.
 
 Common shared flows include:
 
-- `dflow-feedback-flow.md`
 - `init-project-flow.md`
 - `new-feature-flow.md`
 - `modify-existing-flow.md`
@@ -95,6 +94,11 @@ Common shared flows include:
 - `git-integration.md`
 
 Track-specific behavior is fine, but it should be named explicitly in the PR.
+
+`dflow-feedback-flow.md` is not on that list because it is not a pair. It lives
+once at `templates/common/references/` and is projected into both editions, so
+you edit it in one place; the repository consistency check fails if a per-track
+copy reappears.
 
 ## Template and Heading Changes
 

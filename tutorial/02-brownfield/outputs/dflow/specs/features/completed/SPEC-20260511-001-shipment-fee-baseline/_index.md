@@ -3,7 +3,6 @@ spec-id: SPEC-20260511-001
 slug: shipment-fee-baseline
 status: completed
 created: 2026-05-11
-completed_date: 2026-05-11
 branch: feature/SPEC-20260511-001-shipment-fee-baseline
 ---
 
@@ -55,6 +54,15 @@ branch: feature/SPEC-20260511-001-shipment-fee-baseline
 > Description 末尾宣告這次變更碰到的路徑。baseline 沒有原始碼變更，它宣告的是
 > **自己寫進去的 BC 層文件**。closeout 會拿 `spec-baseline` checkpoint 的 diff 與它比對；
 > 一個路徑都沒宣告會擋下 closeout。
+> ⚠ **baseline 列還多一個連接詞**：那份 capture 必須由該 commit **新增或修改**，而且
+> **存在於它的樹裡**——刪掉或改名走的 commit 也會動到同一個路徑，卻不可能是捕捉它的
+> 那一個。
+> ⚠ **這個加強條款要兩個條件同時成立才跑：`Tier = baseline` 的列，而且是在最小 host 上。**
+> 它住在 Step 1 那組標著 `Minimal host (zero-phase) only` 的檢查裡。同樣一個
+> `Tier = baseline` 列掛在 **phase-bearing** host 上時 Step 1 整組都不跑，接手的
+> `references/pr-review-checklist.md` 只要求「commit 有碰到它」、沒有 tree 這一半
+> ——對照 `SPEC-20260430-001-order-discount-calculation` 的同一段。
+> **不要把界線畫在 tier 上**：那個軸切錯過很多次。
 
 | Date | Tier | Description | Commit |
 |---|---|---|---|

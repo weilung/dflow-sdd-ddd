@@ -8,14 +8,14 @@
 
 - **Bounded Context**: Expense
 - **Source Code Area**: `src/ExpenseTracker.Domain/Expense/`
-- **Last Updated**: 2026-04-29
+- **Last Updated**: 2026-04-30
 
 ## Aggregates
 
 | Aggregate | Root Entity | Invariants | Code Mapping | Notes |
 |---|---|---|---|---|
 | ExpenseReport | ExpenseReport | 提交時必須 >=1 個 ExpenseItem；Submitted / Approved 不可編輯；Rejected 可重編；只有 Submitted 可 Approve / Reject | `ExpenseTracker.Domain.Expense.ExpenseReport` | phase 2 狀態機：Draft / Submitted / Approved / Rejected |
-| ApprovalDecision <!-- phase-2 ADDED --> | ApprovalDecision | Approver 不可等於 Submitter；Rejected 必須有至少 10 字元原因；同一 Submit attempt 最多一筆 decision | `ExpenseTracker.Domain.Expense.ApprovalDecision` | 第二個 Aggregate；一個 Submit attempt 對應一筆 decision |
+| ApprovalDecision <!-- phase-2 ADDED --> <!-- 2026-04-30 lightweight MODIFIED --> | ApprovalDecision | Approver 不可等於 Submitter；Rejected 必須附原因，且至少 5 個中文字或至少 10 個英數字；同一 Submit attempt 最多一筆 decision | `ExpenseTracker.Domain.Expense.ApprovalDecision` | 第二個 Aggregate；一個 Submit attempt 對應一筆 decision |
 
 ## Entities
 
@@ -32,7 +32,7 @@
 | Money | 金額 + 幣別 | (Amount, Currency) | `ExpenseTracker.Domain.Expense.Money` | MVP 固定 Currency = "TWD"，但用 VO 預留多幣別 |
 | ReceiptReference | 收據編號或檔案參照 | (Value) | `ExpenseTracker.Domain.Expense.ReceiptReference` | 不存影像本體；Infrastructure 層存檔，Domain 只記參照 |
 | ExpenseCategory | 費用類別（高鐵、住宿、餐費…） | (Code) | `ExpenseTracker.Domain.Expense.ExpenseCategory` | MVP 列舉內建類別；後續可擴充為動態管理 |
-| ApprovalReason <!-- phase-2 ADDED --> | 退回原因 | (Value) | `ExpenseTracker.Domain.Expense.ApprovalReason` | Reject 必填，至少 10 字元 |
+| ApprovalReason <!-- phase-2 ADDED --> <!-- 2026-04-30 lightweight MODIFIED --> | 退回原因 | (Value) | `ExpenseTracker.Domain.Expense.ApprovalReason` | Reject 必填；至少 5 個中文字或至少 10 個英數字，空白不計、半形 / 全形視覺等價、emoji 算字 |
 
 ## Enums
 

@@ -213,11 +213,11 @@ Domain layer 不得 reference `System.Web`、EF entities、WebForms controls、V
 <!-- dflow:section test-strategy -->
 ## Test Strategy
 
-- [ ] Senior customer + NT$60,000 order 在稅務處理前回傳 NT$51,300。
-- [ ] Non-Senior customer + NT$60,000 order 在稅務處理前回傳 NT$54,000。
-- [ ] Senior customer + NT$40,000 order 在稅務處理前回傳 NT$38,000。
-- [ ] 剛好 NT$50,000 會觸發 full-threshold discount。
-- [ ] Invalid OrderLine price、empty line items 與 invalid DiscountRate 會在 Domain unit tests 中被拒絕。
+- [x] Senior customer + NT$60,000 order 在稅務處理前回傳 NT$51,300。
+- [x] Non-Senior customer + NT$60,000 order 在稅務處理前回傳 NT$54,000。
+- [x] Senior customer + NT$40,000 order 在稅務處理前回傳 NT$38,000。
+- [x] 剛好 NT$50,000 會觸發 full-threshold discount。
+- [x] Invalid OrderLine price、empty line items 與 invalid DiscountRate 會在 Domain unit tests 中被拒絕。
 
 <!-- dflow:section open-questions -->
 ## Open Questions
@@ -230,10 +230,10 @@ Domain layer 不得 reference `System.Web`、EF entities、WebForms controls、V
 <!-- dflow:section implementation-tasks -->
 ## Implementation Tasks
 
-- [ ] DOMAIN-1: 建立 `Order` Aggregate Root，並實作 non-empty `OrderLine` collection invariant。
-- [ ] DOMAIN-2: 建立 `OrderLine` entity 與 `Money`、`Quantity`、`DiscountRate` Value Objects。
-- [ ] DOMAIN-3: 建立 `DiscountPolicy`，實作 full-threshold 與 Senior customer discount accumulation rules。
-- [ ] WEBFORMS-1: 在計算前將 `OrderEntry.aspx.cs` 的 grid input 與 EF customer data map 成 Domain objects。
-- [ ] WEBFORMS-2: 以 `DiscountPolicy` call 取代 `btnSubmit_Click` 內的 inline discount arithmetic，同時保持 DB write behavior 不變。
-- [ ] TEST-1: 新增 BR-001 到 BR-004 的 Domain unit tests。
-- [ ] TEST-2: 新增 INV-01 到 INV-04 與 NT$50,000 boundary 的 edge-case tests。
+- [x] DOMAIN-1: 建立 `Order` Aggregate Root，並實作 non-empty `OrderLine` collection invariant。
+- [x] DOMAIN-2: 建立 `OrderLine` entity 與 `Money`、`Quantity`、`DiscountRate` Value Objects。
+- [x] DOMAIN-3: 建立 `DiscountPolicy`，實作 full-threshold 與 Senior customer discount accumulation rules。
+- [x] DELIVERY-1: 在計算前將 `OrderEntry.aspx.cs` 的 grid input 與 EF customer data map 成 Domain objects。
+- [x] DELIVERY-2: 以 `DiscountPolicy` call 取代 `btnSubmit_Click` 內的 inline discount arithmetic，同時保持 DB write behavior 不變。
+- [x] TEST-1: 新增 BR-001 到 BR-004 的 Domain unit tests。
+- [x] TEST-2: 新增 INV-01 到 INV-04 與 NT$50,000 boundary 的 edge-case tests。

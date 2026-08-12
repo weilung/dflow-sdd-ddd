@@ -77,7 +77,8 @@ Allowed evidence:
 - Dflow command name
 - Dflow version if known
 - Template or reference file name
-- Generic project type, such as "existing brownfield app" or "legacy batch-processing system"
+- Generic project type, such as "existing legacy presentation-framework app" or
+  "new internal service"
 - Minimal paraphrased symptom
 - Short sanitized snippets from Dflow-owned files
 

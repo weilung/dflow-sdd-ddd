@@ -29,7 +29,7 @@ bug，而是把 `SPEC-20260430-001-order-discount-calculation` 這個第一個 O
 | finish-feature 會不會改所有 Order BC 文件？ | 會 sync BC layer，但只 reconcile SPEC-001 owned BR-001~004。 |
 | 同一個 BC 還有 active feature 怎麼辦？ | BR-005~008 保留給 SPEC-002，不因 SPEC-001 closeout 被刪除或 finalization。 |
 | completed feature 還能不能追加 T2 / T3？ | 不能。完成後是 frozen history；未來改動走 follow-up feature。 |
-| closeout summary 應該寫什麼？ | Feature overview、phase summary、lightweight changes、BR final state、tech debt outstanding、future considerations。 |
+| closeout summary 應該寫什麼？ | 規範的 `Format:` 只有 Feature Goal、Change Scope（`BC` / `Phase Count` / `Lightweight Changes`）、`Related BR-IDs`、Phase List、Next Steps。本篇另外示範團隊自加的補充段落（Domain extraction、tech debt、future considerations）——那些**不在**規範 Format 裡。 |
 
 ## 前情提要
 
@@ -52,6 +52,9 @@ Brownfield 劇情到這裡已走完整個第一個 Order feature lifecycle：
 - regression tests 全綠。
 - Carol 重新確認 `#ORD-2026-0512` 類型案例三頁面顯示一致。
 - 三天穩定試用沒有新 SPEC-001 blocker。
+
+⚠ **「三天穩定試用」是本範例的驗收訊號，不是 Dflow 的 gate。** `finish-feature-flow.md`
+沒有觀察期或天數要求；它檢查的是文件狀態，完成與否由團隊自己的 DoD / sign-off 判定。
 
 同時，`SPEC-20260505-002-vip-discount-policy` 還在 phase 1 implementation。Bob 這次只收
 SPEC-001，不收 SPEC-002。
@@ -88,7 +91,16 @@ keep active: SPEC-20260505-002-vip-discount-policy
 
 `/dflow:finish-feature` 要收的是 feature，不是整個 bounded context。
 
-## Step 0 — Dflow 先說明 finish-feature 的責任
+## 進 Step 1 之前 — Dflow 先說明 finish-feature 的責任
+
+> ⚠ 這一段**不是 Dflow 的流程步驟**。`finish-feature-flow.md` 的步驟從
+> `Step 1: Validate Phase Specs and _index.md` 開始，**沒有編號為 Step 0 的步驟**。
+> 這裡是進流程前的定位說明。
+>
+> （別的文件確實有叫 "step 0" 的東西，但兩者性質不同、別混在一起：
+> `AI-AGENT-GUIDE.md` § Ceremony Scaling 的 "step 0" 是**分類階段**；
+> `pr-review-checklist.md` 的 `Step 0` 則是那份 checklist **真正的第一步，而且強制**
+> ——`/dflow:pr-review` 就是從它進入的。兩者都不是**這份**流程的步驟編號。）
 
 Dflow 回應：
 
@@ -140,7 +152,7 @@ Step 1 mechanical checks:
 
 - Feature directory located:
   dflow/specs/features/active/SPEC-20260430-001-order-discount-calculation/
-- _index.md exists，front matter parsable，six required sections present
+- _index.md exists，front matter parsable，seven required sections present
 - Phase Specs table has 1 row：phase 1 baseline-and-fix
 - Phase 1 implementation status：Bob confirmed done；BR-001~004 tests green
 - Lightweight Changes table has 2 rows
@@ -228,11 +240,20 @@ Step 2：Flip _index.md Status to completed。
 我會更新 SPEC-001 dashboard：
 
 - front matter status: in-progress -> status: completed
-- add completed_date: 2026-05-12
-- Phase Specs table：phase 1 baseline-and-fix 標為 completed
-- Lightweight Changes：BUG-001 row 標示已在 closeout 前 implement
-- Resume Pointer 改成 closeout 訊息：
-  feature completed；see Integration Summary below
+  （只翻 status。branch: 不改寫，也不新增 front matter 欄位——關帳後的驗證
+   會把「沒有任何步驟要求的差異」判成 edit fallout 並擋下來。）
+- Phase Specs table：不動。phase 1 早在 Step 1 就必須已經是 completed，
+  那是通過條件，不是這一步的工作。
+- Lightweight Changes：05-08 那列的 Commit 欄會在 Step 4 回填
+  （05-04 那列早在 05-08 的 commit 就填好了）。
+- Resume Pointer 改成 cursor 的終局狀態（六個欄位都要寫）：
+  Current Progress: feature completed 2026-05-12；phase 1 與 BUG-001 均已上線
+                    並通過 regression verification
+  Next Action:      closeout complete；後續改動請建立 follow-up feature
+  Active Workflow:  none
+  Current Step:     n/a
+  Gates Passed:     n/a
+  Awaiting:         none
 ```
 
 完整文件範例的 front matter：
@@ -243,10 +264,14 @@ spec-id: SPEC-20260430-001
 slug: order-discount-calculation
 status: completed
 created: 2026-04-30
-completed_date: 2026-05-12
 branch: feature/SPEC-20260430-001-order-discount-calculation
 ---
 ```
+
+⚠ **只有 `status` 變了。** front matter 沒有 `completed_date` 這種欄位——
+`templates/_index.md` 沒定義它，Step 2 也沒有命令寫它，而關帳後的驗證要求 commit 進去的
+`_index.md` 與 Step 1 讀到的差異**恰好**等於 Step 2 與 Step 4 指令 1 命令的那些。
+完成日期不必另存一格：closeout commit 自己就是時間戳。
 
 Phase Specs table：
 
@@ -259,10 +284,10 @@ Phase Specs table：
 Lightweight Changes：
 
 ```markdown
-| Date | Type | Description | Commit |
+| Date | Tier | Description | Commit |
 |---|---|---|---|
-| 2026-05-04 | baseline-capture | Baseline-only capture：已補 `OrderList.aspx.cs` 與 `OrderDetail.aspx.cs` 的跨頁 confirmed behavior，詳見 [`behavior.md`](../../../domain/Order/behavior.md#confirmed-across-pages-baseline-capture-2026-05-04)；新發現的 rounding / `isVip` debt 已記錄於 [`tech-debt.md`](../../../migration/tech-debt.md)。本 row 無對應 spec 檔。 | n/a - spec capture only |
-| 2026-05-08 | T2 | Bug-fix: 修正 `OrderList` / `OrderEntry` / `OrderDetail` 跨頁 display rounding inconsistency，見 [`BUG-001-rounding-inconsistency.md`](./BUG-001-rounding-inconsistency.md)。 | n/a - implemented before closeout |
+| 2026-05-04 | baseline | Baseline-only capture：已補 `OrderList.aspx.cs` 與 `OrderDetail.aspx.cs` 的跨頁 confirmed behavior，詳見 [`behavior.md`](../../../domain/Order/behavior.md#confirmed-across-pages-baseline-capture-2026-05-04)；新發現的 rounding / `isVip` debt 已記錄於 [`tech-debt.md`](../../../migration/tech-debt.md)。本 row 無對應 spec 檔。 | c58d213 |
+| 2026-05-08 | T2 | Bug-fix: 修正 `OrderList` / `OrderEntry` / `OrderDetail` 跨頁 display rounding inconsistency，見 [`BUG-001-rounding-inconsistency.md`](./BUG-001-rounding-inconsistency.md)。 | 9f2e470 |
 ```
 
 完整文件範例：
@@ -332,7 +357,13 @@ Dflow:
 - BR-005~008：not touched；仍 owned by SPEC-002
 ```
 
-`rules.md` 完整文件範例包含 Lifecycle：
+⚠ **接下來這兩段 `Lifecycle` 是 Bob 團隊自訂的，Dflow 不會產生。** `rules.md` /
+`behavior.md` 範本裡沒有 `Lifecycle` 段，`finish-feature-flow.md` Step 3 也沒有要求
+建立它——Step 3 對 `rules.md` 的規定只有「增 / 改 / 刪 BR 段」與「更新 Rule Index 的
+`Last updated`」。留在本篇是因為多 feature 並存時，「哪些 BR 還屬於別的 active feature」
+確實需要一個記錄面；**但這一步要團隊自己補**。
+
+`rules.md` 完整文件範例包含團隊自加的 Lifecycle：
 
 ```markdown
 ## Lifecycle
@@ -345,8 +376,9 @@ Dflow:
 完整文件範例：
 [`outputs/dflow/specs/domain/Order/rules.md`](outputs/dflow/specs/domain/Order/rules.md)
 
-這個 Lifecycle note 的價值很高。未來 reviewer 看見 BR-005~008 仍在 `rules.md` 時，
+這個 Lifecycle note 的價值很高——未來 reviewer 看見 BR-005~008 仍在 `rules.md` 時，
 不會誤以為 SPEC-001 closeout 漏了它們；它們只是屬於另一個 active feature。
+**價值高不等於 Dflow 會做**：這是團隊自己維護的一段，closeout 時要記得手動更新。
 
 ### `behavior.md` lifecycle note
 
@@ -468,7 +500,41 @@ dflow/specs/features/active/SPEC-20260505-002-vip-discount-policy
 這是本篇第四個 key lesson：**completed feature 被 archive，但同 BC 的其他 active feature
 不會一起移動。**
 
+### Step 4 還做了一件容易被忽略的事：回填 `Commit` 格
+
+`git mv` 不是 Step 4 的全部。同一次編輯裡，Dflow 要把 Lightweight Changes 表上還沒填的
+`Commit` 格補起來：
+
+```text
+Dflow:
+Step 4 指令 1: 回填未填的 hosted Commit 格。
+
+| Date | Tier | Description | Commit |
+|---|---|---|---|
+| 2026-05-04 | baseline | Baseline-only capture：已補 `OrderList.aspx.cs` 與 `OrderDetail.aspx.cs` 的跨頁 confirmed behavior，詳見 [`behavior.md`](../../../domain/Order/behavior.md#confirmed-across-pages-baseline-capture-2026-05-04)；新發現的 rounding / `isVip` debt 已記錄於 [`tech-debt.md`](../../../migration/tech-debt.md)。本 row 無對應 spec 檔。 | c58d213 |
+| 2026-05-08 | T2 | Bug-fix: 修正 `OrderList` / `OrderEntry` / `OrderDetail` 跨頁 display rounding inconsistency，見 [`BUG-001-rounding-inconsistency.md`](./BUG-001-rounding-inconsistency.md)。 | 9f2e470 |
+
+第一列的 `Commit` 早在 05-08 那次 commit 就回填過了，這次不動；
+**本次回填的是第二列的 `9f2e470`**。
+兩格寫的都是「那一列自己的 commit」，不是 closeout 這個 commit 的 hash。
+```
+
+**為什麼 05-08 那列到現在才填？** 因為一列的 hash 不可能由它自己那個 commit 寫進去——
+commit 還沒發生就沒有 hash，commit 發生後檔案已經定版。所以 hosted row 一律由 host 的
+**下一個** commit 回填：05-04 那列等到的是 05-08 的 commit（所以它早就填好了），而
+05-08 那列之後沒有新的 phase，**closeout 就是它等的那個「下一個 commit」**。
+
+**沒有下一次了，所以這裡漏掉就永遠是空的。** 這是 Step 4 把回填寫成指令而不是建議的原因；
+`references/pr-review-checklist.md` 也在 PR 端再檢一次每一格是否**解得開**——不是「非空就
+算數」，`n/a - spec capture only` 這種說明文字是非空的，卻什麼也不是。
+
 ## Step 5 — Emit Integration Summary
+
+> ⚠ **本篇壓縮掉了 Step 5 的第一件事，但它必須先發生。** flow 規定
+> 「**First, print the closeout verification's derivation.**」——在摘要之前，先說明
+> Step 4 的 post-commit 驗證**是怎麼算出來的**（baseline、逐項差異各由哪一步指示、
+> 接受了哪些外部路徑、以及有什麼是它判定不了、該由誰承擔）。那是一次真實驗證的推導
+> 結果，本教材不編造它；完整規定見 `finish-feature-flow.md` 的 Step 5 開頭。
 
 Dflow 產出 Integration Summary。這份 summary 是 git-strategy-neutral 的 closeout
 reference，可以改寫成 PR description、release note、merge note 或團隊同步文件；
@@ -485,39 +551,90 @@ Dflow 回：
 
 ```text
 Dflow:
-對。finish-feature-flow 原本只要求對話輸出，
-但 tutorial 需要保留示範成果，
-所以我會把 Integration Summary inline 到 completed feature _index.md，
-並補 Outstanding / Future Considerations。
-真實專案可選擇只貼到 PR description。
+不對。finish-feature-flow Step 5 的原文是
+「Print the summary to the conversation; do not write it to a file
+ (it is ephemeral closeout output)」。
+
+但要講清楚：這是明文指示，不是 gate。
+Step 1 檢查的是七個必要段落都在，不是「不准有別的」；
+關帳後的驗證比的是「Step 1 讀到的東西有沒有被改動」，
+所以一段一直都在、closeout 也沒動過的 Integration Summary 不會被擋。
+何況 Step 5 跑在 Step 4 的 commit 與那道驗證之後，
+這時寫進檔案的東西不在那個 commit 裡，closeout 自己的檢查都看不到它。
+
+但「closeout 看不到」不等於「沒人看得到」：
+pr-review-checklist.md 有一項
+「Integration Summary was emitted to the conversation
+ (not written to a file — it's ephemeral)」。
+而且 Step 5 明寫這時 host 已歸檔凍結、不得再改 archived _index.md。
+
+我不寫進檔案，理由是 Step 5 這麼說，不是因為不這麼做會被擋。
+這份 summary 的去處是 PR description、release note、
+merge note 或團隊同步文件——那才是它要服務的讀者。
 ```
 
-final `_index.md` 裡的 Feature Overview：
+下面是**印在對話裡**的摘要。brownfield `finish-feature-flow.md` Step 5 有一個
+`Format:` 區塊逐欄規定它的形狀，這裡就是照它印的：
 
-```markdown
-### Feature Overview
+```text
+== Integration Summary: SPEC-20260430-001-order-discount-calculation ==
 
-`SPEC-20260430-001-order-discount-calculation` 是 OrderManager 第一個正式 SDD-driven brownfield feature。它從 `OrderEntry.aspx.cs` 抽出 Order 折扣計算 Domain logic，建立 `Order` Aggregate Root、`OrderLine` Entity、`Money` / `Quantity` / `DiscountRate` Value Objects 與 `DiscountPolicy` Domain Service，並完成跨頁 baseline capture 與 rounding inconsistency bug fix。
+Feature Goal: 建立 Order BC 的第一個正式修改入口，處理經銷商「華昕貿易」回報的訂單
+折扣計算錯誤：滿 NT$50,000 的 9 折與老客戶額外 5% off 必須依業務期望累積，而不是
+只套用滿額折扣。
+
+Change Scope:
+- BC: Order
+- Phase Count: 1 (phase-spec-2026-04-30-baseline-and-fix)
+- Lightweight Changes: 1 T2 lightweight specs + 0 T3 inline rows + 1 baseline rows
+
+Related BR-IDs (post-closeout state):
+- ADDED: BR-001, BR-002, BR-003, BR-004
+- MODIFIED: none
+- REMOVED: none
+
+Phase List:
+- phase-1 (2026-04-30): baseline-and-fix — Capture OrderEntry.aspx.cs baseline、
+  修正 Senior + full-threshold compound discount bug，並把折扣計算抽到
+  src/Domain/Order/。
+
+Next Steps (developer) — Integration / PR gate (needs network):
+- Per the selected Git policy (`gitflow` / `trunk` in `_conventions.md`), choose
+  a merge strategy (merge commit / squash / rebase / fast-forward) and execute
+- Push to remote / open a PR — the AI can run `git push` / `gh pr create` for
+  you, but only when you explicitly ask; it never pushes on its own
 ```
 
-Phases Summary：
+⚠⚠ **注意這裡沒有 `Aggregates affected:`，也沒有 `Domain Events Changes:`。**
+那兩欄是 **Greenfield** Integration Summary 才有的；brownfield 的 `Format:` 區塊
+沒有定義它們——不是「這次剛好沒有」，是這一軌的格式裡根本沒有這兩欄。**把 Greenfield 的欄位抄進 Brownfield 摘要，是這條軌上最容易犯的錯**——
+walkthrough 07 有一整段在講它。
 
-```markdown
-| Phase | Date | Slug | Summary |
-|---|---|---|
-| 1 | 2026-04-30 | baseline-and-fix | Capture `OrderEntry.aspx.cs` baseline、修正 Senior + full-threshold compound discount bug，並把折扣計算抽到 `src/Domain/Order/`。 |
-```
+⚠ **那不代表 Domain extraction 的內容可以塞進 `Feature Goal:`。** 那一欄的來源
+規範寫死了：**`{1-2 sentences from _index.md Goals & Scope}`**——照抄 host 自己的
+Goals & Scope，不是改寫成 Aggregate / VO 清單。抽出來的 Domain model 清單留在摘要
+**之外**（見下方「走查補充」），brownfield 的摘要本來就不報告它。
 
-Lightweight Changes Summary：
+**`Related BR-IDs` 這一欄不要拿上面 Step 3 的 sync 結果去反推。** flow 在兩軌的
+Step 3、Step 5 與 `Git-principles-*` scaffolding 都寫了同一句：
 
-```markdown
-| Date | Type | Summary |
-|---|---|---|
-| 2026-05-04 | baseline-capture | 補 `OrderList.aspx.cs` / `OrderDetail.aspx.cs` 跨頁 confirmed behavior；識別 rounding inconsistency 與 `isVip` multiplier tech-debt。 |
-| 2026-05-08 | T2 BUG-001 | 修正 `OrderList` / `OrderEntry` / `OrderDetail` display rounding inconsistency；`Money.ToDisplay()` 成為共用 display contract。 |
-```
+> **`Related BR-IDs` is not one of those**: it reports what this change's own
+> record carries, **not what was synced**
 
-BR Final State：
+「那一組」指的是 `BC` 這類**報告有沒有做 sync** 的欄；`Related BR-IDs` 不屬於它們。
+值要去這個 host 自己的 `_index.md` Current BR Snapshot 拿——本 feature 四列的
+`First Seen (phase)` 都是 `phase-1`，沒有一列是 `inherited from rules.md`，所以是
+`ADDED: BR-001…BR-004 / MODIFIED: none`。
+
+Step 3 印的「already exists；補齊 price multiplier」講的是 `rules.md` 那一邊的動作，
+跟這一欄是兩件事。
+
+還有一欄是 brownfield 特有的：`Lightweight Changes` 的計數多了
+**`+ {n_baseline} baseline rows`**。本 feature 是 `1 T2 + 0 T3 + 1 baseline`——
+那個 baseline row 就是 2026-05-04 那次 baseline-only capture，它沒有對應的 spec 檔，
+但仍要計入。
+
+BR 的最終條文（**這是本篇為了教學附上的，`Format:` 沒有這一段**）：
 
 ```markdown
 | BR-ID | Final Rule |
@@ -528,8 +645,51 @@ BR Final State：
 | BR-004 | 多個折扣率以乘法累積，順序為先套滿額折扣、再套客戶等級折扣；總折扣率 = `1 - (1 - 滿額折扣率) * (1 - 客戶等級折扣率)`。 |
 ```
 
-完整文件範例：
+**這個 feature 抽出來的 Domain model**（走查補充，**不是摘要的欄位**——
+brownfield 的 `Format:` 沒有 `Aggregates affected:`，而 `Feature Goal:` 的來源規範
+寫死是 `_index.md` 的 Goals & Scope，所以**這份清單在摘要裡沒有任何欄位承載它**。
+它只存在於走查，供讀者理解這個 feature 做了什麼）：
+
+- Aggregate Root: `Order`
+- Entity: `OrderLine`
+- Value Objects: `Money`, `Quantity`, `DiscountRate`
+- Domain Service: `DiscountPolicy`
+- WebForms adapter boundary: `OrderEntry.aspx.cs` 保留 UI parsing、EF mapping 與 DB write；
+  Domain layer 不 reference `System.Web`、EF DbContext、ViewState 或 Session。
+
+至於 Domain Events：本 WebForms brownfield feature 不引入——所以就算格式裡有那一欄，
+這次也會是空的。**但要記得上面那件事：brownfield 的格式本來就沒有那一欄**，
+兩者是不同的理由，不要混成一個。
+
+Tech Debt Outstanding（同樣是走查補充，`Format:` 沒有這一段）：
+
+```markdown
+- OrderList / OrderEntry / OrderDetail rounding 策略不一致: resolved by BUG-001，
+  三頁面改用 Money.ToDisplay() display contract。
+- OrderList isVip multiplier 0.93 規則來源不明: resolved by SPEC-20260505-002 disposition，
+  業務確認為 dead code。
+- Order 折扣規則分散在多個頁面: partially resolved。OrderEntry / OrderList / OrderDetail
+  rounding contract 已統一，但其他 Order 頁面尚未抽離。
+- OrderEntry event handler 仍混合資料存取與流程控制: open。
+- DiscountPolicy 結構可能需要演進: open。
+- 其他 brownfield baseline tech-debt remains open: 業務邏輯散在 Code-Behind、
+  缺少 unit test coverage、Stored Procedures 重 join 難維護、
+  .NET Core migration long-term goal 未拆小步、無 Dependency Injection 組態。
+```
+
+Sign-off：
+
+```markdown
+- Bob verified phase 1 Domain extraction and BUG-001 implementation completion on 2026-05-12。
+- Regression tests verified BR-001~004 and rounding consistency across
+  OrderList / OrderEntry / OrderDetail。
+- Carol verified #ORD-2026-0512 類型案例三頁面顯示一致。
+- 試用主管群三天穩定試用，未回報新的 SPEC-001 blocker。
+```
+
+歸檔後的檔案長什麼樣：
 [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md)
+——七個必要段落（含 Metadata front matter 與 Checkpoint Log），**沒有** Integration Summary 段。上面這些都在對話裡。
 
 這份 summary 的價值在於：讀者不必回頭重讀 02、03、05 才知道這個 feature 做了什麼。
 它把 phase、baseline-only row、BUG-001、Domain extraction、tech debt、future work
@@ -540,7 +700,7 @@ BR Final State：
 Integration Summary 也記錄未來工作：
 
 ```markdown
-## Outstanding / Future Considerations
+### Outstanding / Future Considerations
 
 - `SPEC-20260505-002-vip-discount-policy` remains `in-progress` under `features/active/`；本次 closeout 不同步 BR-005~008，也不搬動 SPEC-002。
 - 後續 phase 候選：抽離 `OrderEntry.aspx.cs` 剩餘約 50 行 EF query / UI parsing / 狀態設定流程。
@@ -596,7 +756,7 @@ Order BC 整體 modernization 還有很長的路，
 | 狀態 | Path | 讀者看什麼 |
 |---|---|---|
 | 移動 | [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/) | SPEC-001 從 active archive 到 completed 的完整文件範例。 |
-| 修改 | [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md) | completed status、completed date、phase / lightweight rows、Integration Summary、future considerations。 |
+| 修改 | [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md) | completed status（只翻 `status`）、Resume Pointer 終局狀態、Checkpoint Log 的 closeout 列、Lightweight Changes 回填的兩個 `Commit` 格。⚠ Integration Summary **不寫進檔案**，見 Step 5。 |
 | 保留 | [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/phase-spec-2026-04-30-baseline-and-fix.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/phase-spec-2026-04-30-baseline-and-fix.md) | phase 1 frozen history；closeout 不重寫 inline phase content。 |
 | 保留 | [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/BUG-001-rounding-inconsistency.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/BUG-001-rounding-inconsistency.md) | BUG-001 frozen history；closeout 只在 `_index.md` 彙整。 |
 | 修改 | [`outputs/dflow/specs/domain/Order/rules.md`](outputs/dflow/specs/domain/Order/rules.md) | BR-001~004 finalized lifecycle note；BR-005~008 preserved for active SPEC-002。 |
@@ -640,7 +800,7 @@ Order BC 整體 modernization 還有很長的路，
 
 3. **系統層文件要同步什麼？**
    本篇答案是 `rules.md` lifecycle、`behavior.md` lifecycle、`tech-debt.md` disposition，
-   以及 completed `_index.md` Integration Summary。
+   以及 closeout 印出的 Integration Summary（在對話裡，不在 `_index.md`）。
 
 4. **完成後還能不能直接改 completed feature？**
    本篇答案是不能。未來改動要走 `/dflow:modify-existing` 或 follow-up feature。
@@ -655,7 +815,7 @@ Finish-feature 的價值不是多寫一份 summary，而是替下一輪變更建
 - 多 feature 並存於同一 BC 時，只 sync completed feature owned BR；其他 active feature BR 保留。
 - `rules.md` / `behavior.md` 是 BC-level cumulative truth，不能被單一 feature snapshot 覆寫。
 - Completed feature 是 frozen history；後續變更必須走 follow-up feature 或新的 active feature。
-- Integration Summary 應記錄 final BR state、Domain extraction、lightweight changes、tech debt outstanding 與 future considerations。
+- Integration Summary 的規範欄位是 Feature Goal、Change Scope（`BC` / `Phase Count` / `Lightweight Changes`）、`Related BR-IDs`、Phase List 與 Next Steps，而且 flow 明寫它只印到對話、不寫進檔案。本篇示範的 Domain extraction、tech debt outstanding 與 future considerations 是**團隊自加的補充**，不是規範要求的欄位。
 
 ## Brownfield 劇情收尾
 

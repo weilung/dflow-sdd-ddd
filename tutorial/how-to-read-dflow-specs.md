@@ -36,8 +36,8 @@ Dflow specs 可以先用三層理解。
 | 層級 | 常見檔案 | 你應該怎麼讀 |
 |---|---|---|
 | Phase / change layer | `phase-spec-*.md`、`lightweight-*.md`、`BUG-*.md` | 讀「這一次變更」：問題、場景、Delta、implementation tasks、驗收條件。 |
-| Feature layer | `features/active/.../_index.md` 或 `features/completed/.../_index.md` | 讀「這個 feature 目前累積到哪裡」：phase 列表、Current BR Snapshot、Resume Pointer、Integration Summary。 |
-| System layer | `domain/{BC}/rules.md`、`behavior.md`、`models.md`、`events.md`、`migration/tech-debt.md` | 讀「整個系統目前相信什麼」：跨 feature 累積規則、行為、模型、事件與技術債狀態。 |
+| Feature layer | `features/active/.../_index.md` 或 `features/completed/.../_index.md` | 讀「這個 feature 目前累積到哪裡」：phase 列表、Current BR Snapshot、Checkpoint Log、Resume Pointer。 |
+| System layer | `domain/{BC}/rules.md`、`behavior.md`、`models.md`；**Greenfield 另有** `events.md`；技術債 **Greenfield 在** `architecture/tech-debt.md`、**Brownfield 在** `migration/tech-debt.md` | 讀「整個系統目前相信什麼」：跨 feature 累積規則、行為、模型、事件與技術債狀態。 |
 
 這三層不是重複文件。它們的時間尺度不同。
 
@@ -71,12 +71,12 @@ Feature `_index.md` 是 feature dashboard。最重要的區塊通常是：
 
 | 區塊 | 用途 |
 |---|---|
-| front matter | `spec-id`、slug、status、created、completed date、branch hint。 |
+| front matter | `spec-id`、slug、status、created、branch hint。 |
 | Phase Specs table | 這個 feature 走過哪些 phase。 |
 | Lightweight / BUG rows | 後續輕量修改或缺陷修復。 |
 | Current BR Snapshot | 這個 feature 目前相信的 BR net result。 |
 | Resume Pointer | 下一個 AI session 從哪裡接續。 |
-| Integration Summary | closeout 後給 reviewer / stakeholder 的總結。 |
+| Checkpoint Log | 這個 host 一路上的 commit / skip 時間線。closeout 那列不帶 hash。 |
 
 其中最容易誤讀的是 Current BR Snapshot。
 
@@ -120,7 +120,7 @@ phase spec 或 lightweight / BUG spec 的 Delta。
 | `models.md` | Aggregate、Entity、Value Object、Domain Service、Repository interface。 |
 | `rules.md` | BR-ID、規則 wording、status、lifecycle note。 |
 | `behavior.md` | behavior scenarios，特別適合 Brownfield confirmed behavior。 |
-| `events.md` | Domain Events 與 payload / consumer 註記。 |
+| `events.md` <br>（**Greenfield only**） | Domain Events 與 payload / consumer 註記。Brownfield 沒有這一份。 |
 | `glossary.md` | Ubiquitous Language。 |
 
 關鍵讀法：
@@ -163,13 +163,15 @@ Brownfield 最重要的紀律是：
 
 1. 先讀 feature `_index.md`：確認 status、phase rows、Current BR Snapshot、Resume Pointer。
 2. 讀最新 phase spec / lightweight spec / BUG spec：確認本次 Delta 和 tasks。
-3. 讀相關 BC layer：`rules.md`、`models.md`、`behavior.md`、`events.md`。
+3. 讀相關 BC layer：`rules.md`、`models.md`、`behavior.md`；Greenfield 另讀 `events.md`。
 4. 檢查 implementation / tests 是否覆蓋 spec 中的 BR、behavior scenarios、edge cases。
 5. 如果是 Brownfield，再讀 `migration/tech-debt.md` 的 disposition。
 
 ### 檢查一個 completed feature
 
-1. 先讀 completed `_index.md` 的 Integration Summary。
+1. 先讀 completed `_index.md` 的 Checkpoint Log 與 Resume Pointer。
+   （closeout 的 Integration Summary 是**印在對話裡**的、不寫進檔案，見
+   `finish-feature-flow.md` Step 5；要回顧它請看 PR description 或 walkthrough 06。）
 2. 看 phase / lightweight / BUG rows 是否都 completed 或有明確 disposition。
 3. 對照 BC layer 是否已 sync net result。
 4. 確認未完成事項被放到 future considerations、backlog 或 tech debt，而不是留在 active work。
@@ -180,7 +182,7 @@ Brownfield 最重要的紀律是：
 1. 先讀 `domain/{BC}/context.md`，確認 boundary。
 2. 讀 `rules.md`，看 BR active / deprecated / lifecycle。
 3. 讀 `behavior.md`，看 scenario 和 confirmed behavior。
-4. 讀 `models.md` / `events.md`，確認 tactical model 和 integration signals。
+4. 讀 `models.md`（Greenfield 另讀 `events.md`），確認 tactical model 和 integration signals。
 5. 回到 feature directories 追溯某條 BR 是哪個 feature / phase 引入的。
 
 ## 常見誤讀

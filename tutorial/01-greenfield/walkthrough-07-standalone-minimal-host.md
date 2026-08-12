@@ -257,8 +257,18 @@ branch: feature/SPEC-20260511-001-login-banner-typo
 
 | Date | Tier | Description | Commit |
 |---|---|---|---|
-| 2026-05-11 | T3 | 登入頁公告橫幅錯字修正 `[text]` — `src/Web/Auth/LoginBanner.cs` | {pending} |
+| 2026-05-11 | T3 | 登入頁公告橫幅錯字修正 `[text]` — `src/Web/Auth/LoginBanner.cs` |  |
 ```
+
+⚠ **`Commit` 欄先留空——不要填 `{pending}` 這類佔位字串。** 最小 host 不必等到
+closeout：它在 finalize（commit 之後、closeout 之前）就把 checkpoint 1 的 hash 填進來，
+本走查稍後那一格會是 `a3f2c91`。**留空與佔位字串的差別在最小 host 上特別貴**——
+Step 1 會拿那一格去做 hash evidence，佔位字串解不開，於是它擋下你——**而且它給的
+理由就是「這一格從來沒填過」，不是「hash 填錯」**。flow 特地把三種失敗分開，並要求
+「**report the one that is true**」（`references/finish-feature-flow.md` Step 1），
+因為修法不一樣：**空**是那個變更還沒 commit；**佔位字串**是這格從來沒填過，很可能有一個
+commit 就躺在那裡沒被記錄；**解得開但過不了 (a)–(c)** 才是 hash 填錯。
+留空與佔位字串的差別，就差在你會被告知哪一件事。
 
 三個地方要特別看：
 
@@ -439,6 +449,10 @@ Step 4 — Archive：
 
 ## 產出 3 — Integration Summary（zero-phase 的確切形狀）
 
+> ⚠ **摘要之前還有一件事，本篇壓縮掉了。** flow 規定 Step 5 要先印 closeout
+> verification 的**推導過程**（不是「通過了」，而是「怎麼算出來的」）。那是真實驗證
+> 才會有的內容，本教材不編造；規定見 `finish-feature-flow.md` Step 5 開頭。
+
 ```text
 == Integration Summary: SPEC-20260511-001-login-banner-typo ==
 
@@ -460,8 +474,10 @@ Phase List:
 （空）
 
 Next Steps (developer) — Integration / PR gate (needs network):
-- 依 _conventions.md 選定的 Git policy 選擇 merge 策略並執行
-- Push / 開 PR
+- Per the selected Git policy (`gitflow` / `trunk` in `_conventions.md`), choose
+  a merge strategy (merge commit / squash / rebase / fast-forward) and execute
+- Push to remote / open a PR — the AI can run `git push` / `gh pr create` for
+  you, but only when you explicitly ask; it never pushes on its own
 ```
 
 `BC`、`Aggregates affected`、`Domain Events Changes` 是 `none`，因為它們報告的是

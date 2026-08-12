@@ -350,9 +350,9 @@ Dflow 的 impact analysis：
 
 ```text
 Dflow:
-依 /dflow:bug-fix 的 ceremony adjustment，
-Step 3 預設是 no DDD impact, fix in place，
-除非 bug 本身在 Domain logic 或揭露 business rule 設計錯誤。
+/dflow:bug-fix 不設定 tier——照一般修改跑同一套 ordered cascade。
+多數功能性缺陷落在 T2，而 Step 3 可能預設 no DDD impact, fix in place，
+除非 bug 本身就在 Domain logic 裡。這是常見落點，不是固定的一組。
 
 - Aggregate boundary：OK。
   ExpenseReport / ApprovalDecision 邊界不變。
@@ -439,6 +439,21 @@ architecture decision，應該獨立追蹤。
 ## Step 3 — Implementation tasks
 
 Dflow 產生 T2 task list：
+
+⚠ **注意底下的 `PRESENTATION-*`：它不在規範的層標籤字彙裡，是本專案自己加的。**
+greenfield 的字彙是 `DOMAIN` / `APP` / `INFRA` / `API` / `TEST`（T2 另有 `DOC`），
+沒有 `PRESENTATION`。**這樣做是允許的**——`templates/lightweight-spec.md` 在標籤清單
+底下明寫「Layer tag list above is the recommended set; the developer **may extend
+with project-specific tags** as needed」。
+
+為什麼這裡值得自訂一個：這兩條任務做的是輸入框的文字截斷與字數計數器，
+而 `API` 在規範裡指的是 Controller / Minimal API / Request-Response 模型 / Swagger
+那一層。硬套 `API-*` 會把前端文字處理標成 HTTP 介面的工作，**標籤反而變得不準**。
+
+⚠⚠ **但這條寬鬆只適用 T2。** T1 的 `phase-spec.md` **沒有**那句「may extend」，
+它只列出標籤、外加一句「建議產出順序與實作順序相符」。注意這是**沒有給你許可**，
+不等於明文禁止——範本並沒有說那份清單是封閉的。實務上的分寸是：**沒有許可就不要
+自己假設有**，要在 phase-spec 自訂標籤前先跟團隊確認。
 
 ```markdown
 - [ ] PRESENTATION-1: replace reject reason substring truncation with grapheme-aware truncation
@@ -660,8 +675,14 @@ Lightweight Changes 表新增 BUG-001：
 ```markdown
 | Date | Tier | Description | Commit |
 |---|---|---|---|
-| 2026-05-04 | T2 | Bug-fix: 前端 substring 截斷 emoji surrogate pair 導致 reject reason 被拒。見 BUG-001-emoji-surrogate-truncation.md | {pending} |
+| 2026-05-04 | T2 | Bug-fix: 前端 substring 截斷 emoji surrogate pair 導致 reject reason 被拒。見 BUG-001-emoji-surrogate-truncation.md |  |
 ```
+
+⚠ **這一列的 `Commit` 欄同樣留空**（理由見 walkthrough 04 同一段）。而這個 commit
+**同時**替 walkthrough 04 那一列做了一件事：它就是 04-30 那列在等的「host 的下一個
+commit」，所以 04-30 那格在這次一併被回填。本 feature 已經沒有下一個 phase 了，
+於是 05-04 這一列要等的下一個 commit 就是 **closeout 自己**——見 walkthrough 06
+的 Step 4。
 
 Current BR Snapshot 保持 walkthrough 04 的 BR-007 current state：
 

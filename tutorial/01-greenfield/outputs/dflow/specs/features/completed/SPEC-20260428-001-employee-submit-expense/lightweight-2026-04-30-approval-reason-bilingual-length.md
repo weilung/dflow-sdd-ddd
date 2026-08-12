@@ -74,13 +74,13 @@ Phase 2 將 `ApprovalReason` 建模為必填 Value Object 時，用單一 `Lengt
 >
 > Recommended layer tags (Core): `DOMAIN` / `APP` / `INFRA` / `API` / `TEST` / `DOC`
 
-- [ ] DOMAIN-1: 更新 `ApprovalReason` validation，使其接受至少 5 個中文 / emoji 視覺字元，或至少 10 個英數字。
-- [ ] TEST-1: 新增中文 input 的 unit tests（`金額對不上` 會通過；少於 5 個計數字元會失敗）。
-- [ ] TEST-2: 新增英文 / 英數字 input 的 unit tests（10 個 normalized 英數字會通過；少於門檻會失敗）。
-- [ ] TEST-3: 新增 mixed input 的 unit tests，確認任一門檻滿足即可通過。
-- [ ] TEST-4: 新增 whitespace ignored、半形 / 全形等價、emoji 算作視覺字元的 unit tests。
-- [ ] INFRA-1: 確認不需要 DB schema 或 migration change。
-- [ ] DOC-1: 更新 `_index.md` Lightweight Changes + Current BR Snapshot、`rules.md`、`aggregate-design.md` 與 glossary 中的 BR-007 wording。
+- [x] DOMAIN-1: 更新 `ApprovalReason` validation，使其接受至少 5 個中文 / emoji 視覺字元，或至少 10 個英數字。
+- [x] TEST-1: 新增中文 input 的 unit tests（`金額對不上` 會通過；少於 5 個計數字元會失敗）。
+- [x] TEST-2: 新增英文 / 英數字 input 的 unit tests（10 個 normalized 英數字會通過；少於門檻會失敗）。
+- [x] TEST-3: 新增 mixed input 的 unit tests，確認任一門檻滿足即可通過。
+- [x] TEST-4: 新增 whitespace ignored、半形 / 全形等價、emoji 算作視覺字元的 unit tests。
+- [x] INFRA-1: 確認不需要 DB schema 或 migration change。
+- [x] DOC-1: 更新 `_index.md` Lightweight Changes + Current BR Snapshot、`rules.md`、`aggregate-design.md` 與 glossary 中的 BR-007 wording。
 
 Layer tag list above is the recommended set; the developer may extend with project-specific tags as needed.
 

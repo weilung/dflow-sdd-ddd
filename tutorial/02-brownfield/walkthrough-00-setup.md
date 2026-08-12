@@ -73,6 +73,7 @@ OrderManager/
 |---|---|
 | WebForms 主專案仍是 production system | 修改必須低風險，不能先大搬家。 |
 | 業務邏輯黏在 `OrderEntry.aspx.cs` | 後續修改要先 baseline capture，再抽可測試 domain logic。 |
+| `OrderEntry.aspx` 等 WebForms 檔 | init 靠**副檔名**認技術方向（`.aspx`／`.ascx`／`.master`）。⚠ `.aspx.cs` **不算**——它結尾是 `.cs`；真正被認出來的是那些 `.aspx` 本身。（另一條路是讀 `.csproj` 內容，見 `01-greenfield/walkthrough-00-setup.md` 的對應列。） |
 | Stored Procedures 也含規則 | spec 必須記錄哪些行為來自 DB / SP，而不是只看 C#。 |
 | 少量 integration tests，幾乎沒有 unit tests | 每次 domain extraction 都要補可快速回饋的 tests。 |
 | 尚無 `src/Domain/` | domain layer 會在第一個合適修改中漸進建立。 |

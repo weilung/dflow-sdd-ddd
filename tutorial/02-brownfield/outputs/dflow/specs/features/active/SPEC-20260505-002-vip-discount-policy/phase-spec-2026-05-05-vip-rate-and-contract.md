@@ -204,9 +204,9 @@ public sealed class DiscountPolicy
 - [ ] DOMAIN-2: 建立 `ContractValidUntil` Value Object，實作合法日期、10 年外 suspicious date、inclusive boundary validation。
 - [ ] DOMAIN-3: 擴張 `DiscountPolicy`，新增 VIP discount path，保留既有 BR-001~004 方法與行為。
 - [ ] DOMAIN-4: 實作 full-threshold -> VIP -> Senior stacking order，並覆蓋 VIP 與 Senior 同時符合的組合。
-- [ ] WEBFORMS-1: 在 `OrderEntry.aspx.cs` 讀取 Customer reference data，將 VIP eligibility 與 `ContractValidUntil` map 成 Domain input。
-- [ ] WEBFORMS-2: 移除 `OrderList.aspx.cs` 的 legacy `isVip * 0.93` dead code；此清理對應 `tech-debt.md` resolved item，不寫成 BR。
-- [ ] INFRA-1: 在 Customer reference repository 增加 `GetVipContractInfo(customerId)` 或等價 query。
+- [ ] DELIVERY-1: 在 `OrderEntry.aspx.cs` 讀取 Customer reference data，將 VIP eligibility 與 `ContractValidUntil` map 成 Domain input。
+- [ ] DELIVERY-2: 移除 `OrderList.aspx.cs` 的 legacy `isVip * 0.93` dead code；此清理對應 `tech-debt.md` resolved item，不寫成 BR。
+- [ ] DATA-1: 在 Customer reference repository 增加 `GetVipContractInfo(customerId)` 或等價 query。
 - [ ] TEST-1: 新增 BR-005 到 BR-008 的 Domain unit tests。
 - [ ] TEST-2: 新增 `ContractValidUntil` 到期日當天、前一秒、後一秒與 invalid/far-future validation tests。
 - [ ] TEST-3: 新增 stacking order tests，確認 VIP 不會破壞 BR-001~004 的既有結果。

@@ -442,6 +442,14 @@ ExpenseTracker code 也寫進本 repo。
 
 ## Step 5 — Update Documentation
 
+⚠ **本篇在這裡跨過了一道沒有真的走完的 gate，要講清楚。** `modify-existing-flow.md`
+的 Step Gates 清單裡有一條 **Step 4 → Step 5（implementation done → update
+documentation）**，而 Step 5 開頭就寫著「**Triggered by the Step 4 → Step 5 Step
+Gate.**」。Alice 上面選擇不進 code implementation，所以**這道 gate 在本篇並沒有被通過**
+——下面看到的文件更新，是實作完成之後才會發生的事。本篇把它提前展示，是為了讓讀者看見
+產物長什麼樣，不代表流程可以跳過實作直接更新文件。
+（本篇前面 2→3、3→4 兩道 gate 都有實際走到，對照著看差別。）
+
 Dflow 宣告 Step 5 的文件更新：
 
 ```text
@@ -577,8 +585,17 @@ Fix Approach 是 implementation 的邊界：
 ```markdown
 | Date | Tier | Description | Commit |
 |---|---|---|---|
-| 2026-04-30 | T2 | Reject reason 從至少 10 字元放寬為 5 中文字 OR 10 英數字。見 lightweight-2026-04-30-approval-reason-bilingual-length.md | {pending} |
+| 2026-04-30 | T2 | Reject reason 從至少 10 字元放寬為 5 中文字 OR 10 英數字。見 lightweight-2026-04-30-approval-reason-bilingual-length.md |  |
 ```
+
+⚠ **`Commit` 欄現在是空的，而且必須留空——不要自己填 `{pending}`、`（待 commit）`
+這類字樣。** 這一列掛在一個既有 feature 底下（hosted row），它的 hash 由 host 的
+**下一個** commit 回填；本例是 walkthrough 05 那個 bug-fix commit。**留空是有名字的
+狀態，佔位字串不是**：佔位字串會讓那一格變成「非空」，於是**所有照空／非空判的
+規則**都會把它讀成「已經有 hash」。
+（Step 4 指令 1 與 `pr-review-checklist.md` 仍然抓得到——它們是去**解析**這個值，
+不是看它空不空——但那是最後兩道防線，不該讓它們去接一個一開始就寫錯的格子。）
+回填怎麼發生，見 walkthrough 06 的 Step 4。
 
 Current BR Snapshot 中 BR-007 被 regenerate 成新 current state：
 

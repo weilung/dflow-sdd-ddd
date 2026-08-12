@@ -8,7 +8,126 @@
 
 ## Unreleased
 
-**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）
+**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）
+
+- **`dflow doctor` 新增 `uncertain` 結果狀態 — 它會讓「乾淨」這個結論本身失效（P-084）**：
+  doctor 讀 `_conventions.md` 時靠 Markdown 區塊結構定位規則句，而那個讀取器有一批
+  **已知會讀錯的形狀**。過去這些缺口只寫在原始碼註解裡：使用者踩到了，拿到的仍然是
+  一句 `All checks passed`，語氣與真正乾淨的專案一模一樣。現在只要偵測到這類形狀：
+  **(1)** 不會印出 `All checks passed`；**(2)** 受影響的檢查會被逐項列名，並明說
+  「它們沒有出聲不代表通過」——因為 doctor 是有問題才講的工具，沉默平常就代表沒事；
+  **(3)** 印出穩定的偵測器 id 並連到說明頁。**exit code 不變，仍然是 0**：不確定不是
+  建置失敗，doctor 從來沒有用非零 exit code 表達任何一條 finding。
+  掃描 `_conventions.md` 與 `AI-AGENT-GUIDE.md` 這兩個「doctor 會針對其內容做出宣稱」
+  的檔案，回報四種形狀：`inline-html-comment`（行中間才開始的註解——**靜默**把已關掉的
+  規則讀成還在）、`comment-inside-container`（**容器裡面**的註解——清單項、引用區塊，
+  以及 `<details>`／`<pre>` 這類 HTML 區塊都算——同樣靜默，而且**關不關起來都一樣**，
+  問題出在它待的位置）、`unclosed-html-block`（文件層級沒關的區塊，雙向）、
+  以及 `html-block-type-7`。
+  ⚠ **這份清單不是窮舉**，說明頁本身也這樣寫——沒被列出不等於已驗證安全。
+  每個偵測器都是**對著出貨的 renderer 校準**的：形狀要實測到 doctor 與 renderer 讀法
+  不同才會出聲，因為一個會在正確檔案上誤報的警告，會教會大家把所有警告都當耳邊風。
+  ⚠ 但**有一個刻意的例外，而且它是故意保守的**：`comment-inside-container` 對寫在
+  `<textarea>` 裡面的註解仍然回報，即使那裡讀者**看得到**該文字、兩邊讀法其實一致。
+  豁免它試過三次，每次都反而造出「**真的**被藏起來的註解沒人回報」的情況，所以豁免被
+  移除而不是再補一次；兩份說明頁都用整整一節說明遇到它該怎麼辦（保持那一行不變，但
+  不要把整體的不確定結論當成通過）。乾淨的專案輸出完全不變。
+  ⚠⚠ **有兩個已知缺口刻意不回報，而第二個的理由值得寫下來。** 第一個是表格內的縮排
+  續行：原型在 151 份真實檔案裡誤報 5 次，對它而言警告比缺口本身更糟。
+  第二個是**畸形的表格分隔列**（格數與標題列不符）。它**真的**會害 doctor 讀錯節邊界，
+  而且兩個方向都會——但為它寫的偵測器**連續六輪 review、每一輪都被找到一份會漏掉的
+  文件**，而漏掉的方向一律是靜默：對已經漂移的檔案印出 `All checks passed`，比不回報
+  更糟。收窄成「只報實測會讀錯的形狀」失敗五次；放寬成「任何格數不符都報」在第六次
+  失敗，因為剩下的那份清單搬進了「怎麼認出一列分隔列」。其中一輪還量到**分隔列格數
+  正確時**同樣的靜默失敗也會發生——也就是說這個偵測器的範圍本來就只是問題的一部分。
+  耐久解是換工具而不是再寫一份更好的清單：`marked`（`dflow render` 用的那支 renderer）
+  已經是本套件的相依套件，節邊界可以直接向它取得。那是另一項設計改動、要走自己的評估，
+  所以本版**誠實地把它列為不檢查的缺口**，而不是留一個會靜默漏掉的檢查。
+  兩份說明頁都寫明了這一條，殘餘風險記在 `planning/opt-in-backlog.md`
+  的 `doctor-section-boundary-arbiter`。
+
+- **新增說明頁 `docs/doctor-uncertainty.md` ＋ `.en.md`（P-084）**：
+  每個偵測器 id 一節，寫明形狀長什麼樣、為什麼讀不準、往哪個方向失敗（靜默漏報 vs
+  大聲誤報）、以及怎麼改寫規避。CLI 連英文頁、中文頁一次語言切換可到，與升級指引的
+  既有作法一致。**這個機制本身就是重點**：容器清單住在一個可以隨時修訂的頁面上，
+  而不是住在改一次就要發一次版的 shipped 訊息裡。
+
+- **`dflow doctor` 不再對一個裝壞的套件說「全部通過」**：
+  安裝的 dflow 套件若少了工作流程 bundle 需要的來源檔（下載中斷、tarball 不完整、
+  本機 checkout 被動過），doctor 過去會印出 `All checks passed`、exit 0——**而同一棵樹的
+  `dflow configure-agents` 在寫任何一個 byte 之前就硬失敗**。兩個指令對「這個套件能不能用」
+  給出完全相反的答案，而使用者會先問 doctor。
+  成因是套件完整性檢查的例外被無聲吞掉，連帶讓「退休 bundle 檔」那項掃描整個跳過。
+  現在會回報一條 `[warn]`，**指名缺了哪支檔**，並明說**問題出在安裝的套件、不是你的專案**，
+  處置是重裝。**在任何目錄裡都會驗，而且每一軌都驗**——包含工作流程 bundle 還沒投影
+  或被刪掉的專案、doctor 判不出 track 的專案，以及**根本不是 Dflow 專案的目錄**。
+  ⚠⚠ **但要清楚它驗到哪裡為止，兩個維度都要講。**
+  **範圍**：只驗**工作流程 bundle 的來源樹**——`templates/{common,軌}/references/` 與
+  `templates/{軌}/templates/`。套件裡**其他**來源樹**不在範圍內**，例如
+  `templates/{軌}/scaffolding/` 與 `templates/common/skill/`：少掉其中一支
+  （實測 `scaffolding/AI-AGENT-GUIDE.md`、`common/skill/SKILL.md`）doctor 仍會說
+  「全部通過」，而 `configure-agents` 會硬失敗。
+  **深度**：驗的是來源檔的**清單**——哪些檔在不在、有沒有跨樹撞名、`references/` 與
+  `templates/` 是否都非空——**不是檔案的內容**。所以「檔在、但讀不到內容（權限）」
+  「檔在、但是空的」「少了一支不在必要清單裡的檔」也驗不出來，而最後那類還會被
+  誤判成你專案裡的「退休檔」。
+  ⚠ **以上全部是既有缺陷、不是本次引進的**（以變更前的程式逐條實測確認），已另行列冊
+  追蹤，修法需要一份隨套件出貨的清單與雜湊，屬於獨立提案。**列在這裡是因為一份宣稱
+  「不再說假話」的變更，不該對自己的覆蓋範圍說假話**——而第一版正是這樣：它把「內容」
+  講成唯一的缺口、還把清單寫成窮舉，兩者都被收尾輪實測推翻。
+  ⚠ **「會擋到你」和「你的安裝壞了」是兩個問題，報告分開回答**：
+  - 壞的是**你這個專案會用到的**那部分（共用樹，或你這一軌）→ `[warn]`。
+  - 壞的是**你用不到的另一軌** → `[info]`，明寫它不會擋到你、為什麼，以及
+    **這個安裝是共用的**——同一台機器上用那一軌的別的專案還是會踩到。
+    這種情況兩個指令**是一致的**、而且都是對的；報成 `warn` 會把原本的不一致往
+    反方向重建（doctor 說壞、`configure-agents` 說好），等於拿一個假宣稱換另一個。
+  - ⚠ **只有在 doctor 與 `configure-agents` 對「這個專案屬於哪一軌」的判定一致時，
+    才會說某一軌「用不到」。** 兩者的判定來源不同（doctor 優先看 manifest、
+    `configure-agents` 只看目錄結構），不一致時**一律當成兩軌都會用到**。
+  ⚠ **exit code 仍是 0**：doctor 從來不用非零 exit code 表達 finding，這條也不例外——
+  改變的是它不再宣稱乾淨。**健康的套件輸出完全不變。**
+  ⚠ 訊息裡另外兩句話也只在成立時才出現：「退休檔掃描沒有跑過」只在該掃描本來會跑時
+  附上（判得出 track、且 bundle 已投影），「`configure-agents` 也會失敗」只在兩個
+  判定一致時才這樣斷言——**報告一個沒有發生的後果，跟這次要消滅的假宣稱是同一類。**
+
+- **`dflow-feedback-flow.md` 收成單一來源 — 投影出來的內容除一句例句外不變**：
+  這支 flow 原本兩軌各存一份，而兩份**只差一行**：可安全附在 issue 裡的證據清單中，
+  那句「generic project type」的舉例。其餘逐字相同——也就是說它早就是 edition-neutral 的，
+  只是被存成一對。現在它與 `ddd-modeling-guide.md` 一樣住在
+  `templates/common/references/`，投影到兩軌的目的地路徑完全不變
+  （`dflow/specs/shared/dflow-workflows/references/dflow-feedback-flow.md`）。
+  那句例句改寫成不指涉任何 edition（同時列出「既有」與「新建」兩種形狀）。
+  **對採用者的實質影響只有那一句**；維護面則是上游 issue form 改版時的同步從兩份變一份，
+  且 `check-repo-consistency.sh` 與 bundle collision guard 會擋住 per-track 複本重新出現。
+
+- **Brownfield `dflow init` 不再承諾一個它永遠不會建的目錄 — 既有專案不需遷移**：
+  `Will defer:` 預覽原本對兩軌都列出 `dflow/specs/architecture/decisions/ADR-*.md`，
+  但 Brownfield 建的是 `dflow/specs/migration/`、`architecture/` 從頭到尾不存在。
+  成因是那一列住在名為「common」的清單裡。現在它與 `events.md` 一樣是 greenfield-only：
+  **Greenfield 的五列與順序完全不變，Brownfield 從四列變成三列。** 只影響 init 預覽
+  的輸出文字，不影響任何已建立的檔案。
+
+- **`dflow doctor` 新增 info 級偵測：guide 的 `## Project Context` 被 HTML 區塊藏住**：
+  未關閉的 `<!--`（或其他 HTML 區塊）會讓那個標題變成區塊內容，於是
+  `configure-agents` 的 context 推斷靜默退回 `unknown` / `none`。舊訊息說「找不到這個
+  段落、請補一個」——對一個明明就有那段的檔案是不可能執行的建議。新的 finding 會指出
+  是哪一個區塊、開在第幾行，並說明「註解忘了關」與「刻意註解掉」同形、doctor 分不出來。
+  同批把 `_conventions.md` 未關閉區塊那條 warn 的說明補成雙向：那個區塊**既會**造成
+  誤報、**也會**壓掉本來該報的 finding。另外，原本那條「找不到 `## Project Context`
+  段落」的 finding 也補上了第二個成因——**標題行本身不是那個標題**（`## Project Context###`
+  這種右側 hash 前沒有空白的寫法、層級不是 `##`、或文字裡混進隱形字元），detail 與
+  action 兩處都給出路，不再只把人導向「請補一個段落」。
+
+- **`_index.md` 範本的兩處指引修正 — 會隨 workflow bundle 投影到既有專案**：
+  兩軌 `templates/*/templates/_index.md`（投影成
+  `dflow/specs/shared/dflow-workflows/templates/_index.md`，每次 `configure-agents`
+  都會重新投影）。(1) 佔位字串警語原本有兩句已被同批 shipped 規則推翻——現在改成
+  「凡照空／非空判的規則都會把佔位字串讀成已填」，並點名真正會去**解析**這個值的
+  幾處檢查（判準是「會不會解析」，不是列了幾項）。(2) 新增 Checkpoint Log 的欄位值
+  詞彙句：`spec-baseline` / `implementation` / `closeout` 是 `Checkpoint` 欄的字面值，
+  散文裡的「spec 完」是里程碑名、不是欄位值；並註明 `git-integration.md` 的選配
+  trailer 有它自己的 `{spec|impl|closeout}` 角色名，不要拿這條去改寫對的 trailer。
+  **不需要採用者做任何事**——bundle 自己會重新投影。
 
 - **Standalone / minimal（zero-phase）host 生命週期（P-083）— 新能力，既有專案不需遷移**：
   在此之前，**沒有所屬 feature** 的 T2／T3 改動沒有可執行的承接路徑——AI 只能回報
