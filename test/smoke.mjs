@@ -521,7 +521,11 @@ try {
   const expectedBundleFiles = [
     'references/new-feature-flow.md',
     'references/modify-existing-flow.md',
+    'references/modify-existing-follow-up.md',
+    'references/modify-existing-post-hoc-hotfix.md',
     'references/finish-feature-flow.md',
+    'references/finish-feature-follow-up.md',
+    'references/finish-feature-post-hoc-hotfix.md',
     'references/new-phase-flow.md',
     'references/drift-verification.md',
     'references/pr-review-checklist.md',
@@ -536,6 +540,7 @@ try {
     'templates/aggregate-design.md', // greenfield-only
     'templates/events.md',           // greenfield-only
     'references/ddd-modeling-guide.md', // PROPOSAL-064: common, projected to both editions
+    'references/flow-rationale-registry.md', // PROPOSAL-085: common, projected to both editions
   ];
   for (const bundleFile of expectedBundleFiles) {
     assert.equal(

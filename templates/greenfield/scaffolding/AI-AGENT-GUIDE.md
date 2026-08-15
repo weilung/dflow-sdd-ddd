@@ -69,6 +69,14 @@ input like this (supporting files live in the workflow bundle at
 - **"Quick question about..." / "How does X work?"** → check
   `dflow/specs/domain/` first and answer from the documented domain knowledge.
 - **"I'm creating a branch"** → read `references/git-integration.md`.
+- **"Why does this rule exist?" / "This rule seems wrong"** → look the rule up in
+  `references/flow-rationale-registry.md`. Grep the rule id when you have one
+  (`grep -E '^R-FF-BRANCH-02:'`), otherwise a **short** fragment of the rule —
+  four to eight words, because the flow files are hard-wrapped and a longer
+  phrase spans a line break. A lookup may return two lines tagged `gf ·` / `bf ·`;
+  take this project's edition, which the workflow bundle's
+  `.dflow-bundle-manifest.json` records in its `edition` field. **Do not read
+  that file whole** — it is a lookup table, not a document.
 - **"Turn the specs into HTML" / "make the specs easier to read"** → run the
   CLI command `dflow render` (a human-readability tool, not a `/dflow:*`
   workflow). It mirrors `dflow/specs/` into a browsable static HTML tree

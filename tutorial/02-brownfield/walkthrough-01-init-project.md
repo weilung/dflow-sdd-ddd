@@ -141,7 +141,7 @@ source 時第 1 題也一樣。三次答不出來就中止 init。
 ⚠ **「能按 Enter」不等於「該按 Enter」，第 8 題是這裡最貴的一題。** 它標的是
 `(default: none)`——那個預設是**一家 AI agent 都不建**。按 Enter 過去，Bob 要的
 `CLAUDE.md` shim、那一列 `.claude/skills/dflow/SKILL.md`，**連 canonical 的
-`AI-AGENT-GUIDE.md` 都不會建**——實測 create 列從 **32 掉到 29**（Bob 只選一家，
+`AI-AGENT-GUIDE.md` 都不會建**——實測 create 列從 **37 掉到 34**（Bob 只選一家，
 所以 shim 與 skill 各只有一列），而那正是本篇 Step 4 在講的東西。
 少掉的那份 guide 尤其要緊：它是各家 AI 工具行為一致的來源。**這題值得真的答。**
 
@@ -150,7 +150,7 @@ source 時第 1 題也一樣。三次答不出來就中止 init。
 Dflow 在寫檔前列出 preview：
 
 ```text
-Will create (32 files):
+Will create (37 files):
 - dflow/specs/features/active/.gitkeep
 - dflow/specs/features/completed/.gitkeep
 - dflow/specs/features/backlog/.gitkeep
@@ -162,7 +162,7 @@ Will create (32 files):
 - dflow/specs/shared/AI-AGENT-GUIDE.md
 - CLAUDE.md
 - .claude/skills/dflow/SKILL.md
-- dflow/specs/shared/dflow-workflows/references/  (10 files)
+- dflow/specs/shared/dflow-workflows/references/  (15 files)
 - dflow/specs/shared/dflow-workflows/templates/   (10 files)
 - dflow/specs/shared/dflow-workflows/.dflow-bundle-manifest.json
 
@@ -176,14 +176,14 @@ Will defer:
 
 ⚠ **上面那個區塊是本篇為了好讀而重排過的，不是 CLI 的逐字輸出。** 實際畫面上，
 preview 是一張 `File plan:` 的 Markdown 表格，欄位是
-`| Path | Action | Source | Size | Notes |`，**每個檔各佔一列**——包括那 21 個
-workflow bundle 檔，所以 Bob 螢幕上的 create 列共 **32** 列（本篇把 bundle 收成三行）。
+`| Path | Action | Source | Size | Notes |`，**每個檔各佔一列**——包括那 26 個
+workflow bundle 檔，所以 Bob 螢幕上的 create 列共 **37** 列（本篇把 bundle 收成三行）。
 表格之後才是 `Will defer:` 表與 `Create these files? (y/N)`。
-（`Will create (32 files):`、`Will skip …` 這兩個標題是本篇的敘事寫法，不是產品字串；
+（`Will create (37 files):`、`Will skip …` 這兩個標題是本篇的敘事寫法，不是產品字串；
 `Will defer:` 則是產品真正印的段名。）
 
 總列數會隨 init 問答的選擇而變（選幾家 AI agent、要不要 optional starter 等），
-所以你自己跑出來的數字未必是 32；**不變的是 bundle 那 21 檔**。
+所以你自己跑出來的數字未必是 37；**不變的是 bundle 那 26 檔**。
 
 還有一件關於 `Will defer:` 的事值得先講：它列的是「Dflow 這次不建、但之後會建」的
 **Dflow 檔案**，所以 Bob 最在意的 `src/Domain/`、Code-Behind 根本不在表上——
@@ -243,8 +243,9 @@ Bob 確認後，Dflow 寫入 baseline。
 **workflow bundle（Dflow 管理；`outputs/` 未收錄）**
 
 `dflow init` 另外把一份 workflow bundle vendor 到
-`dflow/specs/shared/dflow-workflows/`，Brownfield 共 21 個檔：10 份 reference
-文件（9 份 flow／參考文件 ＋ DDD 建模指引）、10 份空白 spec 模板、1 份 manifest。
+`dflow/specs/shared/dflow-workflows/`，Brownfield 共 26 個檔：15 份 reference
+文件（各指令的 flow 步驟文件，加上兩軌共用的參考檔）、10 份空白 spec 模板、
+1 份 manifest。
 （比 Greenfield 少兩份：`aggregate-design.md` 與 `events.md` 是 Greenfield 專屬模板。）
 它由 Dflow 管理，`dflow configure-agents` 每次都會重新投影，**不要手動編輯**
 （下次投影會被覆蓋）。因為它與本篇劇情無關、內容也只是 Dflow 套件的複本，
@@ -302,7 +303,7 @@ Order 是最可能先處理的候選，但 init 仍不建立 `dflow/specs/domain
 
 ## Step 5 — Results and next step
 
-Dflow 最後印出結果報告——依序是 `Created:`（32 行路徑）、`Updated:`、`Removed:`、
+Dflow 最後印出結果報告——依序是 `Created:`（37 行路徑）、`Updated:`、`Removed:`、
 `Skipped:`、`Warnings:`、`Deferred:`，然後是收尾。
 
 ⚠ **`Warnings:` 對 Bob 不是空的，這一段要看。** 那一格是 init 回報「還沒解決的佔位符」的地方，

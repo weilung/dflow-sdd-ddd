@@ -215,7 +215,7 @@ It reports what this change's own record carries, not what was synced, so it
 takes the same values a BC-bearing host would: empty, or the per-family no-BR
 marker when the T2 carries one. Writing `none` there erases the marker the
 zero-phase shape requires (`references/finish-feature-flow.md` Step 5 states
-this directly). A minimal host that genuinely touches a bounded context
+the rule). A minimal host that genuinely touches a bounded context
 reports that context and its real BR delta exactly as a phase-bearing feature
 would — the zero is the **phase count**, not the significance.
 

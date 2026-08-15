@@ -106,6 +106,10 @@ Common synchronized flow files include:
 - `modify-existing-flow.md`
 - `new-phase-flow.md`
 - `finish-feature-flow.md`
+- `finish-feature-follow-up.md`
+- `finish-feature-post-hoc-hotfix.md`
+- `modify-existing-follow-up.md`
+- `modify-existing-post-hoc-hotfix.md`
 - `drift-verification.md`
 - `pr-review-checklist.md`
 - `git-integration.md`

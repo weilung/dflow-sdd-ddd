@@ -437,8 +437,10 @@ Governing BR-IDs: BR-002, BR-006
 
 所以摘要要把這個 marker 照抄過去。**留空是給「連 marker 都沒有」的 host 用的**
 （walkthrough 07 那個 T3-only host 就是，所以它留空是對的）。
-⚠ 也別把它改成 `none`：flow 明講「Forcing `none` here would erase a marker the
-approved zero-phase shape requires」——`none` 是給 `BC:` / `Aggregates affected:` /
+⚠ 也別把它改成 `none`：flow 的 Step 5 明講 `Related BR-IDs` 不是回報 sync 的欄位，
+理由記在 `references/flow-rationale-registry.md` 的 `R-FF-SUMMARY-01`：「Forcing
+`none` here would erase a marker the approved zero-phase shape requires」——
+`none` 是給 `BC:` / `Aggregates affected:` /
 `Domain Events Changes:` 那三個「報告有沒有做 sync」的欄用的。
 而 lightweight-spec 範本對 family (e) 也說了同一件事：「**no BR delta」不等於「no
 governing rule」，不要把這一對塌成單一個 `BR: none`**。

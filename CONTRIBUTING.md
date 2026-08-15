@@ -89,16 +89,20 @@ Common shared flows include:
 - `modify-existing-flow.md`
 - `new-phase-flow.md`
 - `finish-feature-flow.md`
+- `finish-feature-follow-up.md`
+- `finish-feature-post-hoc-hotfix.md`
+- `modify-existing-follow-up.md`
+- `modify-existing-post-hoc-hotfix.md`
 - `drift-verification.md`
 - `pr-review-checklist.md`
 - `git-integration.md`
 
 Track-specific behavior is fine, but it should be named explicitly in the PR.
 
-`dflow-feedback-flow.md` is not on that list because it is not a pair. It lives
-once at `templates/common/references/` and is projected into both editions, so
-you edit it in one place; the repository consistency check fails if a per-track
-copy reappears.
+Anything under `templates/common/references/` is outside that pairing: it lives
+once there and is projected into both editions, so you edit it in one place; the
+repository consistency check fails if a per-track copy reappears.
+`dflow-feedback-flow.md` is one of them.
 
 ## Template and Heading Changes
 

@@ -128,7 +128,7 @@ const requiredCommon = REQUIRED_COMMON_BUNDLE_FILES.map((sourceRel) => {
 // the rest. They are a lower bound, not a closed list: adding a fourth required
 // file keeps them green, while removing one of these two goes red naming the
 // file.
-for (const anchor of ['references/ddd-modeling-guide.md', 'references/dflow-feedback-flow.md']) {
+for (const anchor of ['references/ddd-modeling-guide.md', 'references/dflow-feedback-flow.md', 'references/flow-rationale-registry.md']) {
   assert.ok(
     REQUIRED_COMMON_BUNDLE_FILES.includes(anchor),
     `common guard: ${anchor} must stay in REQUIRED_COMMON_BUNDLE_FILES`

@@ -186,8 +186,10 @@ skip one and the boundary is a hole rather than a division of labour.
       row. For a **T3** the absence is the sanctioned state.
       ⚠ The record then gives you nothing to compare against, and that is
       deliberate: `finish-feature-flow.md` Step 1 exempts phase-bearing hosts
-      from its path check for exactly this reason ("demanding it would reject
-      every hosted T3"), and `templates/_index.md` calls declaring them good
+      from its path check for exactly this reason
+      (`references/flow-rationale-registry.md`, `R-FF-COMMITCELL-02`:
+      "demanding it would reject every hosted T3"), and `templates/_index.md`
+      calls declaring them good
       practice with no gate behind it. **Do not read "touches nothing declared"
       as a pass.** What remains checkable is weaker and is worth stating as
       such: the hash is **not** the closeout commit, is **not** any other row's

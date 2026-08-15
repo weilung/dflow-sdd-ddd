@@ -8,7 +8,57 @@
 
 ## Unreleased
 
-**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）
+**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）
+
+- **`modify-existing` 的兩條罕見路徑改為獨立檔，一次執行不再整份讀（P-085，第一批）**：
+  `/dflow:modify-existing` 與 `/dflow:bug-fix` 每跑一次，AI 都要把
+  `modify-existing-flow.md` 整份讀進 context，而其中兩條路多數執行根本不會走：
+  **Step 1.6**（把修改掛成某個已完成 feature 的 follow-up）與 **Step 1.8**
+  （補記錄一個已經緊急上線的修復）。這兩段搬進新檔
+  `references/modify-existing-follow-up.md` 與
+  `references/modify-existing-post-hoc-hotfix.md`，主幹留下標題與一句
+  「開哪一支檔」的指標。**greenfield 819 → 662 行、brownfield 953 → 778 行
+  （約 −18%）。**
+  ⚠ **一行規則都沒有改**：搬移後把新舊檔重新組合回原檔，與搬移前**逐位元組相同**。
+  留下來的 Step 1.5（問開發者這是不是 follow-up）與 Step 1.7（開最小 host）
+  **刻意不動** —— 判讀顯示漏掉這兩者會靜默做錯而下游無人接手，所以它們不得住在
+  指標後面。
+  ⚠ **總 bytes 略增**（多兩支檔 ＋ 指標句），下降的是**單次執行讀進 context 的量**
+  —— 這正是本案要優化的量。既有專案再跑一次 `dflow configure-agents` 即取得新結構。
+  新增 dev-only 檢查 `scripts/check-flow-dispatch.mjs`：分支檔必須恰有一個
+  dispatcher 指向它、且兩軌對稱，避免主幹哪天不再指過去而罕見路徑靜默失去規則。
+
+- **`finish-feature` 的兩條罕見路徑也改為獨立檔（P-085，第二批之一）**：
+  `/dflow:finish-feature` 是**每個 feature 收尾都會跑**的指令，而其中兩段多數
+  執行不會用到：**post-hoc hotfix 的前置調解**（別人的緊急修復跟你這個 feature
+  撞到）與 **Step 6 的 follow-up 反向連結翻轉**（只有 follow-up feature 才跑）。
+  兩段分別搬進 `references/finish-feature-post-hoc-hotfix.md` 與
+  `references/finish-feature-follow-up.md`。**greenfield 1,160 → 1,082 行、
+  brownfield 1,211 → 1,133 行（約 −6.5%）。**
+  ⚠ **一行規則都沒有改**：Step 6 的本文逐位元組未動；hotfix 那段只做了一個**宣告
+  過的機械轉換**（剝除一層 `>` 引用標記，因為它從主幹的 callout 變成獨立檔的本文），
+  加回標記後與搬移前逐位元組相同。
+  ⚠ **主幹留下的 hotfix hook 是原文，不是新寫的**——「在下面任何檢查之前先處理重疊；
+  檢查通過之後才記入本 host 的內容等於繞過了它們」這句本來就在，它自己就擋得住錯誤
+  執行，所以只在後面接一句「細節見哪支檔」。
+
+- **設計理由與維護歷史搬出 `finish-feature` 主幹（P-085，成分 2）**：
+  `finish-feature-flow.md` 裡有一批句子不是在告訴 AI 要做什麼，而是在解釋**這條規則
+  為什麼長這樣**，或在講**文件自己**（「這一條沒有東西強制它」「上一版是什麼形狀」）。
+  它們對執行沒有幫助，卻每一次 feature 收尾都被讀進 context。這批句子挑出來搬走：
+  **設計理由**進新的出貨查表檔 `references/flow-rationale-registry.md`
+  （單源於 `templates/common/`，逐字投影兩軌）；**維護歷史與講文件自己的句子**進
+  dev-only 記錄，不出貨。**本次約 −11%；連同成分 1，greenfield 1,160 → 965 行
+  （−16.8%）、brownfield 1,211 → 1,012 行（−16.4%）。**
+  ⚠ **一條規則都沒有搬走。** 判準是「刪掉這句之後，AI 做對的機率是升還是降」——降就
+  留下。所以「這個檢查判不了 X」「下游沒有東西接手 Y」這類**邊界宣告**全部留在主幹，
+  即使它們讀起來跟設計理由一模一樣。
+  ⚠ **搬移無損，機器驗過**：把 registry 裡每一段從搬移前的原檔逐一刪掉、忽略空白比對，
+  結果與現在的主幹**完全相同**（greenfield 32 段、brownfield 33 段）。除了三處宣告過的
+  標點收尾（冒號改句號、拿掉一個開頭的 `But`）之外，沒有任何一句被改寫。
+  ⚠ **rationale registry 不要整份讀**：它是一個規則一行的查表檔。開發者問「這規定為什麼
+  存在」時，用規則本身的字去 grep 那一行就好；`AI-AGENT-GUIDE.md` § Routing Non-Command
+  Input 多了一行告訴 AI 這個檔存在。既有專案再跑一次 `dflow configure-agents` 即取得。
 
 - **`dflow doctor` 新增 `uncertain` 結果狀態 — 它會讓「乾淨」這個結論本身失效（P-084）**：
   doctor 讀 `_conventions.md` 時靠 Markdown 區塊結構定位規則句，而那個讀取器有一批

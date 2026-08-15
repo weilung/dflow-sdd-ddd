@@ -220,119 +220,9 @@ just a T3 inline row) as the lightweight equivalent.
 
 ## Step 1.6: Create Follow-up Feature (Step 1.5 Option A, a completed-only baseline capture, or the follow-up linkage chosen at Step 1.8)
 
-Build the follow-up feature using the same machinery as
-`/dflow:new-feature` (see `new-feature-flow.md` Steps 3.5 and 4), with
-these follow-up-specific differences. **Use the tier Part A already decided.**
-This is the same change Part A classified, and re-running the cascade on it can
-return a second answer to one question. Re-enter Part A **only** when the
-Step 1.5 A/B/C discussion materially changed the scope (work added or dropped);
-say so explicitly when you do, and let that re-run **replace** the earlier tier
-rather than stand beside it. On that tier: a **T1** follow-up
-takes the full new-feature machinery below; a **T2 / T3** follow-up — or a
-**baseline capture**, which is **tier-exempt** (observation-only, no cascade
-tier, and reaches here via Part A's observation-only routing rather than the
-Step 1.5 A/B/C prompt) — takes the **minimal (zero-phase) variant** described
-after the reverse-link step, which does **not** delegate new-feature Step 4's
-unconditional first phase-spec. A **post-hoc hotfix** whose host linkage
-Step 1.8 resolved to *follow-up* also arrives here (likewise without the
-Step 1.5 prompt, and always T2 / T3, so always the minimal variant); its
-first checkpoint keeps the `implementation` name but carries Result
-`reconciled (...)` per Step 1.8.
+**Open `references/modify-existing-follow-up.md` and follow it there.** This
+step's rules live in that file and are not repeated here.
 
-- **New SPEC-ID** (today's date sequence — do NOT reuse the original
-  SPEC-ID): e.g. original `SPEC-20260201-003-訂單折扣` → follow-up
-  `SPEC-20260424-002-訂單折扣-匯率擴充` (or any new slug)
-- **New slug**: not required to equal the original slug; pick whatever
-  best describes the follow-up scope
-- **`_index.md` Metadata**: `follow-up-of: {原 SPEC-ID}` is REQUIRED
-  (uncomment the optional line in the template; can be a YAML array if
-  the follow-up spans multiple originals)
-- **`_index.md` Goals & Scope** auto-prepended note:
-  ```
-  > 本 feature 為 `{原 SPEC-ID}-{原 slug}` 的 follow-up，原 feature
-  > 完成於 `{date}`，詳見 `completed/{原 SPEC-ID}-{原 slug}/_index.md`。
-  ```
-- **`_index.md` Current BR Snapshot baseline** (**BC-bearing follow-up only**):
-  if the follow-up touches a bounded context, AI reads the BC's
-  `dflow/specs/domain/{context}/rules.md` and inherits the BRs that are
-  in-scope for this follow-up. Mark each inherited row with First Seen
-  = `inherited from rules.md` and Last Updated = (empty until the new
-  feature's first phase Delta — or, for a minimal follow-up, its
-  lightweight-spec's delta — touches it). For a **no-BC follow-up** (the
-  minimal variant on a completed no-BC host), leave the Current BR Snapshot
-  **empty** — do not read or fabricate a BC's `rules.md`.
-  **A baseline capture is the other exception**, and it names a real bounded
-  context, so state it rather than leaving it to the BC-bearing rule: a
-  completed-only baseline host is tier-exempt and observation-only — it carries
-  no BR delta, and the capture may be the very thing that creates that BC's
-  `rules.md`. Leave its Current BR Snapshot **empty**, exactly as the
-  no-feature baseline route does (Step 1.7 step 3, "fill it only if the change
-  carries a BR delta"). The capture writes the BC layer directly, so the host's
-  snapshot is not its record and closeout has nothing to sync. **Both baseline
-  routes behave identically here** — lineage decides the host shape, never the
-  snapshot policy.
-
-**Reverse-link into the old `_index.md`**: AI also updates
-`dflow/specs/features/completed/{原 SPEC-ID}-{原 slug}/_index.md` —
-uncomment the Follow-up Tracking section (if not already present) and
-add a row. When `follow-up-of` names **more than one** original (it may be a
-YAML array), do this in **every** one of them; a parent left without its row
-never gets the `absent → in-progress → completed` transition the contract
-requires, and on a **minimal** follow-up host finish-feature Step 1 blocks
-closeout on it (that check is scoped "Minimal host (zero-phase), follow-up
-only" and proves the *opening* half; on a phase-bearing follow-up Step 6 still
-flips and verifies the closing half, but nothing checks that the row was ever
-opened as `in-progress`):
-
-```
-| {新 SPEC-ID} | {新 slug} | {today} | in-progress |
-```
-
-This update is **part of the same change set** as opening the host. For a
-**T1** follow-up the AI may offer to commit the new host and this initial
-`absent → in-progress` reverse-link together (commit message should mention
-"Add follow-up reference to `{新 SPEC-ID}`"). For the **minimal (T2 / T3, or
-baseline) variant** the AI does **not** offer a separate host-open commit — the
-initial reverse-link edit rides along in the first host checkpoint
-(implementation, or `spec-baseline` for a baseline follow-up; see the variant
-paragraph below), keeping the follow-up at exactly two host checkpoints. The reverse link is a derived index — the new feature's
-`follow-up-of` field is the authoritative source.
-
-After a **T1** follow-up feature is set up, this flow hands off to the
-`/dflow:new-phase` flow (or stays in this flow at Step 2 for the first
-phase's content).
-
-**Minimal (zero-phase) follow-up variant (T2 / T3 / baseline).** When the
-follow-up change is itself lightweight — or is an observation-only **baseline
-capture**, which is tier-exempt rather than lightweight and reaches this
-variant from Step 1.6's opening paragraph — do **not** delegate new-feature
-Step 4 (which would create an unconditional first phase-spec). Instead treat
-the follow-up host exactly like a standalone minimal host — open it via
-**Step 1.7's
-mechanics, steps 2–4 only** (assign identifiers + collision check, create the
-minimal `_index.md` with an empty Phase Specs table, branch gate **by change
-class**: `bugfix/BUG-{NUMBER}-{slug}` for a functional bug,
-`feature/{SPEC-ID}-{slug}` otherwise — this **overrides** new-feature's
-hardcoded `feature/` branch). Step 1.7's **step 1 does not apply**: it is the
-standalone-classification gate, and this caller has already been classified as
-a follow-up. Everything Step 1.7 states **after** step 4 *does* apply
-unchanged — every artifact's row written before checkpoint 1, the
-implementation-path declaration, tier-aware "Finalize + close", and the two
-commit-evidence surfaces — because finish-feature reads for all of it on a
-follow-up host exactly as on a standalone one. Then record the change's
-artifacts — a T2 lightweight-spec, one
-or more T3 inline rows, or both for a compound follow-up (Step 1.7's "minimal
-means zero-phase, not one-artifact") — or, for a **completed-only baseline
-capture**, record it per Step 1.7's baseline mechanics (the `spec-baseline`
-checkpoint and a `Tier = baseline` row) — and close with
-`/dflow:finish-feature`. The lifecycle is **two host checkpoints**
-(implementation — or `spec-baseline` for a baseline follow-up — then closeout)
-**plus one post-closeout reverse-link flip tracking commit** — the flip (the original feature's Follow-up Tracking row
-`in-progress → completed`, done by `/dflow:finish-feature` Step 6) is a
-**sanctioned post-completion mutation, not a host checkpoint**, and is
-recorded in **neither** the follow-up host's Checkpoint Log **nor** the
-original feature's. Option C of Step 1.5 ("a follow-up containing only one
-T3 row") lands here.
 
 ## Step 1.7: Open a Standalone Minimal Host (no active feature hosts this change, and no completed feature is being taken as its follow-up)
 
@@ -536,80 +426,15 @@ separately, never merged into one.
 
 ## Step 1.8: Hotfix T2 / T3 Post-Hoc (documenting an already-merged emergency change that Part A classified T2 or T3)
 
-Sometimes an urgent fix is merged, pushed, and its branch cleaned up
-**before** any Dflow ceremony runs. When you come back to record it,
-declare **post-hoc mode** and reconcile rather than re-implement.
+**Open `references/modify-existing-post-hoc-hotfix.md` and follow it there.**
+This step's rules live in that file and are not repeated here.
 
-**Admission condition — T2 / T3 only.** This step builds a *minimal
-(zero-phase)* host, so it admits only a post-hoc change Part A classified
-**T2 or T3**. A **T1** post-hoc keeps the normal phase-bearing route
-(`/dflow:new-phase` / `/dflow:new-feature`) and documents the merged work
-there — it is not routed here, and giving it a zero-phase host would be wrong.
-If you arrived here with a T1, go back to Part A's routing.
-
-1. **Host-linkage choice first.** A post-hoc hotfix is **already merged on the
-   mainline**, so no in-flight feature branch can host it: documenting it into
-   an unmerged `feature/...` host would strand the production fix's record on a
-   branch the mainline cannot see — possibly for weeks — and would let that
-   feature's Integration Summary claim work it never did. The hotfix therefore
-   always gets a host of its own, and the only question is whether that host is
-   linked:
-   - **A related completed feature** → run it as a **follow-up** (Step 1.6
-     minimal variant — keep `follow-up-of` and its two reverse-link
-     transitions). A hotfix on a completed feature filed as an unlinked
-     standalone loses its lineage.
-   - **Otherwise** → open a **standalone** minimal host (Step 1.7). "Otherwise"
-     includes *a related feature that is still in flight* — see above for why
-     it cannot be the host.
-
-   Do not skip this choice. If a feature that was in flight turns out to have
-   touched the same code, that is a **merge** question, settled when the
-   branches actually meet — see `finish-feature-flow.md` Step 5.
-2. **Reconcile, do not re-run.** The implementation already happened on the
-   (now often deleted) hotfix branch. Do **not** reopen an implementation
-   branch for it or redo the work. The documentation is recorded on **this
-   host's own branch**, cut by change class at Step 1.7 step 4 (or at Step
-   1.6's delegation to it) like any other minimal host — that branch *is* the
-   **post-hoc branch** the rest of this step names, and the value `_index.md`
-   `branch:` records.
-3. **Implementation checkpoint Result = `reconciled ({merged-hotfix-hash})`.**
-   In the host's Checkpoint Log the implementation row's Result is
-   `reconciled (...)` — the value meaning "this checkpoint documents an
-   already-merged change" — carrying the merged hotfix commit's hash. It sits
-   alongside the usual `committed` / `skipped` / `failed` Results (see
-   `references/git-integration.md` § Commit Checkpoints, Branch Gate & AI
-   Commits). That hash belongs to the **hotfix**, so it is **not** evidence
-   that this host's own first commit landed — the documentation work still owes
-   checkpoint 1 a real commit of its own (item 4), made **before** closeout.
-   Committing the documentation together with closeout collapses the host to
-   one commit and fails finish-feature Step 1.
-
-   **You are asserting this hash, not deriving it.** Nothing in the repository
-   records which commit was the hotfix, so no check in this flow can confirm
-   it — finish-feature's reconciliation gate is explicit that it tests
-   plausibility only. So state the identity
-   and **cite what it rests on**: the PR, incident, or tracker reference that
-   identifies this fix. Record the citation alongside the per-tier trace
-   (item 4). An **uncited** hash blocks closeout —
-   `references/pr-review-checklist.md` is what confirms the identity, and it
-   needs something to confirm against.
-4. **Per-tier trace.** A **T2** records the merged-hotfix branch in its
-   lightweight-spec `hotfix-branch:` field; a **T3** marks its `_index.md`
-   Lightweight Changes row Description as a hotfix (no new field, no T3 spec
-   file). Item 3's identity citation goes in the same place — beside
-   `hotfix-branch:` for a T2, in the row Description for a T3 — so the trace
-   and the thing it rests on stay together. In **both** tiers the host's
-   Lightweight Changes row carries a `Commit` value, and that value is the
-   **post-hoc documentation commit**
-   hash (the row is produced by the documentation work) — **not** the
-   merged hotfix hash, which already lives in the `reconciled (...)` checkpoint
-   above; the two have different provenance and must not be conflated. This
-   row hash is what finish-feature Step 1 reads to prove the documentation
-   commit exists separately from closeout, so fill it in as soon as that
-   commit lands.
-5. **Branch equality** for the host is asserted against the **post-hoc
-   documentation branch** (the `_index.md` `branch:` value), never the deleted
-   hotfix branch.
+⚠ Do not record a post-hoc hotfix from this heading alone. That file carries the
+host-linkage choice, the `reconciled ({merged-hotfix-hash})` checkpoint Result,
+the identity citation an **uncited** hash blocks closeout for, and the per-tier
+hotfix trace. Reconstructed from this heading, post-hoc mode collapses into
+re-implementing a fix that is already on the mainline — which Step 5's guard
+forbids and closeout inspects that checkpoint's changed paths for.
 
 ## Step 2: Document Current Behavior (if no spec exists)
 

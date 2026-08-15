@@ -149,7 +149,7 @@ source 時第 1 題也一樣。三次答不出來就中止 init。
 ⚠ **「能按 Enter」不等於「該按 Enter」，第 8 題是這裡最貴的一題。** 它標的是
 `(default: none)`——那個預設是**一家 AI agent 都不建**。按 Enter 過去，Step 4 的三個 shim、
 三份 `SKILL.md`，**連 canonical 的 `AI-AGENT-GUIDE.md` 都不會建**——實測 create 列從
-**40 掉到 33**。少掉的不只是三個薄殼：`AI-AGENT-GUIDE.md` 正是整套設計讓各家 AI 工具
+**45 掉到 38**。少掉的不只是三個薄殼：`AI-AGENT-GUIDE.md` 正是整套設計讓各家 AI 工具
 行為一致的那份文件。**這題值得真的答。**
 
 ## Step 3 — File-list preview 是 init 的 step gate
@@ -157,7 +157,7 @@ source 時第 1 題也一樣。三次答不出來就中止 init。
 Dflow 在寫檔前列出 preview：
 
 ```text
-Will create (40 files):
+Will create (45 files):
 - dflow/specs/features/active/.gitkeep
 - dflow/specs/features/completed/.gitkeep
 - dflow/specs/features/backlog/.gitkeep
@@ -175,7 +175,7 @@ Will create (40 files):
 - .claude/skills/dflow/SKILL.md
 - .agents/skills/dflow/SKILL.md
 - .github/skills/dflow/SKILL.md
-- dflow/specs/shared/dflow-workflows/references/  (10 files)
+- dflow/specs/shared/dflow-workflows/references/  (15 files)
 - dflow/specs/shared/dflow-workflows/templates/   (12 files)
 - dflow/specs/shared/dflow-workflows/.dflow-bundle-manifest.json
 
@@ -191,10 +191,10 @@ Will defer:
 
 ⚠ **上面那個區塊是本篇為了好讀而重排過的，不是 CLI 的逐字輸出。** 實際畫面上，
 preview 是一張 `File plan:` 的 Markdown 表格，欄位是
-`| Path | Action | Source | Size | Notes |`，**每個檔各佔一列**——包括那 23 個
-workflow bundle 檔，所以 Alice 螢幕上的 create 列共 **40** 列（本篇把 bundle 收成三行）。
+`| Path | Action | Source | Size | Notes |`，**每個檔各佔一列**——包括那 28 個
+workflow bundle 檔，所以 Alice 螢幕上的 create 列共 **45** 列（本篇把 bundle 收成三行）。
 表格之後才是 `Will defer:` 表與 `Create these files? (y/N)`。
-（`Will create (40 files):`、`Will skip …` 這兩個標題是本篇的敘事寫法，不是產品字串；
+（`Will create (45 files):`、`Will skip …` 這兩個標題是本篇的敘事寫法，不是產品字串；
 `Will defer:` 則是產品真正印的段名。）
 
 ⚠ **還有一個位置要先知道：`File plan:` 與表格之間可能插進一個 `Warnings:` 區塊**——有警告
@@ -229,7 +229,7 @@ Step 5 會示範補其中五個；**`Primary domain`、`Validation`、`Testing` 
 同樣要自己補。
 
 總列數會隨 init 問答的選擇而變（選幾家 AI agent、要不要 optional starter 等），
-所以你自己跑出來的數字未必是 40；**不變的是 bundle 那 23 檔**。
+所以你自己跑出來的數字未必是 45；**不變的是 bundle 那 28 檔**。
 
 本 tutorial 的 `outputs/` 沒有收錄這個 bundle（它是什麼、為什麼不收，見 Step 4）——
 所以 `outputs/` 裡指向 `dflow/specs/shared/dflow-workflows/` 的各種引用
@@ -286,8 +286,9 @@ Alice 確認後，Dflow 寫入 baseline。重要分組如下。
 **workflow bundle（Dflow 管理；`outputs/` 未收錄）**
 
 `dflow init` 另外把一份 workflow bundle vendor 到
-`dflow/specs/shared/dflow-workflows/`，Greenfield 共 23 個檔：10 份 reference
-文件（9 份 flow／參考文件 ＋ DDD 建模指引）、12 份空白 spec 模板、1 份 manifest。
+`dflow/specs/shared/dflow-workflows/`，Greenfield 共 28 個檔：15 份 reference
+文件（各指令的 flow 步驟文件，加上兩軌共用的參考檔）、12 份空白 spec 模板、
+1 份 manifest。
 它由 Dflow 管理，`dflow configure-agents` 每次都會重新投影，**不要手動編輯**
 （下次投影會被覆蓋）。因為它與本篇劇情無關、內容也只是 Dflow 套件的複本，
 本 tutorial 的 `outputs/` 沒有收錄；你自己的專案裡它會在。
@@ -357,7 +358,7 @@ Alice 知道 Expense 很可能是第一個 BC，但 Dflow 仍然等到
 
 ## Step 5 — Results and next step
 
-最後 Dflow 印出結果報告——依序是 `Created:`（40 行路徑）、`Updated:`、`Removed:`、
+最後 Dflow 印出結果報告——依序是 `Created:`（45 行路徑）、`Updated:`、`Removed:`、
 `Skipped:`、`Warnings:`、`Deferred:`，然後是收尾：
 
 ```text
