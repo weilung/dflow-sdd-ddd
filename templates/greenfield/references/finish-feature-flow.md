@@ -339,6 +339,20 @@ to `references/pr-review-checklist.md`.
       irrelevant, and the **global** documents (`glossary.md`,
       `architecture/tech-debt.md`) belong to no bounded context and stay
       legitimate for a no-BC host, exactly as the allow-list above says.
+      **What this check cannot decide — stated, not asserted:** ⚠ **the rule it
+      enforces is not minimal-host-only; only this proof is.** *No no-BC host of
+      any shape may commit BC-scoped Domain material* — and what this reads is
+      **checkpoint 1**, one commit. It is not a branch-range proof: a second
+      commit beside checkpoint 1 carrying a `domain/{context}/…` document
+      survives it, and a **phase-bearing** no-BC host has no single checkpoint to
+      inspect at all, so it never runs this check in the first place. Closeout
+      cannot widen it — the range needs a base branch and Dflow deliberately does
+      not know yours (the same limit stated on the working-tree check above).
+      **The branch-range assertion is confirmed by
+      `references/pr-review-checklist.md`'s "A no-BC host committed no BC-scoped
+      Domain material" item**, in that file's *Delegated to review by
+      `finish-feature-flow.md`* block, which applies to **every** no-BC host.
+      Keep this check anyway: it blocks earlier and more cheaply than review.
 - [ ] **Minimal host (zero-phase), follow-up only** — **the reverse link was
       opened, not only closed.** Step 1.6 requires the original feature's
       Follow-up Tracking row for this host to be created as `in-progress` and to
@@ -350,6 +364,18 @@ to `references/pr-review-checklist.md`.
       there **blocks** closeout: the Step 6 flip would then create it directly as
       `completed`, and the `absent → in-progress → completed` history the
       follow-up contract requires never happened.
+      **What this check cannot decide — stated, not asserted:** ⚠ **the
+      `absent → in-progress → completed` requirement is not minimal-host-only;
+      only this proof is.** A **phase-bearing** host can carry `follow-up-of`
+      too — Step 5's gate into Step 6 puts no host shape on it — but it has no
+      single commit required to carry the row, so there is no committed blob for
+      this check to read and it never runs there. The requirement still holds for
+      that host; nothing in closeout tests it.
+      **The opening half is confirmed for those hosts by
+      `references/pr-review-checklist.md`'s "A follow-up's reverse link was
+      opened, not only closed" item**, in that file's *Delegated to review by
+      `finish-feature-flow.md`* block — it reads the branch history, which is
+      exactly what closeout cannot take.
 - [ ] **Minimal host, hotfix post-hoc only** — the reconciliation record is
       complete, **within a stated boundary**. This check proves **plausibility,
       not identity**: that `{merged-hotfix-hash}` is a credible candidate, and
@@ -472,6 +498,14 @@ host may still touch a real BC, or none at all:
   context, and its BR-IDs with whatever applies — a real set, the per-family
   no-BR marker, or empty. Do **not** skip, and do **not** manufacture a BR delta
   a no-BR host does not have.
+  **`Aggregates affected:` and `Domain Events Changes:` take what this host
+  actually changed — and `none` for those it did not.** ⚠ **Every BC-bearing
+  host, not only a zero-phase one.** An unchanged field is reported `none`, never
+  left blank: a blank cannot be told apart from a field nobody filled in, and the
+  reader of this summary has no other source for the difference. Step 5's
+  "exact fields" block states the same shape for a zero-phase host and remains
+  the authority on that host's *whole* field set; this sentence is the half that
+  was only ever written there.
 - **(ii) no-BC** — the host touched **no** bounded context at all (a display
   T3, an appearance sweep). **Skip this sync entirely** — do **not** create
   `rules.md` / `behavior.md` / `events.md`, and do not invent a BC to sync into.
@@ -496,6 +530,23 @@ effect.
 plus its Current BR Snapshot. A no-BR family that changed an event field or a
 documented behaviour still syncs `events.md` / `behavior.md` from that
 lightweight-spec's delta.
+⚠ What is minimal-host-only here is the **input binding** — the instruction to
+read "phase-spec" as "lightweight-spec", which a host with no phase-spec needs
+and a phase-bearing one must not apply. It is **not** the second input source
+below, which every host shape needs.
+
+**Every host — lightweight-spec deltas are a sync input too.** A host of **any**
+shape may carry hosted Lightweight Changes rows: Step 1's two `Tier = T2` checks
+reach every host shape, and its phase-bearing exemption note confirms those hosts
+keep them. So a phase-bearing host can hold a hosted T2 whose delta belongs in
+this sync, and **the steps below name phase-specs only**. Read them as *this
+feature's phase-specs **and** its hosted lightweight-specs' recorded deltas*.
+⚠ **Where this bites hardest is a no-BR family**, because the BR-driven sections
+below cannot reach it at all: with no BR-ID there is no Current BR Snapshot row
+to iterate, so a hosted T2 that changed only an event field or a documented
+behaviour is visible **solely** in its own recorded delta. Miss it and
+`events.md` / `behavior.md` silently lose a change that a phase-bearing closeout
+had no other instruction to look for.
 
 Before syncing, ensure the BC files **this sync actually writes** exist; create a
 missing one from its template **only when this host's delta writes to it**. Case
@@ -536,7 +587,10 @@ For `behavior.md`:
   `behavior.md`
 
 For `events.md`:
-- Add any new Domain Events introduced by phase-specs in this feature
+- Add any new Domain Events introduced by this feature — **by its phase-specs
+  and by its hosted lightweight-specs alike** (see "Every host — lightweight-spec
+  deltas are a sync input too" above; a hosted no-BR T2 appears in neither the
+  phase-specs nor the BR Snapshot)
 - Remove events that were REMOVED across the feature's net delta
 - Update producers / consumers if Aggregate ownership shifted
 
@@ -549,7 +603,8 @@ rules.md ↔ behavior.md drift check (see `references/drift-verification.md`).
 
 Cross-reference each phase-spec's Delta-from-prior-phases section to
 double-check the net result; the Snapshot is the SSOT but the per-phase
-Deltas are the audit trail.
+Deltas are the audit trail. **Cross-reference each hosted lightweight-spec's
+recorded delta the same way** — on any host shape, for the reason above.
 
 > Note: this step does NOT read individual phase-specs to re-derive the BR
 > set — that work was already reconciled by `/dflow:new-phase` Step 7 each
@@ -772,6 +827,11 @@ every item:
       instruction that ordered the staging, never from a copy kept here.
       **Anything else blocks**: implementation source, or a
       `domain/{context}/…` document under a host that declared itself no-BC.
+      ⚠ **That no-BC half applies to every host shape, and on a phase-bearing
+      host this is the only place closeout tests it.** Step 1's
+      `Minimal host (zero-phase), no-BC only` check reads checkpoint 1, and a
+      phase-bearing host has no checkpoint 1 to read — so do not treat "Step 1
+      already covers no-BC" as true here. It is true only for a minimal host.
       **Scope: this is a path-level spill check and nothing more.** It proves no
       unpermitted *file* entered the commit — not that the permitted ones carry
       only this host's delta. Judging a hunk inside `rules.md` as "this host's
@@ -780,6 +840,13 @@ every item:
       against the other is `references/pr-review-checklist.md`'s
       **"The closeout commit carries only this host's delta"**.
       Say that plainly rather than implying the stronger claim.
+      ⚠ **And its span is this one commit.** Between them, Step 1's check (a
+      minimal host's checkpoint 1) and this one (any host's closeout commit)
+      still leave every *other* commit on the branch unread — where a no-BC host
+      is concerned, that gap is closed by
+      `references/pr-review-checklist.md`'s **"A no-BC host committed no
+      BC-scoped Domain material"** item, which takes the branch range for
+      **every** no-BC host.
 - [ ] `dflow/specs/features/active/{SPEC-ID}-{slug}/` no longer exists (the
       directory was moved, not copied)
 - [ ] `git status --short` shows no leftovers related to this feature
@@ -895,6 +962,22 @@ Lightweight Changes.
   set, the per-family no-BR marker, or empty for a no-BR host; `Aggregates
   affected:` and `Domain Events Changes:` the ones it changed, or `none` for
   those it did not.
+
+**What is scoped here and what is not.** This block fixes the *whole* field set
+for a zero-phase host — `Phase Count: 0`, the empty Phase List, and which fields
+each Step 3 branch leaves empty — and that part is genuinely zero-phase-only.
+The `none`-for-unchanged rule on the last bullet is **not**: every BC-bearing
+host needs it, and it is now stated where every one of them reads it, in
+**Step 3 case (i)**. The two say the same thing on purpose; if you change one,
+change the other.
+
+⚠ **No proof obligation is delegated from this block, and that is not an
+omission.** These are field-filling instructions — they order values, they do
+not test anything — so there is no evidence duty here for another host shape to
+discharge or for review to take over. **N/A, stated rather than left blank**:
+elsewhere in this file a scoped check that cannot reach another host shape hands
+that shape to `references/pr-review-checklist.md` by name, and a reader who
+finds no such hand-off here should not conclude one went missing.
 
 Print the summary to the conversation; do not write it to a file (it is
 ephemeral closeout output).

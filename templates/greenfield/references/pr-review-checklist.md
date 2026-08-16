@@ -112,8 +112,14 @@ If the closeout commit is in this PR (`/dflow:finish-feature` was run):
       feature's net effect (compare against `_index.md` Current BR
       Snapshot). **N/A for a no-BC host** — one whose Goals & Scope
       declares no bounded context has nothing to sync, and a `{context}`
-      document invented to satisfy this line is the fiction closeout
-      already blocks. **N/A for a T3**, which does no Domain work at all.
+      document invented to satisfy this line is a fiction, never a pass.
+      ⚠ **Do not read that as "closeout already blocks it" without qualifying
+      where.** Closeout blocks it in the commits it actually reads — checkpoint
+      1, and only on a **minimal** host, plus the closeout commit on any host.
+      A fiction committed by a **phase-bearing** no-BC host anywhere in between
+      passes every closeout check. That range is the *"A no-BC host committed no
+      BC-scoped Domain material"* item in the delegated block below, and it is
+      yours to run. **N/A for a T3**, which does no Domain work at all.
       Record the N/A rather than ticking it against an empty comparison — but
       note `glossary.md` and the tech-debt file belong to no bounded context
       and stay in a no-BC host's sweep, so this N/A does not reach them.
@@ -242,6 +248,24 @@ skip one and the boundary is a hole rather than a division of labour.
       arrives here unchecked. Confirm it from the branch history
       (`git log -p {base}..HEAD -- <original feature>/_index.md`), for
       **each** SPEC-ID in `follow-up-of`.
+- [ ] **A no-BC host committed no BC-scoped Domain material** — **every no-BC
+      host, not only phase-bearing ones.** Closeout inspects only **checkpoint
+      1's** diff on a minimal host, and a phase-bearing host has no single
+      checkpoint to inspect at all. **Neither is a branch-range proof**, and
+      closeout cannot take a range — it needs a base branch and Dflow
+      deliberately does not know yours. **You have it.** Run
+      `git diff --name-status {base}..HEAD -- 'dflow/specs/domain/'` and confirm
+      no BC-scoped Domain document — **the set this track's own no-BC closeout
+      check names**, `context-map.md` included — was **added, modified, deleted
+      or renamed**. A no-BC host is one whose Goals & Scope declares no bounded
+      context, the same identification the BC-layer-sync item above uses.
+      ⚠ **The path filter is deliberately wider than the prohibited set, so read
+      the output before flagging.** `context-map.md` sits at `domain/` top level
+      rather than under `{context}/`, and the filter has to reach up there to
+      catch it — which means it also lists `domain/glossary.md`. `glossary.md`
+      belongs to no bounded context and stays legitimate for a no-BC host:
+      **seeing it here is not a finding.** The tech-debt file is outside the
+      filter entirely and never appears.
 
 If the spec is missing or incomplete:
 ```
