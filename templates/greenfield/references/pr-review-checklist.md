@@ -174,9 +174,9 @@ skip one and the boundary is a hole rather than a division of labour.
       implementation commit** (phase-bearing host only). `finish-feature-flow.md`
       Step 4 instruction 1 orders the value ("each row's own implementation
       hash, never the closeout hash") and its post-commit verification **states
-      that it cannot decide it**: Step 1's hash-evidence test is
-      minimal-host-only, so on a phase-bearing host no closeout check reads the
-      value at all. The presence item above asserts the cell is **non-empty**;
+      that it cannot decide it**: the hash-evidence test is minimal-host-only
+      and lives in `finish-feature-minimal-host.md`, so on a phase-bearing host
+      no closeout check reads the value at all. The presence item above asserts the cell is **non-empty**;
       this one asserts it is **right**, and the two are not interchangeable.
       For each Lightweight Changes row, take its `Commit` hash and run
       `git show --stat {hash}`. **Take the row's declaration if it has one and
@@ -185,14 +185,15 @@ skip one and the boundary is a hole rather than a division of labour.
       paths.
       **If the row declares nothing, that is by design on a hosted row — with
       one exception.** A **T2** links to its own spec file on *every* host shape:
-      Step 1 carries two `Tier = T2` checks that no host shape escapes — one of
-      them says so in as many words — and its phase-bearing exemption note
-      confirms "those hosts keep the two `Tier = T2` checks above". A T2 row with
+      `finish-feature-flow.md` Step 1 carries two `Tier = T2` checks that no
+      host shape escapes — one of them says so in as many words — and
+      `finish-feature-minimal-host.md`'s phase-bearing exemption note confirms
+      those hosts keep them. A T2 row with
       no such link is **malformed, not exempt** — find the spec file or flag the
       row. For a **T3** the absence is the sanctioned state.
       ⚠ The record then gives you nothing to compare against, and that is
-      deliberate: `finish-feature-flow.md` Step 1 exempts phase-bearing hosts
-      from its path check for exactly this reason
+      deliberate: `finish-feature-minimal-host.md` exempts phase-bearing hosts
+      from its `Commit` cell path check for exactly this reason
       (`references/flow-rationale-registry.md`, `R-FF-COMMITCELL-02`:
       "demanding it would reject every hosted T3"), and `templates/_index.md`
       calls declaring them good
@@ -212,8 +213,9 @@ skip one and the boundary is a hole rather than a division of labour.
       A cell holding the **closeout** hash, or another row's hash, is what this
       exists to catch: both are non-empty, both pass every closeout check, and
       neither is what instruction 1 ordered.
-      **N/A for a minimal host** — there Step 1's hash-evidence test already
-      runs (a)–(c) against every row before closeout may proceed.
+      **N/A for a minimal host** — there `finish-feature-minimal-host.md`'s
+      hash-evidence test already runs (a)–(c) against every row before closeout
+      may proceed.
 - [ ] **A recorded branch override still matches where the closeout landed**
       (only when the host carries a `branch-override` row). Closeout passes its
       branch check on any such row naming the branch it ran on, and **states

@@ -50,19 +50,6 @@ AI runs mechanical checks first. Report `✓` / `✗` for every item; if any
 `✗` appears, **stop here** and ask the developer to address them before
 proceeding (do not flip status, do not archive, do not emit summary).
 
-**Hash evidence** (several checks below use this test). A hash recorded in
-`_index.md` passes *hash evidence* when all three hold:
-- **(a) it is a commit** — `git cat-file -t {hash}` reports `commit`;
-- **(b) it is on this branch** — `git merge-base --is-ancestor {hash} HEAD`
-  succeeds;
-- **(c) its diff carries what the record claims** — the commit's **changed
-  paths** include the artifact that row or checkpoint points at; each check
-  below names which. **Tree presence is not enough**: every commit inherits the
-  files an earlier one added, so a commit that only touched the implementation
-  would otherwise satisfy (c) for an artifact it never wrote. (a) and (b) alone
-  prove only that *some* earlier commit exists on this branch; (c) is what ties
-  it to the record.
-
 **What these checks do and do not prove.** They catch the mistakes that actually
 happen — work left uncommitted, a placeholder hash never replaced, a row copied
 from another feature — not a record deliberately built to look right.
@@ -81,7 +68,7 @@ branch") are **review's** job, not closeout's: they belong to
 > must not be routed mid-closeout are decided there.
 
 **What "Minimal host (zero-phase) only" selects, and what that does not prove.**
-Several checks below apply only to a minimal host. Decide it from the
+A minimal host takes extra checks and extra field rules. Decide it from the
 **persisted shape**: an **empty Phase Specs table and no `phase-spec-*` file**
 in the host directory. There is no other selector — closeout runs in a fresh
 session and cannot know which flow step created the host. So a host that
@@ -90,6 +77,12 @@ be, and takes the ordinary checks rather than these. This gate does **not**
 prove "this host was opened as minimal and stayed that way"; that is a claim
 about history, and it belongs with the whole-history assertion already assigned
 to `references/pr-review-checklist.md`.
+
+**Open `references/finish-feature-minimal-host.md` and follow it there.** Do
+this only when this host is minimal; a **phase-bearing** host does not open it
+at all. Its rules live in that file and are not repeated here, and it stays open
+for the whole closeout — it adds to this checklist, to Step 3's sync input, to
+Step 4's post-commit verification, and to Step 5's Integration Summary fields.
 
 - [ ] Locate the feature directory at `dflow/specs/features/active/{SPEC-ID}-{slug}/`
 - [ ] `_index.md` exists and parses (YAML front matter intact, and all seven
@@ -111,32 +104,6 @@ to `references/pr-review-checklist.md`.
       existing `lightweight-*.md` / `BUG-*.md` file in the feature directory
 - [ ] Every such lightweight / BUG spec file's frontmatter has
       `status: completed`
-- [ ] **Minimal host (zero-phase) only** — every row in `_index.md` Lightweight
-      Changes has a **non-empty `Commit` cell that passes hash evidence**; for
-      (c), the commit carries that row's own work: a **T2**'s
-      `lightweight-*.md` / `BUG-*.md` file; for a **T3** an `_index.md` that
-      already carries this row at that hash — Step 1.7 writes every row *before*
-      checkpoint 1, which is what makes that provable here; for a **baseline**
-      row, the BC-layer capture it records — and for a
-      baseline the capture must be **added or modified** by that commit and
-      **exist in its tree**, never deleted or renamed away: a commit that
-      *removes* the document cannot be the one that captured it, yet it changes
-      the same path. This applies to
-      **T2, T3, and baseline rows alike**. Three failures, all blocking —
-      **report the one that is true**, because the message is the developer's
-      only clue about what to do next: an **empty** cell means that change is not
-      committed yet; a cell holding a **placeholder** (`{hash}`, `{pending}`,
-      `（待 commit）` — anything `git cat-file -t` cannot resolve) means the cell
-      was **never filled in**, which is a different repair and may well have a
-      commit sitting there unrecorded; a **resolvable** value that fails (a)–(c)
-      means the hash is the wrong one. ⚠ Do not collapse the middle case into the
-      first.
-      (`modify-existing-flow.md` Step 1.7 "Finalize + close" is where the
-      **cell** gets backfilled once its commit exists.)
-      **Deliberately not run on a phase-bearing host.** Those hosts keep the two
-      `Tier = T2` checks above, which never covered a T3 row anyway — a T3 has
-      no spec file in Dflow (`references/git-integration.md` § Gate Checks by
-      Branch Type).
 - [ ] `_index.md` has no obvious open items in Resume Pointer (e.g. "phase-N
       drafting" / "implementation pending" / "TODO" markers)
 - [ ] **You are on this host's branch — or on a branch this host recorded a
@@ -145,8 +112,9 @@ to `references/pr-review-checklist.md`.
       whole host — and for a **T2** the lightweight-spec's frontmatter `branch:`
       equals it too. Steps 1–4 run *before* the merge / PR gate, so a mismatch
       means you are closing out somewhere other than where the work was
-      finished, and it **blocks**. Hash evidence does not cover this: any
-      sibling branch descended from checkpoint 1 satisfies (a)–(c). For a
+      finished, and it **blocks**. A hash check does not cover this: any sibling
+      branch descended from checkpoint 1 carries the same commits, so every hash
+      this host's record names still resolves and is still an ancestor. For a
       **post-hoc** host this compares against the **documentation** branch,
       never `hotfix-branch:`, which names the already-merged hotfix.
       **Before blocking on a mismatch, read the Checkpoint Log for a
@@ -173,35 +141,6 @@ to `references/pr-review-checklist.md`.
       the branch, e.g. *"HEAD differs from `branch:`; found a recorded
       `branch-override` for `{branch}` in the Checkpoint Log — verified and
       passing."*
-- [ ] **Minimal host (zero-phase), baseline only** — **a `spec-baseline`
-      checkpoint and a `Tier = baseline` row imply each other**, and the host
-      carries the capture and nothing else, proved against the **commit**, not
-      only the ledger. This check selects when **either** appears: checkpoint 1
-      named `spec-baseline`, **or** any `Tier = baseline` row in the Lightweight
-      Changes table. Selecting on the checkpoint alone leaves the other
-      direction open — a baseline row sitting under an ordinary
-      `implementation | committed ({hash})` checkpoint would never be examined,
-      while `modify-existing-flow.md` Step 1.7 says a baseline capture is
-      observation-only and **never** uses `implementation`. So checkpoint 1
-      **must** read `spec-baseline` with Result `committed ({hash})`, and all
-      three of these hold:
-      (1) the Lightweight Changes table holds **exactly one** row and it is the
-      `Tier = baseline` one;
-      (2) the Current BR Snapshot is **empty**;
-      (3) that commit's diff (`git show --stat {hash}`) contains **only this
-      list and nothing else** — (i) the BC-layer documents the `Tier = baseline`
-      row declares, (ii) this host's own `_index.md`, (iii) for a
-      **follow-up** baseline, the `_index.md` of **every** original this host's
-      `follow-up-of` names — it may be a YAML array, and Step 1.6 requires the
-      opening reverse-link row in **each** of them to ride this commit, so a
-      singular reading would reject the second parent — and (iv) the **global**
-      documents a capture records into (`glossary.md`,
-      `migration/tech-debt.md`), which belong to no bounded context and are
-      named as capture destinations by Part A's observation-only routing and by
-      Step 2's Systematic Baseline Capture. **Any other path blocks —
-      implementation source above all.**
-      (A **phase-bearing** host may legitimately hold a `Tier = baseline` row
-      alongside other work; it is not zero-phase and never reaches this check.)
 - [ ] Current BR Snapshot table is non-empty — **or this host's own record
       carries no BR delta**, which is what makes an empty one legitimate.
       That condition is the check; the shapes below are illustrations of it,
@@ -215,259 +154,6 @@ to `references/pr-review-checklist.md`.
       record is what settles it. A classic BR-delta spec carrying ADDED /
       MODIFIED / RENAMED entries **and** an empty Snapshot means finalization
       never refreshed it (`modify-existing-flow.md` Step 1.7) and **blocks**.
-- [ ] **Minimal host (zero-phase) only** — the Lightweight Changes table has
-      **at least one row** (a T2, T3, or baseline row). An empty Phase Specs
-      table **and** an empty Lightweight Changes table is an **empty host** →
-      reject closeout.
-- [ ] **Minimal host (zero-phase) only** — **every spec file in the host
-      directory is named by a row.** The checks above walk rows → files, so a
-      spec file that no row names is never examined by them; this item closes
-      the other direction. A `phase-spec-*` always fails (the Phase Specs table
-      is empty by definition); a `lightweight-*.md` / `BUG-*.md` with no
-      Tier = T2 row fails the same way. A **T3-only** or **baseline** host
-      carries no spec file at all, so any spec file there fails this check.
-- [ ] **Minimal host (zero-phase) only** — the Checkpoint Log shows a
-      **committed** first checkpoint before this closeout: Checkpoint
-      `implementation` with Result `committed ({hash})` (normal) or `reconciled
-      ({merged-hotfix-hash})` (hotfix post-hoc), or — for a **baseline** host —
-      Checkpoint `spec-baseline` with Result `committed ({hash})`. A first
-      checkpoint still reading `skipped` or `failed` **blocks** closeout — but
-      they are not the same problem. `failed` means the commit was attempted and
-      did not land: the work is genuinely uncommitted and has to land. `skipped`
-      means only that **the AI's offer was declined**
-      (`references/git-integration.md` § Commit Checkpoints), *not* that no
-      commit exists — the developer may have made it themselves, which leaves
-      the ledger **incomplete rather than final**. Complete it:
-      `modify-existing-flow.md` Step 1.7's "Finalize + close" backfills the row
-      to `committed ({hash})` with the developer's real hash. Do **not** waive
-      this check for a `skipped` row, and do **not** write a hash you have not
-      verified.
-- [ ] **Minimal host (zero-phase) only** — **the Checkpoint Log carries exactly
-      one row at this point.** A minimal host takes exactly two checkpoints and
-      the second is the closeout row Step 4 adds below, so before closeout there
-      is exactly one: the first checkpoint validated above. A second pre-closeout
-      row — an extra `implementation`, a stray `spec-baseline`, or a leftover
-      from an abandoned attempt — means this host did not take the two-commit
-      lifecycle and **blocks**. A failed or declined attempt does **not** add a
-      row: both are recorded by editing the existing one in place.
-      This counts the rows in **this
-      host's own table** — it is not the whole-history assertion, which stays
-      with `references/pr-review-checklist.md`.
-- [ ] **Minimal host (zero-phase) only** — **that first commit is real, and it
-      is this host's.** The Checkpoint Log is prose; verify the hash behind it
-      against **hash evidence**. Take the hash that stands for checkpoint 1 —
-      for a **normal** host the `committed ({hash})` value; for a **baseline**
-      host the `spec-baseline` row's `committed ({hash})` value; for a **hotfix
-      post-hoc** host the Lightweight Changes row's `Commit` cell (**not** the
-      `reconciled (...)` hash, which names the already-merged hotfix). For (c),
-      touching *some* path under
-      `dflow/specs/features/active/{SPEC-ID}-{slug}/` is **not enough** — a
-      stray host-open commit does that much while the work is still
-      uncommitted. Require the tier's artifact **among the commit's changed
-      paths** — (c) is what this commit wrote, not what its tree contains: a
-      **T2**'s `lightweight-*.md` / `BUG-*.md` spec file; for a **T3** an
-      `_index.md` the commit **changed** *and* which, as committed at that hash,
-      already carries this change's Lightweight Changes row — `git show --stat
-      {hash}` **and** `git show
-      {hash}:dflow/specs/features/active/{SPEC-ID}-{slug}/_index.md`, both, not
-      either; for a **baseline**, the BC-layer capture it claims to record —
-      **added or modified** and present in that commit's tree, never deleted or
-      renamed away — together with the `Tier = baseline` row. Any of (a)–(c)
-      failing **blocks** closeout.
-- [ ] **Minimal host (zero-phase) only** — **checkpoint 1 is *one* commit, and
-      every row names it.** For a **normal** host the Checkpoint Log's
-      `committed ({hash})` and **every** Lightweight Changes row's `Commit` must
-      be the **same** hash, and that commit's diff must **touch the
-      implementation paths** its lightweight-spec or rows describe. Step 1.7
-      requires the artifact to **declare** those paths; an artifact naming none
-      leaves nothing to compare against, so a missing declaration **blocks** —
-      it never passes vacuously. For a **baseline** host the same equality holds
-      between the `spec-baseline` row's `committed ({hash})` and the
-      `Tier = baseline` row's `Commit`; its counterpart to "implementation
-      paths" is the BC-layer documents that capture recorded.
-      Assert the **equality itself**, not merely that each value passes hash
-      evidence on its own: two hashes that each resolve, are each reachable, and
-      each contain some named artifact describe a **three**-commit host —
-      host+spec at A, implementation at B, closeout at C — which clears every
-      other check on this list while breaking the two-commit lifecycle.
-      **Exempt — post-hoc hotfix only, and only this much:** the
-      `reconciled (...)` checkpoint hash and the row `Commit` cells name
-      different commits **by design** (Step 1.8), so do not assert equality
-      *between those two*, and do not apply the implementation-path condition to
-      this host's own commit — the check below tests the merged hotfix instead.
-      **Everything else still holds:** a post-hoc host can be compound too
-      (Step 1.7, "minimal means zero-phase, not one-artifact"), so **every** row
-      `Commit` must still name the **same single documentation commit**.
-- [ ] **Minimal host (zero-phase) only** — **nothing that constitutes the change
-      itself is still uncommitted.** This is deliberately not "the host
-      directory is clean": **checkpoint 1 carries the change, the closeout
-      commit carries the record the flow writes afterwards.** Checkpoint 1 sits
-      at `modify-existing-flow.md`'s Step 5 → Step 6 gate and holds the change
-      itself — for a **T2** its lightweight-spec plus the implementation source,
-      for a **T3** its `_index.md` row plus the implementation source, and for a
-      **baseline** host the BC-layer capture itself, which *is* that host's
-      change. What the flow writes *after* that gate — Step 6's completion
-      checklist and Step 1.7's "Finalize + close" — is derived record and rides
-      into the closeout commit.
-      **A post-hoc host (Step 1.8) inverts the source half, and this is where
-      the reconciliation contract is enforced.** Its change is the *already
-      merged* hotfix; checkpoint 1 is the **documentation** commit. So that
-      commit must carry the spec / row and this host's `_index.md` and must
-      **not** touch any implementation path the artifact declares — read
-      `git show --stat {checkpoint-1-hash}` and block if one appears. A
-      re-implementation committed there passes every other gate on this list
-      (rows agree, the `reconciled` hash differs from it and touches the
-      declared paths, the tree is clean) while breaking §8's "reconcile, do not
-      re-run" outright, so nothing else catches it.
-      **What this proves and what it does not — do not widen it here.** It
-      proves checkpoint 1 is documentation-only. It does **not** prove the
-      branch carries no re-implementation elsewhere: a second commit beside
-      checkpoint 1, or a re-implementation in a path the artifact does not
-      declare, both survive it. Widening it to the branch was tried and does not
-      work from inside closeout — the range needs a base branch, and Dflow
-      deliberately does not know yours. ⚠ **No check covers it today.** The
-      whole-history item already assigned above to
-      `references/pr-review-checklist.md` is **not** it: that one counts commits
-      under this host's spec directory, so a re-implementation commit touching
-      only source never appears in its output. Review is where the missing
-      assertion belongs — a reviewer has the base branch in front of them — but
-      do not read the existing item as discharging it.
-      **Blocks closeout:** any of the **implementation source** files this
-      host's lightweight-spec or rows describe, staged or unstaged in
-      `git status --porcelain`; for a **baseline** host the BC-layer documents
-      its `Tier = baseline` row records, which are that capture's own content
-      and belong in the `spec-baseline` commit — never in closeout; any
-      **untracked** file under
-      `dflow/specs/features/active/{SPEC-ID}-{slug}/`; and any tracked file
-      dirty beyond the closed list below.
-      **May ride into the closeout commit — this list and nothing else:**
-      (i) `_index.md`, with its uncommitted delta confined to Lightweight
-      Changes `Commit` cells, Checkpoint Log rows, Resume Pointer, and Current
-      BR Snapshot;
-      (ii) an **already-committed** `lightweight-*.md` / `BUG-*.md`, with its
-      uncommitted delta confined to the frontmatter `status:` flip to
-      `completed` and — when the developer accepted the offer — the
-      `Implementation Tasks` collapse / removal the Step 6 completion checklist
-      makes once those tasks are done ("applies to both phase-spec and
-      lightweight-spec"). On a minimal host that checklist necessarily runs
-      *after* checkpoint 1, so this edit is uncommitted here by construction;
-      (iii) the Domain-layer documents **this change's Step 6.3 sweep** updates
-      — under `dflow/specs/domain/`, plus
-      `dflow/specs/migration/tech-debt.md` — scoped to *this change's* delta.
-      A **T3** has no Domain sweep at all (Step 6's tier-conditional note), so
-      nothing qualifies under (iii) for a T3. A **no-BC** host has no
-      *BC-scoped* sweep — a dirty `dflow/specs/domain/{context}/…` or
-      `context-map.md` under one is fiction and **blocks** — but the **global**
-      documents (`glossary.md`,
-      `migration/tech-debt.md`) belong to no bounded context, stay in its sweep,
-      and therefore still qualify under (iii). **(iii) never covers a baseline
-      host** either — its BC-layer capture *is* the change, and is blocked
-      above.
-      Read each delta (`git diff -- {path}`) — do not infer it from the
-      filename. **The list is closed** — if a later change adds another
-      finalization field, add it here explicitly; "a host file is dirty" is never
-      on its own a reason to pass. (Unrelated work in progress elsewhere is
-      fine; say which files you judged unrelated.)
-- [ ] **Minimal host (zero-phase), no-BC only** — **the host did not commit a
-      bounded context it does not have.** The check above reads the *working
-      tree*; this one reads the **committed** side, because a fictitious
-      `{context}` invented at Step 2 and committed into checkpoint 1 leaves a
-      perfectly clean tree. Inspect checkpoint 1's diff
-      (`git show --stat {hash}`, with status — **not path names alone**): for a
-      host that declared itself no-BC that commit must **not touch, in any way**
-      — add, modify, delete or rename — any `dflow/specs/domain/{context}/…`
-      document. A deletion is a BC-layer change like any other, and reading only
-      the path list would accept one as if nothing had happened. The documents:
-      `rules.md`, `behavior.md`, `models.md` — and no `context-map.md` (the
-      Brownfield context map is optional and grows organically, so a no-BC host
-      inventing a row in it is the same fiction). Any of them **blocks**
-      (`modify-existing-flow.md` Step 2's no-BC guard is where this should have
-      been caught first). A **baseline** host is not a no-BC host and this
-      check does not apply to it — its BC-layer capture is the point.
-      **Do not over-reach:** this rejects only Domain documents that commit
-      *added or changed* — pre-existing Domain files it never touched are
-      irrelevant, and the **global** documents (`glossary.md`,
-      `migration/tech-debt.md`) belong to no bounded context and stay
-      legitimate for a no-BC host, exactly as the allow-list above says.
-      **What this check cannot decide — stated, not asserted:** ⚠ **the rule it
-      enforces is not minimal-host-only; only this proof is.** *No no-BC host of
-      any shape may commit BC-scoped Domain material* — and what this reads is
-      **checkpoint 1**, one commit. It is not a branch-range proof: a second
-      commit beside checkpoint 1 carrying a `domain/{context}/…` document
-      survives it, and a **phase-bearing** no-BC host has no single checkpoint to
-      inspect at all, so it never runs this check in the first place. Closeout
-      cannot widen it — the range needs a base branch and Dflow deliberately does
-      not know yours (the same limit stated on the working-tree check above).
-      **The branch-range assertion is confirmed by
-      `references/pr-review-checklist.md`'s "A no-BC host committed no BC-scoped
-      Domain material" item**, in that file's *Delegated to review by
-      `finish-feature-flow.md`* block, which applies to **every** no-BC host.
-      Its exemptions match this check's: the global documents stay legitimate,
-      and a **baseline** host is not a no-BC host there either.
-      Keep this check anyway: it blocks earlier and more cheaply than review.
-- [ ] **Minimal host (zero-phase), follow-up only** — **the reverse link was
-      opened, not only closed.** Step 1.6 requires the original feature's
-      Follow-up Tracking row for this host to be created as `in-progress` and to
-      ride checkpoint 1; Step 6 flips it to `completed` afterwards. Verify the
-      opening half here, from committed state: for **every** SPEC-ID this host's
-      `follow-up-of` names — it may be a YAML array, so check each one —
-      `git show {checkpoint-1-hash}:dflow/specs/features/completed/{原 SPEC-ID}-{原 slug}/_index.md`
-      must already carry this host's row with Status `in-progress`. A row absent
-      there **blocks** closeout: the Step 6 flip would then create it directly as
-      `completed`, and the `absent → in-progress → completed` history the
-      follow-up contract requires never happened. A **completed-only baseline**
-      host is a follow-up variant and takes this check too.
-      **What this check cannot decide — stated, not asserted:** ⚠ **the
-      `absent → in-progress → completed` requirement is not minimal-host-only;
-      only this proof is.** A **phase-bearing** host can carry `follow-up-of`
-      too — Step 5's gate into Step 6 puts no host shape on it — but it has no
-      single commit required to carry the row, so there is no committed blob for
-      this check to read and it never runs there. The requirement still holds for
-      that host; nothing in closeout tests it.
-      **The opening half is confirmed for those hosts by
-      `references/pr-review-checklist.md`'s "A follow-up's reverse link was
-      opened, not only closed" item**, in that file's *Delegated to review by
-      `finish-feature-flow.md`* block — it reads the branch history, which is
-      exactly what closeout cannot take.
-- [ ] **Minimal host, hotfix post-hoc only** — the reconciliation record is
-      complete, **within a stated boundary**. This check proves **plausibility,
-      not identity**: that `{merged-hotfix-hash}` is a credible candidate, and
-      that the developer has said on the record which fix it is and how they
-      know. Whether it is *the* merged hotfix is **not decidable from inside
-      this flow** — the repository holds no independent record of which commit
-      that was; only the developer and the issue tracker do. Do not read a pass
-      here as identity confirmed. Identity is
-      **asserted** at `modify-existing-flow.md` Step 1.8 and **confirmed** by
-      `references/pr-review-checklist.md` — the same assignment the
-      whole-history assertion gets above.
-      The plausibility conditions, all required: the
-      `reconciled ({merged-hotfix-hash})` value passes hash evidence — (a) and
-      (b) as usual, and for **(c)** its diff touches the implementation paths
-      the T2 lightweight-spec or the T3 row **declares** (Step 1.7 requires that
-      declaration; an artifact naming none leaves (c) nothing to compare and
-      **blocks** rather than passing vacuously). It must also **differ**
-      from the Lightweight Changes row's documentation-commit hash (different
-      provenance; see Step 1.8). The per-tier trace must exist too: a **T2**
-      carries `hotfix-branch:` in its lightweight-spec frontmatter, a **T3** has
-      its Lightweight Changes row Description marked as a hotfix. Finally the
-      developer's identity assertion must be **present and cited** — Step 1.8
-      requires the source it rests on (PR / incident / tracker reference), and
-      it lives with the per-tier trace, so look for it there: beside
-      `hotfix-branch:` in a **T2**'s lightweight-spec, in the row Description
-      for a **T3**. An uncited hash **blocks** closeout: it leaves pr-review
-      nothing to confirm against, and this gate is not a substitute for that
-      confirmation.
-
-> **Zero-phase minimal host (`modify-existing-flow.md` Step 1.7 / the Step 1.6
-> minimal variant / Step 1.8's post-hoc hotfix, whose linkage resolves to one of
-> those two).** A standalone / follow-up minimal host, or a baseline
-> capture, closes out with an **empty Phase Specs table** — that is valid, not
-> a failure: the "every
-> Phase Specs row is completed" check passes vacuously and there is no
-> `phase-spec-*` file to look for. A no-BR / T3 host also has an intentionally
-> empty Current BR Snapshot — the **Current BR Snapshot** check above decides
-> that from the host's own record, not from a declaration. Do **not**
-> manufacture a phase-spec or a BR row to make a check "pass".
 
 If any check fails:
 > "Cannot finish feature `{SPEC-ID}-{slug}` yet — {N} validation issues
@@ -479,8 +165,9 @@ If any check fails:
 > Address these (run `/dflow:new-phase` to add missing work, or fix the
 > stale status manually), then re-run `/dflow:finish-feature`."
 
-**Once every item above reads `✓`, record the baseline the post-commit check
-compares against.** For **every file in the host directory** — not only the
+**Once every item above — and every item this host's branch file added — reads
+`✓`, record the baseline the post-commit check compares against.** For **every
+file in the host directory** — not only the
 `_index.md` and the spec files the tables name — run `git hash-object {path}`
 and state the resulting `path → blob` list in the conversation. **That list is
 the baseline** — Step 4's post-commit verification compares each committed blob
@@ -569,7 +256,8 @@ host may still touch a real BC, or none at all:
   **nothing more to sync**; the Integration Summary's BC field names the
   captured context (not `none`). A **phase-bearing** host carrying a baseline row
   alongside other work takes **(i)** instead and syncs everything except the
-  baseline. A *minimal* host cannot be in that position at all — Step 1 blocks a
+  baseline. A *minimal* host cannot be in that position at all —
+  `references/finish-feature-minimal-host.md`'s `baseline only` check blocks a
   `spec-baseline` host that carries anything beyond its capture.
 
 For a **BC-bearing host (case i only)**, continue with the sync. This step **reuses the
@@ -579,20 +267,14 @@ input is the feature's `_index.md` Current BR Snapshot table; the output
 is the BC's `rules.md` and `behavior.md` updated to reflect the
 feature's net effect.
 
-**Minimal host — sync input.** A minimal host has no phase-spec: read the
-"phase-spec" references in the steps below ("each phase-spec's Delta") as the
-host's **lightweight-spec** recorded delta plus its Current BR Snapshot. A
-no-BR family that changed a documented behaviour still syncs `behavior.md` from
-that lightweight-spec's delta.
-⚠ What is minimal-host-only here is the **input binding** — the instruction to
-read "phase-spec" as "lightweight-spec", which a host with no phase-spec needs
-and a phase-bearing one must not apply. It is **not** the second input source
-below, which every host shape needs.
+**Minimal host — sync input.** A minimal host reads "phase-spec" differently
+here, and a phase-bearing host must not apply that reading. The rule is
+`references/finish-feature-minimal-host.md` § Step 3.
 
 **Every host — lightweight-spec deltas are a sync input too.** A host of **any**
 shape may carry hosted Lightweight Changes rows: the two `Tier = T2` checks in
-Step 1 run on every host shape, and the minimal-host hash-evidence check says so
-in as many words — "Those hosts keep the two `Tier = T2` checks above". So a
+Step 1 carry no host-shape restriction, so they run on a phase-bearing host as
+well. So a
 phase-bearing host can hold a hosted T2 whose delta belongs in this sync, and
 **the steps below name phase-specs only**. Read them as *this feature's
 phase-specs **and** its hosted lightweight-specs' recorded deltas*.
@@ -776,10 +458,11 @@ Then, in this order:
    and the feature directory move to `completed/` remain
    `/dflow:finish-feature` responsibilities. **Do not sync system-level current
    state**". It produces no external delta for this instruction to carry.
-   On a **minimal host** that set is exactly what Step 1 admitted as allow-list
-   member (iii). On a **phase-bearing** host Step 1 produces **no allow-list at
-   all** — that checkbox is `Minimal host (zero-phase) only` — so read the sweep
-   directly and **do not go looking for a list that host never produced.**
+   On a **minimal host** that set is exactly what allow-list member (iii) of
+   `references/finish-feature-minimal-host.md`'s uncommitted-source check
+   admitted. On a **phase-bearing** host there is **no allow-list at all** —
+   that check is minimal-host-only and lives in that branch file — so read the
+   sweep directly and **do not go looking for a list that host never produced.**
    Read each delta (`git diff -- {path}`) and scope every one to *this change*;
    staging only "what Step 3 wrote" leaves a no-BC host's global delta dirty and
    the post-commit clean-tree check fails.
@@ -829,13 +512,13 @@ every item:
       backfilled hosted `Commit` cell holds *that row's own* implementation hash
       rather than some other commit's. Instruction 1 orders that value and is
       the single place the constraint lives; closeout cannot verify it, because
-      on a phase-bearing host Step 1's hash-evidence test is minimal-host-only
-      and so **no check here reads the value at all**.
+      the hash-evidence test is minimal-host-only and lives in
+      `references/finish-feature-minimal-host.md`, so on a phase-bearing host
+      **no check reads the value at all**.
       **Identity is confirmed by `references/pr-review-checklist.md`'s
       "Hosted `Commit` cell identity" item**, which sits in that file's
       *Delegated to review by `finish-feature-flow.md`* block — the same
-      assignment this file already makes for the whole-history assertion and for
-      hotfix identity.
+      assignment this file already makes for the whole-history assertion.
       ⚠ **Not** its "Every Lightweight Changes row now carries a `Commit` hash"
       item: that one asserts **presence, not correctness**, and pointing a
       boundary at a presence check would make it a hole rather than a division
@@ -859,11 +542,9 @@ every item:
       The closeout row's Result must also **not** be `failed`: you are reading a
       commit that landed, so `failed` contradicts reality (`committed` on the Y
       path, `skipped` when the developer declined and committed it themselves).
-      **Minimal host (zero-phase) additionally**: the **first** checkpoint row
-      still carries the hash Step 1 validated —
-      `implementation` with `committed ({hash})`,
-      `reconciled ({merged-hotfix-hash})`, or — for a **baseline** host —
-      `spec-baseline` with `committed ({hash})`.
+      **Minimal host (zero-phase) additionally**: one further condition on the
+      first checkpoint row, stated in
+      `references/finish-feature-minimal-host.md` § Step 4.
 - [ ] **The closeout commit contains only what closeout is allowed to write.**
       Read its changed paths (`git show --stat HEAD`) and admit **only** the
       archived host directory — the `git mv` rename plus the finalization
@@ -874,10 +555,12 @@ every item:
       **Anything else blocks**: implementation source, or a
       `domain/{context}/…` document under a host that declared itself no-BC.
       ⚠ **That no-BC half applies to every host shape, and on a phase-bearing
-      host this is the only place closeout tests it.** Step 1's
-      `Minimal host (zero-phase), no-BC only` check reads checkpoint 1, and a
-      phase-bearing host has no checkpoint 1 to read — so do not treat "Step 1
-      already covers no-BC" as true here. It is true only for a minimal host.
+      host this is the only place closeout tests it.** The
+      `Minimal host (zero-phase), no-BC only` check in
+      `references/finish-feature-minimal-host.md` reads checkpoint 1, and a
+      phase-bearing host has no checkpoint 1 to read — so do not treat "the
+      minimal-host branch file already covers no-BC" as true here. It is true
+      only for a minimal host.
       **Scope: this is a path-level spill check and nothing more.** It proves no
       unpermitted *file* entered the commit — not that the permitted ones carry
       only this host's delta. Judging a hunk inside `rules.md` as "this host's
@@ -886,8 +569,9 @@ every item:
       against the other is `references/pr-review-checklist.md`'s
       **"The closeout commit carries only this host's delta"**.
       Say that plainly rather than implying the stronger claim.
-      ⚠ **And its span is this one commit.** Between them, Step 1's check (a
-      minimal host's checkpoint 1) and this one (any host's closeout commit)
+      ⚠ **And its span is this one commit.** Between them, the minimal-host
+      branch file's check (a minimal host's checkpoint 1) and this one (any
+      host's closeout commit)
       still leave every *other* commit on the branch unread — where a no-BC host
       is concerned, that gap is closed by
       `references/pr-review-checklist.md`'s **"A no-BC host committed no
@@ -902,7 +586,8 @@ If any item fails, do **not** declare closeout complete — fix it and re-verify
 **How you may fix it depends on the host.** A **phase-bearing** feature has no
 fixed commit count, so re-add and amend *or* a follow-up commit both work; the
 developer chooses. A **minimal (zero-phase) host** does not: its lifecycle is
-exactly checkpoint 1 plus closeout, and every check above rests on that, so the
+exactly checkpoint 1 plus closeout, and every check its branch file adds rests
+on that, so the
 repair must go **into the closeout commit itself** — re-add and amend. Nothing
 has been pushed yet (integration is Step 5), so amending is safe here. A
 follow-up commit would give the host a third host-mutating commit while its
@@ -985,65 +670,20 @@ Next Steps (developer) — Integration / PR gate (needs network):
   you, but only when you explicitly ask; it never pushes on its own
 ```
 
-**Zero-phase minimal host — exact fields** (these must match the Step 3
-branch — do not require a field Step 3 left empty). A standalone or follow-up
-minimal host has `Phase Count: 0`, an empty Phase List, and at least one row in
-Lightweight Changes.
-
-- a **no-BC host** (Step 3 case ii) sets `BC: none` (nothing was synced).
-  **`Related BR-IDs` is not fixed to `none`**: it reports what this change's own
-  record carries, not what was synced, so it takes the same values a BC-bearing
-  host would — **empty**, or the **per-family no-BR marker** when the T2 carries
-  one. A T3-only no-BC host has neither and leaves it empty.
-- a **BC-bearing host** (Step 3 case i) sets `BC:` to the context and `Related
-  BR-IDs:` to what it actually touched — a real set, the per-family no-BR
-  marker, or empty for a no-BR host.
-- a **baseline minimal host** (Step 3 case iii) sets `BC:` to the captured
-  context (not `none`); **every other field keeps its zero-phase form**, and
-  `Related BR-IDs:` is **empty** — an observation-only capture has no BR delta,
-  and BRs it merely *found* already in the code are system state, not this
-  change's evidence.
+**Zero-phase minimal host — exact fields.** A zero-phase host does not fill the
+format above the way a phase-bearing one does. Its whole field set, and the
+authority on that shape, is `references/finish-feature-minimal-host.md`
+§ Step 5.
 
 Print the summary to the conversation; do not write it to a file (it is
 ephemeral closeout output).
 
-**A mainline hotfix that overlapped this feature.** A T2 / T3 post-hoc hotfix
-(`modify-existing-flow.md` Step 1.8) records itself in its own host, so when
-this feature's branch finally meets the mainline both may have touched the same
-code, and whoever merges picks between two existing versions. By the time you
-read this, **Step 4 has already archived and committed this feature — its host
-is frozen.** Classify whatever is left by the cascade (`AI-AGENT-GUIDE.md`
-§ Ceremony Scaling), never by "is it worth writing down":
-
-- **No conflict, or a resolution with no tracked delta** — it stays in the
-  integration commit message. That is the cascade's **below workflow** level:
-  do not manufacture a document, and do not reopen this feature.
-- **A tracked delta (T3 or above)** — completed features are frozen, so it goes
-  where every post-completion change goes: back through
-  `/dflow:modify-existing`, which opens a follow-up or standalone host for it.
-  Do **not** edit the archived `_index.md`.
-- **The resolution moves system state** — if choosing between the two versions
-  changes a business rule, a documented behaviour, or an extracted model, the
-  owning document (`rules.md` / `behavior.md` / `models.md`) **must** be
-  updated. That update is itself a tracked change and takes the route above;
-  system-state truth is never below workflow.
-- **It is bigger than a merge** — if resolving it means *new or changed*
-  behaviour rather than choosing between two that already exist, it is not a
-  merge question at all: run it through the cascade and open the flow its tier
-  calls for.
-
-**Reconciling before closeout is simpler.** If the branches meet while this
-feature is still in flight — a rebase onto the mainline, say — handle it then
-as ordinary in-flow work — but **which host takes it depends on this host's
-shape**. A **phase-bearing** host absorbs a tracked delta (T3 or above) and
-rides the normal checkpoints; a **minimal (zero-phase)** host **cannot** once
-checkpoint 1 has landed, because every Lightweight Changes row must belong to
-that commit — it closes on what it carries and the delta is routed afterwards.
-No tracked delta stays below workflow, in the integration commit message.
-Step 1's pre-checklist callout states that whole side in full, minimal-host
-branch included. The four bullets above decide it whichever side of closeout you are on —
-they are principles, not a checklist; the situation is rare and varied, so use
-judgement.
+**A mainline hotfix that overlapped this feature.** Step 4 has already archived
+and committed this host — **it is frozen**, so anything a merge with the
+mainline leaves over is routed elsewhere and never recorded back into it. What
+is left over, how to classify it, and where each class goes are decided in
+`references/finish-feature-post-hoc-hotfix.md` § After closeout — the same
+branch file Step 1's hotfix callout dispatches to.
 
 **→ Step Gate: Step 5 → Step 6**
 
@@ -1054,6 +694,16 @@ naming **every** original it lists (the field may be a YAML array):
 > to mark this follow-up as `completed`? `/dflow:next` to proceed (or tell me
 > you'll do it manually — either way this tracking commit is **required** before
 > closeout is complete; see Step 6)."
+
+**The reverse link must have been opened, not only closed — and that is not
+minimal-host-only.** This gate puts no host shape on `follow-up-of`, so a
+phase-bearing host can carry it too, but it has no single commit required to
+carry the row. The requirement still holds for that host; nothing in closeout
+tests it. **The opening half is confirmed for a phase-bearing follow-up host by
+`references/pr-review-checklist.md`'s "A follow-up's reverse link was opened,
+not only closed" item**, in that file's *Delegated to review by
+`finish-feature-flow.md`* block — it reads the branch history, which is exactly
+what closeout cannot take.
 
 If no `follow-up-of` field, skip Step 6 and announce closeout complete:
 > "`/dflow:finish-feature` complete for `{SPEC-ID}-{slug}`. Feature

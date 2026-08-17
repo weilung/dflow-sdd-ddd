@@ -8,7 +8,47 @@
 
 ## Unreleased
 
-**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）
+**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）、PROPOSAL-086（受限標頭比讀者窄）、PROPOSAL-087（finish-feature 罕見路徑抽離）
+
+- **`finish-feature` 的 minimal host（zero-phase）檢查改為獨立檔（P-087）**：
+  `/dflow:finish-feature` 是**每個 feature 收尾都會跑**的指令，而它的 Step 1 檢查表
+  裡有一大段只在 **minimal host（zero-phase，也就是 T2／T3 小改動開出來的 host）**
+  上適用 —— 一個帶 phase 的 feature 每次收尾都要把那段讀完，一條都用不到。這批檢查
+  （加上 Step 3 的 sync input、Step 4 post-commit 的尾巴、Step 5 的欄位規則）搬進
+  新檔 `references/finish-feature-minimal-host.md`（兩軌各一份），主幹在 Step 1 的
+  選擇器後面留一句「開哪一支檔」，Step 3／4／5 各留一行指標。
+  **greenfield 1,048 → 739 行、brownfield 1,073 → 723 行（−29.5% ／ −32.6%）。**
+  同時把 Step 5 那段「主線 hotfix 跟這個 feature 撞到」併進既有的
+  `references/finish-feature-post-hoc-hotfix.md`，那支檔現在依**進入時機**分成
+  § Before closeout ／ § After closeout 兩節（40 → 95 行）。
+  ⚠ **一行規則都沒有刪**，但**不是純搬移**：搬家會讓一批句子在原地變成假的
+  （`above`／`below` 跨了檔、指向 Step 1 的指標指到空的地方），這次逐處改寫了
+  **53 句**，四個方向都有 —— 主幹指向被抽內容、被抽內容指回主幹、既有分支檔指向
+  即將搬進它的內容、`pr-review-checklist.md` 指進被抽走的區塊。
+  ⚠⚠ **收益是不對稱的，這是設計而不是缺陷**：省到的是 **phase-bearing** 的 host；
+  **minimal host 自己反而多讀 43 行（＋4.1%）**，因為它要多載入一支檔。判準是
+  **context 壓力峰值** —— 峰值落在 phase-bearing 的 T1 收尾（同時扛著 aggregate
+  design、phase specs 與領域建模），minimal host 是低壓力那一側。
+  ⚠ 採用者實拿的**磁碟總量略增**（多兩支檔 ＋ 指標句），下降的是**單次執行讀進
+  context 的量**。既有專案再跑一次 `dflow configure-agents` 即取得新結構，
+  沒有遷移動作。
+
+- **`finish-feature` 的四個檢查，標頭宣告的適用範圍比它真正的讀者窄（P-086）**：
+  `finish-feature-flow.md` 有數十個標頭自我限定的區塊（`Minimal host (zero-phase)
+  only` 那種）。其中四處**藏著一條其實不分 host 形狀都需要的規則** —— 一個帶 phase
+  的 feature 收尾時永遠不會讀到它，**而且不會有任何指標告訴它漏了什麼**。
+  具體會發生什麼：一個 T1 分幾個 phase 進行，中間夾一個 hosted `Tier = T2` 小改動，
+  那個小改動改了某個 domain event 的欄位；收尾時 Step 3 只說「把 **phase-spec**
+  引進的新 event 加到 `events.md`」，而那筆改動記在 **lightweight-spec** 裡 ——
+  **`events.md` 就少一筆，沒有人會發現。** 嚴重度是「靜默失敗」。
+  四處都改成：不分 host 的那一半移到每個 host 都會讀的地方，受限的那一半留在原處
+  並寫明它只證了什麼、誰接手剩下的。**greenfield 965 → 1,048 行、brownfield
+  1,012 → 1,073 行**（brownfield 只有三處，第一處的欄位在 brownfield 不存在）。
+  `references/pr-review-checklist.md` 同時新增第 7 項承接「no-BC host 不得 commit
+  進一個它沒有的 bounded context」的分支範圍舉證，並修掉一句沒有限定的宣稱
+  （greenfield 383 → 407、brownfield 437 → 465 行）。
+  ⚠ **沒有新指令、沒有遷移動作**：既有專案再跑一次 `dflow configure-agents` 即取得
+  修正後的 flow 檔。
 
 - **`modify-existing` 的兩條罕見路徑改為獨立檔，一次執行不再整份讀（P-085，第一批）**：
   `/dflow:modify-existing` 與 `/dflow:bug-fix` 每跑一次，AI 都要把

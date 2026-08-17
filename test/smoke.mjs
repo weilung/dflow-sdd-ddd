@@ -526,6 +526,7 @@ try {
     'references/finish-feature-flow.md',
     'references/finish-feature-follow-up.md',
     'references/finish-feature-post-hoc-hotfix.md',
+    'references/finish-feature-minimal-host.md',
     'references/new-phase-flow.md',
     'references/drift-verification.md',
     'references/pr-review-checklist.md',

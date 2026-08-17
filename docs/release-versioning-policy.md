@@ -107,6 +107,7 @@ Common synchronized flow files include:
 - `new-phase-flow.md`
 - `finish-feature-flow.md`
 - `finish-feature-follow-up.md`
+- `finish-feature-minimal-host.md`
 - `finish-feature-post-hoc-hotfix.md`
 - `modify-existing-follow-up.md`
 - `modify-existing-post-hoc-hotfix.md`
