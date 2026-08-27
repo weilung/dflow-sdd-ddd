@@ -10,8 +10,29 @@
 
 **Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）、PROPOSAL-086（受限標頭比讀者窄）、PROPOSAL-087（finish-feature 罕見路徑抽離）、PROPOSAL-093（closeout 尾巴的 cursor 矛盾）
 
-> **目前投影版號：`0.14.1`**（**未發布到 npm**；npm latest 仍是 `0.14.0`）。
+> **目前投影版號：`0.14.2`**（**未發布到 npm**；npm latest 仍是 `0.14.0`）。
 > 以下項目都在這一版裡。
+
+- **`_index.md` 範本的 Checkpoint Log 範例表不再被照抄成起始狀態（dist issue #11）**：
+  範例表四列俱全（`branch-override` ／ `spec-baseline` ／ `implementation` ／
+  `closeout`），而註解只講「minimal host 一律記兩個 checkpoint」，**沒有一句說每一列
+  是什麼時候才寫下**。照著實例化一個 minimal host（zero-phase）的人會把 `closeout`
+  列也預先放上去，然後在**整個實作與 commit 週期之後**才被關帳檢查擋下 —— 那道檢查
+  要求 Checkpoint Log 此刻**恰好一列**。回報者列過這張表**四列沒有一列可以照抄**的
+  理由，而表上沒有任何標記能讓讀者推出這件事。
+  範本因此在表前補一段：**下表示範的是欄位值，不是這張表的起始狀態，一列都不要預先
+  放**；每一列在它那個 checkpoint 實際走到的當下才新增，`closeout` 列由
+  `references/finish-feature-flow.md` Step 4 指令 1 在關帳當下寫入。
+  ⚠ 同時修掉診斷訊息的另一半：`references/finish-feature-minimal-host.md` Step 1
+  原本只列「多一個 `implementation`」「游離的 `spec-baseline`」「放棄嘗試的殘留」
+  三種成因，**最可能的那一種——順著範本預先放下的 `closeout` 列——一項都沒對上**，
+  而該處自己要求「report the one that is true」。現在改成一條**述詞**而不是一份清單：
+  分辨兩種修法的是**這一列有沒有記錄一個這個 host 真的走到的 checkpoint**，不是那幾格裡
+  放了什麼。記錄不到的就刪掉（`closeout` 列是一個，因為關帳還沒跑；從範例表抄下來的
+  任何一列也是）；記錄得到的才是生命週期問題，要跟開發者解決。剩下的成因寫成開放的
+  一類，不是封閉清單。
+  兩軌對稱。既有專案再跑一次 `dflow configure-agents` 即取得修正後的範本與 flow 檔；
+  **沒有遷移動作**，已經走到一半的 host 若已預先放下 `closeout` 列，刪掉那一列即可。
 
 - **`finish-feature` 的終局 cursor 改在歸檔那一刻才寫，Steps 5／6 正名為確認點（P-093）**：
   舊流程在 **Step 2** 就把 Resume Pointer 寫成 `Active Workflow: none`（宣告 workflow

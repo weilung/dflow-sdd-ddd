@@ -211,6 +211,15 @@ Template note (for AI):
 > commit 無法自含自身 hash，該列於 commit 前寫入、隨歸檔目錄一起進 commit；
 > 溯源用 `git log -1 -- completed/{SPEC-ID}-{slug}` 或選配的
 > `Dflow-Checkpoint` trailer（見 references/git-integration.md）。
+>
+> ⚠⚠ **下表示範的是欄位值，不是這張表的起始狀態——一列都不要預先放。** 每一列
+> 都在它那個 checkpoint **實際走到的當下**才新增（`branch-override` 在 branch gate
+> 選了 override 時；`closeout` 由 references/finish-feature-flow.md Step 4 指令 1
+> 在關帳當下寫入）。
+> ⚠ **尤其不要預先放一列空的 `closeout` 佔位**：minimal host（zero-phase）的關帳
+> 檢查要求 Checkpoint Log 在關帳前**恰好一列**
+> （references/finish-feature-minimal-host.md Step 1），預先放下的那一列會**擋下**
+> 關帳。
 
 | Timestamp | Checkpoint | Result |
 |---|---|---|

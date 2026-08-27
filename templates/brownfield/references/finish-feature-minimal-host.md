@@ -121,11 +121,19 @@ A `✗` here stops closeout there, on the same terms.
       one row at this point.** A minimal host takes exactly two checkpoints and
       the second is the closeout row `references/finish-feature-flow.md` Step 4
       instruction 1 adds, so before closeout there is exactly one: the first
-      checkpoint the preceding item validated. A second pre-closeout
-      row — an extra `implementation`, a stray `spec-baseline`, or a leftover
-      from an abandoned attempt — means this host did not take the two-commit
-      lifecycle and **blocks**. A failed or declined attempt does **not** add a
-      row: both are recorded by editing the existing one in place.
+      checkpoint the preceding item validated. Any second pre-closeout row
+      **blocks** — **report the one that is true**, because the repairs differ.
+      What separates them is **whether the row records a checkpoint this host
+      actually reached**, not what its cells hold. A row that records none is
+      repaired **by deleting it**, however it is filled in: a `closeout` row is
+      one, because no closeout has run yet — Step 4 instruction 1 writes it at
+      closeout — and so is any row carried over from `templates/_index.md`'s
+      example table. A row that does record a reached checkpoint — a second
+      `implementation` or `spec-baseline`, a leftover from an abandoned attempt,
+      or one this list does not name — says the host did not take the two-commit
+      lifecycle, and that is settled with the developer, not by deleting a line.
+      A failed or declined attempt does **not** add a row: both are recorded by
+      editing the existing one in place.
       This counts the rows in **this
       host's own table** — it is not the whole-history assertion, which stays
       with `references/pr-review-checklist.md`.
