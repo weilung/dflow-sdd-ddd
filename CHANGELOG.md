@@ -10,7 +10,7 @@
 
 **Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）、PROPOSAL-086（受限標頭比讀者窄）、PROPOSAL-087（finish-feature 罕見路徑抽離）、PROPOSAL-093（closeout 尾巴的 cursor 矛盾）
 
-> **目前投影版號：`0.15.1`**（**未發布到 npm**；npm latest 仍是 `0.14.0`）。
+> **目前投影版號：`0.14.1`**（**未發布到 npm**；npm latest 仍是 `0.14.0`）。
 > 以下項目都在這一版裡。
 
 - **`finish-feature` 的終局 cursor 改在歸檔那一刻才寫，Steps 5／6 正名為確認點（P-093）**：
