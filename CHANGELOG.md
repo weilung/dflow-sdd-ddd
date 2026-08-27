@@ -10,8 +10,30 @@
 
 **Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）、PROPOSAL-086（受限標頭比讀者窄）、PROPOSAL-087（finish-feature 罕見路徑抽離）、PROPOSAL-093（closeout 尾巴的 cursor 矛盾）、PROPOSAL-095（BR Snapshot 範例列移出資料面）
 
-> **目前投影版號：`0.14.3`**（**未發布到 npm**；npm latest 仍是 `0.14.0`）。
+> **目前投影版號：`0.14.4`**（**未發布到 npm**；npm latest 仍是 `0.14.0`）。
 > 以下項目都在這一版裡。
+
+- **`finish-feature` 的 baseline 現在真的取得回內容（dist issue #10）**：
+  Step 1 叫執行者對 host 目錄每個檔跑 `git hash-object {path}`、把 `path → blob` 清單當
+  baseline，Step 4 再拿它判「差異恰為 Step 2、Step 4 終局 Resume Pointer 寫入、Step 4
+  指令 1 所命令的 edit，別無其他」。**但沒有 `-w` 的 `hash-object` 不寫物件庫**，baseline
+  的**內容**事後取不回（`git cat-file -p` 回 `fatal: Not a valid object name`），而一份
+  hash 清單只答得出「相同／不同」—— 在正常路徑上「不同」正是**預期**答案，因為那三步
+  本來就會改 `_index.md`。Step 4 又明文禁止退回用 `HEAD^`（理由正確：此時工作區還帶著
+  未提交的 finalization edit 與 documentation sweep delta），所以沒有替代基準。
+  **那條檢查用它自己指定的證據執行不了。**
+  Step 1 現在改用 `git hash-object -w {path}`，並在旁邊寫明 `-w` 是強制的。Step 4 改成
+  真的去 diff：與 baseline 不同的檔用 `git diff {baseline blob} HEAD:{completed path}`
+  讀真正的 delta，拿那個 delta 去對推導條件；與 baseline 相同的檔只在「沒有任何一步
+  命令過改它」時才算滿足 —— 命令過而沒動，就是那個 edit 沒落地，擋。degraded 條款也
+  擴及「baseline blob 讀不回來」。
+  ⚠ **同一批另修掉一個既有缺陷**：Step 4 原本**斷言** baseline 與 committed span
+  「line up entry for entry」而沒有去比。span 來自 `git ls-tree`（commit 側），所以
+  **Step 1 之後被刪掉的 host 檔永遠不會被比到**，之後新增的檔**沒有 baseline blob
+  可 diff**；而另一半的 spill check 是整個 host 目錄照收，也擋不住 —— 兩半都放過的是
+  edit fallout 裡最粗的一種。現在先比兩個路徑集合、再比 blob，兩種不一致各自給裁決。
+  兩軌對稱。既有專案再跑一次 `dflow configure-agents` 即取得修正後的 flow 檔；
+  **沒有遷移動作**。
 
 - **`_index.md` 的 Current BR Snapshot 範例列移出資料面（P-095，dist issue #14）**：
   這張表的範例列 `| BR-01 | {規則描述} | phase-1 / inherited from rules.md | phase-N |

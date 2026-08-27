@@ -176,10 +176,13 @@ If any check fails:
 **Once every item above — and every item this host's branch file added — reads
 `✓`, record the baseline the post-commit check compares against.** For **every
 file in the host directory** — not only the
-`_index.md` and the spec files the tables name — run `git hash-object {path}`
-and state the resulting `path → blob` list in the conversation. **That list is
-the baseline** — Step 4's post-commit verification compares each committed blob
-against it, **over the same span**.
+`_index.md` and the spec files the tables name — run
+`git hash-object -w {path}` and state the resulting `path → blob` list in the
+conversation. **That list is the baseline** — Step 4's post-commit verification
+compares each committed blob against it, **over the same span**.
+⚠ **The `-w` is mandatory.** It writes each blob into the object database, so
+Step 4 can read the baseline's **content** back; without it the recorded list is
+fingerprints only, and Step 4's comparison cannot run.
 The check has no other durable baseline: "the tree Step 1 read" otherwise lives
 only in this session's working memory, and **`HEAD^` is not a substitute** — at
 this point the working tree legitimately carries uncommitted finalization edits
@@ -541,10 +544,25 @@ every item:
       to the host directory**: Step 1 recorded them under
       `active/{SPEC-ID}-{slug}/`, this commit carries them under
       `completed/{SPEC-ID}-{slug}/`, and the `git mv` preserved the relative
-      tree — so the two lists line up entry for entry once the prefix is set
-      aside. Compare each with `git rev-parse HEAD:{completed path}`.
-      ⚠ **If that list was not recorded, report this check as degraded and say
-      so — do not substitute `HEAD^`.**
+      tree.
+      **Compare the two path sets first, before any blob comparison.** A
+      **baseline path missing from the span** is a file removed after Step 1; a
+      **span path with no baseline entry** is a file added after Step 1. Each is
+      a difference and is judged like any other: it **blocks** unless a step of
+      this closeout ordered it.
+      Then, for each path the two sets share, take the committed blob with
+      `git rev-parse HEAD:{completed path}`. **Different from that path's
+      baseline blob → read the delta itself with `git diff {baseline blob}
+      HEAD:{completed path}`, and judge that delta against the derived
+      condition below. Equal → that path carries no difference at all, which
+      satisfies the condition only where no step of this closeout ordered an
+      edit to it; where one did, the ordered edit never landed and this
+      **blocks**.**
+      ⚠ **Blob ids alone answer only *same* / *different*, which cannot decide
+      the derived condition.**
+      ⚠ **If that list was not recorded, or a baseline blob does not read back
+      (`git cat-file -p {baseline blob}` fails), report this check as degraded
+      and say so — do not substitute `HEAD^`.**
       Step 1 blocks unless every
       spec in the host already reads `status: completed`, so those flips are
       already **in** the baseline whichever step made them: a **minimal** host's
