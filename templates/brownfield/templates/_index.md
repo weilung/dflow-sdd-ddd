@@ -36,7 +36,9 @@ Template note (for AI):
   Minimal usage:
     For a 1-commit / 1-phase feature this template can be ~30 lines —
     fill metadata + a short Goals & Scope + one row in Phase Specs +
-    initial BR Snapshot + Resume Pointer. The other sections can stay empty.
+    Resume Pointer, and the BR Snapshot **only when this host carries a BR
+    delta** — a phase-bearing host whose phase-specs establish none leaves it
+    empty, and that section states the rule. The other sections can stay empty.
 
   Minimal HOST usage (zero-phase) — a different shape, not a smaller one:
     A minimal host (references/modify-existing-flow.md Step 1.7 standalone, or
@@ -83,10 +85,30 @@ Template note (for AI):
 > 歷史由各 phase-spec 的「Delta from prior phases」段串接閱讀；feature
 > 完成時 `/dflow:finish-feature` 把本表推進到對應 BC 的 `rules.md` /
 > `behavior.md`（延續 Step 8.3 既有 sync 機制）。
+>
+> ⚠ **這張表在範本裡是空的（只有表頭），那是對的 —— 不要為了讓它看起來有東西而造一列。**
+> 只有這個 host 真的帶著 BR delta 時才會有列（`/dflow:new-feature` 會拿第一個 phase
+> 規劃中的 BR 初始化它；phase-specs 沒有帶出 BR delta 的 host 就留空）；**BC-bearing
+> 的 follow-up host** 另外會從 `rules.md` 繼承 in-scope 的列
+> （見 references/modify-existing-follow-up.md）。
+> ⚠ **`Tier = baseline` 的 capture host 是例外：本表留空，而且不繼承** —— 即使它是
+> BC-bearing 的 follow-up 也一樣（見 references/modify-existing-follow-up.md 的
+> baseline 例外，與 references/finish-feature-minimal-host.md 的 baseline 檢查）。
 
 | BR-ID | Current Rule | First Seen (phase) | Last Updated (phase) | Status |
 |---|---|---|---|---|
+
+<!--
+欄位範例（**這不是資料，是給 AI 看的範例**；它在註解裡，所以不會被當成本表的列）：
+
 | BR-01 | {規則描述} | phase-1 / inherited from rules.md | phase-N | active / removed |
+
+⚠ 本區塊不是規範。`First Seen` ／ `Last Updated` ／ `Status` 的權威語義在既有
+flow 規則裡：
+`First Seen` 的 `inherited from rules.md` 見 references/modify-existing-follow-up.md；
+`Status` 的 `active` / `removed` 見 references/finish-feature-flow.md Step 3 與
+references/new-phase-flow.md。有衝突時以那些檔為準。
+-->
 
 <!-- dflow:section lightweight-changes -->
 ## Lightweight Changes

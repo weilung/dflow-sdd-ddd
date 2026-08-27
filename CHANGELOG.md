@@ -8,10 +8,34 @@
 
 ## Unreleased
 
-**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）、PROPOSAL-086（受限標頭比讀者窄）、PROPOSAL-087（finish-feature 罕見路徑抽離）、PROPOSAL-093（closeout 尾巴的 cursor 矛盾）
+**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）、PROPOSAL-086（受限標頭比讀者窄）、PROPOSAL-087（finish-feature 罕見路徑抽離）、PROPOSAL-093（closeout 尾巴的 cursor 矛盾）、PROPOSAL-095（BR Snapshot 範例列移出資料面）
 
-> **目前投影版號：`0.14.2`**（**未發布到 npm**；npm latest 仍是 `0.14.0`）。
+> **目前投影版號：`0.14.3`**（**未發布到 npm**；npm latest 仍是 `0.14.0`）。
 > 以下項目都在這一版裡。
+
+- **`_index.md` 的 Current BR Snapshot 範例列移出資料面（P-095，dist issue #14）**：
+  這張表的範例列 `| BR-01 | {規則描述} | phase-1 / inherited from rules.md | phase-N |
+  active / removed |` 五格裡有三格不是值。它與 issue #11 是同一個缺陷類（範例被當成
+  起始狀態照抄），**但後果相反**：#11 會被關帳擋下，**這一個會通過** —— 關帳的 Step 1
+  只檢查「這張表非空嗎」，接著 Step 3 把**每一列**推進 bounded context 的 `rules.md`。
+  **live 表現在只留表頭**，範例移進一段 HTML 註解、明標「這不是資料」並指回既有 flow
+  規則（`First Seen` ／ `Last Updated` ／ `Status` 的權威語義本來就在
+  `modify-existing-follow-up.md` 與 `finish-feature-flow.md` ／ `new-phase-flow.md`
+  裡，這裡不再抄一份）。
+  表上方另加一句可見的規則：**本表起始為空，只有這個 host 真的帶著 BR delta 時才會有
+  列；BC-bearing 的 follow-up host 另外會從 `rules.md` 繼承 in-scope 的列。**
+  ⚠ **為什麼不是加一道關帳檢查**：那會為一個**沒有量測、也沒有已知案例**的風險，讓
+  **每一次關帳**付費，而且會誤擋三種合法情境（`inherited from rules.md` 的繼承列、
+  合法的空表、一條還沒進 `rules.md` 的新 BR）。移除污染源比派人看守它便宜得多。
+  ⚠ 這個修法押著一個假設：**執行中的 AI 會讀 raw Markdown 註解當成 guidance**。本範本
+  已有兩處同形狀的先例（`Template note (for AI)`、被註解掉的 Follow-up Tracking），
+  但**沒有實測採用者行為**。
+  ⚠ **兩軌刻意不對稱**：brownfield 另有一句 —— `Tier = baseline` 的 capture host
+  本表留空、而且**不繼承**，即使它是 BC-bearing 的 follow-up 也一樣。greenfield 不加，
+  因為它**沒有 baseline capture 這種 host**。其餘新增內容兩軌逐字相同。
+  既有專案再跑一次
+  `dflow configure-agents` 即取得修正後的範本；**沒有遷移動作** —— 已經照抄了那一列的
+  host，刪掉它即可（那一列本來就不該存在）。
 
 - **`_index.md` 範本的 Checkpoint Log 範例表不再被照抄成起始狀態（dist issue #11）**：
   範例表四列俱全（`branch-override` ／ `spec-baseline` ／ `implementation` ／
