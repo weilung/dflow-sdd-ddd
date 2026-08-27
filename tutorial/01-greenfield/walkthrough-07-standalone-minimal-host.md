@@ -408,6 +408,9 @@ Step 1 — Validate。逐項 ✓ / ✗：
 Dflow:
 Step 2 — 只翻 status: in-progress → completed。
   **branch: 欄保持原值，永不改寫。**
+  Resume Pointer 寫**進行中**的值——Active Workflow: finish-feature、
+  Current Step: Step 3 — sync BR Snapshot to BC layer、
+  Awaiting: none (mid-step)。closeout 還沒跑完，終局值在 Step 4 寫。
 
 Step 3 — Sync BR Snapshot to BC Layer：
   這個 host 是 **no-BC**（Goals & Scope 明說不觸及任何 bounded context）
@@ -418,7 +421,10 @@ Step 3 — Sync BR Snapshot to BC Layer：
 Step 4 — Archive：
   git mv active/SPEC-20260511-001-login-banner-typo \
          completed/SPEC-20260511-001-login-banner-typo
-  先寫 closeout 那一列（**不帶 hash**——commit 無法自含自身 hash），
+  **緊接著寫 Resume Pointer 終局值**（Active Workflow: none、
+  Current Step / Gates Passed: n/a、Awaiting: none）——中間不插任何等待點，
+  連下面那個「要現在 commit 嗎？」的 Y／N 提示都不行。
+  接著寫 closeout 那一列（**不帶 hash**——commit 無法自含自身 hash），
   再 git add 整個歸檔目錄，然後 commit。
 
   這是 **checkpoint 2**。歸檔 rename 就在這個 commit 裡。

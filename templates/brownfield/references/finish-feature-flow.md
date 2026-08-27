@@ -33,9 +33,17 @@ state, archives the feature directory, and emits a Git-strategy-neutral
 **Step Gates** in this flow (stop-and-confirm before proceeding):
 - Step 1 → Step 2 (validation passed → flip status)
 - Step 3 → Step 4 (BC sync done → archive)
-- Step 5 → Step 6 (Integration Summary emitted → follow-up reverse-link — required when the feature is a follow-up)
 
-All other step transitions are **step-internal**: announce "Step N complete,
+**Step 5 → Step 6 is deliberately not a step gate, and when the host carries a
+`follow-up-of` field it also stops and waits.** It is this flow's
+**post-Local-closeout confirmation**: by the time it is reached the archive has
+landed and this feature's cursor reads `none`, so the step-gate protocol —
+`/dflow:next` and `/dflow:cancel`, and the cursor update a step gate carries —
+does not apply to it. **Step 5 states what it accepts.** Do not treat it as a
+step gate because it waits, and do not treat it as step-internal because it is
+not a gate.
+
+**Every other step transition is step-internal**: announce "Step N complete,
 entering Step N+1" and proceed without waiting. See AI-AGENT-GUIDE.md § Workflow
 Transparency for the full transparency protocol and confirmation signals.
 
@@ -211,18 +219,23 @@ bugfix host and keeps `bugfix/BUG-*` (the branch-by-class rule at
 `modify-existing-flow.md` Step 1.7 step 4). Overwriting it to `feature/...` at
 closeout would break branch equality for a bugfix host.
 
-Also update the **Resume Pointer** to reflect closeout — this writes the
-cursor's terminal state (after closeout no workflow is active on this
-feature; do not edit the cursor again after the Step 4 closeout commit):
+Also update the **Resume Pointer** — to the state closeout is actually in, which
+is **not** the terminal state. **Step 4 writes the terminal value**, immediately
+after the `git mv`:
 
 ```
-**Current Progress**: feature completed ({date}); all phase-specs status = completed.
-**Next Action**: integration — push / merge / PR per the selected Git policy.
-**Active Workflow**: none
-**Current Step**: n/a
-**Gates Passed**: n/a
-**Awaiting**: none
+**Current Progress**: status flipped to `completed` ({date}); closeout in progress.
+**Next Action**: continue closeout — sync the BR Snapshot to the BC layer (Step 3).
+**Active Workflow**: finish-feature
+**Current Step**: Step 3 — sync BR Snapshot to BC layer
+**Gates Passed**: 1→2
+**Awaiting**: none (mid-step)
 ```
+
+⚠ **`Awaiting` is `none (mid-step)`, never `gate 3→4`.** Step 3 has not run at
+this point, and a cursor that says otherwise sends the next session to
+`/dflow:next`, **skipping the BC sync**. `none (mid-step)` is the existing
+convention for this position.
 
 **→ Transition (step-internal)**: Step 2 complete. Announce "Step 2 complete (status flipped). Entering Step 3: Sync BR Snapshot to BC layer." and continue.
 
@@ -371,13 +384,47 @@ AI runs:
 ```bash
 git mv dflow/specs/features/active/{SPEC-ID}-{slug} \
        dflow/specs/features/completed/{SPEC-ID}-{slug}
-git status   # confirm rename detection AND check for `RM` — an `M` next to
-             # a rename means unstaged edits you must re-add before committing
 ```
 
 `git mv` is mandatory — never use plain `mv` + `git add`. See
 `references/git-integration.md` § "Directory Moves Must Use git mv" for
 the full rule set.
+
+**Immediately after the `git mv`, write the Resume Pointer's terminal value into
+the moved `_index.md`.** Write both prose lines and all four cursor fields —
+all six lines of the Resume Pointer — because this write sets each line's final
+value:
+
+```
+**Current Progress**: feature completed ({date}); all phase-specs status = completed.
+**Next Action**: integration — push / merge / PR per the selected Git policy.
+**Active Workflow**: none
+**Current Step**: n/a
+**Gates Passed**: n/a
+**Awaiting**: none
+```
+
+⚠⚠ **The `git mv` and this write are one uninterruptible pair.** Nothing goes
+between them — not the Y / N prompt below, not a question to the developer, not
+a tool call that can wait on input, and not the `git status` check below.
+
+⚠ **From here the cursor is terminal and closeout does not edit it again** — not
+when the developer declines the commit (N), not when the commit fails, not when
+the post-commit verification below reports `✗`. **Do not restore it to an
+in-progress value on any of those paths.** What surfaces a closeout that failed
+after this point is `git status` — the staged rename plus the uncommitted
+`_index.md` edits — not the cursor, which no global scan reads once the host has
+left `active/`.
+
+**Now check the rename landed**, with the terminal cursor already written:
+
+```bash
+git status --short   # confirm rename detection AND check for `RM` — an `M`
+                     # next to a rename means unstaged edits you must re-add
+                     # before committing. --short is required: the default long
+                     # format lists the rename and the modification separately
+                     # and never prints a two-column `RM`.
+```
 
 **Closeout commit checkpoint** (completes the offline Local-closeout gate):
 
@@ -414,11 +461,16 @@ Then, in this order:
    ```
 
    This is required, not optional: `git mv` stages the rename with the
-   **last-committed** content, so working-tree edits made earlier in this
-   flow to the moved files — the Step 2 status flip and Resume Pointer
-   update, plus the checkpoint row you just wrote — stay **unstaged** until
-   this `git add`. In `git status`, the moved `_index.md` showing `RM`
-   instead of plain `R` is exactly this signal. Then also `git add`
+   **last-committed** content, so **every** working-tree edit to the moved files
+   stays **unstaged** until this `git add` — Step 2's status flip and its
+   in-progress cursor, whatever gate 3 → 4 wrote to the cursor, the terminal
+   cursor value written just after the `git mv`, and **everything instruction 1
+   ordered**: the checkpoint row *and* every hosted `Commit` cell it backfilled.
+   Take that last part from instruction 1 itself, not from this sentence — it is
+   the step that orders those edits, and a copy kept here would go stale the
+   next time it changes. In `git status --short`, the moved `_index.md` showing
+   `RM` instead of plain `R` is exactly this signal — the same `--short`
+   requirement as the rename check above. Then also `git add`
    **every external document this closeout carries.** That set is defined
    here, once, and it covers **every** host shape — take it from this
    instruction, not from a list kept somewhere else:
@@ -503,11 +555,18 @@ every item:
       compares against. (They are differences only from the *pre-flip* record,
       which is not the baseline.)
       **The condition is derived, not listed:** within that span, the committed
-      blob differs from that baseline in **exactly the edits Step 2 and Step 4
-      instruction 1 ordered, carrying the values those steps state, and in
-      nothing else**. Read those two steps and compute the set — do not keep a
-      second copy of it here. Any difference **no step of this closeout ordered**
-      is edit fallout and **blocks**.
+      blob differs from that baseline in **exactly the edits Step 2, Step 4's
+      terminal Resume Pointer write and Step 4 instruction 1 ordered, carrying
+      the values those steps state, and in nothing else**. Read those three
+      steps and compute the set — do not keep a second copy of it here. Any
+      difference **no step of this closeout ordered** is edit fallout and
+      **blocks**.
+      ⚠ **This compares final net state, not the sequence of edits.** Step 2
+      writes an in-progress cursor and gate 3 → 4 updates it again; Step 4's
+      terminal write then overwrites every field either of them touched, so
+      neither appears in the committed blob. **Their absence is not a difference
+      and must not block**, and nothing here proves they happened. What this
+      comparison settles is that the *terminal* value is the one that landed.
       **What this check cannot decide — stated, not asserted:** whether a
       backfilled hosted `Commit` cell holds *that row's own* implementation hash
       rather than some other commit's. Instruction 1 orders that value and is
@@ -616,9 +675,11 @@ reached its result — not that it passed, but how it was computed:
    `status: completed` flip into it (Step 1.7's finalization on a minimal host;
    the phases completing on a phase-bearing one, which never runs Step 1.7).
 2. **The differences you derived, each with the step that ordered it** —
-   Step 2 or Step 4 instruction 1. This is the set the check *derives* instead
-   of listing, so printing it is what lets a reader check the derivation rather
-   than trust it.
+   Step 2, Step 4's terminal Resume Pointer write, or Step 4 instruction 1. This
+   is the set the check *derives* instead of listing, so printing it is what
+   lets a reader check the derivation rather than trust it. Say as well that the
+   comparison reads final net state, so the transitional cursor values Step 2
+   and gate 3 → 4 wrote are outside what it can show.
 3. **The external paths admitted, and which half of Step 4 instruction 2 each
    came from** — what Step 3 wrote, or this change's own sweep.
 4. **What the check could not decide, and who holds it** — for a backfilled
@@ -685,20 +746,50 @@ is left over, how to classify it, and where each class goes are decided in
 `references/finish-feature-post-hoc-hotfix.md` § After closeout — the same
 branch file Step 1's hotfix callout dispatches to.
 
-**→ Step Gate: Step 5 → Step 6**
+**→ Post-Local-closeout confirmation: Step 5 → Step 6**
+
+**This stops and waits, and it is not a step gate.** By now the host is in
+`completed/` and its cursor reads `none`. **Confirming here updates no cursor**,
+and nothing below re-opens the workflow.
 
 If the feature has `follow-up-of` in its Metadata, prompt the developer —
 naming **every** original it lists (the field may be a YAML array):
 > "This feature is a follow-up of `{原 SPEC-ID}` (and `{原 SPEC-ID-2}`, …).
 > Ready to update **each** original feature's `_index.md` Follow-up Tracking row
-> to mark this follow-up as `completed`? `/dflow:next` to proceed (or tell me
-> you'll do it manually — either way this tracking commit is **required** before
-> closeout is complete; see Step 6)."
+> to mark this follow-up as `completed`? (Or tell me you'll do it manually —
+> either way this tracking commit is **required** before closeout is complete;
+> see Step 6.)"
+
+**What this confirmation accepts** — this governs the follow-up prompt above; a
+host with no `follow-up-of` never reaches it and takes the branch below instead:
+
+- **Any affirmative reply → enter Step 6.** The verbal signals the guide lists
+  (`AI-AGENT-GUIDE.md` § Confirmation Signals) are illustrations, **not the
+  list**: a reply that plainly means "go ahead" counts however it is worded.
+  **Implicit confirmation counts too** — a developer who supplies what Step 6
+  needs, by naming the originals or by saying they will make the commit
+  themselves, has confirmed, not declined.
+- **`/dflow:next` and `/dflow:cancel` do not apply here.** No workflow is
+  active, and the guide requires both to be refused in that state. Refuse as the
+  guide says, **then ask this question again in plain language**. ⚠ **Do not
+  read either as a decline** — every earlier gate in this flow asked for
+  `/dflow:next`, so typing it here is a trained reflex, not an answer.
+- **A request to change something first** — revise what was asked about, then
+  ask again. Nothing already committed is undone, and the Local-closeout gate
+  stays satisfied.
+- **A plain decline, or "not now" — stop, and do not ask again.** There is
+  nothing to revise, so re-asking is the same question and reads as pressure.
+  Report that closeout is **not complete**, name the Step 6 flip as what is
+  still owed, and leave restarting to the developer.
+
+⚠ **Declining does not waive the tracking commit** — Step 6's flip is required
+either way. `references/finish-feature-follow-up.md` holds that rule and states
+what it takes to satisfy it.
 
 **The reverse link must have been opened, not only closed — and that is not
-minimal-host-only.** This gate puts no host shape on `follow-up-of`, so a
-phase-bearing host can carry it too, but it has no single commit required to
-carry the row. The requirement still holds for that host; nothing in closeout
+minimal-host-only.** This confirmation point puts no host shape on
+`follow-up-of`, so a phase-bearing host can carry it too, but it has no single
+commit required to carry the row. The requirement still holds for that host; nothing in closeout
 tests it. **The opening half is confirmed for a phase-bearing follow-up host by
 `references/pr-review-checklist.md`'s "A follow-up's reverse link was opened,
 not only closed" item**, in that file's *Delegated to review by

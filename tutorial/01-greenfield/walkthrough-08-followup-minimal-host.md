@@ -361,8 +361,13 @@ Step 2 — status → completed。
   **branch: 欄保持 bugfix/BUG-002-reject-not-persisted。**
   一個功能性 bug 的 host **就是** bugfix host；
   把它改寫成 feature/ 會讓 branch equality 從此對不上。
+  Resume Pointer 寫**進行中**的值——Active Workflow: finish-feature、
+  Current Step: Step 3 — sync BR Snapshot to BC layer、
+  Awaiting: none (mid-step)。closeout 還沒跑完，終局值在 Step 4 寫。
 
-Step 4 — git mv 歸檔 + closeout commit（checkpoint 2）。
+Step 4 — git mv 歸檔，**緊接著寫 Resume Pointer 終局值**
+  （Active Workflow: none、Current Step / Gates Passed: n/a、Awaiting: none），
+  中間不插任何等待點；再寫 closeout 列、git add、commit（checkpoint 2）。
 
 Step 5 — Integration Summary。
 
@@ -375,9 +380,15 @@ Step 6 — **Reverse-Update Follow-up Tracking**（本案不 skip）。
 > 的推導過程，再印摘要。那是真實驗證才會有的內容，本教材不編造；規定見
 > `finish-feature-flow.md` Step 5 開頭。
 
-這一步不能跳過，也不能只寫「Step 5 — Integration Summary。」了事：
-**Step 5 → Step 6 的 gate 就是「Integration Summary emitted → follow-up reverse-link」**
-（`finish-feature-flow.md` 的 gate 清單）。摘要沒印出來，下一節那個 flip 就沒有前提。
+這一步不能跳過，也不能只寫「Step 5 — Integration Summary。」了事：摘要印出來，
+才是下一節那個 flip 的前提。
+
+⚠ **Step 5 → Step 6 會停下來等，但它不是 step gate。** `finish-feature-flow.md`
+開頭的 Step Gates 清單只有 1 → 2 與 3 → 4；5 → 6 被單獨定義成
+**post-Local-closeout confirmation**。差別是實質的：Step 4 的 `git mv` 一做完，
+這個 feature 的 cursor 就已經是 `none` 了，所以這裡**不更新 cursor**，
+`/dflow:next` 與 `/dflow:cancel` 也**不適用**——guide 規定「沒有 active workflow 時
+必須拒絕」這兩個指令。下一節 Alice 的回答就是照這條寫的。
 
 ```text
 == Integration Summary: SPEC-20260512-001-reject-not-persisted ==
@@ -455,8 +466,15 @@ Dflow:
 
 ```text
 Alice:
-/dflow:next
+好，翻吧。
 ```
+
+⚠ **這裡 Alice 沒有打 `/dflow:next`，而這不是筆誤。** 前面每一道 gate 都是打
+`/dflow:next` 過的，所以打它是很自然的反射動作——但此刻 workflow 已經結束，
+guide 規定這個指令必須被拒絕。flow 因此在這裡收**普通話的確認**（「好」「可以」
+「continue」都算），也收 **implicit confirmation**（Alice 直接說「我自己 commit」
+也算確認，不算拒絕）。真的打了 `/dflow:next`，Dflow 應該照 guide 拒絕，
+**然後用白話把問題再問一次**，不要把它當成拒絕。
 
 ```text
 Dflow:

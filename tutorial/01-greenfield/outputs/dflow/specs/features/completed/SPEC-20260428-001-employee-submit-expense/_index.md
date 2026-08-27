@@ -117,7 +117,7 @@ branch: feature/SPEC-20260428-001-employee-submit-expense
 
 **Current Progress**: Feature 已於 2026-05-07 完成；所有 phase-spec status = completed。
 
-**Next Action**: 未來變更請透過 `/dflow:modify-existing` 視為 follow-up feature 處理；不要把 T2/T3 changes 直接追加到這個 completed feature directory。
+**Next Action**: integration — push / merge / PR per the selected Git policy.
 
 **Active Workflow**: none
 

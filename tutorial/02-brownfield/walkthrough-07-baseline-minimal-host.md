@@ -338,6 +338,9 @@ Step 1 — Validate（最小 host 相關項）：
   observation-only，snapshot 不是它的記錄面
 
 Step 2 — status → completed，branch: 保持不變。
+  Resume Pointer 寫**進行中**的值——Active Workflow: finish-feature、
+  Current Step: Step 3 — sync BR Snapshot to BC layer、
+  Awaiting: none (mid-step)。closeout 還沒跑完，終局值在 Step 4 寫。
 
 Step 3 — Sync BR Snapshot to BC Layer：
   這是 **(iii) baseline-precaptured** 的情況——
@@ -349,7 +352,9 @@ Step 3 — Sync BR Snapshot to BC Layer：
   只是它的內容早就寫進去了。
   Integration Summary 的 BC: 欄填 **Shipment**，不是 none。
 
-Step 4 — git mv 歸檔 + closeout commit（checkpoint 2）。
+Step 4 — git mv 歸檔，**緊接著寫 Resume Pointer 終局值**
+  （Active Workflow: none、Current Step / Gates Passed: n/a、Awaiting: none），
+  中間不插任何等待點；再寫 closeout 列、git add、commit（checkpoint 2）。
 
 Step 6 — skip（本 host 沒有 follow-up-of，它是 (c) no-feature 那條路）。
 ```

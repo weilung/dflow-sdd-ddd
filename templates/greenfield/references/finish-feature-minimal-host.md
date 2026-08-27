@@ -243,9 +243,9 @@ A `✗` here stops closeout there, on the same terms.
       follow-up contract requires never happened.
       **What this check cannot decide — stated, not asserted:** ⚠ **only this
       *proof* is minimal-host-only.** `references/finish-feature-flow.md`'s
-      Step 5 → Step 6 gate carries the requirement itself and names who confirms
-      it for a phase-bearing follow-up host; do not read this check's scope as
-      the requirement's scope. The evidence is what stops here: that host has no
+      Step 5 → Step 6 post-Local-closeout confirmation carries the requirement
+      itself and names who confirms it for a phase-bearing follow-up host; do
+      not read this check's scope as the requirement's scope. The evidence is what stops here: that host has no
       single commit required to carry the row, so there is no committed blob for
       this check to read and it never runs there.
 - [ ] **Minimal host, hotfix post-hoc only** — the reconciliation record is

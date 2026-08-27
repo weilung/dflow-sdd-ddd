@@ -216,8 +216,8 @@ Step 2: Flip _index.md Status to completed。
    關帳後的驗證會把「沒有任何步驟要求的差異」判成 edit fallout 並擋下來。）
 - Phase Specs table：不動。每一列早在 Step 1 就必須已經是 completed，
   那是通過條件，不是這一步的工作。
-- Resume Pointer 改成 cursor 的終局狀態：
-  Feature 已於 2026-05-07 完成；所有 phase-spec status = completed。
+- Resume Pointer 改成**誠實的進行中值**（終局值要等 Step 4 歸檔那一刻才寫）：
+  status 已翻成 completed；closeout 進行中，下一步是 Step 3 的 BC sync。
 ```
 
 完整文件範例：
@@ -237,34 +237,40 @@ branch: feature/SPEC-20260428-001-employee-submit-expense
 
 ⚠ **只有 `status` 這一個欄位變了。** front matter 沒有 `completed_date` 這種欄位——
 `templates/_index.md` 沒定義它，Step 2 也沒有命令寫它。關帳後的驗證是拿 commit 進去的
-`_index.md` 跟 Step 1 讀到的比，**差異必須恰好等於 Step 2 與 Step 4 指令 1 命令的那些**，
+`_index.md` 跟 Step 1 讀到的比，**差異必須恰好等於 Step 2、Step 4 的終局 cursor 寫入、
+與 Step 4 指令 1 命令的那些**，
 多出來的欄位會被判成 edit fallout 並擋下 closeout。完成日期不必另存一格：
 closeout commit 自己就是時間戳（`git log -1 -- completed/{SPEC-ID}-{slug}`）。
 
-Resume Pointer：
+Resume Pointer（**這一步寫的是進行中值，不是終局值**）：
 
 ```markdown
 **Current Progress**:
-Feature 已於 2026-05-07 完成；所有 phase-spec status = completed。
+status 已翻成 completed（2026-05-07）；closeout 進行中。
 
 **Next Action**:
-未來變更請透過 /dflow:modify-existing 視為 follow-up feature 處理；
-不要把 T2/T3 changes 直接追加到這個 completed feature directory。
+繼續 closeout——把 Current BR Snapshot sync 到 BC layer（Step 3）。
 
-**Active Workflow**: none
+**Active Workflow**: finish-feature
 
-**Current Step**: n/a
+**Current Step**: Step 3 — sync BR Snapshot to BC layer
 
-**Gates Passed**: n/a
+**Gates Passed**: 1→2
 
-**Awaiting**: none
+**Awaiting**: none (mid-step)
 ```
 
-⚠ **六行都要寫。** Resume Pointer 是 cursor，範本定義六個欄位；Step 2 明文列出
-closeout 後的終局值（`none` / `n/a` / `n/a` / `none`）。只寫前兩行等於把 cursor
-停在半路——下一個接手的人讀不出「這裡沒有 workflow 在跑」。
+⚠ **六行都要寫**，而且**這裡不可以寫 `none`。** Resume Pointer 是**兩行散文
+（Current Progress／Next Action）＋ 四個 cursor 欄位**，合計六行；範本把「cursor
+欄位」明確定義為後面那四個，前兩行不屬於宣告層。只寫前兩行等於把 cursor 停在半路。
+但 closeout 自己還沒跑完——Step 3、
+Step 4 都還在前面，而 gate 3 → 4 是真的 step gate。在這裡就把 `Active Workflow`
+寫成 `none`，等於宣告 workflow 已結束，然後 flow 還要在 gate 3 → 4 叫 Alice 打
+`/dflow:next`——那正是 `AI-AGENT-GUIDE.md` 規定「沒有 active workflow 時必須拒絕」
+的指令。**終局值在 Step 4 寫**，見下面那一節。
 
-這是本篇第二個 lesson：**completed feature 的 Next Action 是 follow-up，不是 continued work。**
+⚠ **`Awaiting` 寫 `none (mid-step)`，不要寫 `gate 3→4`。** Step 3 還沒跑；寫成 gate
+會讓接手的 session 直接打 `/dflow:next`，**整個 BC sync 被跳過**。
 
 ## Step 3 — Sync Current BR Snapshot 到 BC layer
 
@@ -466,7 +472,6 @@ Step 4: Archive feature directory。
 
 git mv dflow/specs/features/active/SPEC-20260428-001-employee-submit-expense \
        dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense
-git status
 ```
 
 為什麼用 `git mv`？
@@ -475,6 +480,60 @@ git status
 |---|---|
 | `mv` + later add | Git 仍可能偵測 rename，但大型 directory diff 可讀性較差。 |
 | `git mv` | 明確表達 archive action，rename history / PR diff / `git log --follow` 較清楚。 |
+
+### `git mv` 之後緊接著寫終局 cursor
+
+`git mv` 一做完，host 就從 `active/` 進了 `completed/`，而 `/dflow:status` 只掃
+`active/`。從這一刻起，**沒有任何全域掃描讀得到這個 cursor 了**。終局值就寫在這裡：
+
+```text
+Dflow:
+Step 4: 寫入 Resume Pointer 終局值（緊接 git mv，中間不插任何等待點）。
+```
+
+```markdown
+**Current Progress**:
+Feature 已於 2026-05-07 完成；所有 phase-spec status = completed。
+
+**Next Action**:
+integration —— 依 _conventions.md 選定的 Git policy 做 push / merge / PR。
+
+**Active Workflow**: none
+
+**Current Step**: n/a
+
+**Gates Passed**: n/a
+
+**Awaiting**: none
+```
+
+⚠ **注意這裡沒有 `git status`。** rename 檢查要排在終局 cursor 寫完**之後** ——
+`git mv` 與這次寫入之間不放任何東西。檢查本身照跑，只是往後挪：
+
+```text
+Dflow:
+git status --short   # 確認 rename 被偵測到，並看 RM —— rename 旁邊的 M
+                     # 代表有未 stage 的編輯（就是剛寫的 cursor），commit 前要
+                     # git add。⚠ 一定要 --short：預設的長格式會把 rename 與
+                     # modification 分兩段列，永遠不會印出 RM 這個雙欄狀態碼。
+```
+
+⚠ **`Next Action` 寫的是 integration，不是「以後請開 follow-up」。** 此刻 Step 5
+的整合工作**還沒做**，cursor 要指向下一個真的要發生的動作。flow 的終局範本就是這個值。
+
+這是本篇第二個 lesson：**等 integration 也做完之後**，這個 completed feature 的後續
+變更要透過 `/dflow:modify-existing` 開成 follow-up feature —— **不要**把 T2/T3
+changes 直接追加進這個已歸檔目錄。那是「之後怎麼改」，不是 cursor 此刻該指的地方。
+
+⚠⚠ **中間隔一個等待點就會開一個窗口。** `git mv` 與這次寫入之間如果插進下面那個
+「要現在 commit 嗎？」的 Y／N 提示，就會出現一段「host 已在 `completed/`、cursor
+卻還宣告 `finish-feature` 進行中」的狀態——`/dflow:cancel` 會在那裡生效。所以
+flow 把這兩件事定義成**不可中斷的一對**。
+
+⚠ **寫下去之後 closeout 就不再動這個 cursor**：commit 被拒（N）、commit 失敗、
+post-commit 驗證 `✗`，三條路都一樣，**不要還原成進行中值**。`git mv` 已經把 host
+移出 `active/`，還原 cursor 買不回「`/dflow:status` 找得到它」。收尾在這之後失敗時，
+看得見它的是 `git status`——staged 的 rename 加上未 commit 的 `_index.md` 改動。
 
 本 tutorial outputs 已經是 final fixture，完成後路徑是：
 
@@ -545,7 +604,7 @@ Dflow:
 ⚠ 但「closeout 看不到」不等於「沒人看得到」：`references/pr-review-checklist.md`
 就有一項「**Integration Summary** was emitted to the conversation (not written to a
 file — it's ephemeral)」，兩軌都有。而且 Step 5 明寫這時 host 已經歸檔凍結、
-**不得再改 archived `_index.md`**，Step 2 也說 closeout commit 之後不要再動 cursor。
+**不得再改 archived `_index.md`**，Step 4 也說終局 cursor 寫下去之後就不再動它。
 「Step 4 之後沒人管」是錯的推論。
 **照 Step 5 做的理由是 Step 5 這麼說，不是因為不這麼做會被擋。**
 （對照上面的 `completed_date`：那一條**確實**有 gate 撐著，因為 Step 2 寫在 Step 4 的

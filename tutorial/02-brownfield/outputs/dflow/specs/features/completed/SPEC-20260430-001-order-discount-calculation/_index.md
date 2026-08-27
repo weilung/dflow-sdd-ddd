@@ -89,7 +89,7 @@ Phase 1 `baseline-and-fix` 同時包含三件事：先 baseline capture `OrderEn
 
 **Current Progress**: feature completed 2026-05-12；phase 1 `baseline-and-fix` 與 `BUG-001-rounding-inconsistency` 均已上線並通過 regression verification。
 
-**Next Action**: closeout complete；後續改動不得直接追加到本 completed feature，請建立 follow-up feature。
+**Next Action**: integration — push / merge / PR per the selected Git policy.
 
 **Active Workflow**: none
 

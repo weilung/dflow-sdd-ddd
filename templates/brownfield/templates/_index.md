@@ -226,7 +226,10 @@ Template note (for AI):
 > 下方四個 cursor 欄位是 workflow 進度的**存放層（宣告，claim）**：
 > 進入 flow 時設 Active Workflow；**每過一個 step gate** 更新 Current Step /
 > Gates Passed / Awaiting（與該 gate 既有的 `_index.md` 更新合併，不另加儀式）；
-> closeout / `/dflow:cancel` 時 Active Workflow 設回 `none`。
+> `/dflow:cancel` 時 Active Workflow 設回 `none`；closeout 也設回 `none`，但**是在
+> 歸檔那一步**——`finish-feature-flow.md` Step 4 的 `git mv` 之後緊接著寫，**不是**
+> closeout 一開始就寫。在那之前 closeout 本身仍是進行中的 workflow，後面還有 step
+> gate 要過。
 > `/dflow:status` 讀 cursor 後會與推導證據（Checkpoint Log、phase-spec
 > status、git log）交叉，不一致會明確報 mismatch——cursor 是宣告、證據優先。
 > Phase 粒度進度由上方 Phase Specs 表承載；cursor 只補 workflow step / gate

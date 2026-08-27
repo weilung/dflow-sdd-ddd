@@ -8,7 +8,29 @@
 
 ## Unreleased
 
-**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）、PROPOSAL-086（受限標頭比讀者窄）、PROPOSAL-087（finish-feature 罕見路徑抽離）
+**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）、PROPOSAL-086（受限標頭比讀者窄）、PROPOSAL-087（finish-feature 罕見路徑抽離）、PROPOSAL-093（closeout 尾巴的 cursor 矛盾）
+
+> **目前投影版號：`0.15.0-rc.1`**（projection-only prerelease，**未發布到 npm**；
+> npm latest 仍是 `0.14.0`）。以下項目都在這個 rc 裡。
+
+- **`finish-feature` 的終局 cursor 改在歸檔那一刻才寫，Steps 5／6 正名為確認點（P-093）**：
+  舊流程在 **Step 2** 就把 Resume Pointer 寫成 `Active Workflow: none`（宣告 workflow
+  已結束），但同一支 flow 在那之後**還有兩個 step gate 會叫開發者打 `/dflow:next`**，
+  而 `AI-AGENT-GUIDE.md` 規定「沒有 active workflow 時 `/dflow:next` 必須被拒絕」——
+  兩份出貨檔在一個具體動作上直接衝突。
+  **第一刀**：Step 2 改寫**誠實的進行中值**；終局值移到 **Step 4、緊接 `git mv` 之後**
+  寫入，並定義成**不可中斷的一對**（Y／N 提示、對開發者提問、會等輸入的 tool call、
+  `git status` 都不得插入其間）。⚠ 中間隔一個等待點就會開一個窗口：host 已在
+  `completed/`、cursor 卻還宣告 `finish-feature` 進行中，`/dflow:cancel` 會在那裡生效。
+  **第二刀**：`Step 5 → Step 6` 移出開頭的 Step Gates 表，正名為
+  **post-Local-closeout confirmation** —— 它會停下來等，但**不是 step gate**、不更新
+  cursor、不吃 `/dflow:next` 與 `/dflow:cancel`；表後的 catch-all 一併改寫成三分割。
+  ⚠ **型別歸屬是無條件的，「會停等」才是有條件的**（只有帶 `follow-up-of` 的 host
+  會走到）。兩者若一起條件化，非 follow-up host 會掉回 catch-all 並同時讀到
+  「宣告進入 Step 6」與「跳過 Step 6」。
+  兩軌對稱；連帶更新 `_index.md` 範本的 cursor 契約、rationale registry、五份走查與
+  兩個 completed fixture 的終局 `Next Action`。
+  ⚠ **失敗路徑不還原 cursor** —— 這是刻意的能力收窄，不是漏做。
 
 - **`finish-feature` 的 minimal host（zero-phase）檢查改為獨立檔（P-087）**：
   `/dflow:finish-feature` 是**每個 feature 收尾都會跑**的指令，而它的 Step 1 檢查表
