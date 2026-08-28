@@ -174,20 +174,48 @@ If any check fails:
 > stale status manually), then re-run `/dflow:finish-feature`."
 
 **Once every item above — and every item this host's branch file added — reads
-`✓`, record the baseline the post-commit check compares against.** For **every
-file in the host directory** — not only the
-`_index.md` and the spec files the tables name — run
-`git hash-object -w {path}` and state the resulting `path → blob` list in the
-conversation. **That list is the baseline** — Step 4's post-commit verification
-compares each committed blob against it, **over the same span**.
+`✓`, record the baseline the post-commit check compares against.** Capture
+**exactly the set the closeout commit will carry**:
+
+```bash
+git ls-files --cached --others --exclude-standard -- dflow/specs/features/active/{SPEC-ID}-{slug}
+```
+
+⚠ **Both halves of that command are load-bearing, because it has to agree with
+`git add`.** It **excludes** ignored files, which `git add` also skips and the
+span can never carry. It **includes** untracked files that are not ignored,
+which `git add` **does** stage — a host file created during this feature and
+never committed still rides into the closeout commit, so a baseline without it
+reports that file as added after Step 1 and blocks a correct closeout.
+
+Run `git hash-object -w {path}` for each and build the `path → blob` list, one
+entry per line. **Strip the host-directory prefix**: that command prints paths
+from the repository root, and Step 4 matches on the path *relative to the host
+directory*.
 ⚠ **The `-w` is mandatory.** It writes each blob into the object database, so
-Step 4 can read the baseline's **content** back; without it the recorded list is
+Step 4 can read the baseline's **content** back; without it the list is
 fingerprints only, and Step 4's comparison cannot run.
-The check has no other durable baseline: "the tree Step 1 read" otherwise lives
-only in this session's working memory, and **`HEAD^` is not a substitute** — at
-this point the working tree legitimately carries uncommitted finalization edits
-and this change's documentation-sweep deltas, so comparing against the parent
-commit reports every one of them as a difference no step ordered.
+
+**Then anchor the list itself where Step 4 can recompute its name** — pipe the
+list into `git hash-object -w --stdin`, then:
+
+```bash
+git update-ref refs/dflow/closeout-baseline/{SPEC-ID}-{slug} {list blob}
+```
+
+**That ref is the baseline.** Step 4 resolves it by recomputing the same name
+from this host's own `{SPEC-ID}-{slug}`; if `git check-ref-format` rejects that
+name, say so and stop.
+⚠ **Trim both fields of every entry, on write and on read.** A shell that
+writes CRLF leaves a trailing `\r` on each line, and `git cat-file -p` on a blob
+id carrying one fails as an invalid object name — which would report a healthy
+baseline as unreadable.
+⚠ **`refs/dflow/**` is local by construction.** A default `git push`, `git fetch`
+and a plain `git clone` all leave it behind; an explicit refspec or
+`clone --mirror` does carry it. Do not add it to any refspec.
+⚠ **`HEAD^` is not a substitute** — at this point the working tree legitimately
+carries uncommitted finalization edits, so comparing against the parent commit
+reports every one of them as a difference no step ordered.
 
 **→ Step Gate: Step 1 → Step 2**
 
@@ -382,7 +410,20 @@ Wait for confirmation before entering Step 4.
 
 ## Step 4: Archive — `git mv` the Feature Directory
 
-AI runs:
+**First, confirm the baseline is still readable — before anything irreversible:**
+
+```bash
+git cat-file -p refs/dflow/closeout-baseline/{SPEC-ID}-{slug}
+```
+
+If it does not resolve, or the list it prints names a blob that does not read
+back, **stop here** and say the baseline is unavailable: closeout restarts from
+Step 1, which re-captures it. **Nothing is committed yet and the host is still in
+`active/`** — that is what this position buys.
+⚠ **This does not prove the baseline is the *right* one** — only that it is
+readable. Reading back and *judging* is the post-commit item's job.
+
+Then AI runs:
 
 ```bash
 git mv dflow/specs/features/active/{SPEC-ID}-{slug} \
@@ -539,12 +580,14 @@ every item:
       blocks, are judged over exactly that span.
       ⚠ **The span is derived from what was staged, not from what the tables
       name.**
-      **The baseline is the `path → blob` list Step 1 recorded** — the tree
-      Step 1 read, captured rather than remembered. **Match on the path relative
-      to the host directory**: Step 1 recorded them under
-      `active/{SPEC-ID}-{slug}/`, this commit carries them under
+      **The baseline is the `path → blob` list Step 1 anchored** — read it with
+      `git cat-file -p refs/dflow/closeout-baseline/{SPEC-ID}-{slug}`, recomputing
+      that name from this host's own `{SPEC-ID}-{slug}`. The tree Step 1 read is
+      captured rather than remembered, **and so is the way back into it** — this
+      resolves in a session that never saw Step 1. **Both sides are already
+      host-relative** — Step 1 stripped its prefix, this span is read under
       `completed/{SPEC-ID}-{slug}/`, and the `git mv` preserved the relative
-      tree.
+      tree — so the two sets line up with no prefix left to reconcile.
       **Compare the two path sets first, before any blob comparison.** A
       **baseline path missing from the span** is a file removed after Step 1; a
       **span path with no baseline entry** is a file added after Step 1. Each is
@@ -560,9 +603,10 @@ every item:
       **blocks**.**
       ⚠ **Blob ids alone answer only *same* / *different*, which cannot decide
       the derived condition.**
-      ⚠ **If that list was not recorded, or a baseline blob does not read back
-      (`git cat-file -p {baseline blob}` fails), report this check as degraded
-      and say so — do not substitute `HEAD^`.**
+      ⚠ **If the ref does not resolve, or the content behind it does not read
+      back, report this check as degraded and say so — do not substitute
+      `HEAD^`.** The probe at the top of this step exists so that this is reached
+      only when the baseline became unreadable *during* closeout.
       Step 1 blocks unless every
       spec in the host already reads `status: completed`, so those flips are
       already **in** the baseline whichever step made them: a **minimal** host's
@@ -600,11 +644,10 @@ every item:
       item: that one asserts **presence, not correctness**, and pointing a
       boundary at a presence check would make it a hole rather than a division
       of labour.
-      ⚠ A **hosted** row on a phase-bearing host may legitimately reach closeout
-      with an **empty** cell — it is filled by the host's **next** commit, which
-      may be a later phase's implementation commit or, when none follows, this
-      closeout via instruction 1 (`git-integration.md` § Commit checkpoints). An
-      empty cell is therefore not on its own a failure of this check.
+      ⚠ **An empty hosted `Commit` cell does not fail this item — and this item
+      does not clear it either.** `references/pr-review-checklist.md` asserts that
+      cell and says so in its own words; **this check does not**. Judge the item on
+      the rest of its evidence and leave the cell to that checklist.
       **Scope, stated so it is not read as more than it is:** this gate re-reads
       the archived **host directory** only — what the archived record *says*.
       What the closeout **commit** *contains* is the separate item below; neither
@@ -658,6 +701,17 @@ every item:
       directory was moved, not copied)
 - [ ] `git status --short` shows no leftovers related to this feature
       (working tree clean; identify any unrelated dirty files explicitly)
+
+**Once every item above reads `✓`, release the baseline anchor:**
+
+```bash
+git update-ref -d refs/dflow/closeout-baseline/{SPEC-ID}-{slug}
+```
+
+⚠ **Only after they all pass** — a failed item is fixed and re-verified against
+this same evidence, so the anchor has to survive it.
+⚠ **Deleting the ref is not a worktree edit**, so it is not a difference the
+item above could have seen.
 
 If any item fails, do **not** declare closeout complete — fix it and re-verify.
 **How you may fix it depends on the host.** A **phase-bearing** feature has no

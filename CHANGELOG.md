@@ -8,10 +8,28 @@
 
 ## Unreleased
 
-**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）、PROPOSAL-086（受限標頭比讀者窄）、PROPOSAL-087（finish-feature 罕見路徑抽離）、PROPOSAL-090（`Git-principles-*.md` 的 canonical 區改為可刷新）、PROPOSAL-093（closeout 尾巴的 cursor 矛盾）、PROPOSAL-095（BR Snapshot 範例列移出資料面）
+**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）、PROPOSAL-086（受限標頭比讀者窄）、PROPOSAL-087（finish-feature 罕見路徑抽離）、PROPOSAL-090（`Git-principles-*.md` 的 canonical 區改為可刷新）、PROPOSAL-093（closeout 尾巴的 cursor 矛盾）、PROPOSAL-095（BR Snapshot 範例列移出資料面）、PROPOSAL-096（closeout baseline 的鑰匙改為可推導）
 
-> **目前投影版號：`0.14.5`**（**未發布到 npm**；npm latest 仍是 `0.14.0`）。
+> **目前投影版號：`0.14.6`**（**未發布到 npm**；npm latest 仍是 `0.14.0`）。
 > 以下項目都在這一版裡。
+
+- **closeout 的 baseline 現在**定址得回來**，而且偵測搬到了還能回頭的位置（P-096，dist issue #10 的殘餘）**：
+  `#10` 修好了「baseline 的**內容**讀不回來」（Step 1 的 `git hash-object` 補上 `-w`），
+  但**定址那些內容的 `path → blob` 清單**仍然只被「講在對話裡」——
+  而同一段文字兩句之後就宣告對話不可靠，且 `_index.md` 的 Resume Pointer **自述**
+  「開新對話接續工作時，從這裡讀起」、Step 2 明文預期「下一個 session」會接手。
+  **跨對話是這棵樹自己寫在紙上的正常路徑**，一跨過去，那批 blob 就成了無人能定址的垃圾。
+  現在 Step 1 把清單本身也寫成一顆 blob，錨在 **`refs/dflow/closeout-baseline/{SPEC-ID}-{slug}`**
+  —— 名字從 host 自己的 SPEC-ID **重算得出來**，所以**不需要任何東西撐過對話**；
+  驗證全過之後才 `git update-ref -d` 釋放。
+  同批還修了三件：擷取集合改用 `git ls-files --cached --others --exclude-standard`
+  （**那正是 `git add {dir}` 自己工作的集合** —— 舊寫法會把 ignored 檔種進 baseline 造成無解假擋，
+  而只收 tracked 又會漏掉未 commit 的新檔、同樣誤擋）；**`git mv` 之前**先確認 baseline
+  讀得回來（原本這道驗證整個跑在 commit 之後，失敗時**沒有修復程序**）；
+  空 `Commit` cell 的措辭改成明說「本檢查不判它、`pr-review-checklist.md` 判」，
+  維持既有分工而不再假裝自己在擋。
+  ⚠ **`degraded` 這個值仍未定義**，那是 `#10` 留下的另一半 —— 五輪 review 證明定義它需要
+  先給它一個持久落點（現在的記錄裡沒有任何欄位放得下），已另案追蹤。
 
 - **`Git-principles-{policy}.md` 的 §§ 1–5 改為可刷新，既有專案不再永遠停在 init 當時的版本（P-090，走 B3）**：
   `Git-principles-{gitflow|trunk}.md` 是 **init-only starter** —— `configure-agents` 從不重投影它，
