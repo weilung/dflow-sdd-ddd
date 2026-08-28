@@ -24,13 +24,13 @@ dflow configure-agents
 
 | 專案內的面 | 例子 | 擁有者 | flagless `dflow configure-agents` 會做什麼 | 需要的 flag |
 |---|---|---|---|---|
-| 起始 scaffolding 與你的 specs | `_overview.md`、`_conventions.md` 內文、`Git-principles-*.md`、`dflow/specs/` 下你寫的一切 | **你** | 不動；唯一例外是把 `_conventions.md` 的 `> Dflow Version:` 對齊行更新為本次 CLI 版本 | — |
+| 起始 scaffolding 與你的 specs | `_overview.md`、`_conventions.md` 內文、`Git-principles-{policy}.md` 的檔頭與 `## 6.` 以下、`dflow/specs/` 下你寫的一切 | **你** | 不動；唯一例外是把 `_conventions.md` 的 `> Dflow Version:` 對齊行更新為本次 CLI 版本 | — |
 | Workflow bundle | `dflow/specs/shared/dflow-workflows/`（flow 文件、空白模板、`.dflow-bundle-manifest.json`） | Dflow | **自動重投影**；新版已移除的檔案依 manifest 差集自動清掉 | — |
-| Agent 檔的 shim 區＋canonical 指南的 canonical 區 | `CLAUDE.md` / `AGENTS.md` / `.github/copilot-instructions.md` 內的 `agent-shim` marker 區；`AI-AGENT-GUIDE.md` 的 `guide-canonical` 區 | Dflow（marker 內）／你（marker 外） | **原地刷新 `agent-shim` 與 `guide-canonical` 區**；marker 外（含 `## Project Context`）保留不動 | — |
+| marker 劃定的區塊 | `CLAUDE.md` / `AGENTS.md` / `.github/copilot-instructions.md` 內的 `agent-shim` marker 區；`AI-AGENT-GUIDE.md` 的 `guide-canonical` 區；`Git-principles-{policy}.md` 的 `git-principles-canonical` 區（§§ 1–5） | Dflow（marker 內）／你（marker 外） | **原地刷新 `agent-shim`、`guide-canonical` 與 `git-principles-canonical` 區**；marker 外保留不動——包含 `## Project Context`，以及 Git principles 檔的檔頭與 `## 6. AI Collaboration Rules (Project Policy)` 以下 | — |
 | 工具原生命令入口 | `.claude/commands/dflow/`、`.github/prompts/dflow-*.prompt.md` 等，以及 `AGENTS.md` 內的 `codex-command-triggers` marker 區 | Dflow | 不重生成 | `--command-adapters` |
 | Project-level skill | `.claude/skills/dflow/`、`.agents/skills/dflow/`、`.github/skills/dflow/` | Dflow | 既有 skill 不重生成；新選工具還沒有 skill 時會詢問（預設安裝） | `--skills`（強制全部重生成） |
 
-一句話版本：**flagless 刷新 bundle、`agent-shim` 與 `guide-canonical` 區；command adapters（含 `AGENTS.md` 的 `codex-command-triggers` 區）與既有 skill 要各自加 flag；你寫的東西永遠不會被自動改寫或遷移。**
+一句話版本：**flagless 刷新 bundle、`agent-shim`、`guide-canonical` 與 `git-principles-canonical` 區；command adapters（含 `AGENTS.md` 的 `codex-command-triggers` 區）與既有 skill 要各自加 flag；你寫的東西永遠不會被自動改寫或遷移。**
 
 ## 既有檔案會被怎麼對待
 
@@ -42,6 +42,10 @@ dflow configure-agents
 - **`AGENTS.md` 的 `codex-command-triggers` marker 損壞** → 只在 `--command-adapters` 管理它的那次執行觸發同樣的「不動檔案＋merge snippet」處理；flagless 執行不碰損壞的 trigger 區、仍照常刷新同檔的 `agent-shim` 區——前提是 trigger 區沒有與 shim 區重疊或交錯；重疊時即使 flagless 也整檔不動、走 merge snippet。
 - **`AI-AGENT-GUIDE.md` 的 `guide-canonical` marker 損壞** → 指南保持不動，改以訊息指引你修復或移除 marker（不產 merge snippet）。
 - **較舊版本建立、還沒有 marker 的 `AI-AGENT-GUIDE.md`** → 互動的 `configure-agents` 徵詢是否採用 marker。**注意採用的代價**：接受後指南會以套件模板重建——只有 `## Project Context` 被保留，**其餘自訂段落都會被取代**；若你改過其他段落，應婉拒採用、改走手動合併。未採用前 `dflow doctor` 會回報該檔處於凍結狀態、不會被自動刷新。
+- **`Git-principles-{policy}.md` 的 `git-principles-canonical` marker 損壞** → 檔案保持不動，改以訊息指引你修復或移除 marker（不產 merge snippet）。`dflow doctor` 會把這個狀態單獨回報、不會併進「還沒有 marker」——被改壞的檔若被當成沒有 marker，採納提問就會去改寫沒有人重讀過的 §§ 1–5。
+- **較舊版本建立、還沒有 marker 的 `Git-principles-{policy}.md`** → 互動的 `configure-agents` 徵詢是否採用 marker。**這個提問的範圍比指南那個窄得多**：只有 §§ 1–5 會被換成本版內容，檔頭（含你填的 `> Created:`）與 `## 6. AI Collaboration Rules (Project Policy)` 以下——包含你的 CI／CD 段——內容原封保留。（有一項全檔都適用、而且一直都在的正規化：換行符會統一成該檔原本佔多數的那一種，所以**混合**換行的檔案回來會是一致的，而不是逐位元組相同。）只有在你改過 §§ 1–5 之中的東西時才需要婉拒。未採用前 `dflow doctor` 會回報 canonical 區處於凍結狀態、不會被自動刷新。
+  ⚠ **trunk 專案另注意**：舊版把採用者要填的選擇放在 canonical 區內——greenfield 是 `## 3.` 的 merge 策略；brownfield 則是 `## 3.` 的 merge 策略**加上** `## 2.` 的「要不要 Conventional Commits」。新版已把那些**選擇**移到 `## 6.` 底下，取捨說明留在原處。因為 `## 6.` 在區外，`configure-agents` **不會**幫你補上那一小節——升級後請自行在 `## 6.` 記下你的選擇。
+- **Dflow 認不出來的 `Git-principles-{policy}.md`**（`## 1. Branch Structure` 與 `## 6. AI Collaboration Rules (Project Policy)` 兩個標題沒有各出現恰好一次）→ 不動並警告，也不提供採納：少了任一個錨，就沒有辦法判斷 canonical 區到哪裡結束、你的內容從哪裡開始。
 
 ## 升級後第一步：`dflow doctor`
 
@@ -60,7 +64,7 @@ doctor 是**唯讀**檢查——只回報、不寫任何檔案。升級相關的
   已退休的敘述（Ceremony Scaling 的 escalate-only 規則、Filling the Templates 的
   no-BR 家族、SPEC-ID Format 的 minimal-host 例外）。逐節點名,並告訴你該補什麼
 - guide 凍結（無 marker）、或 bundle 的 `§` 參照指向不存在的段落
-- 你所選 Git policy 對應的 `Git-principles-{policy}.md` starter 遭改動或缺漏
+- 你所選 Git policy 對應的 `Git-principles-{policy}.md` starter 缺漏，或其 **canonical §§ 1–5** 與本版不同——另外三種狀態分開回報：還沒採納 marker、marker 損壞、以及安裝的套件自己那份 starter 不堪用。只比 §§ 1–5，所以你自己的段落永遠不會被報成 drift
 - `features/active/` 內的 feature `_index.md` 還是舊模板形狀（`completed/` 不掃）
 - 已指向 canonical 指南、卻未受 Dflow 管理的 agent 檔
 

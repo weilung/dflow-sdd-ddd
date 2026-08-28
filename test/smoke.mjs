@@ -1404,6 +1404,249 @@ try {
       cwd: mismatchRoot, input: '1,2,3\ny\n', encoding: 'utf8', timeout: RUN_TIMEOUT_MS, maxBuffer: 1024 * 1024
     });
     assert.notEqual(mismatchConfigure.status, 0, 'resolver-mismatch: configure-agents DOES read the structure track and must fail — that is why doctor may not call it unused');
+
+    // ⚠⚠ THE SAME FALSE-CLEAN, REBUILT THROUGH THE PROPOSAL-090 B3 CHECK
+    // (`p090-b3-x1` finding 3, 2026-08-28). `checkInitOnlyStarters` compares only
+    // the marker-delimited canonical region of `Git-principles-{policy}.md` — and
+    // when the PACKAGED starter's own markers were broken, every branch of its
+    // else-if chain was skipped and doctor printed `All checks passed` with exit 0.
+    // `addGitPrinciplesItem` throws `InitError` on that identical package before
+    // writing a byte, so the two commands disagreed about one install exactly the
+    // way `feedbackcommon-xv6` reported. Its own package copy, so nothing above
+    // can bleed in.
+    const gpPkg = join(tempRoot, 'gp-marker-broken-package');
+    await cp(repoRoot, gpPkg, {
+      recursive: true,
+      filter: (src) => {
+        const rel = relative(repoRoot, src);
+        if (rel === '') return true;
+        return ['bin', 'lib', 'templates', 'package.json'].includes(rel.split(/[\\/]/)[0]);
+      }
+    });
+    const gpRoot = join(tempRoot, 'gp-marker-broken-project');
+    await cp(bpRoot, gpRoot, { recursive: true });
+    const gpStarterPath = join(gpPkg, 'templates', 'greenfield', 'scaffolding', 'Git-principles-trunk.md');
+    const GP_END_MARKER = '<!-- dflow-generated: git-principles-canonical END -->';
+    const gpPackaged = await readFile(gpStarterPath, 'utf8');
+    assert.ok(gpPackaged.includes(GP_END_MARKER), 'gp-marker: the packaged starter must carry the END marker, or the mutation below is a no-op');
+    // The project half must be healthy and marker-managed, or the chain would be
+    // decided by the project's own state and this case would prove nothing about
+    // the packaged side.
+    const gpProjectStarter = await readFile(join(gpRoot, 'dflow/specs/shared/Git-principles-trunk.md'), 'utf8');
+    assert.ok(gpProjectStarter.includes(GP_END_MARKER), 'gp-marker: the project starter must be marker-managed, or this fixture tests the wrong branch');
+
+    const runGpDoctor = () => {
+      const result = spawnSync(process.execPath, [join(gpPkg, 'bin', 'dflow.js'), 'doctor'], {
+        cwd: gpRoot, encoding: 'utf8', timeout: RUN_TIMEOUT_MS, maxBuffer: 1024 * 1024
+      });
+      if (result.error) throw result.error;
+      return { code: result.status, stdout: result.stdout || '', stderr: result.stderr || '' };
+    };
+
+    // FALSE-REJECTION DIRECTION FIRST, and it is what makes the mutation below
+    // non-vacuous: with this copy still whole the fixture DOES reach
+    // `All checks passed`, so losing that line afterwards can only be the broken
+    // marker talking.
+    const gpIntactDoctor = runGpDoctor();
+    assert.equal(gpIntactDoctor.code, 0, `gp-marker control: doctor must exit 0\nSTDOUT:\n${gpIntactDoctor.stdout}\nSTDERR:\n${gpIntactDoctor.stderr}`);
+    assert.match(gpIntactDoctor.stdout, /All checks passed/, 'gp-marker control: the fixture must be otherwise clean, or the mutation direction proves nothing');
+    assert.doesNotMatch(gpIntactDoctor.stdout, /installed dflow package looks incomplete/i, 'gp-marker control: an intact package must NOT be reported as incomplete');
+
+    // MUTATION DIRECTION — the exact state `p090-b3-x1` built: a packaged starter
+    // missing its END marker.
+    await writeFile(gpStarterPath, gpPackaged.replace(`${GP_END_MARKER}\n`, ''));
+    const gpBrokenDoctor = runGpDoctor();
+    assert.equal(gpBrokenDoctor.code, 0, `gp-marker: doctor must stay read-only and exit 0\nSTDOUT:\n${gpBrokenDoctor.stdout}\nSTDERR:\n${gpBrokenDoctor.stderr}`);
+    assert.doesNotMatch(gpBrokenDoctor.stdout, /All checks passed/, 'gp-marker: this exact line is the defect — doctor must not call a package with broken canonical markers clean');
+    assert.match(gpBrokenDoctor.stdout, /\[warn\] The installed dflow package looks incomplete/, 'gp-marker: the broken packaged starter must be reported as a warn finding');
+    assert.match(gpBrokenDoctor.stdout, /templates\/greenfield\/scaffolding\/Git-principles-trunk\.md/, 'gp-marker: the finding must name the packaged starter, so a broken install is not read as project drift');
+    assert.match(gpBrokenDoctor.stdout, /no well-formed git-principles-canonical markers/, 'gp-marker: the finding must name the cause');
+    assert.match(gpBrokenDoctor.stdout, /not with anything in your project/, 'gp-marker: the action must point at the package, not at project content');
+    // Both resolvers agree on this project, so the flat wording is the honest one.
+    assert.match(gpBrokenDoctor.stdout, /fails on this package before writing a byte/, 'gp-marker: with the resolvers agreeing, doctor may say flatly that configure-agents fails');
+    // ⚠ This project's own starter is healthy, so the only thing skipped is the
+    // canonical COMPARISON — there is nothing trustworthy to compare against. It
+    // must not surface as project drift: that would blame the reader's file for
+    // damage in the install. (The project-side verdicts that are true REGARDLESS
+    // of the package get their own fixture below.)
+    assert.doesNotMatch(gpBrokenDoctor.stdout, /Git-principles-trunk\.md canonical sections differ/, 'gp-marker: a broken packaged starter must never be reported as drift in the project file');
+    // The half that proves the warn was right: the other command really does fail.
+    const gpConfigure = spawnSync(process.execPath, [join(gpPkg, 'bin', 'dflow.js'), 'configure-agents'], {
+      cwd: gpRoot, input: '1,2,3\ny\n', encoding: 'utf8', timeout: RUN_TIMEOUT_MS, maxBuffer: 1024 * 1024
+    });
+    assert.notEqual(gpConfigure.status, 0, 'gp-marker: configure-agents must hard-fail on this package — that disagreement is the whole reason doctor may not stay silent');
+
+    // ⚠ The UNREADABLE packaged starter is the same defect one branch earlier: the
+    // old `catch { template = null; }` plus `if (template)` made a MISSING packaged
+    // file the quietest state of all. Same damage, same remedy, so it must reach the
+    // same finding — with the cause named differently.
+    await rm(gpStarterPath, { force: true });
+    const gpMissingDoctor = runGpDoctor();
+    assert.equal(gpMissingDoctor.code, 0, `gp-marker/missing: doctor must stay read-only and exit 0\nSTDOUT:\n${gpMissingDoctor.stdout}\nSTDERR:\n${gpMissingDoctor.stderr}`);
+    assert.doesNotMatch(gpMissingDoctor.stdout, /All checks passed/, 'gp-marker/missing: a packaged starter that is not there at all must not read as healthy');
+    assert.match(gpMissingDoctor.stdout, /\[warn\] The installed dflow package looks incomplete/, 'gp-marker/missing: it must reach the same finding as a broken marker');
+    assert.match(gpMissingDoctor.stdout, /could not be read/, 'gp-marker/missing: the cause clause must say it could not be read, not that the markers are wrong');
+
+    // ⚠⚠ BOTH FINDINGS, NOT ONE. Pre-empting the project-side verdicts behind the
+    // package finding was tried and rejected — "your file predates the markers" is
+    // true whatever shape the package is in, and withholding it because its action
+    // has a prerequisite is a silence of exactly the class this line of work exists
+    // to remove. This fixture is the guard on that decision: a project whose starter
+    // is ALSO pre-marker, against the same broken package, must produce both.
+    const gpBothRoot = join(tempRoot, 'gp-marker-broken-both-project');
+    await cp(gpRoot, gpBothRoot, { recursive: true });
+    const gpBothStarter = join(gpBothRoot, 'dflow/specs/shared/Git-principles-trunk.md');
+    const GP_START_MARKER = '<!-- dflow-generated: git-principles-canonical START -->';
+    await writeFile(
+      gpBothStarter,
+      (await readFile(gpBothStarter, 'utf8'))
+        .replace(`${GP_START_MARKER}\n\n`, '')
+        .replace(`\n${GP_END_MARKER}\n`, '')
+    );
+    const gpBothDoctor = spawnSync(process.execPath, [join(gpPkg, 'bin', 'dflow.js'), 'doctor'], {
+      cwd: gpBothRoot, encoding: 'utf8', timeout: RUN_TIMEOUT_MS, maxBuffer: 1024 * 1024
+    });
+    if (gpBothDoctor.error) throw gpBothDoctor.error;
+    assert.equal(gpBothDoctor.status, 0, `gp-marker/both: doctor must exit 0\nSTDOUT:\n${gpBothDoctor.stdout}`);
+    assert.match(gpBothDoctor.stdout, /\[warn\] The installed dflow package looks incomplete/, 'gp-marker/both: the package finding must still be reported');
+    assert.match(gpBothDoctor.stdout, /Git-principles-trunk\.md predates managed git-principles-canonical markers/, 'gp-marker/both: the project-side verdict is true regardless of the package and must NOT be withheld');
+
+    // ⚠⚠ THE PROJECT FILE BEING GONE MUST NOT HIDE A BROKEN PACKAGE — the hole
+    // `p090-b3-x1r` walked through, and the FOURTH boundary guessed around a
+    // package check in this file. The first version validated the packaged
+    // starter inside the `else` of "does the project file exist", so deleting
+    // the project's copy silenced the package finding entirely and left the
+    // reader with "recover it from a fresh `dflow init`" — an action that, on
+    // this package, reproduces the damage and reads as their own mistake.
+    const gpGoneRoot = join(tempRoot, 'gp-marker-broken-missing-project');
+    await cp(gpRoot, gpGoneRoot, { recursive: true });
+    await rm(join(gpGoneRoot, 'dflow/specs/shared/Git-principles-trunk.md'), { force: true });
+    const gpGoneDoctor = spawnSync(process.execPath, [join(gpPkg, 'bin', 'dflow.js'), 'doctor'], {
+      cwd: gpGoneRoot, encoding: 'utf8', timeout: RUN_TIMEOUT_MS, maxBuffer: 1024 * 1024
+    });
+    if (gpGoneDoctor.error) throw gpGoneDoctor.error;
+    assert.equal(gpGoneDoctor.status, 0, `gp-marker/gone: doctor must exit 0\nSTDOUT:\n${gpGoneDoctor.stdout}`);
+    assert.match(gpGoneDoctor.stdout, /Git-principles-trunk\.md is missing/, 'gp-marker/gone: the missing project file is still reported');
+    assert.match(gpGoneDoctor.stdout, /\[warn\] The installed dflow package looks incomplete/, 'gp-marker/gone: a missing project file must NOT gate the packaged-side check — that was the defect');
+    // ⚠ And the recovery action must not send them to an init that would hand
+    // back the same damage. Say the confident thing only when it is true.
+    assert.match(gpGoneDoctor.stdout, /Reinstall dflow first/, 'gp-marker/gone: with the package known broken, the recovery action must lead with the reinstall');
+    // Control, so the clause above is not simply always emitted: with an INTACT
+    // package the plain recovery action is the right one.
+    const gpGoneIntact = spawnSync(process.execPath, [join(repoRoot, 'bin', 'dflow.js'), 'doctor'], {
+      cwd: gpGoneRoot, encoding: 'utf8', timeout: RUN_TIMEOUT_MS, maxBuffer: 1024 * 1024
+    });
+    if (gpGoneIntact.error) throw gpGoneIntact.error;
+    assert.match(gpGoneIntact.stdout, /Git-principles-trunk\.md is missing/, 'gp-marker/gone control: the missing file is reported against an intact package too');
+    assert.doesNotMatch(gpGoneIntact.stdout, /Reinstall dflow first/, 'gp-marker/gone control: an intact package must get the plain recovery action, or the conditional wording proves nothing');
+    assert.doesNotMatch(gpGoneIntact.stdout, /installed dflow package looks incomplete/i, 'gp-marker/gone control: an intact package must not be reported as incomplete');
+
+    // ⚠⚠ AND THE FIFTH BOUNDARY: POLICY KNOWN, EDITION UNKNOWN. `p090-b3-x2r`
+    // executed it — strip the manifest and every structural signal from a trunk
+    // project, break BOTH packaged trunk starters, and doctor printed
+    // `All checks passed` while `configure-agents` asked which track to use and
+    // then died on the packaged marker. Each earlier guess here was narrower
+    // than the last and each was reported as the fix; the edition set is CLOSED,
+    // so when the project cannot tell us, every candidate track gets checked.
+    const gpNoEdRoot = join(tempRoot, 'gp-marker-no-edition-project');
+    await cp(gpRoot, gpNoEdRoot, { recursive: true });
+    await rm(join(gpNoEdRoot, BUNDLE_REL), { recursive: true, force: true });
+    await rm(join(gpNoEdRoot, 'dflow/specs/architecture/tech-debt.md'), { force: true });
+    await rm(join(gpNoEdRoot, 'dflow/specs/migration/tech-debt.md'), { force: true });
+    await rm(join(gpNoEdRoot, 'dflow/specs/domain/context-map.md'), { force: true });
+    assert.equal(await exists(join(gpNoEdRoot, 'dflow/specs/shared/_conventions.md')), true, 'gp-marker/no-edition: it must still be recognisably a Dflow project with a selected policy, or the fixture proves nothing');
+    assert.equal(await exists(join(gpNoEdRoot, 'dflow/specs/shared/Git-principles-trunk.md')), true, 'gp-marker/no-edition: the project file must still be present, or this retests the previous hole instead');
+
+    const makeGpPkg = async (name, brokenEditions) => {
+      const dir = join(tempRoot, name);
+      await cp(repoRoot, dir, {
+        recursive: true,
+        filter: (src) => {
+          const rel = relative(repoRoot, src);
+          if (rel === '') return true;
+          return ['bin', 'lib', 'templates', 'package.json'].includes(rel.split(/[\\/]/)[0]);
+        }
+      });
+      for (const ed of brokenEditions) {
+        const p = join(dir, 'templates', ed, 'scaffolding', 'Git-principles-trunk.md');
+        await writeFile(p, (await readFile(p, 'utf8')).replace(`${GP_END_MARKER}\n`, ''));
+      }
+      return dir;
+    };
+    const runNoEdDoctor = (pkgDir) => {
+      const r = spawnSync(process.execPath, [join(pkgDir, 'bin', 'dflow.js'), 'doctor'], {
+        cwd: gpNoEdRoot, encoding: 'utf8', timeout: RUN_TIMEOUT_MS, maxBuffer: 1024 * 1024
+      });
+      if (r.error) throw r.error;
+      return { code: r.status, stdout: r.stdout || '' };
+    };
+
+    // CONTROL FIRST: an intact package on this same edition-less project must
+    // stay clean, or every assertion below passes because the fixture is noisy.
+    const noEdIntact = runNoEdDoctor(repoRoot);
+    assert.equal(noEdIntact.code, 0, `gp-marker/no-edition control: doctor must exit 0\nSTDOUT:\n${noEdIntact.stdout}`);
+    assert.match(noEdIntact.stdout, /All checks passed/, 'gp-marker/no-edition control: an intact package must leave this fixture clean, or the mutations below prove nothing');
+
+    // BOTH candidate tracks damaged: configure-agents cannot survive whichever
+    // track it picks, so the decisive wording is the honest one.
+    const noEdBothPkg = await makeGpPkg('gp-no-edition-both-broken', ['greenfield', 'brownfield']);
+    const noEdBoth = runNoEdDoctor(noEdBothPkg);
+    assert.equal(noEdBoth.code, 0, `gp-marker/no-edition both: doctor must stay read-only and exit 0\nSTDOUT:\n${noEdBoth.stdout}`);
+    assert.doesNotMatch(noEdBoth.stdout, /All checks passed/, 'gp-marker/no-edition both: this exact line is the defect — an unknown edition must not silence the packaged check');
+    assert.match(noEdBoth.stdout, /\[warn\] The installed dflow package looks incomplete/, 'gp-marker/no-edition both: the broken package must be reported');
+    assert.match(noEdBoth.stdout, /templates\/greenfield\/scaffolding\/Git-principles-trunk\.md/, 'gp-marker/no-edition both: the finding must name the greenfield candidate');
+    assert.match(noEdBoth.stdout, /templates\/brownfield\/scaffolding\/Git-principles-trunk\.md/, 'gp-marker/no-edition both: the finding must name the brownfield candidate');
+    assert.match(noEdBoth.stdout, /does not say which track it uses/, 'gp-marker/no-edition both: the reader must be told why every track was checked');
+    assert.match(noEdBoth.stdout, /fails on this package before writing a byte/, 'gp-marker/no-edition both: with every candidate damaged, configure-agents fails whichever track it picks — say so');
+
+    // ONE track damaged, track unknown: we do NOT know that configure-agents
+    // fails, and saying so would be the `projgate-sol1` overreach again.
+    const noEdOnePkg = await makeGpPkg('gp-no-edition-one-broken', ['brownfield']);
+    const noEdOne = runNoEdDoctor(noEdOnePkg);
+    assert.equal(noEdOne.code, 0, `gp-marker/no-edition one: doctor must exit 0\nSTDOUT:\n${noEdOne.stdout}`);
+    assert.match(noEdOne.stdout, /\[warn\] The installed dflow package looks incomplete/, 'gp-marker/no-edition one: a damaged candidate track must still be reported');
+    assert.match(noEdOne.stdout, /depends on which track it resolves this project to/, 'gp-marker/no-edition one: with only one candidate damaged, doctor may not assert configure-agents fails');
+    assert.doesNotMatch(noEdOne.stdout, /fails on this package before writing a byte/, 'gp-marker/no-edition one: the decisive wording must not appear when the outcome is not decided');
+
+    // ⚠⚠ AN UNKNOWN EDITION MUST NOT SILENCE THE PROJECT-SIDE VERDICTS EITHER.
+    // Sixth and last boundary drawn around this check; `p090-b3-y2` executed it.
+    // "Your markers are malformed" and "your file predates the markers" are
+    // decided from the adopter's own bytes — no packaged template is consulted —
+    // so an edition we cannot infer says nothing about whether their file is
+    // broken. Gating them on `edition` produced
+    // `All checks passed. No Dflow health findings detected.` on a damaged file.
+    const runNoEdProject = async (label, mutate) => {
+      const dir = join(tempRoot, `gp-no-edition-${label}`);
+      await cp(gpNoEdRoot, dir, { recursive: true });
+      const starter = join(dir, 'dflow/specs/shared/Git-principles-trunk.md');
+      await writeFile(starter, mutate(await readFile(starter, 'utf8')));
+      const r = spawnSync(process.execPath, [join(repoRoot, 'bin', 'dflow.js'), 'doctor'], {
+        cwd: dir, encoding: 'utf8', timeout: RUN_TIMEOUT_MS, maxBuffer: 1024 * 1024
+      });
+      if (r.error) throw r.error;
+      assert.equal(r.status, 0, `gp-marker/no-edition ${label}: doctor must exit 0\nSTDOUT:\n${r.stdout}`);
+      return r.stdout || '';
+    };
+
+    const GP_START_M = '<!-- dflow-generated: git-principles-canonical START -->';
+    const noEdPre = await runNoEdProject('pre-marker', (c) => c
+      .replace(`${GP_START_M}\n\n`, '')
+      .replace(`\n${GP_END_MARKER}\n`, ''));
+    assert.doesNotMatch(noEdPre, /All checks passed/, 'gp-marker/no-edition pre-marker: a pre-marker adopter file must not read as healthy just because the edition is unknown');
+    assert.match(noEdPre, /predates managed git-principles-canonical markers/, 'gp-marker/no-edition pre-marker: it must be reported as pre-marker');
+
+    const noEdMalformed = await runNoEdProject('malformed', (c) => c.replace(`${GP_END_MARKER}\n`, ''));
+    assert.doesNotMatch(noEdMalformed, /All checks passed/, 'gp-marker/no-edition malformed: a half-marked adopter file must not read as healthy');
+    assert.match(noEdMalformed, /has malformed git-principles-canonical markers/, 'gp-marker/no-edition malformed: it must be reported as malformed, not folded into predates');
+
+    // ⚠ FALSE-REJECTION SIDE, and it is what stops the two above from being
+    // satisfied by a check that simply fires whenever the edition is unknown:
+    // an intact marker-managed file in the SAME edition-less project must stay
+    // silent. The canonical comparison genuinely cannot run here (we do not know
+    // which packaged track to compare against), and staying quiet is correct —
+    // reporting drift we cannot substantiate is the `p090-b3-y1` finding.
+    const noEdHealthy = await runNoEdProject('healthy', (c) => c);
+    assert.doesNotMatch(noEdHealthy, /Git-principles-trunk\.md (predates managed|has malformed|canonical sections differ)/, 'gp-marker/no-edition healthy: an intact file must not be reported merely because the edition is unknown');
   }
 
   console.log(`Smoke test passed in ${tempRoot}`);

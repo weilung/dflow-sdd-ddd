@@ -19,7 +19,7 @@
 
 import assert from 'node:assert/strict';
 import { PassThrough } from 'node:stream';
-import { mkdir, mkdtemp, readdir, readFile, rm, writeFile, unlink } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readdir, readFile, rm, writeFile, unlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url';
 import init from '../lib/init.js';
 import doctorChecks from '../lib/doctor-checks.js';
 
-const { runInit, runConfigureAgents, runDoctor, writeFilePlan, inferTechStackSummary, inferMigrationContext } = init;
+const { runInit, runConfigureAgents, runDoctor, writeFilePlan, inferTechStackSummary, inferMigrationContext, placeholderTokens } = init;
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 const pkg = JSON.parse(await readFile(join(repoRoot, 'package.json'), 'utf8'));
@@ -38,6 +38,9 @@ const START = '<!-- dflow-generated: guide-canonical START -->';
 const END = '<!-- dflow-generated: guide-canonical END -->';
 const GUIDE_QUESTION = 'Adopt the managed guide markers now?';
 const SHIM_QUESTION = 'Append the managed Dflow block to';
+const GP_QUESTION = 'Adopt the managed Git principles markers now?';
+const GP_START = '<!-- dflow-generated: git-principles-canonical START -->';
+const GP_END = '<!-- dflow-generated: git-principles-canonical END -->';
 
 const tempRoot = await mkdtemp(join(tmpdir(), 'dflow-upgrade-drift-'));
 let projectCounter = 0;
@@ -68,17 +71,20 @@ function captureStream(tty) {
 // init prompt order: project type, tech stack, migration, prose, git policy,
 // AI commit marker, optional starter files, AI agents, confirm. Non-TTY runs
 // never ask the skill question and install the skill by default.
-function initAnswers(agents, projectType = '1') {
-  return [projectType, 'Node 20, Express 4, Jest', 'none', '1', '2', '1', '1', agents, 'y'];
+// ⚠ Q5 (Git policy) is a parameter because the two policies ship DIFFERENT
+// starter bodies, and a defect can live in one and not the other — see (1b).
+// '1' = gitflow, '2' = trunk (GIT_POLICY_OPTIONS order).
+function initAnswers(agents, projectType = '1', gitPolicy = '2') {
+  return [projectType, 'Node 20, Express 4, Jest', 'none', '1', gitPolicy, '1', '1', agents, 'y'];
 }
 
-async function newProject(agents, projectType = '1') {
+async function newProject(agents, projectType = '1', gitPolicy = '2') {
   projectCounter += 1;
   const dir = join(tempRoot, `p${projectCounter}`);
   await mkdir(dir, { recursive: true });
   const stdout = captureStream(false);
   const stderr = captureStream(false);
-  const code = await runInit({ cwd: dir, stdin: pipeStdin(initAnswers(agents, projectType)), stdout, stderr });
+  const code = await runInit({ cwd: dir, stdin: pipeStdin(initAnswers(agents, projectType, gitPolicy)), stdout, stderr });
   assert.equal(code, 0, `init failed in ${dir}\nSTDOUT:\n${stdout.text}\nSTDERR:\n${stderr.text}`);
   return dir;
 }
@@ -133,6 +139,183 @@ try {
   const base = await newProject('2');
   const freshGuide = await readFile(join(base, GUIDE_REL), 'utf8');
   assert.equal(canonicalRegion(freshGuide, 'fresh init'), packagedRegion, 'projected canonical region must byte-match the packaged template region');
+
+  // ---------------------------------------------------------------------------
+  // (1b) ⚠⚠ THE SAME PROPERTY FOR ALL FOUR Git-principles STARTERS, and this one
+  // was missing while the guide's was not — which is exactly why it shipped
+  // broken. `p090-b3-x1r` reproduced it: `## [1.2.3] — {YYYY-MM-DD}` sat INSIDE
+  // the gitflow canonical region, so `init` substituted the date, `doctor` then
+  // compared post-substitution project bytes against raw packaged bytes and
+  // reported drift on a project created five seconds earlier — and
+  // `configure-agents` "refreshed" the adopter's real date back into the raw
+  // `{YYYY-MM-DD}` placeholder.
+  //
+  // ⚠ The region is compared and rewritten as RAW PACKAGED BYTES. That is the
+  // whole contract, and it holds only while the region is substitution-free.
+  // Two `{YYYY-MM-DD}` occurrences existed in these files and only one was ever
+  // reasoned about (the `> Created:` header, deliberately left outside); the
+  // second was noted for a different reason entirely — that it must not be used
+  // as a heading anchor — and nobody joined the two facts.
+  //
+  // ⚠ Asserting byte-equality against a freshly-projected file is deliberately
+  // stronger than grepping today's placeholder list: it catches any future
+  // substitution mechanism, not just the keys `buildSubstitutionMap` happens to
+  // carry now. All four combinations, because the defect was in gitflow only
+  // and a trunk-only guard would have passed over it.
+  // ---------------------------------------------------------------------------
+  for (const [projectType, edition] of [['1', 'greenfield'], ['2', 'brownfield']]) {
+    for (const [policyAnswer, policy] of [['1', 'gitflow'], ['2', 'trunk']]) {
+      const gp = await newProject('2', projectType, policyAnswer);
+      const gpRel = `dflow/specs/shared/Git-principles-${policy}.md`;
+      const projected = (await readFile(join(gp, gpRel), 'utf8')).replace(/\r\n/g, '\n');
+      const packagedStarter = (
+        await readFile(join(repoRoot, `templates/${edition}/scaffolding/Git-principles-${policy}.md`), 'utf8')
+      ).replace(/\r\n/g, '\n');
+      const slice = (s, what) => {
+        const a = s.indexOf(GP_START);
+        const b = s.indexOf(GP_END);
+        assert.ok(a >= 0 && b > a, `${edition}/${policy} ${what}: git-principles-canonical markers must be present and ordered`);
+        return s.slice(a, b + GP_END.length);
+      };
+      assert.equal(
+        slice(projected, 'projected'),
+        slice(packagedStarter, 'packaged'),
+        `${edition}/${policy}: the projected canonical region must byte-match the packaged one — a substituted placeholder inside the region makes doctor report drift on a fresh project and makes configure-agents rewrite the substituted value back to its placeholder`
+      );
+      // ⚠⚠ AND THE ANSWER-INDEPENDENT HALF, which the byte-comparison above
+      // cannot provide. `p090-b3-y1` proved the gap by injecting
+      // `{ORM / persistence}` into a canonical region: with these fixed init
+      // answers naming no ORM, that key maps to ITSELF, so the projected bytes
+      // equalled the packaged bytes and the assertion above passed over it —
+      // while an adopter who does name an ORM would get exactly the defect this
+      // guard exists to stop. The byte-comparison proves "these answers do not
+      // substitute inside the region"; only the token scan proves "NO answers
+      // can". Both are needed, and the token list comes from the substitution
+      // map itself so it cannot go stale.
+      for (const token of placeholderTokens()) {
+        assert.ok(
+          !slice(packagedStarter, 'packaged').includes(token),
+          `${edition}/${policy}: the canonical region must contain no substitutable placeholder — found ${token}, which some adopter's answers will replace, making their fresh project differ from its own packaged source`
+        );
+      }
+      // ⚠⚠ AND NO ADOPTER-FILL PROMPTS EITHER. A substitution token is not the
+      // only way user-owned content lands inside a region Dflow overwrites —
+      // `p090-b3-y3` found the trunk starters inviting the adopter to choose a
+      // merge strategy and a Conventional-Commits policy INSIDE the canonical
+      // span, one of them under a heading literally titled
+      // "Merge Strategy (Project Chooses)". Filling those in and running
+      // `configure-agents` silently restored the blank prompt: adopter content
+      // destroyed by the very mechanism written to protect it.
+      //
+      // The boundary is not "which section number" — it is **Dflow's rules are
+      // canonical, the project's choices are not**. This asserts that, so the
+      // distinction survives future template edits.
+      // ⚠ Masked, because a brace pair inside a fenced example is documentation
+      // (`{type}({scope})`, `{SPEC-ID}`) — the same reason `classifyMarkedRegion`
+      // searches the mask. And only braces carrying a CHOICE separator count;
+      // a lone `{placeholder}` is the token scan's business, not this one.
+      const fillPrompts = [
+        [/\{[^}\n]*\s\/\s[^}\n]*\}/, 'a "{a / b}" choice'],
+        [/\{[^}\n]*\s\|\s[^}\n]*\}/, 'a "{a | b}" choice'],
+        [/fill in/i, 'the phrase "fill in"'],
+        [/delete the (two )?unused/i, 'a "delete the unused options" instruction']
+      ];
+      const maskedRegion = doctorChecks.maskCodeBlocks(slice(packagedStarter, 'packaged'));
+      for (const [pattern, what] of fillPrompts) {
+        const hit = maskedRegion.match(pattern);
+        assert.ok(
+          !hit,
+          `${edition}/${policy}: the canonical region invites the adopter to edit it — found ${what} (${hit && hit[0]}). Dflow overwrites this span on every refresh, so a choice offered here is a choice destroyed on upgrade. Move it below "## 6. AI Collaboration Rules (Project Policy)" and leave the trade-offs in place.`
+        );
+      }
+      // ⚠⚠ THE MARKER'S POSITION IS PART OF THE CONTRACT, not just its presence.
+      // `p090-b3-z1` moved START below "## 1. Branch Structure" — which drops §1
+      // out of the refreshed span — and the whole suite stayed green. A one-line
+      // marker move is enough to ship adopter-content deletion (or to silently
+      // stop refreshing a section), so the boundary is pinned to the two heading
+      // anchors the design names, not merely to "a well-formed pair exists".
+      {
+        const lf = packagedStarter;
+        const before = lf.slice(0, lf.indexOf(GP_START));
+        const between = lf.slice(lf.indexOf(GP_START) + GP_START.length, lf.indexOf(GP_END));
+        const after = lf.slice(lf.indexOf(GP_END) + GP_END.length);
+        assert.ok(
+          !before.includes('## 1. Branch Structure'),
+          `${edition}/${policy}: START must sit ABOVE "## 1. Branch Structure" — it is below it, so section 1 is no longer refreshed`
+        );
+        assert.ok(
+          between.includes('## 1. Branch Structure'),
+          `${edition}/${policy}: "## 1. Branch Structure" must be inside the canonical region`
+        );
+        assert.ok(
+          !between.includes('## 6. AI Collaboration Rules (Project Policy)'),
+          `${edition}/${policy}: "## 6. AI Collaboration Rules (Project Policy)" must be OUTSIDE the canonical region — it is the adopter's section and the region is overwritten on every refresh`
+        );
+        assert.ok(
+          after.includes('## 6. AI Collaboration Rules (Project Policy)'),
+          `${edition}/${policy}: "## 6. AI Collaboration Rules (Project Policy)" must follow the END marker`
+        );
+      }
+      // The header placeholder IS substituted, and must be: it is outside the
+      // region on purpose. Asserting it here keeps the test above honest — if
+      // substitution stopped happening altogether the equality would pass for
+      // the wrong reason.
+      assert.match(
+        projected,
+        /^> Created: \d{4}-\d{2}-\d{2}$/m,
+        `${edition}/${policy}: the header date outside the region must still be substituted`
+      );
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // (1c) ⚠⚠ THE TUTORIAL FIXTURES ARE SHIPPED EVIDENCE, SO THEY DRIFT LIKE ANY
+  // OTHER SHIPPED FILE — and nothing was watching them. `p090-b3-z1` caught the
+  // greenfield/trunk output still carrying `{Yes / No / Default — fill in}`
+  // three commits after those prompts were deleted from the starter: the fixture
+  // was refreshed once, the starter changed again, and the two silently parted.
+  // Same session, three commits, no test red.
+  // `tutorial/` is in `export-dist.sh` `include_paths`, so a stale fixture ships
+  // a contradiction to every reader who compares it against a real `init`.
+  // ---------------------------------------------------------------------------
+  for (const [fixtureRel, packagedRel, label] of [
+    ['tutorial/01-greenfield/outputs/dflow/specs/shared/Git-principles-trunk.md',
+     'templates/greenfield/scaffolding/Git-principles-trunk.md', 'greenfield/trunk'],
+    ['tutorial/02-brownfield/outputs/dflow/specs/shared/Git-principles-gitflow.md',
+     'templates/brownfield/scaffolding/Git-principles-gitflow.md', 'brownfield/gitflow']
+  ]) {
+    const fixture = (await readFile(join(repoRoot, fixtureRel), 'utf8')).replace(/\r\n/g, '\n');
+    const packaged = (await readFile(join(repoRoot, packagedRel), 'utf8')).replace(/\r\n/g, '\n');
+    const region = (s, what) => {
+      const a = s.indexOf(GP_START);
+      const b = s.indexOf(GP_END);
+      assert.ok(a >= 0 && b > a, `${label} ${what}: git-principles-canonical markers must be present and ordered`);
+      return s.slice(a, b + GP_END.length);
+    };
+    assert.equal(
+      region(fixture, 'tutorial output'),
+      region(packaged, 'packaged starter'),
+      `${label} (${fixtureRel}): the tutorial output's canonical region must byte-match the packaged starter — it is evidence of what \`dflow init\` produces, and tutorial/ ships`
+    );
+    // ⚠ And its own half must stay its own: the fixture carries a tutorial-filled
+    // header date and tutorial CI/CD content. Asserting that here stops a future
+    // "just re-copy the packaged file" fix from flattening the sample.
+    assert.match(fixture, /^> Created: \d{4}-\d{2}-\d{2}$/m, `${label} (${fixtureRel}): the tutorial output keeps its own filled-in header date`);
+    // ⚠⚠ AND ITS §6+ MUST STAY ITS OWN. The header check above passes even when
+    // everything from "## 6." down has been replaced by the packaged generic
+    // tail — `p090-b3-y4` mutated exactly that and this block stayed green,
+    // while its own comment claimed to stop a "just re-copy the packaged file"
+    // fix from flattening the sample. Assert the property the comment promises.
+    {
+      const H6 = '## 6. AI Collaboration Rules (Project Policy)';
+      assert.notEqual(
+        fixture.slice(fixture.indexOf(H6)),
+        packaged.slice(packaged.indexOf(H6)),
+        `${label} (${fixtureRel}): the tutorial output's "## 6." section must stay tutorial-owned — it is byte-identical to the packaged starter, so the sample has been flattened`
+      );
+    }
+  }
+
 
   // ---------------------------------------------------------------------------
   // (2) Marker-guarded refresh: stale canonical content is restored, content
@@ -290,8 +473,22 @@ try {
   await mkdir(join(aged, 'dflow/specs/features/completed/SPEC-20250101-001-done'), { recursive: true });
   await writeFile(join(aged, 'dflow/specs/features/completed/SPEC-20250101-001-done/_index.md'), oldIndex);
 
+  // PROPOSAL-090 route B3 — the Git principles starter is half Dflow-canonical
+  // (sections 1-5, marker-delimited, refreshed in place) and half the project's
+  // (header, "## 6. AI Collaboration Rules" down). The drift check must prove
+  // BOTH directions, because a guard that only fires is as broken as one that
+  // never does:
+  //   - false rejection: an edit OUTSIDE the region must NOT be reported. This
+  //     is the ordinary state of every real project (they fill in CI / CD), and
+  //     reporting it is what made the old whole-file comparison unreadable.
+  //   - mutation: an edit INSIDE the region MUST be reported.
   const principlesPath = join(aged, 'dflow/specs/shared/Git-principles-trunk.md');
-  await writeFile(principlesPath, (await readFile(principlesPath, 'utf8')) + '\nLOCAL TWEAK\n');
+  const principlesSeeded = await readFile(principlesPath, 'utf8');
+  assert.ok(
+    principlesSeeded.includes('<!-- dflow-generated: git-principles-canonical START -->'),
+    'fixture: a freshly seeded starter carries the canonical markers'
+  );
+  await writeFile(principlesPath, principlesSeeded + '\nLOCAL TWEAK\n');
 
   const agedDoctor = await runDoctorAt(aged);
   assert.equal(agedDoctor.code, 0, `doctor must stay exit 0 on drift\n${agedDoctor.stdout}${agedDoctor.stderr}`);
@@ -312,7 +509,318 @@ try {
   assert.match(agedOut, /active\/SPEC-20260101-001-old\/_index\.md looks like an older _index\.md template shape/, 'doctor: old-shape active _index');
   assert.match(agedOut, /Checkpoint Log/, 'doctor: missing section list names Checkpoint Log');
   assert.doesNotMatch(agedOut, /completed\/SPEC-20250101-001-done/, 'doctor: completed/ features are not scanned');
-  assert.match(agedOut, /Git-principles-trunk\.md differs from the current packaged starter/, 'doctor: edited init-only starter');
+  // FALSE REJECTION direction: `LOCAL TWEAK` sits after the END marker, i.e. in
+  // the project's own half. It must not be reported at all.
+  assert.doesNotMatch(
+    agedOut,
+    /Git-principles-trunk\.md canonical sections differ/,
+    'doctor: an edit OUTSIDE the canonical region must not be reported as drift'
+  );
+  assert.doesNotMatch(
+    agedOut,
+    /Git-principles-trunk\.md predates managed git-principles-canonical markers/,
+    'doctor: a marker-carrying starter must not be reported as pre-marker'
+  );
+
+  // MUTATION direction, run on a copy so the assertions above keep their tree:
+  // put the defect inside the managed region and watch it go red, naming the
+  // file and the check.
+  const inRegion = join(tempRoot, 'gp-inRegion');
+  await cp(aged, inRegion, { recursive: true });
+  const inRegionPath = join(inRegion, 'dflow/specs/shared/Git-principles-trunk.md');
+  await writeFile(
+    inRegionPath,
+    (await readFile(inRegionPath, 'utf8')).replace(
+      '<!-- dflow-generated: git-principles-canonical START -->',
+      '<!-- dflow-generated: git-principles-canonical START -->\nEDITED INSIDE THE MANAGED REGION\n'
+    )
+  );
+  const inRegionOut = (await runDoctorAt(inRegion)).stdout;
+  assert.match(
+    inRegionOut,
+    /Git-principles-trunk\.md canonical sections differ from the current packaged starter/,
+    'doctor: an edit INSIDE the canonical region must be reported'
+  );
+
+  // A starter that predates the markers is its own state, and must NOT be
+  // folded into the drift finding — the two have different actions.
+  const gpPreMarker = join(tempRoot, 'gp-gpPreMarker');
+  await cp(aged, gpPreMarker, { recursive: true });
+  const gpPreMarkerPath = join(gpPreMarker, 'dflow/specs/shared/Git-principles-trunk.md');
+  await writeFile(
+    gpPreMarkerPath,
+    (await readFile(gpPreMarkerPath, 'utf8'))
+      .replace('<!-- dflow-generated: git-principles-canonical START -->\n', '')
+      .replace('<!-- dflow-generated: git-principles-canonical END -->\n', '')
+  );
+  const gpPreMarkerOut = (await runDoctorAt(gpPreMarker)).stdout;
+  assert.match(
+    gpPreMarkerOut,
+    /Git-principles-trunk\.md predates managed git-principles-canonical markers/,
+    'doctor: a pre-marker starter is reported as pre-marker'
+  );
+
+  // ⚠ Malformed markers must be their OWN finding, never folded into
+  // "predates": otherwise a file broken by an edit reads as one that never had
+  // markers, and the adoption offer would rewrite sections nobody reviewed.
+  const brokenMarkers = join(tempRoot, 'gp-brokenMarkers');
+  await cp(aged, brokenMarkers, { recursive: true });
+  const brokenPath = join(brokenMarkers, 'dflow/specs/shared/Git-principles-trunk.md');
+  await writeFile(
+    brokenPath,
+    (await readFile(brokenPath, 'utf8')).replace(
+      '<!-- dflow-generated: git-principles-canonical END -->\n',
+      ''
+    )
+  );
+  const brokenOut = (await runDoctorAt(brokenMarkers)).stdout;
+  assert.match(
+    brokenOut,
+    /Git-principles-trunk\.md has malformed git-principles-canonical markers/,
+    'doctor: a half-marked starter is reported as malformed'
+  );
+  assert.doesNotMatch(
+    brokenOut,
+    /Git-principles-trunk\.md predates managed git-principles-canonical markers/,
+    'doctor: malformed must not be folded into predates'
+  );
+
+  // ⚠⚠ DOCTOR MAY ONLY PROMISE AN OFFER THAT WILL ACTUALLY BE MADE.
+  // `configure-agents` offers marker adoption only for a file it can still
+  // recognise (both heading anchors, exactly once). `p090-b3-z1` renamed
+  // "## 1. Branch Structure" and doctor still said "accept the marker-adoption
+  // offer" while configure-agents never asked — a false claim about another
+  // command, which is the defect class this whole route exists to remove.
+  const unrec = join(tempRoot, 'gp-unrecognizable');
+  await cp(aged, unrec, { recursive: true });
+  const unrecPath = join(unrec, 'dflow/specs/shared/Git-principles-trunk.md');
+  await writeFile(
+    unrecPath,
+    (await readFile(unrecPath, 'utf8'))
+      .replace(`${GP_START}\n\n`, '')
+      .replace(`\n${GP_END}\n`, '')
+      .replace('## 1. Branch Structure', '## 1. Branching')
+  );
+  const unrecOut = (await runDoctorAt(unrec)).stdout;
+  assert.doesNotMatch(
+    unrecOut,
+    /accept the marker-adoption offer; it keeps your file header/,
+    'doctor: a starter whose heading anchors are gone gets no adoption offer, so doctor must not tell the reader to accept one'
+  );
+  assert.match(
+    unrecOut,
+    /Git-principles-trunk\.md is not recognizable as a Dflow Git principles starter/,
+    'doctor: it must say what is actually wrong instead'
+  );
+  // FALSE-REJECTION SIDE: a genuine pre-marker file (anchors intact) still gets
+  // the advice — otherwise the assertion above is satisfied by never advising.
+  const preOk = join(tempRoot, 'gp-preMarkerOk');
+  await cp(aged, preOk, { recursive: true });
+  const preOkPath = join(preOk, 'dflow/specs/shared/Git-principles-trunk.md');
+  await writeFile(
+    preOkPath,
+    (await readFile(preOkPath, 'utf8')).replace(`${GP_START}\n\n`, '').replace(`\n${GP_END}\n`, '')
+  );
+  assert.match(
+    (await runDoctorAt(preOk)).stdout,
+    /accept the marker-adoption offer; it keeps your file header/,
+    'doctor: a recognizable pre-marker starter must still be told about the offer'
+  );
+
+  // ⚠⚠ PRESERVATION guard — the highest invariant on this surface, and the one
+  // the first version of these tests did NOT protect. Review round `p090-b3-x1`
+  // mutated `addGitPrinciplesItem` to overwrite the whole file and this suite
+  // still passed, which is a guard that fires in neither direction on the thing
+  // that actually matters: `MAINTAINERS.md` § Upgrade model says user-authored
+  // content is never auto-overwritten.
+  //
+  // Two properties, asserted on the real `configure-agents` path:
+  //   (a) a marked starter keeps the project's header and everything from
+  //       "## 6." down, content-identical (see the EOL note on the mixed-ending
+  //       case below: whole-file line endings are normalized to the dominant one,
+  //       which is pre-existing shared behaviour, so "byte for byte" is only true
+  //       for a file that was already consistent);
+  //   (b) adoption of a PRE-marker starter does the same — and does not glue
+  //       the END marker onto the `## 6.` heading, which is the critical defect
+  //       `p090-b3-x1` reproduced.
+  const preserve = join(tempRoot, 'gp-preserve');
+  await cp(aged, preserve, { recursive: true });
+  const preservePath = join(preserve, 'dflow/specs/shared/Git-principles-trunk.md');
+  const seeded = await readFile(preservePath, 'utf8');
+  const OWN_MARK = 'PROJECT-OWNED SENTINEL DO NOT TOUCH';
+  const createdLine = seeded.split(String.fromCharCode(10)).find((l) => l.startsWith('> Created:'));
+  assert.ok(createdLine, 'fixture: the seeded starter carries a project-filled `> Created:` line');
+  const withOwnEdits = seeded
+    .replace(
+      '## 6. AI Collaboration Rules (Project Policy)',
+      `## 6. AI Collaboration Rules (Project Policy)\n\n${OWN_MARK}`
+    );
+  await writeFile(preservePath, withOwnEdits);
+  const ownTail = withOwnEdits.slice(withOwnEdits.indexOf('## 6. AI Collaboration Rules'));
+  await runConfigure(preserve, ['2', 'y']);
+  const afterRefresh = await readFile(preservePath, 'utf8');
+  assert.ok(
+    afterRefresh.includes(createdLine),
+    'configure-agents: the project-filled `> Created:` header line survives a canonical refresh'
+  );
+  assert.ok(
+    afterRefresh.endsWith(ownTail),
+    'configure-agents: everything from "## 6." down survives a canonical refresh unchanged (this fixture is uniform-LF, so byte equality is the right assertion here)'
+  );
+
+  // ⚠⚠ (b) THE ADOPTION PATH — the half the first version of this suite left
+  // unwritten, and the one that matters most: review round `p090-b3-x1` found a
+  // CRITICAL boundary defect here (the END marker glued onto the `## 6.`
+  // heading) and until now nothing but the fix itself was guarding it.
+  //
+  // ⚠ The pinned TTY answer sequence is load-bearing, and the reason the guard
+  // was owed rather than merely missing. `configure-agents` reads its answers
+  // positionally, so a sequence that never reaches the adoption question leaves
+  // every assertion below passing on an UNTOUCHED file — a guard that is green
+  // for the wrong reason, which is worse than no guard. Two things pin it:
+  //   - the fixture is a FRESH project, not `aged`. A fresh init leaves the
+  //     guide marker-managed and the agent shim Dflow-managed, so neither the
+  //     guide-adoption nor the shim question is offered and nothing else can
+  //     eat a slot. (`aged` offers both; that is what defeated the first
+  //     attempt at this guard.) The skill file exists after init, so
+  //     `resolveSkillInstall` returns without asking too.
+  //   - the run asserts it SAW the question. Without that assertion the
+  //     sequence could silently drift back out of alignment on any future
+  //     prompt change and this whole block would go quietly vacuous.
+  const adopt = await newProject('2');
+  const adoptPath = join(adopt, 'dflow/specs/shared/Git-principles-trunk.md');
+  const adoptSeeded = await readFile(adoptPath, 'utf8');
+  const adoptCreated = adoptSeeded.split(String.fromCharCode(10)).find((l) => l.startsWith('> Created:'));
+  assert.ok(adoptCreated, 'fixture: the seeded starter carries a project-filled `> Created:` line');
+  const gpPackagedCanonical = (() => {
+    const lf = adoptSeeded.replace(/\r\n/g, '\n');
+    const s = lf.indexOf(GP_START);
+    const e = lf.indexOf(GP_END);
+    assert.ok(s >= 0 && e > s, 'fixture: the seeded starter carries ordered git-principles-canonical markers');
+    return lf.slice(s, e + GP_END.length);
+  })();
+  // Strip the markers WITH the whitespace they brought, so the fixture is the
+  // shape a genuinely pre-marker project has (one blank line between `---` and
+  // `## 1.`), not a marker-stripped file with a spare blank line. A fixture that
+  // is not the real state proves things about a state nobody is in.
+  const adoptPre = adoptSeeded
+    .replace(`${GP_START}\n\n`, '')
+    .replace(`\n${GP_END}\n`, '')
+    .replace(
+      '## 6. AI Collaboration Rules (Project Policy)',
+      `## 6. AI Collaboration Rules (Project Policy)\n\n${OWN_MARK}`
+    );
+  assert.ok(!adoptPre.includes(GP_START) && !adoptPre.includes(GP_END), 'fixture: the pre-marker starter must carry neither marker');
+  await writeFile(adoptPath, adoptPre);
+  const adoptTail = adoptPre.slice(adoptPre.indexOf('## 6. AI Collaboration Rules'));
+
+  // FALSE-REJECTION direction first, twice: a non-TTY run and a declined TTY run
+  // must both leave the file byte-identical. Run before the adoption so a passing
+  // preservation assertion below cannot be an artefact of nothing having happened.
+  const adoptNonTty = await runConfigure(adopt, ['2', 'y']);
+  assert.equal(adoptNonTty.code, 0, `pre-marker non-TTY run failed\n${adoptNonTty.all}`);
+  assert.equal(await readFile(adoptPath, 'utf8'), adoptPre, 'non-TTY run must not touch a pre-marker Git principles starter');
+  assert.ok(!adoptNonTty.all.includes(GP_QUESTION), 'non-TTY run must never ask the Git principles adoption question');
+  assert.match(adoptNonTty.all, /predates Dflow's git-principles-canonical markers/, 'non-TTY run must warn about the frozen starter');
+
+  const adoptDeclined = await runConfigure(adopt, ['2', '', 'y'], { tty: true });
+  assert.equal(adoptDeclined.code, 0, `declined adoption run failed\n${adoptDeclined.all}`);
+  assert.ok(adoptDeclined.stdout.includes(GP_QUESTION), 'TTY run must offer marker adoption for a recognizable pre-marker starter');
+  assert.equal(await readFile(adoptPath, 'utf8'), adoptPre, 'a blank answer must default to No (starter untouched)');
+
+  const gpAdopted = await runConfigure(adopt, ['2', 'y', 'y'], { tty: true });
+  assert.equal(gpAdopted.code, 0, `adoption run failed\n${gpAdopted.all}`);
+  assert.ok(gpAdopted.stdout.includes(GP_QUESTION), 'the adoption run must actually reach the question — otherwise every assertion below is vacuous');
+  const afterAdopt = await readFile(adoptPath, 'utf8');
+  assert.notEqual(afterAdopt, adoptPre, 'the adoption run must actually rewrite the file');
+
+  // PRESERVATION — the promise this path makes in its own prompt text.
+  assert.ok(
+    afterAdopt.includes(adoptCreated),
+    'adoption: the project-filled `> Created:` header line survives'
+  );
+  assert.ok(
+    afterAdopt.endsWith(adoptTail),
+    'adoption: everything from "## 6." down survives unchanged (uniform-LF fixture, so byte equality holds)'
+  );
+
+  // ⚠⚠ THE MIXED-ENDING CONTRACT, written down because the docs used to claim
+  // more than the code delivers. `p090-b3-y1` built a Git-principles file whose
+  // §6+ was CRLF while the rest was LF, made the canonical region stale so a
+  // refresh actually happened, and measured the outside-region bytes: 130 CRLFs
+  // became 0. `configure-agents` normalizes the WHOLE file to its dominant
+  // ending (`detectDominantEol` + `applyEol`) — shared, pre-existing behaviour
+  // the guide half has always had, not something this route introduced.
+  //
+  // So the promise is **content** preservation, not byte equality, and that is
+  // what this asserts. Byte equality is still asserted for the uniform-ending
+  // fixtures above, which is where it is actually true. An earlier version of
+  // this suite asserted byte equality only on uniform files and let the docs
+  // generalise it to all files — the gap between what a test proves and what
+  // the prose claims is exactly where an overclaim survives.
+  const mixedEol = join(tempRoot, 'gp-mixedEol');
+  await cp(aged, mixedEol, { recursive: true });
+  const mixedPath = join(mixedEol, 'dflow/specs/shared/Git-principles-trunk.md');
+  const mixedSeed = await readFile(mixedPath, 'utf8');
+  const mixedH6 = mixedSeed.indexOf('## 6. AI Collaboration Rules (Project Policy)');
+  assert.ok(mixedH6 > 0, 'fixture: the seeded starter has a "## 6." heading to make CRLF from');
+  // Stale INSIDE the region, so a write really happens; CRLF only OUTSIDE it.
+  const mixedContent = mixedSeed
+      .replace(GP_START, `${GP_START}\nSTALE INSIDE THE REGION`)
+      .replace(/\n/g, (m, offset) => (offset > mixedH6 ? '\r\n' : m));
+  await writeFile(mixedPath, mixedContent);
+  const mixedTailBefore = mixedContent.slice(mixedContent.indexOf('## 6. AI Collaboration Rules'));
+  assert.ok(mixedTailBefore.includes('\r\n'), 'fixture: §6+ must really carry CRLF, or this case is vacuous');
+
+  const mixedRun = await runConfigure(mixedEol, ['2', 'y']);
+  assert.equal(mixedRun.code, 0, `mixed-EOL run failed\n${mixedRun.all}`);
+  const mixedAfter = await readFile(mixedPath, 'utf8');
+  assert.notEqual(mixedAfter, mixedContent, 'mixed-EOL: the stale canonical region must actually have been refreshed, or this proves nothing');
+  const mixedTailAfter = mixedAfter.slice(mixedAfter.indexOf('## 6. AI Collaboration Rules'));
+  // CONTENT survives ...
+  assert.equal(
+    mixedTailAfter.replace(/\r\n/g, '\n'),
+    mixedTailBefore.replace(/\r\n/g, '\n'),
+    'mixed-EOL: everything from "## 6." down survives as CONTENT — this is the promise the docs may make'
+  );
+  // ... and the endings are unified, which is why the promise is not byte equality.
+  assert.notEqual(
+    mixedTailAfter,
+    mixedTailBefore,
+    'mixed-EOL: if the bytes DID survive intact, the docs may claim byte-for-byte again — update them together with this assertion'
+  );
+  // ⚠ THE `p090-b3-x1` CRITICAL, asserted as its own symptom. The three-way
+  // concat used to inherit its separators from the slices instead of rebuilding
+  // them, producing `<!-- ... END -->## 6. AI Collaboration Rules` on one line —
+  // a silent restructuring of the section this path promises to keep. The
+  // `endsWith` above already fails on it, but naming the symptom is what tells
+  // the next reader which defect went red.
+  assert.ok(
+    !afterAdopt.includes(`${GP_END}## 6.`),
+    'adoption: the END marker must never be glued onto the "## 6." heading'
+  );
+  assert.ok(
+    afterAdopt.includes(`${GP_END}\n\n## 6. AI Collaboration Rules (Project Policy)`),
+    'adoption: the END marker and "## 6." keep exactly the blank line the packaged starter has'
+  );
+  // And it must have actually adopted: markers well-formed, canonical region
+  // equal to this version's packaged one.
+  const adoptedLf = afterAdopt.replace(/\r\n/g, '\n');
+  assert.equal(
+    adoptedLf.slice(adoptedLf.indexOf(GP_START), adoptedLf.indexOf(GP_END) + GP_END.length),
+    gpPackagedCanonical,
+    'adoption: the adopted file carries this version\'s canonical region'
+  );
+  const adoptedDoctor = (await runDoctorAt(adopt)).stdout;
+  assert.doesNotMatch(
+    adoptedDoctor,
+    /Git-principles-trunk\.md (predates managed|has malformed)/,
+    'adoption: doctor must see an adopted starter as neither pre-marker nor malformed'
+  );
+  const adoptAgain = await runConfigure(adopt, ['2', 'y'], { tty: true });
+  assert.equal(adoptAgain.code, 0, `post-adoption run failed\n${adoptAgain.all}`);
+  assert.ok(!adoptAgain.stdout.includes(GP_QUESTION), 'an adopted starter must not be re-asked');
+
   assert.doesNotMatch(agedOut, /_conventions\.md is missing the ## Git Policy section/, 'doctor: intact Git Policy section must not warn');
 
   // Project B: markers intact but canonical region tampered; Git Policy section

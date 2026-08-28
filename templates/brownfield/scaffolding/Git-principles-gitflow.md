@@ -17,6 +17,8 @@ trunk-based, GitHub Flow), use `Git-principles-trunk.md` instead.
 
 ---
 
+<!-- dflow-generated: git-principles-canonical START -->
+
 ## 1. Branch Structure
 
 | Branch | Naming | Cut from | Merges to |
@@ -317,7 +319,7 @@ release.
 Example entry:
 
 ```markdown
-## [1.2.3] — {YYYY-MM-DD}
+## [1.2.3] — {2026-04-21}
 
 ### Added
 - {SPEC-20260421-001}: JPY currency support in Money value object
@@ -330,6 +332,8 @@ Example entry:
 ```
 
 ---
+
+<!-- dflow-generated: git-principles-canonical END -->
 
 ## 6. AI Collaboration Rules (Project Policy)
 

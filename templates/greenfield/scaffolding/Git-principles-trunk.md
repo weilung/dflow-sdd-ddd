@@ -17,6 +17,8 @@ use `Git-principles-gitflow.md` instead.
 
 ---
 
+<!-- dflow-generated: git-principles-canonical START -->
+
 ## 1. Branch Structure
 
 Single-trunk model:
@@ -123,7 +125,8 @@ ExpenseItem before submission.
 ## 3. Merge Strategy Options
 
 Trunk-based projects typically pick **one** of the three below as the
-default. Document which one your team uses:
+default. The trade-offs are here; **record which one your team uses in
+§ 6, under "Merge strategy"** — that section is yours, this one is not.
 
 ### Option A — Squash merge (most common)
 
@@ -135,8 +138,6 @@ All commits on the feature branch are squashed into a single commit on
 - Con: Loses intermediate commit context (though it's still available
   via the PR)
 
-**This project uses**: {Yes / No / Default — fill in}
-
 ### Option B — Rebase merge
 
 Each commit on the feature branch is rebased onto `main` as-is. Linear
@@ -147,8 +148,6 @@ history, but more commits than squash.
   phase)
 - Con: Noisier history
 
-**This project uses**: {Yes / No / Default — fill in}
-
 ### Option C — Fast-forward only
 
 Only merges when the feature branch is a direct descendant of `main`.
@@ -156,8 +155,6 @@ Equivalent to rebase merge when used consistently.
 
 - Pro: Perfectly linear
 - Con: Requires strict rebase discipline; can be inconvenient
-
-**This project uses**: {Yes / No / Default — fill in}
 
 ---
 
@@ -311,6 +308,8 @@ Before making key Git operations:
 
 ---
 
+<!-- dflow-generated: git-principles-canonical END -->
+
 ## 6. AI Collaboration Rules (Project Policy)
 
 Three categories:
@@ -359,6 +358,13 @@ offers commits at lifecycle checkpoints (see `references/git-integration.md`
 can always decline. If your team also wants vendor attribution, appending the
 assistant's documented line (e.g. `Co-Authored-By: Claude
 <noreply@anthropic.com>`) is an independent, optional convention on top.
+
+### Merge strategy
+
+Dflow does not choose this for you; § 3 lists the trade-offs. Record what this
+project settled on:
+
+**This project uses**: {Squash / Rebase / Fast-forward only — fill in}
 
 ---
 

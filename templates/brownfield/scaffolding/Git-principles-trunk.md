@@ -22,6 +22,8 @@ and long-lived release branches.
 
 ---
 
+<!-- dflow-generated: git-principles-canonical START -->
+
 ## 1. Branch Structure
 
 | Branch | Naming | Cut from | Merges to |
@@ -87,8 +89,8 @@ Commits must tie back to a SPEC-ID:
 
 ### Conventional Commits style (recommended, optional)
 
-This project {does / does not} require Conventional Commits. When
-adopted, the format is:
+Conventional Commits is optional. **Record whether this project requires it
+in § 6, under "Commit and merge choices".** When adopted, the format is:
 
 ```
 {type}({scope}): {short description}
@@ -114,9 +116,9 @@ Example: `feat(expense): add JPY currency support` with
 ## 3. Merge Strategy (Project Chooses)
 
 Trunk-based strategies typically pick **one** merge style and stick to
-it. This project uses: **{squash | rebase | fast-forward}**. Delete
-the two unused options once decided, or keep all three in the table
-and circle the chosen one.
+it. The table below gives the trade-offs; **record this project's choice
+in § 6, under "Commit and merge choices"** — that section is yours, this
+one is not.
 
 | Strategy | How the feature lands on `main` | When to prefer |
 |----------|--------------------------------|----------------|
@@ -306,6 +308,8 @@ style.
 
 ---
 
+<!-- dflow-generated: git-principles-canonical END -->
+
 ## 6. AI Collaboration Rules (Project Policy)
 
 Three categories:
@@ -353,6 +357,14 @@ offers commits at lifecycle checkpoints (see `references/git-integration.md`
 can always decline. If your team also wants vendor attribution, appending the
 assistant's documented line (e.g. `Co-Authored-By: Claude
 <noreply@anthropic.com>`) is an independent, optional convention on top.
+
+### Commit and merge choices
+
+Dflow does not choose these for you; §§ 2-3 give the trade-offs. Record what
+this project settled on:
+
+- **Conventional Commits**: {required / not required — fill in}
+- **Merge strategy**: {squash / rebase / fast-forward — fill in}
 
 ---
 

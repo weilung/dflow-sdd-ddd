@@ -8,10 +8,98 @@
 
 ## Unreleased
 
-**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）、PROPOSAL-086（受限標頭比讀者窄）、PROPOSAL-087（finish-feature 罕見路徑抽離）、PROPOSAL-093（closeout 尾巴的 cursor 矛盾）、PROPOSAL-095（BR Snapshot 範例列移出資料面）
+**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）、PROPOSAL-086（受限標頭比讀者窄）、PROPOSAL-087（finish-feature 罕見路徑抽離）、PROPOSAL-090（`Git-principles-*.md` 的 canonical 區改為可刷新）、PROPOSAL-093（closeout 尾巴的 cursor 矛盾）、PROPOSAL-095（BR Snapshot 範例列移出資料面）
 
-> **目前投影版號：`0.14.4`**（**未發布到 npm**；npm latest 仍是 `0.14.0`）。
+> **目前投影版號：`0.14.5`**（**未發布到 npm**；npm latest 仍是 `0.14.0`）。
 > 以下項目都在這一版裡。
+
+- **`Git-principles-{policy}.md` 的 §§ 1–5 改為可刷新，既有專案不再永遠停在 init 當時的版本（P-090，走 B3）**：
+  `Git-principles-{gitflow|trunk}.md` 是 **init-only starter** —— `configure-agents` 從不重投影它，
+  但 `finish-feature` / `modify-existing` / `new-feature` 三支主幹 flow 都讀它。所以 `0.9.0` 之後
+  init 的專案，**分支命名、commit 規範、Gate Checks 這些 canonical 規則一路凍結在 init 那天**，
+  而每次升級都在刷新「讀它的那些 flow」。實測落差：greenfield trunk **87 行**、brownfield trunk **65 行**，
+  而且不是潤飾——是 hotfix 分支命名改成依嚴重度分流、post-hoc 記錄規則整段新增這一類。
+  現在四份 starter 都插了一組**新的** marker `git-principles-canonical`
+  （⚠ **刻意不沿用 guide 那組**：`GUIDE_CANONICAL_SECTION_START` 同時被 `AI-AGENT-GUIDE.md` 的
+  section 邊界掃描當終止條件，共用同一個字串等於把兩個不相干的機制綁在一起）。
+  區域邊界是 **`## 1. Branch Structure` 起、`## 6. AI Collaboration Rules (Project Policy)` 前止**。
+  ⚠⚠ **檔頭刻意留在區外**：它有 `> Created: {YYYY-MM-DD}`，那是專案填的值，包進去每次刷新都會蓋掉。
+  **`configure-agents` 的處置與 guide 同一張決策表**（skip + warn + offer，never rewrite unasked）：
+  marker 完整 → 就地刷新 §§ 1–5、marker 外的內容不碰（換行統一見下）；**沒有 marker 但認得出**（兩個標題錨各出現恰好一次）
+  → skip + warn，**互動式執行才提問**是否採納（預設**否**），非互動一律不問也不改；認不出或 marker 壞掉 → skip + warn。
+  ⚠ 採納提問的範圍比 guide 那個**窄得多**：只換 §§ 1–5，**檔頭與 `## 6.` 以下（含你的 CI／CD 段）內容原封保留**。
+  ⚠ 精確講：全檔會做一項既有的正規化——換行符統一成該檔原本佔多數的那一種——所以
+  **混合**換行的檔案是「內容保留」而非「逐位元組保留」。這個行為 guide 那半一直如此
+  （`detectDominantEol` ＋ `applyEol`），不是本案引進的；本條先前把它寫成「逐位元組」
+  是**過度宣稱**，由收工輪 `p090-b3-y1` 用混合換行的 fixture 實測推翻。
+  ⚠ 讀不到 `_conventions.md` 的 `## Git Policy` 時**明確 warn**，不是靜默 return——靜默正是這條線要消滅的形狀。
+  **`dflow doctor` 的 starter drift 改成只比 canonical 區**，四種狀態分開報：還沒採納（info）／
+  區內不同（info）／marker 壞掉（warn）／**安裝的套件自己那份 starter 不堪用（warn）**。
+  ⚠ `malformed` **不得**折進「還沒採納」——否則一個被改壞的檔會讀成「從來沒有 marker」，
+  採納提問就會去改寫沒有人重讀過的 §§ 1–5。
+  ⚠⚠ **那條「套件自己那份 starter 不堪用」的檢查不因專案檔不見而跳過。** 第一版把它
+  放在「專案檔存在嗎」的 `else` 裡，於是**刪掉專案的 `Git-principles-*.md` 就會讓套件損壞
+  整條靜音**，只剩一句「檔不見了，去 scratch 目錄跑一次 `dflow init` 撿回來」——而在那個
+  套件上，那次 init 會原封不動地把同樣的損壞交給你，還看起來像你自己的錯。
+  現在兩條都報，而且「檔不見了」那條的處置在套件已知損壞時會**先叫你重裝**。
+  ⚠ 這是本檔第四次有人在套件檢查外面猜邊界；前三次記在
+  `checkWorkflowBundleSourceAndOrphans` 上，結論只有一句：**出貨來源無條件驗**。
+
+  ⚠ 舊的**整檔**比對是這條 doctor 訊號長年沒人讀的原因：每個填過 CI／CD 段的專案都會亮燈，
+  而那是**正常狀態**。現在區外的編輯不再被報成 drift。
+  ⚠⚠ **gitflow 兩軌的 CHANGELOG 範例日期改成 `{2026-04-21}`，不再是 `{YYYY-MM-DD}`。**
+  這不是措辭調整，是上面那套機制的**前提**：canonical 區是以**出貨原始位元組**比對與刷新的，
+  而 `{YYYY-MM-DD}` 是 `init` 會代換的 placeholder。它就落在 gitflow 的 §§ 1–5 之內，
+  於是**剛 init 完的 gitflow 專案立刻被 doctor 判 canonical drift**，而
+  `configure-agents` 的「刷新」會把採用者檔案裡真實的日期**改回 `{YYYY-MM-DD}` 這串佔位字**。
+  兩軌都會發生，收工輪 `p090-b3-x1r` 端到端重現。⚠ 這兩個檔裡有**兩個** `{YYYY-MM-DD}`，
+  而只有一個被想過（檔頭 `> Created:`，刻意留在區外）；區內那個曾經因為**另一個理由**
+  被寫在註解裡（不可以拿它當節標題錨），沒有人把兩件事接起來。
+  ⚠ 對既有 gitflow 專案的影響：下一次 `configure-agents` 會把這個範例日期一併刷新，
+  這正是 canonical 區該做的事。
+  現在有一道 guard 守著它（`test/upgrade-drift.mjs`）：**四份 starter**（兩軌 × 兩 policy）
+  剛投影出來的 canonical 區，都必須與出貨檔逐位元組相同。⚠ 用「與新投影檔比對」而不是
+  「grep 目前的 placeholder 清單」，是因為前者連未來新增的代換機制都擋得住。
+  **兩份 tutorial `outputs/` 的 Git-principles 也跟著更新**（user 決定 2026-08-28：
+  流程與樣板有改，`outputs/` 就跟著改）。它們是「跑完 `dflow init` 長什麼樣」的對照證據，
+  而 tutorial 在 `include_paths` 裡、會出貨。做法**不是手改**，是套用本案自己的機制：
+  插入 marker、canonical §§ 1–5 換成本版出貨內容，**檔頭與 `## 6.` 以下保留**（這兩份是純 LF，實測逐位元組相同）
+  ——實測兩份的 `> Created: 2026-04-28` / `2026-04-29` 與 §6+ 都原封不動，
+  而 `dflow doctor` 對更新後的兩份**不再有任何 Git-principles finding**。
+  ⚠ 這一併補掉了它們自 P-083／085／087 以來累積的落後（各約 21–22 個 hunk）。
+  ⚠⚠ **trunk 兩軌的 5 處「採用者填空」移出 canonical 區（收工輪 `p090-b3-y3` 抓到）。**
+  greenfield trunk 的 `## 3. Merge Strategy Options` 有三處 `**This project uses**:
+  {Yes / No / Default — fill in}`、brownfield trunk 的 `## 2` 與 `## 3` 各一處
+  （後者的節標題**自己就叫 `Merge Strategy (Project Chooses)`**）——它們全都落在
+  §§ 1–5 之內，也就是**每次刷新都會被蓋掉的那一段**。實測：採用者填成 `**squash**`，
+  跑一次 `configure-agents` 就被換回 `{squash | rebase | fast-forward}`，沒有任何提示。
+  **這正是本案要防的事，卻由本案的邊界造成。**
+  ⚠ 根因是邊界建立在**節編號**（§§ 1–5）而不是**內容歸屬**。真正的分界是
+  **「Dflow 說的規則 → canonical；專案的選擇 → 不碰」**。
+  修法（user 2026-08-28 拍板走 c 案）：**取捨說明留在原處**（那是 Dflow 維護的內容），
+  **「本專案選哪個」移到 `## 6.` 底下新的一小節**（那裡本來就是專案自有區）。
+  gitflow 兩軌本來就沒有這個問題，未動。
+  新增一道 guard：canonical 區內不得出現採用者填空的形狀（`{a / b}`、`{a | b}`、
+  `fill in`、`Delete the unused…`），⚠ 且用 `maskCodeBlocks` 排除 fenced 範例。
+  ⚠⚠ **既有採用者請注意**：新的 `## 6.` 小節在 canonical 區**外**，所以
+  `configure-agents` **不會**幫你加上它——你只會看到 §3 那幾行填空消失。
+  若你曾在那裡填過選擇，升級後請自行在 `## 6.` 記一行。
+  （在此之前那個值本來也是每次刷新都會被清掉，所以不是新的損失，但補救位置變了。）
+  ⚠ **doctor 對「認不出來的 starter」不再建議一個不會出現的提問**（收工輪 `p090-b3-z1`）。
+  兩個標題錨不完整時 `configure-agents` **不會**提出採納提問，而 doctor 先前照樣說
+  「去接受採納提問」——對另一個指令的假宣稱。現在分成三種：讀不到（warn）／
+  真的 pre-marker 且認得出（給採納建議）／認不出（說明為什麼不會有提問）。
+  ⚠ 順帶：**讀不到的檔**先前會被歸成「沒有 marker」，等於對沒讀到的內容下判斷，一併分開。
+  新增三道 guard：**tutorial fixture 的 canonical 區必須與出貨檔逐位元組相同**
+  （它在 `include_paths` 裡、會出貨，而先前沒有任何東西在看它，實測同一場三個 commit 內就漂掉）、
+  **marker 位置必須釘在兩個標題錨上**（先前把 START 移到 `## 1.` 之下——等於讓 §1 不再被刷新
+  ——整套測試全綠）、以及上面那條 doctor 措辭。
+  ⚠⚠ **明知蓋不到、繼續漂的部分已列冊**（`planning/opt-in-backlog.md` 的
+  `p090-b3-outside-region-drift`，owner ＝ maintainer）：B3 的單區 marker 蓋不到排在專案自有段
+  **之後**的 canonical 內容——greenfield trunk 的 `## 7. Hotfixes under Trunk-based`（**這一筆是實際
+  漂移中的**）、四份的 `## Related Documents`、greenfield trunk 的 `## 8. Release & Versioning`。
+  這是 B3 對 B2（多區 marker）換來的代價，user 2026-08-28 拍板時已知並接受。
+  升級說明見 `docs/upgrading.md` ＋ `.en.md`。
 
 - **`finish-feature` 的 baseline 現在真的取得回內容（dist issue #10）**：
   Step 1 叫執行者對 host 目錄每個檔跑 `git hash-object {path}`、把 `path → blob` 清單當
@@ -246,6 +334,11 @@
   `templates/{軌}/scaffolding/` 與 `templates/common/skill/`：少掉其中一支
   （實測 `scaffolding/AI-AGENT-GUIDE.md`、`common/skill/SKILL.md`）doctor 仍會說
   「全部通過」，而 `configure-agents` 會硬失敗。
+  ⚠ **這一句在 P-090 之後有一個例外**（見上方 P-090 那條）：`scaffolding/Git-principles-{policy}.md`
+  現在由 starter drift 檢查自己驗——它缺席或 marker 壞掉都會回報，
+  且**不因專案自己那份檔不見而跳過，也不因 track 推不出來而跳過**：edition 推不出來時，
+  **選定 policy 底下的每一個候選軌都會驗**（全部候選都壞才說死「configure-agents 會失敗」，
+  只壞其中一軌則說「取決於它解析到哪一軌」）。**其餘 scaffolding 檔仍不在範圍內。**
   **深度**：驗的是來源檔的**清單**——哪些檔在不在、有沒有跨樹撞名、`references/` 與
   `templates/` 是否都非空——**不是檔案的內容**。所以「檔在、但讀不到內容（權限）」
   「檔在、但是空的」「少了一支不在必要清單裡的檔」也驗不出來，而最後那類還會被

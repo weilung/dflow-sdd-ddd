@@ -17,6 +17,8 @@ use `Git-principles-gitflow.md` instead.
 
 ---
 
+<!-- dflow-generated: git-principles-canonical START -->
+
 ## 1. Branch Structure
 
 Single-trunk model:
@@ -25,6 +27,7 @@ Single-trunk model:
 |--------|--------|----------|-----------|
 | `main` | `main` | — | — (protected; feature branches merge in) |
 | feature | `feature/{SPEC-ID}-{slug}` | `main` | `main` |
+| bugfix | `bugfix/{BUG-ID}-{slug}` | `main` | `main` |
 
 No `develop`, no `release/*`, no `hotfix/*` branches. Hotfixes are just
 small, fast feature branches cut from `main`.
@@ -32,6 +35,17 @@ small, fast feature branches cut from `main`.
 The `feature/{SPEC-ID}-{slug}` pattern is a **Dflow requirement** (not
 a trunk-based requirement). It ties each feature branch to its
 corresponding `dflow/specs/features/active/{SPEC-ID}-{slug}/` directory.
+
+A **`bugfix/{BUG-ID}-{slug}`** branch is the same shape as a feature branch and
+follows the same topology — cut from the same base, pushed the same way,
+integrated the same way, and **closed out the same way**. It is used when a
+defect owns its own host rather than being picked up by a feature already in
+flight. Its host is a **minimal (zero-phase) host**, so it carries no
+phase-spec: the SPEC-ID lives in the directory name while the branch name
+carries the BUG-NUMBER, and the host `_index.md` `branch:` field is
+authoritative for both. Closeout is not optional because the branch prefix
+differs — `/dflow:finish-feature` runs and the directory is archived to
+`completed/` before the branch merges, exactly as for `feature/`.
 
 ### Feature Branch Workflow
 
@@ -58,7 +72,7 @@ gh pr create --base main --fill
 
 - **Short-lived feature branches**: typically hours to a few days, not
   weeks. Encourage splitting large features into multiple phase-specs
-  and merging each phase to `main` (see Dflow's Ceremony Scaling +
+  and merging each phase to `main` (see `AI-AGENT-GUIDE.md` § Ceremony Scaling +
   `/dflow:new-phase`)
 - **Main is always releasable**: feature flags or dark launches for
   incomplete functionality; CI must be green on `main` at all times
@@ -77,8 +91,6 @@ recommended but not strictly required:
 {type}({scope}): {short description}
 
 [{SPEC-ID}] {longer description, optional}
-
-Co-Authored-By: Claude <noreply@anthropic.com>   ← suggested, not mandatory
 ```
 
 ### Type prefix (Conventional Commits)
@@ -106,8 +118,6 @@ feat(expense): add ExpenseReport submission invariants
 [SPEC-20260421-001] Introduce ExpenseReport Aggregate with submission
 state machine; enforces non-negative Amounts and requires at least one
 ExpenseItem before submission.
-
-Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
 ---
@@ -115,7 +125,8 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ## 3. Merge Strategy Options
 
 Trunk-based projects typically pick **one** of the three below as the
-default. Document which one your team uses:
+default. The trade-offs are here; **record which one your team uses in
+§ 6, under "Merge strategy"** — that section is yours, this one is not.
 
 ### Option A — Squash merge (most common)
 
@@ -127,8 +138,6 @@ All commits on the feature branch are squashed into a single commit on
 - Con: Loses intermediate commit context (though it's still available
   via the PR)
 
-**This project uses**: {Yes / No / Default — fill in}
-
 ### Option B — Rebase merge
 
 Each commit on the feature branch is rebased onto `main` as-is. Linear
@@ -139,8 +148,6 @@ history, but more commits than squash.
   phase)
 - Con: Noisier history
 
-**This project uses**: {Yes / No / Default — fill in}
-
 ### Option C — Fast-forward only
 
 Only merges when the feature branch is a direct descendant of `main`.
@@ -148,8 +155,6 @@ Equivalent to rebase merge when used consistently.
 
 - Pro: Perfectly linear
 - Con: Requires strict rebase discipline; can be inconvenient
-
-**This project uses**: {Yes / No / Default — fill in}
 
 ---
 
@@ -183,8 +188,33 @@ Related BR-IDs:
 Domain Events introduced / modified: {Event names, or "(none)"}
 
 Related SPEC-IDs: {SPEC-ID}{, follow-up SPEC-IDs if any}
-Co-Authored-By: Claude <noreply@anthropic.com>
 ```
+
+**Zero-phase (minimal host) form.** A minimal host has no phases and may have
+no bounded context, so its Change Scope block carries the values that are
+actually true rather than padded ones:
+
+```
+Change Scope:
+- BC: none                          # or the real context, when the change has one
+- Aggregate(s) touched: none
+- Phase Count: 0
+- Lightweight Changes: 1 T2 + 0 T3  # at least one row, always
+
+Related BR-IDs: {empty, or the per-family no-BR marker this change carries}
+
+Domain Events introduced / modified: (none)
+```
+
+`none` and `0` are the honest values here, not placeholders waiting to be
+filled. **`Related BR-IDs` is the exception — never force it to `none`.**
+It reports what this change's own record carries, not what was synced, so it
+takes the same values a BC-bearing host would: empty, or the per-family no-BR
+marker when the T2 carries one. Writing `none` there erases the marker the
+zero-phase shape requires (`references/finish-feature-flow.md` Step 5 states
+the rule). A minimal host that genuinely touches a bounded context
+reports that context and its real BR delta exactly as a phase-bearing feature
+would — the zero is the **phase count**, not the significance.
 
 GitHub PR editor can be pre-filled with this body; the merge button
 then produces the squash commit.
@@ -210,8 +240,6 @@ feat({scope}): {Phase N title} — closes {SPEC-ID}
 Change Scope: ... (as in §4.1)
 Related BR-IDs: ...
 Domain Events: ...
-
-Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
 ### 4.3 Fast-forward (feature has 1 commit total)
@@ -219,6 +247,12 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 For trivial features consisting of a single commit (often a T3
 triaged later to one small refactor / fix), the commit body itself
 IS the integration message — use the §4.1 format.
+
+**A minimal (zero-phase) host is never this case.** It records **exactly two**
+commits — the implementation checkpoint, then the closeout commit that carries
+the archival `git mv` — so it does not arrive here with one. A minimal host
+showing a single commit has not closed out: run `/dflow:finish-feature` first
+rather than fast-forwarding it as it stands.
 
 ---
 
@@ -233,7 +267,10 @@ Before making key Git operations:
       justification in the spec's notes section)
 - [ ] `_index.md` status reflects the current work (Phase Specs row
       updated, `Resume Pointer` refreshed if the commit reaches a meaningful
-      checkpoint)
+      checkpoint). A **minimal (zero-phase) host** has no Phase Specs row to
+      update — its record is the Lightweight Changes row, and that row must
+      already be written **before** this commit, not after it. Refresh the
+      Resume Pointer as usual.
 - [ ] Clean Architecture layer rules hold (Domain has no external
       package deps, no business logic leaked into handlers /
       controllers)
@@ -249,12 +286,29 @@ Before making key Git operations:
       `context-map.md` reflect the feature's net changes
 - [ ] `dflow/specs/domain/glossary.md` updated with any new terms
 - [ ] `dflow/specs/architecture/tech-debt.md` updated with any debt discovered
-- [ ] Domain project has zero external NuGet dependencies
+- [ ] Domain project has zero external package dependencies
 - [ ] No ORM / serialization attributes on Domain entities
 - [ ] Domain unit tests pass (invariants + value object equality)
 - [ ] CI is green (all required checks passing)
 
+> **Minimal (zero-phase) host.** The items about this host's own record —
+> `/dflow:finish-feature` having run, `_index.md` status `completed`, and the
+> archival move — apply **unchanged**: they are what stops a host merging with
+> its record still open. Every item naming a **Domain or bounded-context
+> artifact** applies only to what this change **actually touched**: a **no-BC**
+> host has no context to sync or document, and a **T3** does no Domain work at
+> all, so for those they read N/A. **Bounded-context-scoped only** —
+> `glossary.md` and the tech-debt file belong to no bounded context, stay in a
+> no-BC host's sweep, and are **not** N/A for it. **Code invariants are not
+> artifacts** — the items here that state a rule about the **source** rather
+> than name a document to update are **never N/A**: they hold for any change
+> that touches code at all, and a host wrongly claiming to be no-BC is exactly
+> what they catch. Record the N/A; do not create a context, a Domain document,
+> or a BR row to tick a box.
+
 ---
+
+<!-- dflow-generated: git-principles-canonical END -->
 
 ## 6. AI Collaboration Rules (Project Policy)
 
@@ -301,6 +355,13 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 For other AI assistants, use the vendor-documented author line (or omit
 it). This is a project-level transparency convention, not a Dflow
 requirement.
+
+### Merge strategy
+
+Dflow does not choose this for you; § 3 lists the trade-offs. Record what this
+project settled on:
+
+**This project uses**: {Squash / Rebase / Fast-forward only — fill in}
 
 ---
 
