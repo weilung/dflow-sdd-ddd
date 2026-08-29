@@ -185,6 +185,18 @@ It is not the only unreported one. Others are recorded in the source (`lib/docto
 
 So if you are chasing a drift result that makes no sense and none of the shapes above are present in your file, the table-indent gap is **one** candidate worth checking — not the last one. The end of this page is not the end of the list.
 
+**One more deliberate silence, of a different kind: command files and skill files that are not there at all.** Everything above is about a file doctor might *misread*. This one is not a misreading — it is a whole layer doctor does not look for.
+
+`dflow doctor` does check `.claude/commands/dflow/`, `.github/prompts/dflow-*.prompt.md` and the three `SKILL.md` files, but it judges **only the ones already present**: a partial set is reported, a `0.5.0`-era filename left behind is reported, and a Dflow-generated `SKILL.md` that has fallen behind this version is reported. **When none of them exist at all, it says nothing.**
+
+**The failure this leaves open.** A project never ran `dflow configure-agents --command-adapters` — or ran it once and the files were not regenerated after a clone — so not one `/dflow:*` command is available, and `dflow doctor` reports `All checks passed` throughout. This is not hypothetical: one real project went six releases with no `.claude/commands/dflow/` files at all, and doctor was silent the whole way.
+
+**Why it is deliberately not defended.** Doctor cannot separate two kinds of adopter — "I never wanted those files" and "I had them and they are gone" — because the two states are identical on disk, and **both are legitimate**. Dflow never records which tools a project intends to use (the boundary `PROPOSAL-058` set, which `checkRootAgentShims` also follows), while `PROPOSAL-037` positively **recommends** that adopters gitignore these generated files and regenerate them after a clone — so "not one of them present" in a fresh clone is exactly what following that advice looks like. A detector for this was specified three times, and each time a path was found where it fired on an innocent project; one version reported on **every fresh `dflow init`**. The sentence this section opens with — a warning that fires on correct files teaches people to ignore all of them — is about precisely this.
+
+**Who carries the residual risk.** The adopter. Doctor states the boundary at the end of every run and names who picks it up: the AI you run Dflow with. ⚠ **That is a delegation, not a guarantee** — nothing makes it happen, and nothing verifies afterwards that it did.
+
+**What would make us reconsider.** If command adapters became installed by default, the "I never wanted them" adopter would no longer exist and the detection collapses into the simple question "is it there?". That is a separate product decision — it would overturn `PROPOSAL-074`'s explicit choice to keep adapters opt-in — and it has not been made. If it is, this entry gets revisited with it.
+
 ## If none of this explains your result
 
 Doctor is read-only; it never edits your files, so nothing here can have damaged anything. A drift report you cannot account for is worth reporting — include the `_conventions.md` section it points at, and the detector id if one was printed.

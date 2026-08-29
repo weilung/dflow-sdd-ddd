@@ -30,6 +30,8 @@ dflow configure-agents
 | 工具原生命令入口 | `.claude/commands/dflow/`、`.github/prompts/dflow-*.prompt.md` 等，以及 `AGENTS.md` 內的 `codex-command-triggers` marker 區 | Dflow | 不重生成 | `--command-adapters` |
 | Project-level skill | `.claude/skills/dflow/`、`.agents/skills/dflow/`、`.github/skills/dflow/` | Dflow | 既有 skill 不重生成；新選工具還沒有 skill 時會詢問（預設安裝） | `--skills`（強制全部重生成） |
 
+⚠ **上面兩列 `dflow doctor` 只看得到「已經在的檔」。** 它會報：命令入口只裝了一部分（少了哪幾支）、留著 `0.5.0` 舊檔名的殘留、以及 Dflow 產生的 `SKILL.md` 落後於目前 CLI。它**不會**報「一支都沒有」——那是刻意的，理由與殘餘風險寫在 [`doctor-uncertainty.md`](doctor-uncertainty.md) 的「已知、但刻意不回報的形狀」一節。所以升級後如果你**要**用 `/dflow:*`，請自己跑一次 `dflow configure-agents --command-adapters` 確認，不要等 doctor 提醒你。
+
 一句話版本：**flagless 刷新 bundle、`agent-shim`、`guide-canonical` 與 `git-principles-canonical` 區；command adapters（含 `AGENTS.md` 的 `codex-command-triggers` 區）與既有 skill 要各自加 flag；你寫的東西永遠不會被自動改寫或遷移。**
 
 ## 既有檔案會被怎麼對待
@@ -67,6 +69,11 @@ doctor 是**唯讀**檢查——只回報、不寫任何檔案。升級相關的
 - 你所選 Git policy 對應的 `Git-principles-{policy}.md` starter 缺漏，或其 **canonical §§ 1–5** 與本版不同——另外三種狀態分開回報：還沒採納 marker、marker 損壞、以及安裝的套件自己那份 starter 不堪用。只比 §§ 1–5，所以你自己的段落永遠不會被報成 drift
 - `features/active/` 內的 feature `_index.md` 還是舊模板形狀（`completed/` 不掃）
 - 已指向 canonical 指南、卻未受 Dflow 管理的 agent 檔
+- 命令入口**只裝了一部分**——`.claude/commands/dflow/` 或 `.github/prompts/dflow-*.prompt.md` 有幾支但不是 11 支全到，以及留著 `0.5.0` 舊檔名的殘留。⚠ **整組都不存在時不會報**，理由見上面 ownership 表下方那段
+- Dflow 產生的 `SKILL.md`（Claude／Codex／Copilot 三份任一）內容落後於目前 CLI——它的 `description` frontmatter 就是工具拿去比對、決定要不要自動接手的那段文字，所以落後的那份等於還用著舊版的觸發邊界。沒有 Dflow marker 的 `SKILL.md` 是你的檔，永遠不報
+- `.dflow-bundle-manifest.json` 存在但讀不到或解析不了。從來沒寫過 manifest 是正常狀態、保持沉默；**壞掉**的會報，因為它會連帶靜默關掉 bundle 版本檢查，以及其他檢查向它要的 edition 值
+
+⚠ 上面有幾項檢查以前會在「它要讀的值不存在」時**把自己關掉、而且不吭聲**——缺 `## Git Policy` 段、推不出 edition、讀不到套件內的範本，都屬於這種。現在不會了：值缺席但檢查仍做得下去的，改成把所有候選都比一次；真的做不下去的，doctor 會明說哪些檢查沒有跑。所以處在這幾種狀態的專案升級後，會看到以前沒看過的 finding——**那些狀況本來就一直存在**。
 
 ## 徹底驗證（基準做法）
 

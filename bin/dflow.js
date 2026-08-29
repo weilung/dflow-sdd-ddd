@@ -113,7 +113,14 @@ Read-only health check for the current project. Reports findings such as:
   - active feature _index.md files created from an older template shape
   - root agent files (AGENTS.md / CLAUDE.md / copilot-instructions.md)
     with malformed Dflow markers or unmanaged Dflow wording
-  - workflow bundle orphans and a bundle projected by an older Dflow
+  - workflow bundle orphans, a bundle projected by an older Dflow, and a
+    bundle manifest that is present but unreadable
+  - a partly installed set of /dflow:* command files, or ones still using
+    the Dflow 0.5.0 filename
+  - a Dflow-generated SKILL.md that has fallen behind this CLI
+
+Doctor reports only on command and skill files that are already present:
+whether this project should have them is intent, which nothing records.
 
 Doctor never modifies files.
 `);

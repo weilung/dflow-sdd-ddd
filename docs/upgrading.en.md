@@ -30,6 +30,8 @@ dflow configure-agents
 | Tool-native command entries | `.claude/commands/dflow/`, `.github/prompts/dflow-*.prompt.md`, etc., plus the `codex-command-triggers` marker region inside `AGENTS.md` | Dflow | Not regenerated | `--command-adapters` |
 | Project-level skills | `.claude/skills/dflow/`, `.agents/skills/dflow/`, `.github/skills/dflow/` | Dflow | Existing skills are not regenerated; newly selected tools without a skill are offered one (installed by default) | `--skills` (force-regenerate all) |
 
+⚠ **For those last two rows, `dflow doctor` sees only files that are already there.** It reports a partial set of command entries (naming which are missing), `0.5.0`-era filenames left behind, and a Dflow-generated `SKILL.md` that has fallen behind the current CLI. It does **not** report "none of them are there" — that silence is deliberate, and its reasoning and residual risk are written up in [`doctor-uncertainty.en.md`](doctor-uncertainty.en.md) under "Shapes that are known and deliberately not reported". So if you **want** `/dflow:*` after an upgrade, run `dflow configure-agents --command-adapters` and check for yourself rather than waiting for doctor to tell you.
+
 One-sentence version: **flagless refreshes the bundle plus the `agent-shim`, `guide-canonical` and `git-principles-canonical` regions; command adapters (including the `codex-command-triggers` region in `AGENTS.md`) and existing skills each need their flag; content you wrote is never rewritten or migrated automatically.**
 
 ## How existing files are treated
@@ -64,6 +66,11 @@ doctor is a **read-only** check — it reports and never writes. Upgrade-relevan
 - the `Git-principles-{policy}.md` starter for your selected Git policy being missing, or its **canonical sections 1-5** differing from this version — reported apart from three other states: markers not yet adopted, markers damaged, and an installed package whose own packaged starter is unusable. Only sections 1-5 are compared, so your own sections never show up as drift
 - feature `_index.md` files under `features/active/` still in an older template shape (`completed/` is not scanned)
 - agent files that point at the canonical guide but are not managed by Dflow
+- a **partially installed** set of command entries — `.claude/commands/dflow/` or `.github/prompts/dflow-*.prompt.md` holding some of the 11 but not all, and `0.5.0`-era filenames left behind. ⚠ A set that is entirely absent is **not** reported; see the ownership table above
+- a Dflow-generated `SKILL.md` (Claude, Codex, or Copilot) whose content has fallen behind this CLI — its `description` frontmatter is what a tool matches on to auto-engage, so a stale copy keeps an older trigger boundary. A `SKILL.md` without the Dflow marker is yours and is never reported
+- a `.dflow-bundle-manifest.json` that exists but cannot be read or parsed. A manifest that has never been written is a normal state and stays silent; a damaged one is reported, because it silently disables both the bundle-version check and the edition every other check asks it for
+
+⚠ Several of these checks used to switch themselves off when a value they read was absent — a missing `## Git Policy` section, an edition that could not be inferred, an unreadable packaged template — and said nothing about having done so. They no longer do: where the check can still be made without the value it is now made against every candidate, and where it genuinely cannot be, doctor says which checks did not run. Expect an upgraded project in one of those states to surface findings it was not shown before; they were always true.
 
 ## Thorough verification (the baseline procedure)
 

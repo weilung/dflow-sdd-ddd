@@ -5605,6 +5605,574 @@ try {
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // (14) PROPOSAL-091 — the two false-clean paths.
+  //
+  // ⚠⚠ EVERY CASE BELOW IS A MUTATION WITH ITS OWN CONTROL, and the controls are
+  // not ceremony: this whole proposal is about checks that go SILENT, and a
+  // silent check passes any assertion that only looks for the absence of a
+  // string. So each pair asserts that the intact fixture reaches
+  // `All checks passed` first — without that, a finding that stopped firing for
+  // an unrelated reason would read as a pass here forever.
+  // ---------------------------------------------------------------------------
+  {
+    const MANIFEST_REL = 'dflow/specs/shared/dflow-workflows/.dflow-bundle-manifest.json';
+    const GP_TRUNK_REL = 'dflow/specs/shared/Git-principles-trunk.md';
+    const SKILL_MARKER = '<!-- dflow-generated: skill-adapter -->';
+
+    // A project whose edition cannot be inferred by EITHER resolver: no manifest
+    // (so the authoritative answer is gone) and none of the structural signals
+    // either. This is the state gates 2 and 4 are about.
+    //
+    // ⚠ ALL THREE STRUCTURAL SIGNALS, NOT ONE. `inferExistingEdition` falls back
+    // through `architecture/tech-debt.md`, `migration/tech-debt.md` and THEN
+    // `domain/context-map.md`, and the first version of this fixture removed
+    // only the first: the edition stayed inferable, both route-(B) assertions
+    // below still saw a single candidate, and the multi-track path they exist to
+    // cover was never executed. A fixture that quietly stops reaching the branch
+    // it names is the same failure this whole section is about.
+    const unknownEdition = async (dir) => {
+      await unlink(join(dir, MANIFEST_REL));
+      await rm(join(dir, 'dflow/specs/architecture'), { recursive: true, force: true });
+      await rm(join(dir, 'dflow/specs/migration'), { recursive: true, force: true });
+      await rm(join(dir, 'dflow/specs/domain'), { recursive: true, force: true });
+      assert.equal(
+        await init.inferProjectBundleEdition(dir), null,
+        'the unknown-edition fixture must actually leave the edition uninferable, or every route (B) assertion below passes vacuously'
+      );
+    };
+
+    // --- Gate 1: a missing `## Git Policy` value must not switch off the whole
+    // Git-principles block. The value decides WHICH starter to compare against;
+    // which starter files exist is visible on disk, so route (B) checks each one.
+    {
+      const p = await newProject('2');
+      const control = await runDoctorAt(p);
+      assert.match(control.stdout, /All checks passed/, 'gate 1 control: the fixture must start clean, or the mutations below prove nothing');
+
+      const conventions = await readFile(join(p, CONVENTIONS_REL), 'utf8');
+      await writeFile(join(p, CONVENTIONS_REL), conventions.replace(/^Selected Git policy: .*$/m, 'Selected Git policy: (unset)'));
+
+      // Still pristine: an unreadable policy must not manufacture drift either.
+      const unsetPristine = await runDoctorAt(p);
+      assert.doesNotMatch(unsetPristine.stdout, /Git-principles-trunk\.md canonical sections differ/, 'route (B) must not report drift against a pristine starter');
+
+      const starter = await readFile(join(p, GP_TRUNK_REL), 'utf8');
+      await writeFile(join(p, GP_TRUNK_REL), starter.replace('## 1. Branch Structure', '## 1. Branch Structure\n\nEDITED INSIDE THE CANONICAL REGION.'));
+      const unsetDrifted = await runDoctorAt(p);
+      // ⚠ THIS EXACT LINE IS THE DEFECT PROPOSAL-091 OPENED WITH. Before route
+      // (B), deleting one line from `_conventions.md` hid this finding — and it
+      // is the only detection channel for the 66-line drift PROPOSAL-090 fixed.
+      assert.match(unsetDrifted.stdout, /Git-principles-trunk\.md canonical sections differ/, 'gate 1: an unrecorded Git policy must not switch off the starter drift check');
+      // ⚠ And the advice has to survive the same move. With no policy recorded
+      // `configure-agents` declines to touch any Git principles file, so an
+      // unqualified "run configure-agents" would be a false claim about a
+      // sibling command — the class this check has already corrected twice.
+      assert.match(unsetDrifted.stdout, /Restore the `## Git Policy` section/, 'gate 1: the action must say what to do first, because configure-agents declines while the policy is unrecorded');
+
+      // Route (A), the fallback and the ONLY shape where the missing value
+      // really does stop the check: nothing on disk to compare.
+      await unlink(join(p, GP_TRUNK_REL));
+      const nothingToCheck = await runDoctorAt(p);
+      assert.match(nothingToCheck.stdout, /The Git-principles starter checks did not run/, 'gate 1: with no policy AND no starter file, doctor must say which checks did not run');
+    }
+
+    // --- Gates 2 and 3: `checkFeatureIndexShape`.
+    {
+      const p = await newProject('2');
+      await unknownEdition(p);
+      assert.match((await runDoctorAt(p)).stdout, /All checks passed/, 'gate 2 control: an unknown-edition project with no features must still be clean');
+
+      const featureDir = join(p, 'dflow/specs/features/active/BR-001-probe');
+      await mkdir(featureDir, { recursive: true });
+      const currentTemplate = await readFile(join(p, 'dflow/specs/shared/dflow-workflows/templates/_index.md'), 'utf8');
+      await writeFile(join(featureDir, '_index.md'), currentTemplate);
+      assert.match((await runDoctorAt(p)).stdout, /All checks passed/, 'gate 2 control: a current-shape _index.md must stay clean even when the edition is unknown');
+
+      await writeFile(join(featureDir, '_index.md'), '# BR-001 probe\n\n## Goals & Scope\n\nonly this one section.\n');
+      const staleShape = await runDoctorAt(p);
+      // ⚠ The edition is a fact about the PROJECT'S SHAPE; it says nothing about
+      // whether the adopter's dashboard is stale. Before route (B) this returned
+      // before reading a single feature and reported nothing at all.
+      assert.match(staleShape.stdout, /_index\.md looks like an older _index\.md template shape/, 'gate 2: an unknown edition must not switch off the feature dashboard shape check');
+      assert.match(staleShape.stdout, /every shipped track was checked and this file matches none of them/, 'gate 2: with the track unknown the report must say every track was checked');
+    }
+
+    // --- Gates 4, 5, 6: `checkGuideCanonicalState`.
+    {
+      const p = await newProject('2');
+      await unknownEdition(p);
+      assert.match((await runDoctorAt(p)).stdout, /All checks passed/, 'gate 4 control: a pristine guide must stay clean when the edition is unknown');
+
+      const guide = await readFile(join(p, GUIDE_REL), 'utf8');
+      await writeFile(join(p, GUIDE_REL), guide.replace(START, `${START}\n\nEDITED INSIDE THE MANAGED REGION.`));
+      const guideDrift = await runDoctorAt(p);
+      assert.match(guideDrift.stdout, /AI-AGENT-GUIDE\.md canonical content differs from this CLI version/, 'gate 4: an unknown edition must not switch off the guide canonical comparison');
+      assert.match(guideDrift.stdout, /every shipped track was checked and the region matches none of them/, 'gate 4: with the track unknown the report must say every track was checked');
+    }
+
+    // --- Gate 7: absent and corrupt are different states, and only one of them
+    // is legal. `configure-agents` already splits them; doctor was the only one
+    // of the three that could not.
+    {
+      const p = await newProject('2');
+      const manifestPath = join(p, MANIFEST_REL);
+      const manifest = await readFile(manifestPath, 'utf8');
+
+      await unlink(manifestPath);
+      assert.match((await runDoctorAt(p)).stdout, /All checks passed/, 'gate 7: an absent manifest is the legal never-projected state and must stay silent');
+
+      await writeFile(manifestPath, '{ not json');
+      const corrupt = await runDoctorAt(p);
+      assert.match(corrupt.stdout, /\.dflow-bundle-manifest\.json could not be read/, 'gate 7: a corrupt manifest is damage and must be reported');
+      assert.doesNotMatch(corrupt.stdout, /All checks passed/, 'gate 7: a corrupt manifest must not read as healthy');
+
+      await writeFile(manifestPath, manifest);
+      assert.match((await runDoctorAt(p)).stdout, /All checks passed/, 'gate 7: restoring the manifest must clear the finding');
+    }
+
+    // --- Problem 1: `checkAdapterAndSkillState`, all seven rows of the decision
+    // table. R3: judge what is there, say nothing about what is not.
+    {
+      const p = await newProject('1,2,3');
+      assert.match((await runDoctorAt(p)).stdout, /All checks passed/, 'adapter control: a fresh init must be clean — R3 is designed to be silent here, and PROPOSAL-084 invariant 4 requires it');
+
+      // ⚠⚠ ROW 5 IS THE ACCEPTED RESIDUAL RISK, AND IT IS PINNED AS A BEHAVIOUR
+      // rather than left to chance. `p097-y1` measured doctor's output as
+      // byte-identical before and after deleting the whole `.claude/` layer;
+      // after this check exists, "the whole layer is gone" must STILL be silent,
+      // because the two states doctor would have to separate — never wanted them
+      // vs. had them and lost them — are identical on disk. Detecting absence
+      // was specified three times and each version misfired on a population
+      // PROPOSAL-037 actively recommends. Disclosed in
+      // `docs/doctor-uncertainty.md`; if `command-adapters-install-by-default`
+      // ever lands, this assertion is the one to revisit.
+      const beforeNuke = (await runDoctorAt(p)).stdout;
+      await rm(join(p, '.claude'), { recursive: true, force: true });
+      await rm(join(p, '.agents'), { recursive: true, force: true });
+      await rm(join(p, '.github/skills'), { recursive: true, force: true });
+      const afterNuke = (await runDoctorAt(p)).stdout;
+      assert.equal(afterNuke, beforeNuke, 'row 5: removing the entire adapter and skill layer must not change doctor output by one byte — this is the accepted residual risk, not an oversight');
+    }
+    {
+      // Row 1, claude: its own directory, so the unit is the file count.
+      const p = await newProject('1,2,3');
+      const adapterRun = await runConfigure(p, ['1,2,3', 'y'], { commandAdapters: true });
+      assert.equal(adapterRun.code, 0, `--command-adapters run failed\n${adapterRun.all}`);
+      // ⚠ Prove the generation happened before asserting on its silence. A run
+      // that produced nothing also produces a clean doctor — via row 5, the
+      // deliberate silence — so "clean" alone cannot tell a working full set
+      // from an adapter layer that was never written.
+      assert.deepEqual(
+        (await readdir(join(p, '.claude/commands/dflow'))).sort().length, 11,
+        'the control needs a genuinely complete adapter set, or its silence proves nothing'
+      );
+      assert.match((await runDoctorAt(p)).stdout, /All checks passed/, 'row 1 control: a full generated adapter set must be silent');
+
+      await unlink(join(p, '.claude/commands/dflow/status.md'));
+      const partialClaude = await runDoctorAt(p);
+      assert.match(partialClaude.stdout, /`\.claude\/commands\/dflow\/` has 10 of 11 Dflow command adapters/, 'row 1: a partial claude set must be reported with the count');
+      assert.match(partialClaude.stdout, /Missing: status/, 'row 1: the finding must name which ones are missing');
+
+      // Row 1, copilot: `.github/prompts/` is a SHARED namespace, so the unit is
+      // the `dflow-` glob. Judging the directory would let an unrelated prompt
+      // file raise the severity by one level.
+      await unlink(join(p, '.github/prompts/dflow-next.prompt.md'));
+      assert.match((await runDoctorAt(p)).stdout, /`\.github\/prompts\/dflow-\*\.prompt\.md` has 10 of 11 Dflow command adapters/, 'row 1: copilot is judged by the dflow-* glob');
+    }
+    {
+      // Row 5 again, from the other side: a shared `.github/prompts/` that holds
+      // only the user's own prompts is NOT a partial Dflow set.
+      const p = await newProject('1,2,3');
+      await mkdir(join(p, '.github/prompts'), { recursive: true });
+      await writeFile(join(p, '.github/prompts/my-own.prompt.md'), '# not a dflow prompt\n');
+      assert.match((await runDoctorAt(p)).stdout, /All checks passed/, 'row 5: an unrelated prompt file must not make the absent Dflow set look like a partial one');
+    }
+    {
+      // Row 2: 0.5.0 filenames. Derived from LEGACY_COMMAND_ADAPTERS, and
+      // reported on the file's own evidence — doctor has no selected-agent list
+      // to gate on, and does not need one.
+      const p = await newProject('1,2,3');
+      await mkdir(join(p, '.claude/commands/dflow'), { recursive: true });
+      await writeFile(join(p, '.claude/commands/dflow/dflow-status.md'), '# legacy\n');
+      const legacy = await runDoctorAt(p);
+      assert.match(legacy.stdout, /still use the Dflow 0\.5\.0 filename/, 'row 2: a 0.5.0-era filename left behind must be reported');
+    }
+    {
+      // Rows 3, 4 and 7. ⚠⚠ ROW 7 IS WHY THIS CHECK IS NOT CALLED
+      // `checkCommandAdapters`: codex has NO command adapter, but it DOES have a
+      // skill at `.agents/skills/dflow/SKILL.md`. Two review rounds caught a
+      // draft that wrote "codex is silent" wholesale, which deletes a third of
+      // the coverage of the only row in this proposal with a measurement behind
+      // it (three SKILL.md files still on 0.14.0 wording while doctor said
+      // `All checks passed`). All three paths are asserted, individually.
+      for (const rel of ['.claude/skills/dflow/SKILL.md', '.agents/skills/dflow/SKILL.md', '.github/skills/dflow/SKILL.md']) {
+        const p = await newProject('1,2,3');
+        assert.match((await runDoctorAt(p)).stdout, /All checks passed/, `row 3 control (${rel}): a freshly projected skill must be silent`);
+
+        const skillPath = join(p, rel);
+        const skill = await readFile(skillPath, 'utf8');
+        assert.ok(skill.includes(SKILL_MARKER), `${rel} must carry the Dflow marker, or rows 3 and 4 cannot be told apart`);
+
+        await writeFile(skillPath, skill.replace('Dflow SDD/DDD workflow guardian.', 'Dflow SDD/DDD workflow guardian. STALE WORDING FROM AN OLDER RELEASE.'));
+        const stale = await runDoctorAt(p);
+        assert.match(stale.stdout, new RegExp(`${rel.replace(/[./]/g, '\\$&')} differs from the skill this CLI projects`), `row 3/7: a stale marker-bearing skill at ${rel} must be reported`);
+
+        // Row 4: strip the marker and the same edited file becomes the user's
+        // own, which the overwrite guard in `addSkillAdapterItems` already
+        // treats as theirs. Doctor must not report drift against a template it
+        // is not the source of.
+        await writeFile(skillPath, skill.replace(SKILL_MARKER, '').replace('Dflow SDD/DDD workflow guardian.', 'MY OWN SKILL.'));
+        assert.doesNotMatch((await runDoctorAt(p)).stdout, /differs from the skill this CLI projects/, `row 4: a marker-less ${rel} is the user's file and must be silent`);
+      }
+    }
+
+    // --- ⚠⚠ A DAMAGED PACKAGE MUST NOT PRODUCE A FALSE *DIRTY* EITHER.
+    // Route (B)'s claim is "your file matches NONE of the shipped tracks". With
+    // the edition unknown and one packaged candidate unreadable, that premise is
+    // unestablished — and both checks used to compare against whatever survived
+    // and report drift anyway, contradicting the package finding they had just
+    // pushed, which says in its own words that the report cannot say whether the
+    // file is current.
+    // ⚠ Both siblings are asserted, not just the one a round reproduced. The
+    // `_index.md` half is currently latent — both editions ship the same H2 set,
+    // so a file matching one matches the other — and a latent defect is exactly
+    // the kind that needs a test rather than a comment.
+    {
+      const damagedPkg = join(tempRoot, 'damaged-package');
+      await mkdir(damagedPkg, { recursive: true });
+      for (const dir of ['bin', 'lib', 'templates', 'node_modules']) {
+        await cp(join(repoRoot, dir), join(damagedPkg, dir), { recursive: true });
+      }
+      await cp(join(repoRoot, 'package.json'), join(damagedPkg, 'package.json'));
+      const damagedDoctor = async (cwd) => {
+        const { spawnSync } = await import('node:child_process');
+        const r = spawnSync(process.execPath, [join(damagedPkg, 'bin', 'dflow.js'), 'doctor'], {
+          cwd, encoding: 'utf8', timeout: 120000, maxBuffer: 8 * 1024 * 1024
+        });
+        return r.stdout || '';
+      };
+
+      const p = await newProject('2');
+      await unknownEdition(p);
+      // Control: the same damaged-package harness on an intact package must be
+      // clean, or the mutation below proves nothing about the damage.
+      assert.match(await damagedDoctor(p), /All checks passed/, 'damaged-package control: the fixture must be clean while the copied package is still intact');
+
+      // The project guide is pristine GREENFIELD. Break only the greenfield
+      // packaged guide, leaving brownfield readable.
+      await unlink(join(damagedPkg, 'templates/greenfield/scaffolding/AI-AGENT-GUIDE.md'));
+      const guideOut = await damagedDoctor(p);
+      assert.match(guideOut, /The installed dflow package looks incomplete/, 'a packaged guide that cannot be read must still be reported');
+      assert.doesNotMatch(guideOut, /canonical content differs from this CLI version/, 'a pristine guide must NOT be reported as drifted just because the track it actually matches is the unreadable one');
+
+      // Same shape for the sibling: a feature dashboard copied verbatim from the
+      // current greenfield template, with the greenfield template unreadable.
+      //
+      // ⚠⚠ THE BROWNFIELD TEMPLATE IS DELIBERATELY GIVEN AN EXTRA SECTION, and
+      // without that this whole case is VACUOUS. Both shipped `_index.md`
+      // templates carry the same H2 set today, so a file matching one matches
+      // the other and doctor stays silent whether or not the guard is right —
+      // measured: reverting the fix left this assertion green. Manufacturing the
+      // divergence is what turns "currently unobservable" into "pinned", and the
+      // day the two tracks genuinely diverge this test is already in place.
+      const brownTemplatePath = join(damagedPkg, 'templates/brownfield/templates/_index.md');
+      await writeFile(
+        brownTemplatePath,
+        `${await readFile(brownTemplatePath, 'utf8')}\n## Brownfield Only Section\n\nmanufactured divergence, see the comment in test/upgrade-drift.mjs\n`
+      );
+      const featureDir = join(p, 'dflow/specs/features/active/BR-002-damaged');
+      await mkdir(featureDir, { recursive: true });
+      await cp(join(repoRoot, 'templates/greenfield/templates/_index.md'), join(featureDir, '_index.md'));
+
+      // Two controls, and the first version of this had them wrong — worth
+      // stating, because getting them wrong is the failure this block is about.
+      //
+      // (i) The comparison must be LIVE in this fixture. A file matching neither
+      // template is reported while both are readable.
+      await writeFile(join(featureDir, '_index.md'), '# BR-002\n\n## Goals & Scope\n\nmatches neither track.\n');
+      assert.match(await damagedDoctor(p), /looks like an older _index\.md template shape/, 'divergence control (i): the comparison must actually run in this fixture');
+
+      // (ii) ⚠ A greenfield-verbatim file must be SILENT while both templates
+      // are readable — it matches a candidate, and route (B) clears on any
+      // match. An earlier draft asserted the opposite here and failed; that
+      // silence is the rule working, not the fixture failing to arm.
+      await cp(join(repoRoot, 'templates/greenfield/templates/_index.md'), join(featureDir, '_index.md'));
+      assert.doesNotMatch(await damagedDoctor(p), /looks like an older _index\.md template shape/, 'divergence control (ii): matching one readable candidate clears the file');
+
+      await unlink(join(damagedPkg, 'templates/greenfield/templates/_index.md'));
+      const indexOut = await damagedDoctor(p);
+      assert.match(indexOut, /packaged feature dashboard template is unusable/, 'a packaged _index.md that cannot be read must still be reported');
+      assert.doesNotMatch(indexOut, /looks like an older _index\.md template shape/, 'a current dashboard must NOT be reported as an older shape while the one candidate template it actually matches is unreadable');
+      // ⚠ Assert the "matches none" CLAIM, not the words "every shipped track
+      // was checked" on their own — the package finding uses that phrase too,
+      // and there it is true: every track really was examined for damage. It is
+      // the comparison verdict hanging off it that would be the lie.
+      assert.doesNotMatch(indexOut, /matches none of them/, 'the "matches none of them" claim must not be printed when one of those tracks could not be read');
+    }
+
+    // --- ⚠ Present-but-unreadable is not absent. Row 5's silence is about a file
+    // that is NOT THERE; a file that is there and cannot be read is something to
+    // check whose check disappeared. `checkInitOnlyStarters` has split these two
+    // since `p090-b3-z1`; the skill loop had not.
+    {
+      const p = await newProject('1,2,3');
+      const skillPath = join(p, '.claude/skills/dflow/SKILL.md');
+      await unlink(skillPath);
+      assert.match((await runDoctorAt(p)).stdout, /All checks passed/, 'control: an ABSENT skill file is row 5 and must stay silent');
+
+      // Present, but not readable as a file (EISDIR stands in for EACCES, which
+      // cannot be produced portably here).
+      await mkdir(skillPath, { recursive: true });
+      const unreadable = await runDoctorAt(p);
+      assert.match(unreadable.stdout, /\.claude\/skills\/dflow\/SKILL\.md could not be read/, 'a present-but-unreadable skill file must be reported, not silently filed under "absent"');
+    }
+
+    // --- ⚠⚠ "SOMETHING IS AT THIS PATH" IS NOT "AN ADAPTER FILE IS AT THIS
+    // PATH". `pathExists` answers the first; the row is about the second, and a
+    // directory at an adapter path made a broken surface read as a complete one.
+    {
+      const p = await newProject('1,2,3');
+      const adapterRun = await runConfigure(p, ['1,2,3', 'y'], { commandAdapters: true });
+      assert.equal(adapterRun.code, 0, `--command-adapters run failed\n${adapterRun.all}`);
+      assert.match((await runDoctorAt(p)).stdout, /All checks passed/, 'non-file control: a complete, genuine adapter set must be silent');
+
+      const victim = join(p, '.claude/commands/dflow/status.md');
+      await unlink(victim);
+      await mkdir(victim, { recursive: true });
+      const nonFile = await runDoctorAt(p);
+      // The defect was the clean bill, so assert on that first and directly.
+      assert.doesNotMatch(nonFile.stdout, /All checks passed/, 'a directory sitting at an adapter path must not read as a healthy, complete surface — `configure-agents --command-adapters` fails EISDIR on it');
+      assert.match(nonFile.stdout, /command adapter path\(s\) are not files/, 'and the reason must be named, rather than shown as an ordinary missing adapter');
+      assert.doesNotMatch(nonFile.stdout, /has 10 of 11/, 'a non-file is a third state: reporting it as a plain missing file would send the reader to a regeneration that fails');
+    }
+
+    // --- ⚠⚠ THE SCOPE NOTE MUST NOT CONTRADICT A FINDING IN ITS OWN REPORT.
+    // It said absence "is never a finding here" while the very same report named
+    // a missing adapter. What goes unreported is a whole surface nobody uses —
+    // not members missing from a surface already in use.
+    {
+      const p = await newProject('1,2,3');
+      const adapterRun = await runConfigure(p, ['1,2,3', 'y'], { commandAdapters: true });
+      assert.equal(adapterRun.code, 0, `--command-adapters run failed\n${adapterRun.all}`);
+      await unlink(join(p, '.claude/commands/dflow/status.md'));
+      const partial = await runDoctorAt(p);
+      assert.match(partial.stdout, /Missing: status/, 'the fixture must actually produce a partial-set finding, or the assertion below is vacuous');
+      assert.doesNotMatch(partial.stdout, /absence is never a finding/, 'the scope note must not claim a silence the same report just broke');
+      assert.match(partial.stdout, /a partly installed set is reported/, 'it must say which absence it does report and which it does not');
+    }
+
+    // --- ⚠⚠ AN UNKNOWN EDITION MUST NOT SWITCH OFF THE GIT-PRINCIPLES DRIFT
+    // COMPARISON EITHER. This is the same rule as gates 2 and 4, in the one
+    // place that was still narrowing to a single resolved track — and the same
+    // mutation reported or went silent purely on whether the edition happened to
+    // be inferable.
+    {
+      const p = await newProject('2');
+      const starterPath = join(p, 'dflow/specs/shared/Git-principles-trunk.md');
+      const pristine = await readFile(starterPath, 'utf8');
+      const drift = () => writeFile(starterPath, pristine.replace('## 1. Branch Structure', '## 1. Branch Structure\n\nEDITED INSIDE THE CANONICAL REGION.'));
+
+      await drift();
+      assert.match((await runDoctorAt(p)).stdout, /Git-principles-trunk\.md canonical sections differ/, 'edition-known control: the drift must be reported when the edition is inferable');
+
+      await unknownEdition(p);
+      const unknownEd = await runDoctorAt(p);
+      assert.match(unknownEd.stdout, /Git-principles-trunk\.md canonical sections differ/, 'the SAME drift must still be reported when the edition is not inferable — an unknown edition is a fact about the project shape, not about whether this file is stale');
+      assert.match(unknownEd.stdout, /the sections match none of them/, 'and with the track unknown the report must say every track was checked');
+
+      // ⚠ Clearing on ANY candidate is what keeps `p090-b3-y1`'s false DIRTY
+      // fixed: a pristine starter must stay silent whichever track it belongs
+      // to, and whatever a disagreeing manifest claims.
+      await writeFile(starterPath, pristine);
+      assert.doesNotMatch((await runDoctorAt(p)).stdout, /Git-principles-trunk\.md canonical sections differ/, 'a pristine starter must not be reported as drifted just because the edition is unknown');
+    }
+
+    // --- ⚠⚠ A PACKAGED SKILL THAT IS READABLE BUT UNUSABLE IS PACKAGE DAMAGE,
+    // not project drift. Getting this wrong pointed the blame at three files the
+    // CLI had itself just projected — and the action it printed then overwrote
+    // them with the unusable content (measured 1925 -> 0 bytes, exit 0).
+    {
+      const skillPkg = join(tempRoot, 'unusable-skill-package');
+      await mkdir(skillPkg, { recursive: true });
+      for (const dir of ['bin', 'lib', 'templates', 'node_modules']) {
+        await cp(join(repoRoot, dir), join(skillPkg, dir), { recursive: true });
+      }
+      await cp(join(repoRoot, 'package.json'), join(skillPkg, 'package.json'));
+      const skillDoctor = async (cwd) => {
+        const { spawnSync } = await import('node:child_process');
+        const r = spawnSync(process.execPath, [join(skillPkg, 'bin', 'dflow.js'), 'doctor'], {
+          cwd, encoding: 'utf8', timeout: 120000, maxBuffer: 8 * 1024 * 1024
+        });
+        return r.stdout || '';
+      };
+      const packagedSkillPath = join(skillPkg, 'templates/common/skill/SKILL.md');
+      const packagedSkill = await readFile(packagedSkillPath, 'utf8');
+
+      const p = await newProject('1,2,3');
+      assert.match(await skillDoctor(p), /All checks passed/, 'unusable-skill control: the fixture must be clean while the copied package is intact');
+
+      for (const [label, broken] of [['empty', ''], ['marker stripped', packagedSkill.replace(SKILL_MARKER, '')]]) {
+        await writeFile(packagedSkillPath, broken);
+        const out = await skillDoctor(p);
+        assert.match(out, /packaged skill source/, `${label}: an unusable packaged skill must be reported as package damage`);
+        assert.doesNotMatch(out, /differs from the skill this CLI projects/, `${label}: the project's own freshly projected SKILL.md files must NOT be blamed for a broken package`);
+        assert.doesNotMatch(out, /to regenerate it/, `${label}: and doctor must not print an action that would project the unusable content over them`);
+      }
+      await writeFile(packagedSkillPath, packagedSkill);
+      assert.match(await skillDoctor(p), /All checks passed/, 'restoring the packaged skill must clear the finding');
+    }
+
+    // --- ⚠ A finding that names a policy must name THIS project's policy. A
+    // fixed `gitflow` example inside a finding about a trunk starter reads as an
+    // instruction to write the wrong value.
+    {
+      const p = await newProject('2');
+      const conventionsPath = join(p, CONVENTIONS_REL);
+      await writeFile(conventionsPath, (await readFile(conventionsPath, 'utf8')).replace(/^Selected Git policy: .*$/m, 'Selected Git policy: (unset)'));
+      const starterPath = join(p, 'dflow/specs/shared/Git-principles-trunk.md');
+      await writeFile(starterPath, (await readFile(starterPath, 'utf8')).replace('## 1. Branch Structure', '## 1. Branch Structure\n\nEDITED.'));
+      const out = (await runDoctorAt(p)).stdout;
+      assert.match(out, /this file is the `trunk` starter, so the canonical line is `Selected Git policy: `trunk``/, 'the restore instruction must name the policy this starter actually is');
+    }
+
+    // --- ⚠⚠ PRESENT-BUT-UNREADABLE IS ITS OWN STATE, EVERYWHERE.
+    // The seven approved gates all ask "is this value ABSENT". None of them asks
+    // "is it there and unreadable" — and every `.catch(() => '')` /
+    // `.catch(() => null)` / `catch { return }` in these checks answered both
+    // questions with the absent branch. A file that is intact but locked, or
+    // replaced by a directory, was variously called empty, called
+    // unrecognizable, or passed over in silence.
+    // ⚠ EISDIR stands in for EACCES throughout: a real permission denial is not
+    // portable to produce here, and both arrive as a non-ENOENT error, which is
+    // the distinction the code actually makes.
+    {
+      const p = await newProject('1,2,3');
+      assert.match((await runDoctorAt(p)).stdout, /All checks passed/, 'unreadable control: the fixture must start clean');
+
+      const asDirectory = async (rel) => {
+        const target = join(p, rel);
+        await unlink(target);
+        await mkdir(target, { recursive: true });
+      };
+      const restore = async (rel, body) => {
+        await rm(join(p, rel), { recursive: true, force: true });
+        await writeFile(join(p, rel), body);
+      };
+
+      // The guide: an intact, current guide must never be called unrecognizable.
+      const guideBody = await readFile(join(p, GUIDE_REL), 'utf8');
+      await asDirectory(GUIDE_REL);
+      const guideOut = await runDoctorAt(p);
+      assert.match(guideOut.stdout, /AI-AGENT-GUIDE\.md could not be read/, 'an unreadable guide must say so');
+      assert.doesNotMatch(guideOut.stdout, /is not recognizable as a Dflow guide/, 'doctor must not pass judgement on bytes it never read — that verdict sends the reader to rebuild an intact file');
+      await restore(GUIDE_REL, guideBody);
+
+      // `_conventions.md`: "is empty" is destructive advice for a file whose
+      // content is still there.
+      const conventionsBody = await readFile(join(p, CONVENTIONS_REL), 'utf8');
+      await asDirectory(CONVENTIONS_REL);
+      const convOut = await runDoctorAt(p);
+      assert.match(convOut.stdout, /_conventions\.md could not be read/, 'an unreadable _conventions.md must say so');
+      assert.doesNotMatch(convOut.stdout, /_conventions\.md is empty/, 'and must not be called empty — the action for empty tells the reader to retype their answers');
+      // ⚠ The coupling three sibling checks depend on must survive the new
+      // branch: this block always reports, whichever of the three states it is.
+      assert.doesNotMatch(convOut.stdout, /All checks passed/, 'the always-reports coupling must hold for the unreadable state too');
+      await restore(CONVENTIONS_REL, conventionsBody);
+      assert.match((await runDoctorAt(p)).stdout, /All checks passed/, 'restoring both files must return the project to clean');
+
+      // Feature dashboards: two exits, both of which used to be silent.
+      const featureRel = 'dflow/specs/features/active/BR-003-unreadable';
+      await mkdir(join(p, featureRel, '_index.md'), { recursive: true });
+      assert.match((await runDoctorAt(p)).stdout, /BR-003-unreadable\/_index\.md could not be read/, 'an unreadable feature dashboard must be reported, not skipped');
+      await rm(join(p, featureRel), { recursive: true, force: true });
+
+      const activeRel = 'dflow/specs/features/active';
+      await rm(join(p, activeRel), { recursive: true, force: true });
+      await writeFile(join(p, activeRel), 'not a directory\n');
+      assert.match((await runDoctorAt(p)).stdout, /features\/active\/ could not be listed/, 'an unlistable active/ must be reported — `All checks passed` there covers a feature set nothing looked at');
+      // ⚠ ENOENT stays silent: no active/ means no features in flight, which is
+      // the approved shape and the half of this exit that was always sound.
+      await rm(join(p, activeRel), { recursive: true, force: true });
+      assert.match((await runDoctorAt(p)).stdout, /All checks passed/, 'an ABSENT active/ must still be silent — that half of the exit was never the defect');
+    }
+
+    // --- ⚠⚠ A CORRUPT PACKAGED SKILL IS PACKAGE DAMAGE TOO. Emptiness and a
+    // missing marker were only two of the ways that file can be unusable;
+    // invalid UTF-8 is the third, and it is the one a plain
+    // `readFile(..., 'utf8')` cannot see — the bytes become U+FFFD and sail
+    // through both other tests. `readPackagedTemplate` decodes every other
+    // packaged file with `fatal: true`; this one did not.
+    {
+      const corruptPkg = join(tempRoot, 'corrupt-skill-package');
+      await mkdir(corruptPkg, { recursive: true });
+      for (const dir of ['bin', 'lib', 'templates', 'node_modules']) {
+        await cp(join(repoRoot, dir), join(corruptPkg, dir), { recursive: true });
+      }
+      await cp(join(repoRoot, 'package.json'), join(corruptPkg, 'package.json'));
+      const corruptDoctor = async (cwd) => {
+        const { spawnSync } = await import('node:child_process');
+        const r = spawnSync(process.execPath, [join(corruptPkg, 'bin', 'dflow.js'), 'doctor'], {
+          cwd, encoding: 'utf8', timeout: 120000, maxBuffer: 8 * 1024 * 1024
+        });
+        return r.stdout || '';
+      };
+      const packagedSkillPath = join(corruptPkg, 'templates/common/skill/SKILL.md');
+      const original = await readFile(packagedSkillPath);
+
+      const p = await newProject('1,2,3');
+      assert.match(await corruptDoctor(p), /All checks passed/, 'corrupt-skill control: the fixture must be clean while the copied package is intact');
+
+      // Non-empty, marker intact, bytes invalid.
+      await writeFile(packagedSkillPath, Buffer.concat([original, Buffer.from([0xFF, 0xFE, 0xFF, 0x0A])]));
+      const out = await corruptDoctor(p);
+      assert.match(out, /packaged skill source/, 'a packaged skill with invalid UTF-8 must be reported as package damage');
+      assert.doesNotMatch(out, /differs from the skill this CLI projects/, 'three freshly projected SKILL.md files must not be blamed for a corrupt package');
+      assert.doesNotMatch(out, /to regenerate it/, 'and the action that would rewrite them with replacement characters must not be printed');
+      await writeFile(packagedSkillPath, original);
+      assert.match(await corruptDoctor(p), /All checks passed/, 'restoring the packaged skill must clear it');
+    }
+
+    // --- ⚠ A CRLF checkout of the package is not a broken package. The masker
+    // ate the markers when the packaged guide was classified without `toLf`,
+    // so doctor called an intact package incomplete — and the byte comparison
+    // below it would have reported every CRLF install as drifted.
+    {
+      const crlfPkg = join(tempRoot, 'crlf-package');
+      await mkdir(crlfPkg, { recursive: true });
+      for (const dir of ['bin', 'lib', 'templates', 'node_modules']) {
+        await cp(join(repoRoot, dir), join(crlfPkg, dir), { recursive: true });
+      }
+      await cp(join(repoRoot, 'package.json'), join(crlfPkg, 'package.json'));
+      const guidePath = join(crlfPkg, 'templates/greenfield/scaffolding/AI-AGENT-GUIDE.md');
+      await writeFile(guidePath, (await readFile(guidePath, 'utf8')).replace(/\r?\n/g, '\r\n'));
+
+      const p = await newProject('1,2,3');
+      const { spawnSync } = await import('node:child_process');
+      const out = spawnSync(process.execPath, [join(crlfPkg, 'bin', 'dflow.js'), 'doctor'], {
+        cwd: p, encoding: 'utf8', timeout: 120000, maxBuffer: 8 * 1024 * 1024
+      }).stdout || '';
+      assert.match(out, /All checks passed/, 'a CRLF checkout of the package must not be reported as damaged or as drift');
+    }
+
+    // --- (d) BOUNDARY + DELEGATION. ⚠⚠ THE PARENTHESIS IS LOAD-BEARING: without
+    // it the line reads as a gate ("doctor does not check it, but the AI does"),
+    // and nothing enforces that the AI checks nor verifies afterwards that it
+    // did. Describing a delegation as a guarantee is a defect this repo has
+    // already paid to remove, so the disclaimer is pinned, not just the note.
+    {
+      const p = await newProject('1,2,3');
+      const clean = await runDoctorAt(p);
+      assert.match(clean.stdout, /doctor does not judge whether this project SHOULD have/, 'the BOUNDARY note must print on a clean run — that is the run someone asking "is my install complete?" is looking at');
+      assert.match(clean.stdout, /delegation, not a guarantee/, 'the DELEGATION disclaimer must print with it');
+
+      await writeFile(join(p, MANIFEST_REL), '{ not json');
+      const dirty = await runDoctorAt(p);
+      assert.match(dirty.stdout, /doctor does not judge whether this project SHOULD have/, 'the BOUNDARY note must print on a run WITH findings too — it is a statement about scope, not a consolation for a clean bill');
+      assert.match(dirty.stdout, /delegation, not a guarantee/, 'the DELEGATION disclaimer must print on that run too');
+    }
+  }
+
   console.log(`PROPOSAL-058 upgrade-drift tests passed in ${tempRoot}`);
 } finally {
   if (process.env.DFLOW_KEEP_SMOKE_TMP !== '1') {

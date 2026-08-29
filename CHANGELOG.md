@@ -8,10 +8,70 @@
 
 ## Unreleased
 
-**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）、PROPOSAL-086（受限標頭比讀者窄）、PROPOSAL-087（finish-feature 罕見路徑抽離）、PROPOSAL-090（`Git-principles-*.md` 的 canonical 區改為可刷新）、PROPOSAL-093（closeout 尾巴的 cursor 矛盾）、PROPOSAL-095（BR Snapshot 範例列移出資料面）、PROPOSAL-096（closeout baseline 的鑰匙改為可推導）
+**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）、PROPOSAL-086（受限標頭比讀者窄）、PROPOSAL-087（finish-feature 罕見路徑抽離）、PROPOSAL-090（`Git-principles-*.md` 的 canonical 區改為可刷新）、PROPOSAL-091（`doctor` 的兩條 false-clean 路徑）、PROPOSAL-093（closeout 尾巴的 cursor 矛盾）、PROPOSAL-095（BR Snapshot 範例列移出資料面）、PROPOSAL-096（closeout baseline 的鑰匙改為可推導）
 
 > **目前投影版號：`0.14.6`**（**未發布到 npm**；npm latest 仍是 `0.14.0`）。
 > 以下項目都在這一版裡。
+
+- **`doctor` 補掉兩條「靜默通過」路徑：值缺席不再關掉下游檢查，adapter／skill 層第一次被看（P-091）**：
+  兩條都是 P-084 定義的**最糟**方向——doctor 說 `All checks passed`，而東西其實已經壞了或漂了。
+
+  **(一) 缺一個值就靜默關掉一整段檢查，共四支 check、七個 gate。**
+  最貴的一個是 `checkInitOnlyStarters` 的 `if (policy)` **沒有 else**：`_conventions.md`
+  少了 `## Git Policy` 段，整個 `Git-principles-*.md` 區塊就消失——**而那正是 P-090 修好的
+  66 行漂移唯一的偵測管道**。實測：同一份專案只加一行 `Selected Git policy:`，
+  findings 從 7 條變 8 條；使用者原本看到的 7 條，實際上是 8 條。
+  修法**不是統一補一段字**，七個 gate 各自判過：
+  值只是「專案形狀的事實」的走**不確定就全查**（policy 缺席 → 把磁碟上實際存在的
+  `Git-principles-*.md` 逐一比對；edition 推不出來 → 兩軌都比，**兩軌都不像才報**）；
+  檢查真的做不下去的走**揭露**（讀不到套件內的範本 ＝ 你的安裝壞了，不能沉默——
+  這條是 `checkWorkflowBundleSourceAndOrphans` 的「NOTHING GATES THE PACKAGE CHECK」
+  已經判死的既有判例）。`.dflow-bundle-manifest.json` 則分兩態：**沒有** manifest 是
+  合法狀態、保持沉默；**壞掉**要報。
+  ⚠ 連帶修掉一個會誤導人的措辭：政策沒記錄時 `configure-agents` 其實**拒絕**碰任何
+  Git principles 檔，所以那幾條 finding 的建議會先叫你把 `## Git Policy` 補回來，
+  不會叫你去跑一個必定拒絕的指令。
+
+  **(二) adapter 與 skill 兩層以前一條 check 都沒有。** `p097-y1` 的受控實測：
+  同一棵樹刪掉整個 `.claude/`（11 支指令檔 ＋ 1 份 `SKILL.md`），doctor 輸出**逐位元組相同**。
+  新增 `checkAdapterAndSkillState`，採 **R3——只判已經存在的東西**：
+  指令檔只裝了一部分會報（copilot 判 `dflow-*` glob，不判 `.github/prompts/` 目錄——
+  那是共用命名空間）、`0.5.0` 舊檔名殘留會報、帶 Dflow marker 而內容落後的 `SKILL.md` 會報
+  （**三份都判，含 Codex 的 `.agents/skills/dflow/SKILL.md`**；Codex 沒有指令檔是
+  P-037 已核准的決定，但它**有** skill）。沒有 marker 的 `SKILL.md` 是使用者的檔，不報。
+  ⚠⚠ **「一支都沒有」刻意不報**：doctor 分不出「我本來就沒要」和「我有過、掉了」，
+  而 P-037 **建議**採用者把這些衍生檔 gitignore 掉、clone 後重生成——照建議做的人
+  「一支都沒有」是正常的。這條偵測被規格化三次、三次都被找到會誤報無辜專案的路徑
+  （其中一版連**每一次全新 `dflow init`** 都會被報）。**這筆殘餘風險已寫進
+  `docs/doctor-uncertainty.{md,en.md}`**，含失敗情境／為什麼不防／誰承擔／什麼條件重看。
+  上位解（command adapter 改預設安裝）另案追蹤。
+
+  ⚠ **同批修掉一個「假的髒」——它是假的乾淨的鏡像。** edition 推不出來、而**其中一軌**的
+  packaged 範本讀不到時，`checkGuideCanonicalState` 會拿活下來的那一軌單獨比對，
+  把一份**原封不動、正好屬於讀不到那一軌**的專案檔報成漂移——而同一份報告的上一條
+  finding 才剛說「因此本報告無法判斷它是不是最新」。漂移宣稱的前提是「和**所有**出貨軌都不像」，
+  少一軌讀不到就不成立。`checkFeatureIndexShape` 是逐字同型，一併修（它今天觀察不到，
+  因為兩軌 `_index.md` 的 H2 集合恰好相同——**latent 不是 absent**）。
+  ⚠⚠ **同一批還修掉一整類「值讀不到」的靜默**，那是七個 gate 全都沒問到的一問：
+  它們一律只問「值**缺席**」，而 `catch(() => '')` / `catch(() => null)` / `catch { return }`
+  把「檔不存在」與「檔在、內容完好、只是鎖住或被目錄佔位」併成同一態。結果包括：
+  完好的 `AI-AGENT-GUIDE.md` 被說成「不具 Dflow guide 形狀」並叫你重建它、
+  完好的 `_conventions.md` 被說成 `is empty` 並叫你重填答案、
+  `features/active/` 讀不到時整批 feature 一個字都不報。現在三者都分開講。
+  同理，套件內那份 skill 範本改用**嚴格 UTF-8 解碼**（其他每一支 packaged 檔本來就這樣讀）——
+  否則毀損內容會變成 U+FFFD、非空、有 marker，**兩道可用性檢查都騙得過**，
+  然後 doctor 會對你三份完好的 `SKILL.md` 說它們過期了。
+  另外，packaged guide 分類前補上 `toLf`：CRLF checkout 的套件不再被誤報成損壞。
+
+  另外三處措辭誠實化：存在但讀不到的 `SKILL.md` 不再被當成「不存在」而靜默；
+  `null Git policy` 的後果改成分別講清楚（`init` fallback 到 `trunk`，`configure-agents` 則是拒絕動作）；
+  `dflow doctor --help` 補上新增的三類覆蓋。
+
+  **(三) doctor 現在會說出自己判不了什麼。** 每次執行的報告結尾多一段：它不判斷這個專案
+  「該不該」有指令檔與 skill 檔（那是意圖，沒有任何地方記錄），並指名由使用 Dflow 的 AI
+  接手確認。⚠ **措辭刻意寫成「這是委派，不是保證」**——沒有任何機制強制它發生，也沒有
+  任何檢查驗證它做過。把委派描述成 gate 是本 repo 付過學費的缺陷。
+  落點只在 doctor 輸出 ＋ 揭露頁，**不進 flow 檔、不進 guide**（那兩處每次執行／每 session 付費）。
 
 - **closeout 的 baseline 現在**定址得回來**，而且偵測搬到了還能回頭的位置（P-096，dist issue #10 的殘餘）**：
   `#10` 修好了「baseline 的**內容**讀不回來」（Step 1 的 `git hash-object` 補上 `-w`），
