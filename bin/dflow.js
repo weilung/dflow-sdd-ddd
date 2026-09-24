@@ -67,9 +67,13 @@ function printRenderHelp() {
   dflow render [--src <dir>] [--out <dir>] [--title <text>]
 
 Renders the Markdown specs tree into a mirrored static HTML tree for human
-reading (record tables become cards, AI markers become badges), plus an
-index.html file tree at the output root. Open index.html directly in a
-browser; file:// works, no server needed.
+reading (record tables become cards, AI markers become badges; the filled
+lifecycle and flow tables in analysis.md are also drawn as diagrams), plus
+an index.html at the output root: a grouped directory of the specs (each
+group collapsed until you open it; a lone group starts open) when --src is
+a Dflow specs root (it holds shared/_conventions.md), or a plain file tree
+otherwise. Open index.html directly in a browser; file:// works, no server
+needed.
 
 Markdown stays the AI-facing source of truth. Re-run this command whenever
 the sources change; every run is a full rebuild.

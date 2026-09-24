@@ -140,13 +140,21 @@ It mirrors `dflow/specs/` into a static HTML tree (default output
 `dflow-specs-html/`; adjust with `--src` / `--out` / `--title`): record-style
 tables become one card per row, AI-facing comment markers become badges,
 gherkin blocks get keyword highlighting, and in-tree links are rewritten to
-the matching HTML pages; open the output directory's `index.html` in a browser
-(`file://` works; no server needed). Wall-length narrative crammed into a
-single cell renders more readably: the card spans the full row and extra-long
-fields collapse behind a pure-CSS "expand" toggle (printing always fully
-expands). The `features/completed/` archive never flattens into the root index
-— the root carries year links only, one standalone page per year, so a growing
-archive never bloats the front page.
+the matching HTML pages; the filled lifecycle and flow tables in
+`analysis.md` are also drawn as diagrams above their cards. Open the output
+directory's `index.html` in a browser (`file://` works; no server needed):
+the front page is a grouped directory — Features, Domain, architecture and
+migration, shared documents, and the rest — each group collapsed until you
+open it (a lone group starts open), with a one-line purpose and a "how to
+read these documents" note;
+Domain lists one row per context, and features one row per directory.
+Wall-length narrative crammed into a single cell renders more readably: the
+card spans the full row and extra-long fields collapse behind a pure-CSS
+"expand" toggle (printing always fully expands). The `features/completed/`
+archive never flattens into the root index — the root carries year links
+only, one standalone page per year, so a growing archive never bloats the
+front page. When `--src` is not a Dflow specs root (it has no
+`shared/_conventions.md`), the front page is a plain file tree by path.
 
 The same spec, read two ways — left: the AI-facing Markdown source (dense
 tables plus AI-only markers like `<!-- phase-2 ADDED -->`); right: the HTML

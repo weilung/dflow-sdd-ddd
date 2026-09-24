@@ -8,10 +8,27 @@
 
 ## Unreleased
 
-**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）、PROPOSAL-086（受限標頭比讀者窄）、PROPOSAL-087（finish-feature 罕見路徑抽離）、PROPOSAL-090（`Git-principles-*.md` 的 canonical 區改為可刷新）、PROPOSAL-091（`doctor` 的兩條 false-clean 路徑）、PROPOSAL-093（closeout 尾巴的 cursor 矛盾）、PROPOSAL-095（BR Snapshot 範例列移出資料面）、PROPOSAL-096（closeout baseline 的鑰匙改為可推導）、PROPOSAL-099（系統級知識的落點）
+**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）、PROPOSAL-086（受限標頭比讀者窄）、PROPOSAL-087（finish-feature 罕見路徑抽離）、PROPOSAL-090（`Git-principles-*.md` 的 canonical 區改為可刷新）、PROPOSAL-091（`doctor` 的兩條 false-clean 路徑）、PROPOSAL-093（closeout 尾巴的 cursor 矛盾）、PROPOSAL-095（BR Snapshot 範例列移出資料面）、PROPOSAL-096（closeout baseline 的鑰匙改為可推導）、PROPOSAL-099（系統級知識的落點）、PROPOSAL-100（render 把生命週期與流程畫成圖）、PROPOSAL-101（render 首頁改成分組目錄）
 
-> **目前投影版號：`0.14.7`**（**未發布到 npm**；npm latest 仍是 `0.14.0`）。
+> **目前投影版號：`0.14.8`**（**未發布到 npm**；npm latest 仍是 `0.14.0`）。
 > 以下項目都在這一版裡。
+
+- **`dflow render` 把生命週期與流程畫成圖（P-100，dist issue #6）**：
+  `analysis.md` 裡填好的 `### LC-nn`（一個狀態欄位的生命週期）與 `### FL-nn`（跨 context 的流程）小節，
+  現在會在卡片上方多一張內嵌 SVG 圖：生命週期畫成狀態與轉換，流程畫成參與者與依序的交手；出處是 `inferred`／`assumed` 的箭頭畫成虛線。
+  **卡片一字不改，表格仍是正本。** 表格還是範本原封不動（只有佔位列）的小節跟以前一樣不畫；畫不出來的（缺表、缺欄、值對不上、超過大小上限）改成一行說明為什麼沒畫，
+  不畫半張圖，也不會讓整次 render 失敗。參與者超過 4 個的流程在螢幕上左右捲動，列印時改印一行提示。
+  有圖或提示時，標準輸出多一行 `diagrams: N drawn, M not drawn`。不新增相依套件，頁面照舊不帶 JavaScript；其他頁面不變。
+
+- **`dflow render` 的首頁改成分組目錄（P-101）**：
+  specs 一多，舊首頁是一條照路徑排序、全部展開的檔名清單，第一屏被 `domain/` 佔滿。
+  現在 `--src` 是 Dflow 的 specs 根目錄（有 `shared/_conventions.md`）時，首頁分成 Features、Domain、架構與遷移、共用文件、其他五組：
+  每組是瀏覽器原生的收合區塊，第一次打開全部收起（只有一組時直接展開），標題列帶目錄、文件數與一句用途，展開後有預設收起的「怎麼讀這些文件」。
+  Domain 的跨 context 文件一列、其餘一個 context 一列；feature 一個目錄一列、一個檔一行（`_index.md` 在最前，其餘照檔名裡的日期）；
+  兩種 `analysis.md` 分別標「跨 context 分析」「context 分析」。`completed/` 的年度頁也改成同樣的 feature 列，並多一句說明。
+  頁面照舊不帶 JavaScript，也不記得上次展開了哪一組；列印時收起的組只印出標題列。
+  `--src` 指到別處（例如只轉 `domain/`）時，首頁與年度頁維持原本的目錄樹。
+  另修一個舊缺陷：檔名或目錄名含 `%`、`#`、`?` 時，首頁與年度頁的連結會連錯或斷掉，現在這三個字元會編碼。各文件轉出的頁面不變。
 
 - **系統級知識有了落點：`analysis.md`（P-099，dist issue #6）**：
   跨 context 的有序流程、一個狀態欄位走過的生命週期、算出來而不是存下來的數字、單一規則解釋不了的機制、
@@ -31,7 +48,7 @@
   `context-map.md` 範本的 `Integration Notes` 也改成只收沒有先後順序的資料交換。
   既有專案不需遷移：重跑 `dflow configure-agents` 就會拿到新範本、更新後的 flow 檔，以及 guide canonical 區裡的新路由
   （guide 還沒有 canonical marker 的專案，照舊由 `dflow doctor` 回報）。
-  ⚠ `dflow render` 目前把這些表格轉成一列一張卡片，還不會畫成流程圖或狀態圖。
+  `dflow render` 把這些表格轉成一列一張卡片；填好的流程與生命週期另外畫成圖（P-100，見上方）。
 
 - **`doctor` 補掉兩條「靜默通過」路徑：值缺席不再關掉下游檢查，adapter／skill 層第一次被看（P-091）**：
   兩條都是 P-084 定義的**最糟**方向——doctor 說 `All checks passed`，而東西其實已經壞了或漂了。
