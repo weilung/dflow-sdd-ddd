@@ -28,7 +28,7 @@
 
 ## Integration Notes
 
-- {跨 context 的資料流、contract、ACL 或 integration event 設計}
+- {沒有先後順序也成立的跨 context 資料交換、contract、ACL 或 integration event 設計；有先後順序的跨 context 交手流程記在 analysis.md}
 
 ## Open Questions
 

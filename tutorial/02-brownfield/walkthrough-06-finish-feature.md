@@ -295,7 +295,7 @@ Lightweight Changes：
 ```markdown
 | Date | Tier | Description | Commit |
 |---|---|---|---|
-| 2026-05-04 | baseline | Baseline-only capture：已補 `OrderList.aspx.cs` 與 `OrderDetail.aspx.cs` 的跨頁 confirmed behavior，詳見 [`behavior.md`](../../../domain/Order/behavior.md#confirmed-across-pages-baseline-capture-2026-05-04)；新發現的 rounding / `isVip` debt 已記錄於 [`tech-debt.md`](../../../migration/tech-debt.md)。本 row 無對應 spec 檔。 | c58d213 |
+| 2026-05-04 | baseline | Baseline-only capture：已補 `OrderList.aspx.cs` 與 `OrderDetail.aspx.cs` 的跨頁 confirmed behavior，詳見 [`behavior.md`](../../../domain/Order/behavior.md#confirmed-across-pages-baseline-capture-2026-05-04)，兩頁折扣後金額的來源與 `isVip` 熱點記於 [`analysis.md`](../../../domain/Order/analysis.md)（RM-02、HS-01）；新發現的 rounding / `isVip` debt 已記錄於 [`tech-debt.md`](../../../migration/tech-debt.md)。本 row 無對應 spec 檔。 | c58d213 |
 | 2026-05-08 | T2 | Bug-fix: 修正 `OrderList` / `OrderEntry` / `OrderDetail` 跨頁 display rounding inconsistency，見 [`BUG-001-rounding-inconsistency.md`](./BUG-001-rounding-inconsistency.md)。 | 9f2e470 |
 ```
 
@@ -467,6 +467,38 @@ Step 3 tech-debt sweep：
 整體 debt resolved。三個已知頁面 display contract 統一了，但其他 Order 頁面仍可能
 還有未抽離的邏輯，所以該 broader item 保持 open。
 
+### `analysis.md`：收尾 sweep 與落地複核
+
+closeout sweep 也涵蓋 `analysis.md`——`finish-feature-flow.md` Step 3 那一句帶的是
+`new-feature-flow.md` Step 8.3 的同一組項目，其中一項是落地複核：這個 feature **動手之前**記下的條目，
+照實際做出來的對一次。
+
+```text
+Dflow:
+Step 3 analysis.md sweep（兩個落點）：
+
+- domain/Order/analysis.md——逐條讀檔案本身，不讀 diff
+  （RM-01 是 04-30 寫的，中間隔了好幾個 checkpoint，看 diff 會以為沒東西要複核）：
+  - RM-01 是本 feature 在 new-feature Step 3、動手之前記下的。
+    BR-001～BR-004 那一半對照做出來的東西：btnSubmit_Click 提交時呼叫 DiscountPolicy，
+    計入滿額與 Senior 兩種折扣，寫回的仍是 GrossAmount 與 NetAmount。
+    都一致，不改。
+  - RM-01 的 VIP 那一半是 SPEC-002 在它的 Step 3 加的，而 SPEC-002 還在 implementation。
+    那一半的複核是 SPEC-002 自己 § 8.3 的事，本次不碰。
+  - RM-02、HS-01 是 05-04 baseline capture 記下的既有系統。之後 BUG-001 改了這兩頁，
+    但只改顯示精度，RM-02 本來就不記精度——照舊。HS-01 已在 05-05 標成 resolved，照舊。
+  - 本 feature 期間沒有冒出新的衍生數字、生命週期、機制或熱點要補記。
+- domain/analysis.md：不存在；本 feature 沒有跨 context 流程或角色觸及要記，不建。
+```
+
+這一段和 BR sync 是同一個教訓：**只對帳這個 feature 自己的東西。** RM-01 一條 entry 裡住著兩個
+feature 的內容，SPEC-001 收尾只複核自己記下的那一半。
+
+⚠ **所以 RM-01 的 `Evidence` 這次也不換。** 它仍是 `document`（兩支 phase-spec）：BR-001～BR-004 那一半
+這次對照過程式，但同一條 entry 還帶著 SPEC-002 還沒做出來的 VIP 那一半，改成 `code` 就等於宣稱
+VIP 那一段也對照過程式了。這一半是本 feature 要做出來的條目，複核項對它只要求「做出來的不一樣就改、
+沒做就刪」，兩樣都沒發生；既有系統的觀察則照現況複查，不會因為這個 feature 沒做什麼就刪。
+
 ## Step 4 — Archive feature directory
 
 Bob 確認後，Dflow 進入 archive：
@@ -565,7 +597,7 @@ Step 4 指令 1: 回填未填的 hosted Commit 格。
 
 | Date | Tier | Description | Commit |
 |---|---|---|---|
-| 2026-05-04 | baseline | Baseline-only capture：已補 `OrderList.aspx.cs` 與 `OrderDetail.aspx.cs` 的跨頁 confirmed behavior，詳見 [`behavior.md`](../../../domain/Order/behavior.md#confirmed-across-pages-baseline-capture-2026-05-04)；新發現的 rounding / `isVip` debt 已記錄於 [`tech-debt.md`](../../../migration/tech-debt.md)。本 row 無對應 spec 檔。 | c58d213 |
+| 2026-05-04 | baseline | Baseline-only capture：已補 `OrderList.aspx.cs` 與 `OrderDetail.aspx.cs` 的跨頁 confirmed behavior，詳見 [`behavior.md`](../../../domain/Order/behavior.md#confirmed-across-pages-baseline-capture-2026-05-04)，兩頁折扣後金額的來源與 `isVip` 熱點記於 [`analysis.md`](../../../domain/Order/analysis.md)（RM-02、HS-01）；新發現的 rounding / `isVip` debt 已記錄於 [`tech-debt.md`](../../../migration/tech-debt.md)。本 row 無對應 spec 檔。 | c58d213 |
 | 2026-05-08 | T2 | Bug-fix: 修正 `OrderList` / `OrderEntry` / `OrderDetail` 跨頁 display rounding inconsistency，見 [`BUG-001-rounding-inconsistency.md`](./BUG-001-rounding-inconsistency.md)。 | 9f2e470 |
 
 第一列的 `Commit` 早在 05-08 那次 commit 就回填過了，這次不動；

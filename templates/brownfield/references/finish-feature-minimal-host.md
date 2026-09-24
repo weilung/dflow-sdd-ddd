@@ -38,7 +38,7 @@ A `✗` here stops closeout there, on the same terms.
       `lightweight-*.md` / `BUG-*.md` file; for a **T3** an `_index.md` that
       already carries this row at that hash — Step 1.7 writes every row *before*
       checkpoint 1, which is what makes that provable here; for a **baseline**
-      row, the BC-layer capture it records — and for a
+      row, the capture it records — and for a
       baseline the capture must be **added or modified** by that commit and
       **exist in its tree**, never deleted or renamed away: a commit that
       *removes* the document cannot be the one that captured it, yet it changes
@@ -81,7 +81,7 @@ A `✗` here stops closeout there, on the same terms.
       `follow-up-of` names — it may be a YAML array, and Step 1.6 requires the
       opening reverse-link row in **each** of them to ride this commit, so a
       singular reading would reject the second parent — and (iv) the **global**
-      documents a capture records into (`glossary.md`,
+      documents a capture records into (`glossary.md`, `domain/analysis.md`,
       `migration/tech-debt.md`), which belong to no bounded context and are
       named as capture destinations by Part A's observation-only routing and by
       Step 2's Systematic Baseline Capture. **Any other path blocks —
@@ -154,7 +154,7 @@ A `✗` here stops closeout there, on the same terms.
       already carries this change's Lightweight Changes row — `git show --stat
       {hash}` **and** `git show
       {hash}:dflow/specs/features/active/{SPEC-ID}-{slug}/_index.md`, both, not
-      either; for a **baseline**, the BC-layer capture it claims to record —
+      either; for a **baseline**, the capture it claims to record —
       **added or modified** and present in that commit's tree, never deleted or
       renamed away — together with the `Tier = baseline` row. Any of (a)–(c)
       failing **blocks** closeout.
@@ -168,7 +168,7 @@ A `✗` here stops closeout there, on the same terms.
       it never passes vacuously. For a **baseline** host the same equality holds
       between the `spec-baseline` row's `committed ({hash})` and the
       `Tier = baseline` row's `Commit`; its counterpart to "implementation
-      paths" is the BC-layer documents that capture recorded.
+      paths" is the documents that capture recorded.
       Assert the **equality itself**, not merely that each value passes hash
       evidence on its own: two hashes that each resolve, are each reachable, and
       each contain some named artifact describe a **three**-commit host —
@@ -190,7 +190,7 @@ A `✗` here stops closeout there, on the same terms.
       at `modify-existing-flow.md`'s Step 5 → Step 6 gate and holds the change
       itself — for a **T2** its lightweight-spec plus the implementation source,
       for a **T3** its `_index.md` row plus the implementation source, and for a
-      **baseline** host the BC-layer capture itself, which *is* that host's
+      **baseline** host the capture itself, which *is* that host's
       change. What the flow writes *after* that gate — Step 6's completion
       checklist and Step 1.7's "Finalize + close" — is derived record and rides
       into the closeout commit.
@@ -219,7 +219,7 @@ A `✗` here stops closeout there, on the same terms.
       do not read the existing item as discharging it.
       **Blocks closeout:** any of the **implementation source** files this
       host's lightweight-spec or rows describe, staged or unstaged in
-      `git status --porcelain`; for a **baseline** host the BC-layer documents
+      `git status --porcelain`; for a **baseline** host the documents
       its `Tier = baseline` row records, which are that capture's own content
       and belong in the `spec-baseline` commit — never in closeout; any
       **untracked** file under
@@ -244,10 +244,10 @@ A `✗` here stops closeout there, on the same terms.
       nothing qualifies under (iii) for a T3. A **no-BC** host has no
       *BC-scoped* sweep — a dirty `dflow/specs/domain/{context}/…` or
       `context-map.md` under one is fiction and **blocks** — but the **global**
-      documents (`glossary.md`,
+      documents (`glossary.md`, `domain/analysis.md`,
       `migration/tech-debt.md`) belong to no bounded context, stay in its sweep,
       and therefore still qualify under (iii). **(iii) never covers a baseline
-      host** either — its BC-layer capture *is* the change, and is blocked
+      host** either — its capture *is* the change, and is blocked
       above.
       Read each delta (`git diff -- {path}`) — do not infer it from the
       filename. **The list is closed** — if a later change adds another
@@ -265,17 +265,19 @@ A `✗` here stops closeout there, on the same terms.
       — add, modify, delete or rename — any `dflow/specs/domain/{context}/…`
       document. A deletion is a BC-layer change like any other, and reading only
       the path list would accept one as if nothing had happened. The documents:
-      `rules.md`, `behavior.md`, `models.md` — and no `context-map.md` (the
-      Brownfield context map is optional and grows organically, so a no-BC host
-      inventing a row in it is the same fiction). Any of them **blocks**
+      `rules.md`, `behavior.md`, `models.md`, `analysis.md` — and no
+      `context-map.md` (the Brownfield context map is optional and grows
+      organically, so a no-BC host inventing a row in it is the same fiction).
+      Any of them **blocks**
       (`modify-existing-flow.md` Step 2's no-BC guard is where this should have
       been caught first). A **baseline** host is not a no-BC host and this
-      check does not apply to it — its BC-layer capture is the point.
+      check does not apply to it — its capture is the point.
       **Do not over-reach:** this rejects only Domain documents that commit
       *added or changed* — pre-existing Domain files it never touched are
       irrelevant, and the **global** documents (`glossary.md`,
-      `migration/tech-debt.md`) belong to no bounded context and stay
-      legitimate for a no-BC host, exactly as that check's allow-list says.
+      `domain/analysis.md`, `migration/tech-debt.md`) belong to no bounded
+      context and stay legitimate for a no-BC host, exactly as that check's
+      allow-list says.
       **What this check cannot decide — stated, not asserted:** ⚠ **the rule it
       enforces is not minimal-host-only; only this proof is.** *No no-BC host of
       any shape may commit BC-scoped Domain material* — and what this reads is

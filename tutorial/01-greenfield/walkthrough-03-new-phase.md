@@ -17,6 +17,7 @@ phase 1 MVP 後，如何用 `/dflow:new-phase` 新增下一個 phase，而不是
 - `_index.md` Current BR Snapshot 什麼時候 regenerate
 - phase 2 如何從 phase spec 進入實作、驗證、再標記 completed
 - 哪些 BC-level living docs 要等 `/dflow:finish-feature` 才同步
+- 哪些系統級知識在 Step 2 就當場記進 `analysis.md`，又在 Step 6 對照做出來的複核
 
 閱讀提示：本篇會連到完整文件範例（目前存放在本 tutorial 的 `outputs/` 目錄）。這些範例代表 Greenfield 劇情跑完後的
 最終狀態；本步驟當下，`SPEC-20260428-001-employee-submit-expense` 仍位於
@@ -124,8 +125,10 @@ dflow/specs/domain/Expense/context.md
 dflow/specs/domain/Expense/models.md
 dflow/specs/domain/Expense/rules.md
 dflow/specs/domain/Expense/events.md
+dflow/specs/domain/Expense/analysis.md
 dflow/specs/domain/glossary.md
 dflow/specs/domain/context-map.md
+dflow/specs/domain/analysis.md
 ```
 
 讀完後，Dflow 回報：
@@ -278,6 +281,35 @@ Data structure impact：
 - 新增 ApprovalDecisions table
 - unique index：(ExpenseReportId, SubmitAttemptNo)，防止同一次 Submit 被審兩次
 ```
+
+Step 2 還有一題（flow 的第 5 題 `System-level knowledge?`）：這個 phase 會新增、改到或挖出
+哪些沒有任何一份 context 文件收得下的東西。
+
+```text
+Dflow:
+第 5 題，系統級知識：
+
+- 生命週期：ExpenseReport.Status 多兩個狀態 Approved / Rejected，三條新轉移——
+  Submitted → Approved（主管核准；准不准看 BR-005、BR-006）
+  Submitted → Rejected（主管退回；准不准看 BR-005、BR-006、BR-007）
+  Rejected → Draft（員工第一次重編；准不准看 BR-002）
+  → 加進 dflow/specs/domain/Expense/analysis.md 的 LC-01。
+- 機制：SubmitAttemptNo。每次 Submit 遞增，一次 Submit 最多一筆 ApprovalDecision，
+  退回重編再送出就是新的一次、新的一筆，舊的原樣保留。
+  這不是任何一條 BR 或一個場景講得完的。
+  → 新增 dflow/specs/domain/Expense/analysis.md 的 MX-01。
+- 誰碰得到：主管——待審清單、核准、退回三個功能。
+  核准與退回誰能按，由 BR-005 決定，所以那一格只寫引用：domain/Expense/rules.md BR-005。
+  → dflow/specs/domain/analysis.md 的 FN-03～FN-05。
+- 跨 context 的有序流程：沒有。Identity 那一段是查詢關係，上一題已經交給 context-map.md。
+- 算出來、不是存下來的數字：沒有新的。
+```
+
+這一題的答案不等 `/dflow:finish-feature`，**當場**寫進 `analysis.md`——`new-phase-flow.md`
+Step 7 的責任句就寫著「Step 2 records into `analysis.md` directly, at whichever of its two
+paths the entry belongs to」。寫下的是這個 phase **打算**做的，所以 Evidence 先記
+`confirmed by PO`；FN-03～FN-05 的 Entry point 先留白，endpoint 要到 Step 4 的
+implementation plan 才排。做完之後，Step 6 會回頭對照實際做出來的複核（見下面 Step 6）。
 
 Alice 也排除 batch approve：
 
@@ -760,6 +792,7 @@ Step 6 開始 implementation。
 - ExpenseReportApproved / ExpenseReportRejected events 有被 raise
 - EF configuration 留在 Infrastructure，Domain 不依賴 EF
 - Test failures 修掉，或明確記為 follow-up
+- Step 2 記進 analysis.md 的條目，還對得上實際做出來的東西
 
 如果 implementation 發現原本 Delta 要調整，我會先更新 phase-spec，
 再繼續改 `_index.md` Snapshot；不讓 code 和 spec 靜默分岔。
@@ -779,6 +812,32 @@ tests/ExpenseTracker.Domain.Tests/ExpenseApprovalTests.cs
 
 這是本篇第六個 lesson：**new-phase 不只寫 phase-spec；同一個 workflow 會一路走到 implementation
 與 verification。**
+
+驗證清單的最後一項，是回頭看 Step 2 當場記下的那幾條。計畫在實作中可能變，所以每一條都要
+對照這個 phase 實際做出來的：
+
+```text
+Dflow:
+Step 2 記進 analysis.md 的條目，我讀檔案本身來對，不看 diff
+（"Read the entries in the file, not in a diff: a checkpoint may already have committed them."）。
+
+- LC-01 的三條新轉移：對得上 ExpenseReport.Approve()、Reject()，
+  以及 Rejected 時 AddItem() / RemoveItem() / ModifyItem() 把狀態改回 Draft。
+  Evidence 改成 code，日期換成今天（2026-04-29）。
+- MX-01（SubmitAttemptNo）：對得上 Submit() 的遞增，
+  以及 ApprovalDecision.CreateApproved() / CreateRejected() 建 decision 的方式。
+  Evidence 改成 code。
+- FN-03～FN-05：Entry point 補上實際做出來的 endpoint——
+  GET /api/expense-reports/pending-approval
+  POST /api/expense-reports/{id}/approve
+  POST /api/expense-reports/{id}/reject
+
+Step 2 說要做的都做了，沒有一條要改內容或刪掉。
+```
+
+⚠ 複核只管 **Step 2 記下的那幾條**。LC-01 裡 phase 1 那條 Draft → Submitted、RM-01 與
+FN-01、FN-02 是 walkthrough 02 的 new-feature Step 3 記的，它們的複核在收尾時跑
+（見 [〈Walkthrough 06〉](walkthrough-06-finish-feature.md) 的 Step 3）。
 
 ## Step 6 → Step 7 step gate
 
@@ -820,6 +879,9 @@ Step 7 我會完成 phase-level closeout：
 這一步**不**同步 BC-level living docs，也**不**把 feature directory 搬到 `completed/`。
 `rules.md` / `behavior.md` / `events.md` / `models.md` / `glossary.md` / `context-map.md`
 的 system-level current state 仍由 `/dflow:finish-feature` 統一處理。
+`analysis.md` 不在這張清單裡：它在 Step 2 已經當場寫了、Step 6 也對照做出來的複核過
+（Step 7 的責任句原文：「Step 2 records into `analysis.md` directly, at whichever of its
+two paths the entry belongs to」）；收尾時 `/dflow:finish-feature` 的 sweep 還會再維護一次。
 
 完整 outputs 目錄展示的是後續 finish-feature 後的最終狀態，所以你會在那裡看到 domain
 docs 已同步、feature 目錄位於 `completed/`。但在 `/dflow:new-phase` 這個 workflow 的邊界內，
@@ -829,7 +891,7 @@ docs 已同步、feature 目錄位於 `completed/`。但在 `/dflow:new-phase` �
 
 下表連到 tutorial outputs 的最終範例。Feature 目錄與 BC-level domain docs 是
 `/dflow:finish-feature` 後的 completed snapshot；在 Step 7 當下，`/dflow:new-phase`
-只完成 active feature 內的 phase-spec 與 `_index.md`。
+完成的是 active feature 內的 phase-spec 與 `_index.md`，加上 Step 2 當場寫進的兩支 `analysis.md`。
 
 | 狀態 | Path | 讀者看什麼 |
 |---|---|---|
@@ -842,6 +904,8 @@ docs 已同步、feature 目錄位於 `completed/`。但在 `/dflow:new-phase` �
 | 修改 | [`outputs/dflow/specs/domain/Expense/events.md`](outputs/dflow/specs/domain/Expense/events.md) | ExpenseReportApproved / ExpenseReportRejected。 |
 | 修改 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) | Approver、ApprovalDecision、ApprovalReason。 |
 | 修改 | [`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md) | Expense 對 Identity 的 external reference。 |
+| 修改 | [`outputs/dflow/specs/domain/Expense/analysis.md`](outputs/dflow/specs/domain/Expense/analysis.md) | Step 2 當場記：LC-01 加上 Approved / Rejected 與三條轉移、新增 MX-01（SubmitAttemptNo）；Step 6 對照做出來的複核後，Evidence 換成 `code`。 |
+| 修改 | [`outputs/dflow/specs/domain/analysis.md`](outputs/dflow/specs/domain/analysis.md) | Step 2 當場記主管的三個功能（FN-03～FN-05；核准與退回的 Roles 引 `domain/Expense/rules.md BR-005`）；Step 6 補上 Entry point。 |
 | 本步驟不動 | `outputs/dflow/specs/domain/Expense/behavior.md` | phase 2 當下 Given/When/Then 仍由 phase spec 承載（Step 8.3 才 merge），**骨架則在 walkthrough 02 的 Step 3 就已建立**、且只涵蓋 BR-001~004。outputs 樹裡那一份是 closeout 之後填滿七條 BR 的最終狀態。 |
 
 ## 本篇展示的 Dflow 能力
@@ -852,7 +916,7 @@ docs 已同步、feature 目錄位於 `completed/`。但在 `/dflow:new-phase` �
 | Spec-first development | phase 2 spec / Delta / aggregate design 先落地，再進 Step 6 implementation。 |
 | Hybrid workflow control | Dflow 在 phase slug、phase spec draft、`_index.md` refresh、開始 implementation、完成 phase 前都設 step gate。 |
 | DDD semantic backbone | ApprovalDecision 的 Aggregate 身分、Expense BC 歸屬、Identity external reference 都被顯式記錄。 |
-| 三層文件分工 | phase spec 管 phase delta，feature `_index.md` 管 current snapshot，domain docs 等 finish-feature 才升級成 BC current model。 |
+| 三層文件分工 | phase spec 管 phase delta，feature `_index.md` 管 current snapshot，`rules.md`／`behavior.md` 這類 domain docs 等 finish-feature 才升級成 BC current model；`analysis.md` 則在 Step 2 當場記、Step 6 複核。 |
 | Drift verification readiness | BR Delta、events、implementation tasks、test strategy 都能直接支援後續 PR review。 |
 
 ## 這一段帶來的實際好處
@@ -892,6 +956,8 @@ New-phase 的價值是讓同一個 feature 可以自然長大，但每次長大�
 - `ApprovalDecision` 留在 Expense BC，但作為第二個 Aggregate Root 保留 audit trail。
 - `_index.md` Current BR Snapshot 是 current state，Step 5 regenerate、Step 7 reconcile，不是歷史流水帳。
 - BC-level living docs（rules、models、events、glossary、context-map）等 `/dflow:finish-feature` 才同步。
+- `analysis.md` 不等收尾：Step 2 當場記（狀態怎麼轉、沒有單一規則講得完的機制、誰碰得到什麼），
+  Step 6 對照做出來的複核；收尾時 sweep 再維護一次。
 - Behavior **scenarios** 在 phase 2 當下仍由 phase spec 承載，Step 8.3 才 merge 進
   `behavior.md`；但 `behavior.md` 的**骨架**在 new-feature Step 3 就該建好了
   （`new-feature-flow.md` Step 3），不是延後建立。

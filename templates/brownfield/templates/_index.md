@@ -126,7 +126,7 @@ references/new-phase-flow.md。有衝突時以那些檔為準。
 > **掛在 phase-bearing feature 底下的列不受此限**——closeout 對它們不跑這項檢查
 > （`references/finish-feature-flow.md` Step 1 明寫此例外，理由是 hosted row 本來
 > 就沒有被要求宣告路徑）。寫上去仍是好習慣，但那裡沒有 gate、也不會擋。
-> baseline capture 的 `Tier = baseline` 列同理，寫它實際寫入的 BC 層文件路徑。
+> baseline capture 的 `Tier = baseline` 列同理，寫它實際寫入的 BC 層文件或 `domain/analysis.md` 的路徑。
 >
 > **post-hoc hotfix 的 T3 列**（見 references/modify-existing-flow.md Step 1.8）：
 > Description 另外標明這是 hotfix，並寫出識別依據（PR／incident／tracker 編號）

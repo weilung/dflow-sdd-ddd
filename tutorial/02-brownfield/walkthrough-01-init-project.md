@@ -141,7 +141,7 @@ source 時第 1 題也一樣。三次答不出來就中止 init。
 ⚠ **「能按 Enter」不等於「該按 Enter」，第 8 題是這裡最貴的一題。** 它標的是
 `(default: none)`——那個預設是**一家 AI agent 都不建**。按 Enter 過去，Bob 要的
 `CLAUDE.md` shim、那一列 `.claude/skills/dflow/SKILL.md`，**連 canonical 的
-`AI-AGENT-GUIDE.md` 都不會建**——實測 create 列從 **37 掉到 34**（Bob 只選一家，
+`AI-AGENT-GUIDE.md` 都不會建**——實測 create 列從 **39 掉到 36**（Bob 只選一家，
 所以 shim 與 skill 各只有一列），而那正是本篇 Step 4 在講的東西。
 少掉的那份 guide 尤其要緊：它是各家 AI 工具行為一致的來源。**這題值得真的答。**
 
@@ -150,7 +150,7 @@ source 時第 1 題也一樣。三次答不出來就中止 init。
 Dflow 在寫檔前列出 preview：
 
 ```text
-Will create (37 files):
+Will create (39 files):
 - dflow/specs/features/active/.gitkeep
 - dflow/specs/features/completed/.gitkeep
 - dflow/specs/features/backlog/.gitkeep
@@ -162,8 +162,8 @@ Will create (37 files):
 - dflow/specs/shared/AI-AGENT-GUIDE.md
 - CLAUDE.md
 - .claude/skills/dflow/SKILL.md
-- dflow/specs/shared/dflow-workflows/references/  (15 files)
-- dflow/specs/shared/dflow-workflows/templates/   (10 files)
+- dflow/specs/shared/dflow-workflows/references/  (16 files)
+- dflow/specs/shared/dflow-workflows/templates/   (11 files)
 - dflow/specs/shared/dflow-workflows/.dflow-bundle-manifest.json
 
 Will skip (0 files already present)
@@ -172,22 +172,33 @@ Will defer:
 - dflow/specs/domain/{context}/behavior.md
 - dflow/specs/domain/{context}/models.md
 - dflow/specs/domain/{context}/rules.md
+- dflow/specs/domain/{context}/analysis.md
+- dflow/specs/domain/analysis.md
 ```
 
 ⚠ **上面那個區塊是本篇為了好讀而重排過的，不是 CLI 的逐字輸出。** 實際畫面上，
 preview 是一張 `File plan:` 的 Markdown 表格，欄位是
-`| Path | Action | Source | Size | Notes |`，**每個檔各佔一列**——包括那 26 個
-workflow bundle 檔，所以 Bob 螢幕上的 create 列共 **37** 列（本篇把 bundle 收成三行）。
+`| Path | Action | Source | Size | Notes |`，**每個檔各佔一列**——包括那 28 個
+workflow bundle 檔，所以 Bob 螢幕上的 create 列共 **39** 列（本篇把 bundle 收成三行）。
 表格之後才是 `Will defer:` 表與 `Create these files? (y/N)`。
-（`Will create (37 files):`、`Will skip …` 這兩個標題是本篇的敘事寫法，不是產品字串；
+（`Will create (39 files):`、`Will skip …` 這兩個標題是本篇的敘事寫法，不是產品字串；
 `Will defer:` 則是產品真正印的段名。）
 
 總列數會隨 init 問答的選擇而變（選幾家 AI agent、要不要 optional starter 等），
-所以你自己跑出來的數字未必是 37；**不變的是 bundle 那 26 檔**。
+所以你自己跑出來的數字未必是 39；**不變的是 bundle 那 28 檔**。
 
 還有一件關於 `Will defer:` 的事值得先講：它列的是「Dflow 這次不建、但之後會建」的
 **Dflow 檔案**，所以 Bob 最在意的 `src/Domain/`、Code-Behind 根本不在表上——
 Dflow 從頭到尾就不碰它們。
+
+表上五列的最後兩列是 `analysis.md` 的兩個落點，收的是沒有任何單一 context 文件收得下的
+系統層知識（衍生數字怎麼算、狀態怎麼走、跨 context 的交手順序、誰碰得到哪個功能）。
+`{context}/analysis.md` 的 Notes 與 `models.md`、`rules.md` 兩列一樣是 `Needs a real bounded context.`；
+`domain/analysis.md` 不屬任何 context，Notes 寫的是「第一次有 session 記下跨 context 流程、
+角色觸及，或其他沒有單一 context 擁有的知識時才建」。兩支都等到真的有東西要記才建。
+本劇情的 `Order/analysis.md` 在 walkthrough 02 第一次建立、`Shipment/analysis.md` 在 walkthrough 07；
+`domain/analysis.md` 整個劇情都沒有建：這個例子沒有有序的跨 context 流程，誰能用哪個功能、
+各看得到多少資料，需求與程式碼也都沒交代（walkthrough 02、04 的 Step 3），所以沒有要記進它的東西。
 
 本 tutorial 的 `outputs/` 沒有收錄這個 bundle（它是什麼、為什麼不收，見 Step 4）——
 所以 `outputs/` 裡指向 `dflow/specs/shared/dflow-workflows/` 的各種引用
@@ -243,8 +254,8 @@ Bob 確認後，Dflow 寫入 baseline。
 **workflow bundle（Dflow 管理；`outputs/` 未收錄）**
 
 `dflow init` 另外把一份 workflow bundle vendor 到
-`dflow/specs/shared/dflow-workflows/`，Brownfield 共 26 個檔：15 份 reference
-文件（各指令的 flow 步驟文件，加上兩軌共用的參考檔）、10 份空白 spec 模板、
+`dflow/specs/shared/dflow-workflows/`，Brownfield 共 28 個檔：16 份 reference
+文件（各指令的 flow 步驟文件，加上兩軌共用的參考檔）、11 份空白 spec 模板、
 1 份 manifest。
 （比 Greenfield 少兩份：`aggregate-design.md` 與 `events.md` 是 Greenfield 專屬模板。）
 它由 Dflow 管理，`dflow configure-agents` 每次都會重新投影，**不要手動編輯**
@@ -297,13 +308,13 @@ Order 是最可能先處理的候選，但 init 仍不建立 `dflow/specs/domain
 - tech debt disposition
 
 因此 Dflow 只先建立 `glossary.md` 與 `migration/tech-debt.md`。真正的
-`Order/context.md`、`Order/models.md`、`Order/rules.md`、`Order/behavior.md` 會在
+`Order/context.md`、`Order/models.md`、`Order/rules.md`、`Order/behavior.md`、`Order/analysis.md` 會在
 [〈Walkthrough 02 — `/dflow:modify-existing` 從 WebForms 抽出第一段 Order Domain logic〉](walkthrough-02-modify-existing.md)
 和後續 baseline-capture 中由具體 evidence 推出。
 
 ## Step 5 — Results and next step
 
-Dflow 最後印出結果報告——依序是 `Created:`（37 行路徑）、`Updated:`、`Removed:`、
+Dflow 最後印出結果報告——依序是 `Created:`（39 行路徑）、`Updated:`、`Removed:`、
 `Skipped:`、`Warnings:`、`Deferred:`，然後是收尾。
 
 ⚠ **`Warnings:` 對 Bob 不是空的，這一段要看。** 那一格是 init 回報「還沒解決的佔位符」的地方，
@@ -369,7 +380,7 @@ Bob 的下一步不是重構，而是等待第一個具體修改需求。他會�
 | Brownfield current-state inventory | 先讀現有 repo，而不是套 Greenfield 假設。 |
 | migration context 問答 | 把 modernization 目標記進 baseline，但不立即大重寫。 |
 | `migration/tech-debt.md` | Day-0 就開始累積 future migration source of truth。 |
-| `Will defer:` 區塊 | 防止 init 預建假的 Order model 或空 context map。 |
+| `Will defer:` 區塊 | 防止 init 預建假的 Order model、空 context map 或空的 `analysis.md`。 |
 | Claude shim + canonical guide | 讓 AI 協作規則集中，不散在各工具檔。 |
 | 結尾的 `Recommended next steps:` | 收尾就把注意力導回「下一個具體修改」與 `_conventions.md` 的待辦，不是抽象架構重畫。（⚠ 這份清單是通用的，不會指名 `/dflow:modify-existing`——那個入口在 AI agent 側。） |
 

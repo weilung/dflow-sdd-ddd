@@ -326,16 +326,17 @@ business rule，會讓 Order BC 的 BR index 變得不乾淨。
 ## Step 3 — Analyze the Delivery/Entrypoint Layer
 
 ⚠ **這是 brownfield 的 Step 3 名稱，而且兩軌不同名也不同事。** greenfield 的 Step 3
-叫 `Assess DDD Impact`；brownfield 這一步規定的產出是兩樣具體東西——
-**Business Logic to Extract** 與 **Tech Debt to Record**（後者要寫進
-`dflow/specs/migration/tech-debt.md`）。
+叫 `Assess DDD Impact`；brownfield 這一步規定的產出是三樣具體東西——
+**Business Logic to Extract**、**Tech Debt to Record**（要寫進
+`dflow/specs/migration/tech-debt.md`）與 **System-Level Knowledge to Record**
+（要寫進 `analysis.md`）。
 
-⚠⚠ **底下這段不是那兩樣。** 它是一份 Aggregate / Domain Events / VO / BR /
+⚠⚠ **底下這段不是那三樣。** 它是一份 Aggregate / Domain Events / VO / BR /
 資料結構的影響檢查——形狀上是 greenfield 那一軌的 DDD impact 檢查。本篇保留它，
 是因為對一個「要不要動 Domain」還沒把握的讀者，這個 sanity check 有教學價值；
 **但它不是 brownfield Step 3 規定的產出，照著做的人不要以為做完這段就等於做完 Step 3。**
 本篇真正屬於 Step 3 的部分，是稍後那個「把 display rounding contract 收斂到
-`Money.ToDisplay()`」的判斷——那才是 delivery 層的觀察。
+`Money.ToDisplay()`」的判斷——那才是 delivery 層的觀察——以及最後讀 `analysis.md` 的那一題。
 
 Dflow 先採保守判斷：
 
@@ -410,6 +411,25 @@ Bob:
 
 這段是本篇的 DDD 重點：**Value Object 可以承接 implementation contract，
 但不代表每個 method 都要升格成 domain rule。**
+
+Step 3 的最後一項是 `System-Level Knowledge to Record`：這次改動依賴哪些沒有任何單一 context
+文件收得下的知識。這個例子裡，那些知識已經記著：
+
+```text
+Dflow:
+System-Level Knowledge：這次改動依賴的是折扣後金額在哪裡產出，
+dflow/specs/domain/Order/analysis.md 已經記了——
+
+- RM-01：OrderEntry 提交時由 DiscountPolicy 算出，存下 NetAmount。
+- RM-02：OrderDetail 顯示 usp_GetOrderDiscountSummary 回傳的 DiscountedTotal；
+  OrderList.BindGrid() 以 GrossAmount 與 CustomerTier 依 BR-004 的公式重算。
+
+Carol 看到的兩個數字，就是 RM-02 那兩個產出點各自顯示的結果。
+兩頁底下的值是同一個（NT$45,126.85）；差在 OrderList 顯示時 round 到整數元。
+顯示精度 RM-01、RM-02 都刻意不記——它是改程式就解得掉的 tech debt，
+tech-debt.md 那一列就是這次要修的。
+這一步沒有新的系統層知識要記。
+```
 
 ## Step 4 — Implementation tasks
 
@@ -685,6 +705,12 @@ Dflow:
 - 不改 dflow/specs/domain/Order/models.md，
   因為 Money 結構不變，加 method 是 implementation detail。
 - 不改 dflow/specs/domain/{glossary,context-map}.md。
+- 不改 dflow/specs/domain/Order/analysis.md。6.3 的那一項照這次的實際改動判：
+  RM-01、RM-02 記的是數字在哪裡產出、怎麼算，這次只改顯示精度，
+  而顯示精度是 tech debt、正是 BUG-001 修掉的那一列，本來就不進 analysis.md；
+  沒有新的熱點，也沒有 open 的熱點列被這次解掉（HS-01 在 walkthrough 04 就 resolved 了）。
+- dflow/specs/domain/analysis.md 那一項 N/A：這支檔不存在，
+  這次也沒有跨 context 流程或角色觸及要記。
 ```
 
 這份「故意不改」清單不是多餘的。Brownfield bug-fix 很常發生兩種錯：

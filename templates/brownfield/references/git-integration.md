@@ -377,7 +377,7 @@ hotfix, or one added later; a baseline capture uses the same shape):
       `Tier = baseline` row for a baseline capture — in every case with the
       paths it declares named. For a **T2 / T3** those are the implementation
       paths; a **baseline capture** is observation-only and declares the
-      **BC-layer documents it wrote** instead — that is its counterpart
+      **documents it wrote** instead — that is its counterpart
       (`references/modify-existing-flow.md` Step 1.7). Do not ask a capture for
       implementation paths: `references/finish-feature-flow.md` Step 1 blocks a
       baseline commit that carries implementation source at all
@@ -421,7 +421,7 @@ AI should verify:
 > artifact**, the BR-Snapshot sync included, applies only to what this change
 > **actually touched**: a **no-BC** host has no bounded context to sync or
 > document, a **T3** does no Domain work at all, and a **baseline capture** has
-> already written the BC layer directly rather than syncing to it — so for
+> already written Domain documents directly rather than syncing to them — so for
 > those they read N/A. **Bounded-context-scoped only** — `glossary.md` and
 > `migration/tech-debt.md` belong to no bounded context, stay in a no-BC host's
 > sweep, and are a baseline capture's own capture destinations, so they are

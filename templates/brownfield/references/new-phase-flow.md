@@ -136,8 +136,19 @@ Walk the developer through what the new phase covers:
    re-read from `references/ddd-modeling-guide.md` § "Revising an Established
    Model" (match recorded re-evaluation conditions; record proceed / split /
    rename in the phase-spec).
-4. **Data structure impact?** New tables, columns, indices?
-5. **Why now?** Priority — informs sequencing relative to other phases.
+4. **System-level knowledge?** Does this phase add, change, or uncover an
+   ordered cross-context flow (always the domain-root copy), the lifecycle a
+   status field moves through, a figure computed rather than stored, a
+   mechanism no single rule explains, or which roles reach a function (always
+   the domain-root copy) — or work around a spot in one of them that only a
+   domain decision will settle (in the copy that holds the knowledge it is
+   stuck on)? If yes, record it in
+   `dflow/specs/domain/{context}/analysis.md` when one context owns what it
+   describes and in `dflow/specs/domain/analysis.md` when no one context does,
+   creating the file from `templates/analysis.md` the first time there is
+   something to record.
+5. **Data structure impact?** New tables, columns, indices?
+6. **Why now?** Priority — informs sequencing relative to other phases.
 
 This is also the moment to ask: "Should this be its own follow-up feature
 instead of a phase here?" — useful when the scope drift suggests a
@@ -148,7 +159,7 @@ separate concern.
 ## Step 3: Phase Slug Confirmation
 
 AI proposes the new phase-spec filename and asks the developer to confirm
-before any file is written.
+before the phase-spec is written.
 
 > "Proposed phase-spec for `{SPEC-ID}-{slug}`:
 >
@@ -276,6 +287,14 @@ During implementation, continuously verify:
 - [ ] Domain code has no delivery-framework dependency
 - [ ] Data access changes do not introduce business rules into infrastructure
 - [ ] Test failures have been resolved or explicitly recorded as follow-up
+- [ ] Every entry Step 2 recorded in `analysis.md`, at either of its two
+      paths, still holds. An entry for what this phase was to add or change
+      matches what it built — corrected where the build differs, removed
+      where nothing was built for it. An entry for something Step 2
+      uncovered in the existing system matches the system as it now stands —
+      corrected where this phase changed it, never removed because this
+      phase built nothing for it. Read the entries in the file, not in a
+      diff: a checkpoint may already have committed them.
 
 If implementation changes the agreed Delta, update the phase-spec before
 continuing. Do not let code and spec diverge silently.
@@ -312,8 +331,10 @@ Update the feature artifacts:
      feature is ready to wrap up"
 
 System-level domain docs, migration debt sync, and the feature directory move
-to `completed/` remain `/dflow:finish-feature` responsibilities. Do not sync
-system-level current state or archive the whole feature from `/dflow:new-phase`.
+to `completed/` remain `/dflow:finish-feature` responsibilities; Step 2 records
+into `analysis.md` directly, at whichever of its two paths the entry belongs
+to. Do not sync any other system-level current state or archive the whole
+feature from `/dflow:new-phase`.
 
 After completion, summarize for the developer:
 > "Phase {N+1} is implemented and marked completed. `_index.md` is refreshed.

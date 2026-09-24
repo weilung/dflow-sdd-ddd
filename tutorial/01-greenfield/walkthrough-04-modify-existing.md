@@ -369,12 +369,25 @@ Data structure：無。
 
 Cross-context：無。
 這不是 Identity / Approval policy / locale service 的議題。
+
+系統級知識：這次改動依賴 domain/Expense/analysis.md LC-01 的
+Submitted → Rejected 那一列。它的 Guard 格寫的是 BR-007 這個編號，
+不是門檻本身，所以門檻換了、那一列不用改。
+跨 context 流程、衍生數字、機制、誰碰得到什麼，這次都沒有碰到；
+analysis.md 沒有東西要記。
 ```
 
 這是本篇第四個 lesson：**有 Domain impact，不代表有 Aggregate redesign。**
 
 這次 DDD impact 只落在既有 Value Object。`ExpenseReport`、`ApprovalDecision`、
 Domain Events、DB schema 都不變，因此不需要升級成 T1。
+
+最後那一題的答案也值得看——`modify-existing-flow.md` Step 3 的
+`### What system-level knowledge did this change depend on?`：這次改動**依賴**生命週期裡
+「退回」那一步，卻**不必動**它。
+原因在 walkthrough 02 就埋下了：`analysis.md` 引一條規則只寫 BR-ID（範本頂端的
+`Referring to a rule`），門檻這種規則內容只住在 `rules.md`。規則改了，改 `rules.md` 一處
+就好，`analysis.md` 那一格不會因此過期。
 
 ## Step 3 — Implementation tasks 保持短，但不可消失
 
@@ -493,6 +506,9 @@ Dflow:
 source-of-truth 的 BR wording 放在 rules.md，
 VO 設計細節放在 aggregate-design.md，
 團隊詞彙放在 glossary.md。
+
+analysis.md 兩支在 5.3 都記 N/A：Step 3 查過，這次依賴的 LC-01 那一列
+已經記著、不用改，也沒有新找到要記的生命週期、衍生數字、機制或角色觸及。
 ```
 
 這是本篇第五個 lesson：**同步文件不是把所有摘要都逐字改到一致。**

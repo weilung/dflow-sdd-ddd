@@ -256,8 +256,18 @@ Key Greenfield-track notes:
 - **`behavior.md` is NOT generated here.** Per F-05, per-context
   `behavior.md` files are created by `/dflow:new-feature` Step 8.3
   (completion flow) or by the P007a baseline-capture flow at the
-  moment the first bounded context is established. Creating empty
-  `behavior.md` files here would create stale placeholders.
+  moment the first bounded context is established.
+- **`analysis.md` is NOT generated here**, at either of its paths. It holds
+  the system-level knowledge no single context document owns — an ordered flow
+  that crosses contexts (always the domain-root copy), the lifecycle a status
+  field moves through, a figure computed rather than stored, the mechanism
+  behind a behavior no single rule explains, which roles reach which function
+  (always the domain-root copy), and the spots in them this project keeps
+  working around until a domain decision settles them (each in the copy that
+  holds the knowledge it is stuck on). What one context owns is recorded in
+  `domain/{context}/analysis.md` and the rest in `domain/analysis.md`, each
+  created from `templates/analysis.md` the first time a session records
+  something that belongs there.
 
 ### 3.2 Optional files (from Step 2 Q7)
 
@@ -306,12 +316,19 @@ skip, and wait for developer confirmation:
 > |---|---|
 > | `dflow/specs/domain/glossary.md` | already exists (47 lines) |
 >
-> **Not creating** (per F-05 decision):
+> **Not creating**:
 > - No `dflow/specs/domain/{context}/behavior.md` files. These are created
 >   later by `/dflow:new-feature` Step 8.3 or P007a when the first
 >   bounded context is established.
 > - No pre-seeded ADR files in `dflow/specs/architecture/decisions/`. Write
 >   ADRs as architecture decisions come up; Day-0 is too early.
+> - No `dflow/specs/domain/analysis.md` and no
+>   `dflow/specs/domain/{context}/analysis.md`. Each is created the first time
+>   one of these turns up and belongs there — an ordered cross-context flow
+>   (always the domain-root copy), the lifecycle of a status field, a derived
+>   figure, a mechanism no single rule explains, which roles reach which
+>   function (always the domain-root copy), or a spot in one of them this
+>   project keeps working around until a domain decision settles it.
 >
 > Looks good? Reply 'yes' to proceed with the writes, or tell me what to
 > adjust."
@@ -456,6 +473,9 @@ Init complete. Summary:
   Deferred (not created here by design):
     - dflow/specs/domain/{context}/behavior.md — created by /dflow:new-feature
       Step 8.3 or P007a baseline capture
+    - dflow/specs/domain/{context}/analysis.md — needs a real bounded context
+    - dflow/specs/domain/analysis.md — created the first time a session records a
+      cross-context flow, role reach, or other knowledge no single context owns
     - dflow/specs/architecture/decisions/ADR-*.md — write ADRs as
       architecture decisions come up, not speculatively
 ```

@@ -42,11 +42,11 @@ Phase 1 `baseline-and-fix` 同時包含三件事：先 baseline capture `OrderEn
 
 | Date | Tier | Description | Commit |
 |---|---|---|---|
-| 2026-05-04 | baseline | Baseline-only capture：已補 `OrderList.aspx.cs` 與 `OrderDetail.aspx.cs` 的跨頁 confirmed behavior，詳見 [`behavior.md`](../../../domain/Order/behavior.md#confirmed-across-pages-baseline-capture-2026-05-04)；新發現的 rounding / `isVip` debt 已記錄於 [`tech-debt.md`](../../../migration/tech-debt.md)。本 row 無對應 spec 檔。 | c58d213 |
+| 2026-05-04 | baseline | Baseline-only capture：已補 `OrderList.aspx.cs` 與 `OrderDetail.aspx.cs` 的跨頁 confirmed behavior，詳見 [`behavior.md`](../../../domain/Order/behavior.md#confirmed-across-pages-baseline-capture-2026-05-04)，兩頁折扣後金額的來源與 `isVip` 熱點記於 [`analysis.md`](../../../domain/Order/analysis.md)（RM-02、HS-01）；新發現的 rounding / `isVip` debt 已記錄於 [`tech-debt.md`](../../../migration/tech-debt.md)。本 row 無對應 spec 檔。 | c58d213 |
 | 2026-05-08 | T2 | Bug-fix: 修正 `OrderList` / `OrderEntry` / `OrderDetail` 跨頁 display rounding inconsistency，見 [`BUG-001-rounding-inconsistency.md`](./BUG-001-rounding-inconsistency.md)。 | 9f2e470 |
 
 > **兩格填的都是「那一列自己的 commit」。** baseline 列填的是把 confirmed behavior
-> 寫進 `behavior.md` 的那個 commit；T2 列填的是 BUG-001 的實作 commit。
+> 寫進 `behavior.md`（並把兩頁的來源與熱點寫進 `analysis.md`）的那個 commit；T2 列填的是 BUG-001 的實作 commit。
 > **不是 closeout 的 hash**——hosted row 的格子由 host 的下一個 commit 回填，
 > 而 05-08 那列之後沒有新 phase 了，所以由 closeout 回填
 > （`references/finish-feature-flow.md` Step 4 指令 1）。

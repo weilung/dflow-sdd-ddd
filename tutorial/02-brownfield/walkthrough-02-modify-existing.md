@@ -353,6 +353,34 @@ INV-04: 多折扣用乘法累積，不用簡單相減或遺漏某個折扣
 跟 Greenfield 不同，這裡沒有 `aggregate-design.md`。Brownfield track 以 `models.md`
 和 phase spec 記錄抽離出來的 model，避免在第一個修改點就建立過重的設計文件。
 
+Step 3 另外四題問的是**系統層知識**——沒有任何單一 context 文件收得下的東西
+（`new-feature-flow.md` Step 3 的 `What are the states/statuses?`、
+`What crosses a bounded context, and what does each step hand to the next?`、
+`Which figures are derived rather than stored?`、
+`Who reaches this feature, and what data scope does each role see?`）。
+這個例子裡有答案的是衍生數字那一題，以及跨 context 那一題（答案是不必記進 `analysis.md`）：
+
+```text
+Dflow:
+有哪些數字是算出來、不是存下來的？
+
+- 訂單折扣後金額。這個 feature 做完之後，btnSubmit_Click 提交時呼叫 DiscountPolicy：
+  折扣後金額 = 折扣前總額 ×（1 − 總折扣率），
+  折扣前總額照 BR-001，總折扣率照 BR-002～BR-004
+  （這四條寫進 rules.md，Step 4 的 phase-spec 會列同一張表；analysis.md 只引編號）。
+- 存下來的只有 GrossAmount（折扣前總額）與 NetAmount（折扣後金額），總折扣率本身不存。
+- 算它的是 Order，所以記進 dflow/specs/domain/Order/analysis.md 的 RM-01。
+  這支檔還不存在；這是第一次有東西要記，所以從 templates/analysis.md 建。
+
+會跨 bounded context 嗎？
+只讀 Customer 的 CustomerTier reference value。
+「Order 讀 Customer 的資料」拿掉先後順序也成立，屬於 context-map.md，
+不是一條有序的跨 context 流程，不記進 analysis.md。
+```
+
+狀態與角色那兩題，這個例子沒有答案，所以沒有記：handler 裡的狀態設定本 phase 不碰、例子也沒交代它有哪些值；
+需求與程式碼都沒交代誰能用 `OrderEntry`、各看得到多少資料。
+
 ## Step 3.5 — SPEC-ID、slug、目錄與 branch
 
 Dflow 停下來確認命名：
@@ -380,8 +408,9 @@ Bob:
 可以。
 ```
 
-這個 gate 和 Greenfield 第一篇相同：Dflow 在真正建檔前確認 SPEC-ID、slug、
-feature directory 與 branch。Brownfield 不代表流程鬆散；它只是更重視 baseline
+這個 gate 和 Greenfield 第一篇相同：Dflow 在建立 feature 目錄與 branch 之前確認 SPEC-ID、slug、
+feature directory 與 branch（Step 2、Step 3 要寫的文件，例如 `context.md` 與 `analysis.md`，
+在這之前就已經寫了）。Brownfield 不代表流程鬆散；它只是更重視 baseline
 與 extraction scope。
 
 ## Step 4 — Feature `_index.md` 當下長什麼樣
@@ -700,6 +729,40 @@ Dflow 記錄的意思是：
 這裡的重點是：Dflow 沒有把 tech debt 當成失敗，而是讓 Bob 明確記錄「本次不做什麼」。
 這對 brownfield 特別重要，因為每個修改都可能誘惑你順手擴張。
 
+## 文件片段 4 — `domain/Order/analysis.md`
+
+`analysis.md` 收的是上面 Step 3 那題衍生數字的答案。這一步結束當下，它只有一條 entry：
+
+```markdown
+## Read Models and Derived Figures
+
+### RM-01: 訂單折扣後金額（`OrderEntry` 提交時由 `DiscountPolicy` 算出）
+
+`OrderEntry.aspx.cs` 的 `btnSubmit_Click` 在提交時呼叫 `DiscountPolicy` 算出：折扣後金額 = 折扣前總額 ×（1 − 總折扣率）。折扣前總額照 BR-001；總折扣率計入滿額折扣（BR-002）與 Senior 客戶折扣（BR-003），多個折扣怎麼累積照 BR-004。
+
+總折扣率本身不存：提交時寫進 `OrderEntity` 的是 `GrossAmount`（折扣前總額）與 `NetAmount`（折扣後金額）。
+
+Evidence: document - `SPEC-20260430-001` 的 `phase-spec-2026-04-30-baseline-and-fix.md` (2026-04-30)
+```
+
+完整文件範例：
+[`outputs/dflow/specs/domain/Order/analysis.md`](outputs/dflow/specs/domain/Order/analysis.md)
+
+三個細節：
+
+- **記的是這個 feature 要做出來的樣子，所以 Evidence 是 `document`，不是 `code`。** Step 3 讀到的
+  `btnSubmit_Click` 根本沒套 Senior 折扣（上面的 Baseline Contrast Scenario），打開那段程式對不上這一條；
+  它的根據是這次寫下的規格。複查入口指向 Step 4 會寫下同樣內容的 phase-spec——`DiscountPolicy` 的設計在它的
+  Implementation Notes，存下哪兩個欄位在它的 Baseline code inspection。做出來之後，收尾時會對照實際做出來的
+  再複核一次，見 [〈Walkthrough 06〉](walkthrough-06-finish-feature.md) 的 Step 3。
+- **它只寫這個數字自己的事**：在哪裡算、計入哪些折扣、存下什麼。每一種折扣
+  打幾折、多個折扣怎麼累積是規則，只寫 BR-ID，不重抄（範本頂端的 `Referring to a rule`）。
+- **其餘五節照範本原樣留著。** `Cross-Context Flows` 與 `Function / Role Index` 只寫在 `domain/analysis.md`，
+  per-context 這一份不填；`Lifecycles`、`Mechanisms`、`Open Questions and Hotspots` 這次沒有東西要記。
+
+補充：完整文件範例是劇情跑完的最終狀態——RM-01 在 walkthrough 03 多了一句指向 RM-02 的話、
+在 walkthrough 04 加上 VIP 那一段，另外多了 RM-02 與 HS-01。本篇 step 02 當下只有上面這一條。
+
 ## 本步驟的文件地圖
 
 | 狀態 | Path | 讀者看什麼 |
@@ -710,6 +773,7 @@ Dflow 記錄的意思是：
 | 新建 | [`outputs/dflow/specs/domain/Order/models.md`](outputs/dflow/specs/domain/Order/models.md) | Order、OrderLine、Money、Quantity、DiscountRate、DiscountPolicy。 |
 | 新建 | [`outputs/dflow/specs/domain/Order/rules.md`](outputs/dflow/specs/domain/Order/rules.md) | BR-001~004 的 rule index。 |
 | 新建（骨架） | [`outputs/dflow/specs/domain/Order/behavior.md`](outputs/dflow/specs/domain/Order/behavior.md) | 為 BR-001~004 各加一個 section anchor。折扣行為的 Given/When/Then 要到 closeout 才從 phase spec merge 進來；`outputs/` 樹是最終狀態，所以你在那裡看到的是已填滿的版本。 |
+| 新建 | [`outputs/dflow/specs/domain/Order/analysis.md`](outputs/dflow/specs/domain/Order/analysis.md) | RM-01：折扣後金額在哪裡算、計入哪些折扣、存下什麼（Step 3 第一次有東西要記時從範本建）。`outputs/` 是最終狀態，你在那裡還會看到後續補上的 RM-02、HS-01，以及 RM-01 的 VIP 那一段。 |
 | 修改 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) | Order / OrderLine / DiscountPolicy 等 ubiquitous language。 |
 | 新建 | [`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md) | Order 與 Customer / Inventory / Shipment / Invoice 的邊界。⚠ Brownfield 的 init **不建**這一份（BC 由抽離過程浮現），所以它是在本篇確認 Order BC 時才第一次建立。 |
 | 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | 本次不擴張的頁面與剩餘 Code-Behind debt。 |

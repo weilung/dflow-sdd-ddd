@@ -27,7 +27,7 @@
 
 ## Integration Notes
 
-- {跨 context 的資料流、權責邊界或 legacy coupling}
+- {沒有先後順序也成立的跨 context 資料交換、權責邊界或 legacy coupling；有先後順序的跨 context 交手流程記在 analysis.md}
 
 ## Open Questions
 

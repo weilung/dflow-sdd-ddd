@@ -118,6 +118,9 @@ try {
     );
   }
 
+  const gfDomainFiles = await readdir(join(tempRoot, 'dflow/specs/domain'), { recursive: true });
+  assert.equal(gfDomainFiles.some((p) => /(^|[\\/])analysis\.md$/.test(p)), false, 'init must not create analysis.md at either path: it is created the first time there is something to record');
+
   // PROPOSAL-074: the default-installed skill is the same marker-stamped thin skill
   // that --skills projects.
   const initSkill = await readFile(join(tempRoot, '.claude/skills/dflow/SKILL.md'), 'utf8');
@@ -538,6 +541,7 @@ try {
     'templates/_index.md',
     'templates/rules.md',
     'templates/behavior.md',
+    'templates/analysis.md',
     'templates/aggregate-design.md', // greenfield-only
     'templates/events.md',           // greenfield-only
     'references/ddd-modeling-guide.md', // PROPOSAL-064: common, projected to both editions
@@ -698,6 +702,8 @@ try {
   }
 
   assert.equal(await exists(join(webformsRoot, 'dflow/specs/domain/context-map.md')), false, 'Brownfield init should not create context-map.md');
+  const bfDomainFiles = await readdir(join(webformsRoot, 'dflow/specs/domain'), { recursive: true });
+  assert.equal(bfDomainFiles.some((p) => /(^|[\\/])analysis\.md$/.test(p)), false, 'init must not create analysis.md at either path: it is created the first time there is something to record');
   assert.equal(await exists(join(webformsRoot, 'dflow/specs/architecture')), false, 'Brownfield init should not create architecture/');
 
   // PROPOSAL-039: brownfield bundle checks
@@ -800,6 +806,7 @@ try {
   assert.equal(await exists(join(webformsBundleDir, 'references/new-feature-flow.md')), true, 'brownfield bundle should have new-feature-flow.md');
   assert.equal(await exists(join(webformsBundleDir, 'references/finish-feature-flow.md')), true, 'brownfield bundle should have finish-feature-flow.md');
   assert.equal(await exists(join(webformsBundleDir, 'templates/phase-spec.md')), true, 'brownfield bundle should have phase-spec.md template');
+  assert.equal(await exists(join(webformsBundleDir, 'templates/analysis.md')), true, 'brownfield bundle should have analysis.md template');
 
   // Bundle flow files carry the generated marker
   const brownfieldFlowContent = await readFile(join(webformsBundleDir, 'references/new-feature-flow.md'), 'utf8');

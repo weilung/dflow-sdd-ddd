@@ -103,6 +103,17 @@ input like this (supporting files live in the workflow bundle at
 - **"Quick question about..." / "How does X work?"** → check
   `dflow/specs/domain/` first and answer from the documented domain knowledge.
   If no spec exists yet, suggest documenting the answer as domain knowledge.
+- **Knowledge that no single context document holds** — an ordered flow that
+  crosses contexts (always the domain-root copy), the lifecycle a status field
+  moves through, a figure computed rather than stored, the mechanism behind a
+  behavior no single rule explains, which roles reach which function (always
+  the domain-root copy), or a spot in one of these that this project keeps
+  working around until a domain decision settles it (in the copy that holds
+  the knowledge it is stuck on) → **record it in
+  `analysis.md`**: `dflow/specs/domain/{context}/analysis.md` when one context
+  owns what it describes, otherwise `dflow/specs/domain/analysis.md`. Create
+  the file from `templates/analysis.md` the first time there is something to
+  record. With no workflow running, offer to commit that record on its own.
 - **"What should I work on next?" / sprint planning** → review
   `dflow/specs/features/backlog/` and suggest work based on migration value.
 - **"I'm creating a branch"** → read `references/git-integration.md`; verify
@@ -267,6 +278,8 @@ Dflow-owned project documents live under `dflow/specs/`.
 | System overview | `dflow/specs/shared/_overview.md` |
 | Domain glossary | `dflow/specs/domain/glossary.md` |
 | Context map | `dflow/specs/domain/context-map.md` |
+| Domain analysis (cross-context) | `dflow/specs/domain/analysis.md` |
+| Domain analysis (per context) | `dflow/specs/domain/{context}/analysis.md` |
 | Active feature specs | `dflow/specs/features/active/` |
 | Completed feature snapshots | `dflow/specs/features/completed/` |
 | Technical debt | `dflow/specs/architecture/tech-debt.md` or `dflow/specs/migration/tech-debt.md` |
@@ -282,10 +295,13 @@ dflow/specs/
 │   └── _conventions.md           # Spec writing conventions
 ├── domain/                       # Domain knowledge (DDD preparation)
 │   ├── glossary.md               # Ubiquitous Language
+│   ├── context-map.md            # Bounded Context relationships (created when needed)
+│   ├── analysis.md               # Cross-context flows and role reach
 │   └── {bounded-context}/        # e.g., expense/, hr/, leave/
 │       ├── context.md            # Context boundary & responsibilities
 │       ├── models.md             # Entity, VO, Aggregate definitions
 │       ├── rules.md              # Business rules index (BR-ID + one-line)
+│       ├── analysis.md           # Lifecycles, derived figures, mechanisms
 │       └── behavior.md           # Consolidated behavior (Given/When/Then)
 ├── features/
 │   ├── active/                   # Currently in development
@@ -493,7 +509,8 @@ during the completion checklist, not via template section markers.
 - Did we discover scattered business logic? → Record in tech-debt.md
 - Are there duplicated calculations? → Record
 - Direct SQL in delivery/entrypoint code? → Record
-- Magic numbers or undocumented statuses? → Record and add to glossary
+- Magic numbers? → Record and add to glossary
+- Undocumented status values? → List them in their field's lifecycle in `analysis.md`
 
 ## Workflow Steps
 

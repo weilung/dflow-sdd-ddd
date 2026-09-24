@@ -11,7 +11,7 @@ init 互動整理成可教學、可 review 的讀物，讓讀者看懂：
 - Dflow 為什麼要問 project type、tech stack、migration context、prose language
 - file-list preview 如何在寫檔前建立 step gate
 - baseline files、optional starter files、AI tool shims 各自負責什麼
-- 為什麼 Day 0 不建立 `behavior.md` 或空的 ADR
+- 為什麼 Day 0 不建立 `behavior.md`、`analysis.md` 或空的 ADR
 
 閱讀提示：本篇會連到完整文件範例（目前存放在本 tutorial 的 `outputs/` 目錄）。這些範例代表 Greenfield 劇情跑完後的
 最終狀態；本篇內嵌片段則說明 init 當下的重點。若想先理解 walkthrough excerpt 和
@@ -149,7 +149,7 @@ source 時第 1 題也一樣。三次答不出來就中止 init。
 ⚠ **「能按 Enter」不等於「該按 Enter」，第 8 題是這裡最貴的一題。** 它標的是
 `(default: none)`——那個預設是**一家 AI agent 都不建**。按 Enter 過去，Step 4 的三個 shim、
 三份 `SKILL.md`，**連 canonical 的 `AI-AGENT-GUIDE.md` 都不會建**——實測 create 列從
-**45 掉到 38**。少掉的不只是三個薄殼：`AI-AGENT-GUIDE.md` 正是整套設計讓各家 AI 工具
+**47 掉到 40**。少掉的不只是三個薄殼：`AI-AGENT-GUIDE.md` 正是整套設計讓各家 AI 工具
 行為一致的那份文件。**這題值得真的答。**
 
 ## Step 3 — File-list preview 是 init 的 step gate
@@ -157,7 +157,7 @@ source 時第 1 題也一樣。三次答不出來就中止 init。
 Dflow 在寫檔前列出 preview：
 
 ```text
-Will create (45 files):
+Will create (47 files):
 - dflow/specs/features/active/.gitkeep
 - dflow/specs/features/completed/.gitkeep
 - dflow/specs/features/backlog/.gitkeep
@@ -175,8 +175,8 @@ Will create (45 files):
 - .claude/skills/dflow/SKILL.md
 - .agents/skills/dflow/SKILL.md
 - .github/skills/dflow/SKILL.md
-- dflow/specs/shared/dflow-workflows/references/  (15 files)
-- dflow/specs/shared/dflow-workflows/templates/   (12 files)
+- dflow/specs/shared/dflow-workflows/references/  (16 files)
+- dflow/specs/shared/dflow-workflows/templates/   (13 files)
 - dflow/specs/shared/dflow-workflows/.dflow-bundle-manifest.json
 
 Will skip (0 files already present)
@@ -185,16 +185,18 @@ Will defer:
 - dflow/specs/domain/{context}/behavior.md
 - dflow/specs/domain/{context}/models.md
 - dflow/specs/domain/{context}/rules.md
+- dflow/specs/domain/{context}/analysis.md
+- dflow/specs/domain/analysis.md
 - dflow/specs/domain/{context}/events.md          # Greenfield only
 - dflow/specs/architecture/decisions/ADR-*.md     # Greenfield only
 ```
 
 ⚠ **上面那個區塊是本篇為了好讀而重排過的，不是 CLI 的逐字輸出。** 實際畫面上，
 preview 是一張 `File plan:` 的 Markdown 表格，欄位是
-`| Path | Action | Source | Size | Notes |`，**每個檔各佔一列**——包括那 28 個
-workflow bundle 檔，所以 Alice 螢幕上的 create 列共 **45** 列（本篇把 bundle 收成三行）。
+`| Path | Action | Source | Size | Notes |`，**每個檔各佔一列**——包括那 30 個
+workflow bundle 檔，所以 Alice 螢幕上的 create 列共 **47** 列（本篇把 bundle 收成三行）。
 表格之後才是 `Will defer:` 表與 `Create these files? (y/N)`。
-（`Will create (45 files):`、`Will skip …` 這兩個標題是本篇的敘事寫法，不是產品字串；
+（`Will create (47 files):`、`Will skip …` 這兩個標題是本篇的敘事寫法，不是產品字串；
 `Will defer:` 則是產品真正印的段名。）
 
 ⚠ **還有一個位置要先知道：`File plan:` 與表格之間可能插進一個 `Warnings:` 區塊**——有警告
@@ -229,7 +231,7 @@ Step 5 會示範補其中五個；**`Primary domain`、`Validation`、`Testing` 
 同樣要自己補。
 
 總列數會隨 init 問答的選擇而變（選幾家 AI agent、要不要 optional starter 等），
-所以你自己跑出來的數字未必是 45；**不變的是 bundle 那 28 檔**。
+所以你自己跑出來的數字未必是 47；**不變的是 bundle 那 30 檔**。
 
 本 tutorial 的 `outputs/` 沒有收錄這個 bundle（它是什麼、為什麼不收，見 Step 4）——
 所以 `outputs/` 裡指向 `dflow/specs/shared/dflow-workflows/` 的各種引用
@@ -286,8 +288,8 @@ Alice 確認後，Dflow 寫入 baseline。重要分組如下。
 **workflow bundle（Dflow 管理；`outputs/` 未收錄）**
 
 `dflow init` 另外把一份 workflow bundle vendor 到
-`dflow/specs/shared/dflow-workflows/`，Greenfield 共 28 個檔：15 份 reference
-文件（各指令的 flow 步驟文件，加上兩軌共用的參考檔）、12 份空白 spec 模板、
+`dflow/specs/shared/dflow-workflows/`，Greenfield 共 30 個檔：16 份 reference
+文件（各指令的 flow 步驟文件，加上兩軌共用的參考檔）、13 份空白 spec 模板、
 1 份 manifest。
 它由 Dflow 管理，`dflow configure-agents` 每次都會重新投影，**不要手動編輯**
 （下次投影會被覆蓋）。因為它與本篇劇情無關、內容也只是 Dflow 套件的複本，
@@ -343,12 +345,14 @@ dflow configure-agents --command-adapters
 
 ## 為什麼有些檔故意不建
 
-Dflow 在 preview 的 `Will defer:` 表裡列出**五個路徑**，理由分成兩類：
+Dflow 在 preview 的 `Will defer:` 表裡列出**七個路徑**，各自等的東西不一樣：
 
 | 不建立 | 理由 |
 |---|---|
-| `dflow/specs/domain/{context}/behavior.md`<br>`dflow/specs/domain/{context}/models.md`<br>`dflow/specs/domain/{context}/rules.md`<br>`dflow/specs/domain/{context}/events.md` | Day 0 還沒有真正的 bounded context——`{context}` 根本還沒有值。要等第一個 feature 的 domain modeling（`new-feature-flow.md` Step 3）或 baseline capture 之後才建立。⚠ 是 **Step 3 建立**、不是收尾才建立；`behavior.md` 在那一步只建骨架（每條 BR 一個 anchor），Given/When/Then 要到 finish-feature 才 merge 進來。（`events.md` 另標註 Greenfield only；下一列的 ADR 也是。） |
-| `dflow/specs/architecture/decisions/ADR-*.md` | 目前沒有具體 trade-off。預建空 ADR 只會留下假文件。⚠ **這一列也是 Greenfield only**——Brownfield 建的是 `dflow/specs/migration/`，它的 `Will defer:` 只有上面那三列、沒有這一列。 |
+| `dflow/specs/domain/{context}/behavior.md`<br>`dflow/specs/domain/{context}/models.md`<br>`dflow/specs/domain/{context}/rules.md`<br>`dflow/specs/domain/{context}/events.md` | Day 0 還沒有真正的 bounded context——`{context}` 根本還沒有值。要等第一個 feature 的 domain modeling（`new-feature-flow.md` Step 3）或 baseline capture 之後才建立。⚠ 是 **Step 3 建立**、不是收尾才建立；`behavior.md` 在那一步只建骨架（每條 BR 一個 anchor），Given/When/Then 要到 finish-feature 才 merge 進來。（`events.md` 另標註 Greenfield only；最後一列的 ADR 也是。） |
+| `dflow/specs/domain/{context}/analysis.md` | 跟上一列一樣，Day 0 還沒有真正的 bounded context。但它**不在** Step 3 那張「缺了就從範本建」的清單上：要等這個 context 第一次有東西要記——一個狀態欄位怎麼轉、一個算出來而不是存下來的數字、一個沒有單一規則解釋得了的機制——才從 `templates/analysis.md` 建。本例在 [〈Walkthrough 02〉](walkthrough-02-new-feature.md) 的 Step 3 就有了。 |
+| `dflow/specs/domain/analysis.md` | 它不屬於任何 context，所以等的不是 context，而是**第一次有 session 記下跨 context 的流程、誰碰得到哪個功能，或其他沒有單一 context 擁有的知識**。在那之前建，只會多一支空殼。 |
+| `dflow/specs/architecture/decisions/ADR-*.md` | 目前沒有具體 trade-off。預建空 ADR 只會留下假文件。⚠ **這一列也是 Greenfield only**——Brownfield 建的是 `dflow/specs/migration/`，它的 `Will defer:` 只有 `behavior.md`／`models.md`／`rules.md` 與兩支 `analysis.md` 那五列，沒有這一列。 |
 
 這是 Greenfield track 的一個 DDD guardrail：**不要在沒有 feature pressure 前假裝模型已經存在。**
 
@@ -358,7 +362,7 @@ Alice 知道 Expense 很可能是第一個 BC，但 Dflow 仍然等到
 
 ## Step 5 — Results and next step
 
-最後 Dflow 印出結果報告——依序是 `Created:`（45 行路徑）、`Updated:`、`Removed:`、
+最後 Dflow 印出結果報告——依序是 `Created:`（47 行路徑）、`Updated:`、`Removed:`、
 `Skipped:`、`Warnings:`、`Deferred:`，然後是收尾：
 
 ```text

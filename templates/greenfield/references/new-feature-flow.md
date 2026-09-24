@@ -167,6 +167,20 @@ valid outcome; extending silently is not.
 - Service interfaces for external systems
 - Define in Domain layer, implement in Infrastructure
 
+### System-Level Knowledge
+```
+"Which parts of this feature will no single context document hold?"
+```
+
+- What crosses a bounded context, and what does each step hand to the next? (always the domain-root copy)
+- Which status fields does this feature introduce, and what transitions do they move through?
+- Which figures are derived rather than stored?
+- Who reaches this feature, and what data scope does each role see? (always the domain-root copy)
+
+Record each answer in `dflow/specs/domain/{context}/analysis.md` when one context owns what it describes and in `dflow/specs/domain/analysis.md` when no one context does, creating the file from `templates/analysis.md` the first time there is something to record. That template's sections carry the notation.
+
+Domain events keep their definitions and payloads in `events.md`; name them in the flow here instead of restating them.
+
 If foundational domain docs are missing, create them from templates before writing content:
 - `dflow/specs/domain/glossary.md` → `templates/glossary.md`
 - `dflow/specs/domain/{context}/models.md` → `templates/models.md`
@@ -178,7 +192,7 @@ If foundational domain docs are missing, create them from templates before writi
 **→ Step Gate: Step 3 → Step 3.5**
 
 Announce to developer:
-> "Aggregate / VO / Events identified. Before I create any files, let me confirm the SPEC-ID, slug, directory name, and branch name with you (Step 3.5). `/dflow:next` to proceed."
+> "Aggregate / VO / Events identified. Before I create the feature directory or branch, let me confirm the SPEC-ID, slug, directory name, and branch name with you (Step 3.5). `/dflow:next` to proceed."
 
 Wait for confirmation before entering Step 3.5.
 
@@ -480,12 +494,15 @@ Ask these one-by-one; do not dump all six at once.
 > **Table-cell formatting**: keep table cells concise — separate multiple short items with `<br>` (never chain them into one line with ；/; separators), and move long narrative detail out of the cell into a document section (full convention: the formatting comment at each spec doc's head).
 
 - [ ] `dflow/specs/domain/glossary.md` — new terms added
+- [ ] `dflow/specs/domain/analysis.md` — ordered cross-context flows, role reach, or anything else no one context owns, that this feature introduced, found or altered; any spot this feature worked around pending a domain decision, in those or in unrecorded knowledge that belongs here; and any open row there this feature settled (created from `templates/analysis.md` the first time there is something to record)
 - [ ] `dflow/specs/domain/{context}/models.md` — model definitions updated
+- [ ] `dflow/specs/domain/{context}/analysis.md` — lifecycles, derived figures or mechanisms no single rule explains this feature introduced, found or altered, in the owning context's copy, which may not be this host's; any spot this feature worked around pending a domain decision, in those or in a rule or unrecorded knowledge that belongs there; and any open row there this feature settled (created from `templates/analysis.md` the first time there is something to record) — including the lifecycle any `aggregate-design.md` worksheet recorded as State Transition Methods: that worksheet freezes with the feature directory, this file does not
 - [ ] `dflow/specs/domain/{context}/rules.md` — business rules updated
 - [ ] `dflow/specs/domain/{context}/behavior.md` — merge completed spec's Given/When/Then scenarios (incl. Aggregate transitions + Events) into consolidated behavior. Sub-steps:
       - Promote any Activity 3 (Spec Writing) draft sections (from B3 mid-sync) to formal sections
       - Update the corresponding `rules.md` anchor's `last-updated` date (B4)
 - [ ] `behavior.md` draft cleanup — if the spec was abandoned mid-way, keep the `## 提案中變更` section's history or explicitly REMOVE it
+- [ ] `analysis.md`, at either of its two paths — re-check every entry this feature recorded before building: an entry for what the feature was to add or change against what was built (corrected where the build differs, removed where nothing was built for it), and an entry for something already in the system against the system as it now stands (corrected where this feature changed it, never removed because this feature built nothing for it). Read the entries in the file, not in a diff: a checkpoint may already have committed them.
 - [ ] `dflow/specs/domain/{context}/events.md` — Domain Events updated
 - [ ] `dflow/specs/domain/context-map.md` — updated if cross-context interaction was added or changed
 - [ ] `dflow/specs/architecture/tech-debt.md` — tech debt discovered during implementation recorded

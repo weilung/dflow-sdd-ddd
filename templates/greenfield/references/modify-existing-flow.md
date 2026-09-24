@@ -56,13 +56,18 @@ the guide states them rather than continuing through the steps below.
 - **Observation-only (tier-exempt, cascade step 0)** → recording existing
   behaviour or a decision **without changing output** carries no tier. Capture
   it in the relevant Domain document (`models.md` / `rules.md` /
-  `behavior.md` / `events.md` — greenfield carries `events.md` as a
-  first-class Domain document, so an observation about an existing Domain Event
-  lands there) and stop — do not read the cascade's "below
+  `behavior.md` / `events.md` / `analysis.md` — greenfield carries `events.md`
+  as a first-class Domain document, so an observation about an existing Domain
+  Event lands there; an observation no single context document holds goes to
+  `analysis.md`, in `domain/analysis.md` for a cross-context flow, for role reach
+  and for whatever else no one context owns, a hotspot in the copy that holds
+  the knowledge it is stuck on, and in the owning context's copy otherwise,
+  created from `templates/analysis.md` the first time there is
+  something to record) and stop — do not read the cascade's "below
   workflow" as permission to skip the record. Greenfield has no
   baseline-capture host of its own (that hosted baseline flow is a Brownfield
-  concern); a greenfield observation lands in the Domain docs that already
-  exist.
+  concern); a greenfield observation lands in the Domain docs the project keeps,
+  creating one only where the list above says to.
 - **T1** → escalate to `/dflow:new-phase` (extending an active feature) or
   `/dflow:new-feature` (a truly new concern); full ceremony via that flow.
 
@@ -531,6 +536,17 @@ If constraints change:
 - Update Value Object validation
 - Check all usages of the Value Object
 
+### What system-level knowledge did this change depend on?
+Look for what this change depends on and no single context document holds:
+- **Cross-context flows** — ordered steps owned by more than one context (always the domain-root copy)
+- **Lifecycles** — a status field and the transitions it moves through
+- **Read models and derived figures** — a number computed rather than stored
+- **Mechanisms** — behavior no single rule explains
+- **Function / role index** — which roles reach this function, and what data each one sees (always the domain-root copy)
+- **Hotspots** in any of the above — what this change worked around, pending a domain decision (in the copy that holds the knowledge it is stuck on)
+
+Record each finding in `dflow/specs/domain/{context}/analysis.md` when one context owns what it describes and in `dflow/specs/domain/analysis.md` when no one context does, creating the file from `templates/analysis.md` the first time there is something to record. That template's sections carry the notation.
+
 ### Generate Implementation Tasks List
 
 For a phase-spec modification, AI generates a concrete task list and writes it into the spec's `Implementation Tasks` section using `[LAYER]-[NUMBER]：description` (DOMAIN / APP / INFRA / API / TEST).
@@ -616,11 +632,13 @@ Ask these one-by-one.
 > **Table-cell formatting**: keep table cells concise — separate multiple short items with `<br>` (never chain them into one line with ；/; separators), and move long narrative detail out of the cell into a document section (full convention: the formatting comment at each spec doc's head).
 
 - [ ] Update or create the feature / bug spec; set `status: completed` — **T3: N/A** (no spec file exists; the `_index.md` inline row is the record, and the host's own status is not touched)
-- [ ] The items below are the Domain sweep — **N/A for a T3**. For a **no-BC change** (one whose host Goals & Scope says it touches no bounded context) the **BC-scoped** items are N/A — everything under `dflow/specs/domain/{context}/` plus `context-map.md`: there is no `{context}` to sweep, and inventing one plants the fiction Step 2's no-BC guard refuses. The **global** documents are *not* covered by that: `glossary.md` and `architecture/tech-debt.md` belong to no bounded context, and a no-BC operational T2 can genuinely rename a term or discover architecture debt — judge those two from the actual change, as always. For a no-BR family T2 only the *BR-derived* items are N/A; run each remaining item where this change actually touches that document (an added event field still lands in `events.md`)
+- [ ] The items below are the Domain sweep — **N/A for a T3**. For a **no-BC change** (one whose host Goals & Scope says it touches no bounded context) the **BC-scoped** items are N/A — everything under `dflow/specs/domain/{context}/` plus `context-map.md`: there is no `{context}` to sweep, and inventing one plants the fiction Step 2's no-BC guard refuses. The **global** documents are *not* covered by that: `glossary.md`, `domain/analysis.md` and `architecture/tech-debt.md` belong to no bounded context, and a no-BC operational T2 can genuinely rename a term, change which roles reach a function, or discover architecture debt — judge those three from the actual change, as always. For a no-BR family T2 only the *BR-derived* items are N/A; run each remaining item where this change actually touches that document (an added event field still lands in `events.md`)
 - [ ] `dflow/specs/domain/{context}/models.md` — Aggregate structure updates
+- [ ] `dflow/specs/domain/{context}/analysis.md` — lifecycles, derived figures or mechanisms no single rule explains this change found or altered, in the owning context's copy, which may not be this host's; any spot this change worked around pending a domain decision, in those or in a rule or unrecorded knowledge that belongs there; and any open row there this change settled (created from `templates/analysis.md` the first time there is something to record; N/A when there is none)
 - [ ] `dflow/specs/domain/{context}/rules.md` — business rule updates
 - [ ] `dflow/specs/domain/{context}/events.md` — Domain Event updates
 - [ ] `dflow/specs/domain/glossary.md` — new / renamed terms (mirror any RENAMED delta entries here)
+- [ ] `dflow/specs/domain/analysis.md` — ordered cross-context flows, role reach, or anything else no one context owns, that this change found or altered; any spot this change worked around pending a domain decision, in those or in unrecorded knowledge that belongs here; and any open row there this change settled (created from `templates/analysis.md` the first time there is something to record; N/A when there is none)
 - [ ] `dflow/specs/domain/{context}/behavior.md` — update scenarios to reflect Delta result (merge final state, not Delta markup). Sub-steps:
       - Promote any Activity 3 (Spec Writing) draft sections (from B3 mid-sync) to formal sections
       - Update the corresponding `rules.md` anchor's `last-updated` date (B4)

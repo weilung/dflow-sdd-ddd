@@ -34,7 +34,14 @@ touches and read them all.
       {reason}." (If you can't, pause and ask the author.)
 - [ ] Only then proceed to the code-review sections below
 
-If the PR has no spec or no `_index.md`:
+If the PR records its change in neither a spec nor an `_index.md` row (a T3
+inline row or a `Tier = baseline` row is such a record, and a host that
+carries one needs no spec), first check whether it only records existing
+behaviour or a decision in Domain documents, without changing output.
+That PR is observation-only, and some observation-only records legitimately
+have no host: answer it with the reply under "If the spec is missing or
+incomplete" at the end of Spec Compliance, not with the one below. For any
+other PR with no such record:
 ```
 "I don't see a feature directory or _index.md for this PR. Before I
 review the code, can you point me to the host feature? SDD relies on
@@ -61,7 +68,7 @@ Per-feature checks:
       **Exception — a host whose whole record is inline.** A **T3-only**
       minimal host has no spec file by design: a T3 never produces one.
       A **baseline-only** host has none either — a baseline capture writes
-      the BC layer directly and records a `Tier = baseline` row. For both,
+      Domain documents directly and records a `Tier = baseline` row. For both,
       the requirement is at least one `_index.md` Lightweight Changes row,
       not a spec file. Do **not** ask the author to add a spec to satisfy
       this line — that manufactures the artifact the tier forbids and the
@@ -118,7 +125,7 @@ If the closeout commit is in this PR (`/dflow:finish-feature` was run):
       passes every closeout check. That range is the *"A no-BC host committed no
       BC-scoped Domain material"* item in the delegated block below, and it is
       yours to run. **N/A for a baseline capture** — a baseline
-      writes the BC layer directly, so there is no separate sync to land.
+      writes Domain documents directly, so there is no separate sync to land.
       **N/A for a T3**, which does no Domain work at all. Record the N/A rather
       than ticking it against an empty comparison — but note `glossary.md` and
       `migration/tech-debt.md` belong to no bounded context, stay in a no-BC
@@ -183,7 +190,7 @@ skip one and the boundary is a hole rather than a division of labour.
       `git show --stat {hash}`. **Take the row's declaration if it has one and
       require the commit to touch it** — a **T2**'s own spec file
       (`lightweight-*.md` / `BUG-*.md`), a **T3**'s Description implementation
-      paths, a **`Tier = baseline`** row's BC-layer capture documents — a capture
+      paths, a **`Tier = baseline`** row's capture documents — a capture
       is **observation-only**, so what it declares is documents, never
       implementation paths. (A phase-bearing host may legitimately hold a
       baseline row alongside phase work; `finish-feature-minimal-host.md` says so
@@ -272,12 +279,12 @@ skip one and the boundary is a hole rather than a division of labour.
       ⚠ **The path filter is deliberately wider than the prohibited set, so read
       the output before flagging.** `context-map.md` sits at `domain/` top level
       rather than under `{context}/`, and the filter has to reach up there to
-      catch it — which means it also lists `domain/glossary.md`. `glossary.md`
-      belongs to no bounded context and stays legitimate for a no-BC host:
-      **seeing it here is not a finding.** `migration/tech-debt.md` is outside
-      the filter entirely and never appears.
+      catch it — which means it also lists `domain/glossary.md` and
+      `domain/analysis.md`. Both belong to no bounded context and stay
+      legitimate for a no-BC host: **seeing either here is not a finding.**
+      `migration/tech-debt.md` is outside the filter entirely and never appears.
       ⚠ **A baseline capture is not a no-BC host** and this item does not apply
-      to it: writing the BC layer is exactly what a baseline is for. Closeout's
+      to it: writing Domain documents is exactly what a baseline is for. Closeout's
       own no-BC check states the same exemption.
 
 If the spec is missing or incomplete:
@@ -285,10 +292,13 @@ If the spec is missing or incomplete:
 "I notice this PR doesn't have a matching feature directory / _index.md.
 Can you describe what this change does? If it only records existing
 behaviour or a decision without changing output, it is observation-only
-and tier-exempt — it is captured in whichever BC-layer documents it
-actually wrote (the row declares them; there is no fixed list) and stops
-there; only when it needs its own host does it get one, and that is a
-baseline minimal host carrying a Tier = baseline row, not a spec. Otherwise: if it belongs to a feature
+and tier-exempt — it is captured in whichever Domain documents it
+actually wrote (there is no fixed list) and stops there. It needs no host
+when it is an analysis.md record made with no workflow running and
+committed on its own, or a capture about no bounded context at all; any
+other capture with no active feature to attach it to gets a baseline
+minimal host, whose Tier = baseline row declares the documents it wrote —
+not a spec. Otherwise: if it belongs to a feature
 we already have, we can record it there retroactively — the tier decides
 what gets written (T2: a lightweight spec; T3: one inline _index.md
 row). If it's genuinely new work, it wants /dflow:new-feature. If
@@ -440,6 +450,7 @@ uses '報銷 (Expense Claim)'. Should we align the naming?"
 
 - [ ] **models.md updated** — New entities/VOs/services documented?
 - [ ] **rules.md updated** — New or changed business rules recorded?
+- [ ] **analysis.md updated** — did this change touch a status transition, an ordered cross-context flow, which roles reach a function, or the way a figure is computed? If so, is the matching entry in `analysis.md` updated? Open one Evidence source it cites and confirm it still says what the entry claims. An entry whose Evidence is `inferred` names what its conclusion was drawn from: confirm instead that the conclusion still follows from it. An entry whose Evidence is `assumed` has no source to open: confirm instead that it says what it rests on and that the question of confirming it is recorded where the Evidence convention at the top of `analysis.md` says, and report it as unverified rather than blocking on it.
 - [ ] **context.md boundaries respected** — Does this change stay within its context?
 
 ## Tech Debt Awareness

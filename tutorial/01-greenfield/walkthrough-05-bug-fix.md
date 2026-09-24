@@ -369,6 +369,10 @@ Dflow:
 - BR Snapshot：不 regenerate。
   因為沒有 ADDED / MODIFIED / REMOVED / RENAMED BR；
   BR-007 wording unchanged。
+
+- 系統級知識：這次依賴 domain/Expense/analysis.md LC-01 的
+  Submitted → Rejected 那一列；修的是字元處理，轉移本身沒變，
+  analysis.md 沒有東西要記。
 ```
 
 這是本篇第四個 lesson：**Domain guard 可以改，但 BR 不一定變。**
@@ -538,6 +542,9 @@ Step 5 — Update Documentation。
    - 新增 Unicode character counting strategy under i18n。
    - source = BUG-001。
    - scope = ApprovalReason VO + future user-facing length limits。
+
+analysis.md 兩支在 5.3 都記 N/A：Step 3 查過，這次依賴的 LC-01 那一列
+已經記著、不用改，也沒有新找到要記的生命週期、衍生數字、機制或角色觸及。
 ```
 
 Alice 特別要求：

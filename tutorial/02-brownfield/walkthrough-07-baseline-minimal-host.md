@@ -248,11 +248,69 @@ Dflow:
 - **confirmed behavior** → 寫進 BC 層 behavior.md（本案三項全是）
 - **buggy implementation / unknown behavior** → 寫進 migration/tech-debt.md，
   **不要**升格成 BR
+- **沒有任何一條規則或單一情境講得完的系統層知識**（例如一個數字在哪幾處、怎麼算），
+  以及卡在它上面、要等業務決定的熱點 → 寫進 analysis.md：歸單一 context 的
+  寫進那個 context 的那一份（本案的運費歸 Shipment），跨 context 的流程、
+  角色觸及與沒有單一 context 擁有的寫進 domain/analysis.md
 
 「三處門檻判斷基準不一致」我記進 tech-debt，
 標為 open、來源指回本 SPEC-ID。
 它是一個待決的業務問題，不是一條已成立的規則。
 ```
+
+第三條在這次也有東西要記：
+
+```text
+Dflow:
+運費這個數字本身，要記進 Shipment/analysis.md：
+
+- 它是算出來的，三處各自產出：購物車、結帳頁各算一次，
+  通知信讀下單當下存進 Order.ShippingFee 的快照。記成 RM-01。
+  運費讀的是 Order 的金額，但算它的是 Shipment，所以記在 Shipment 這一支。
+  三處的 Given/When/Then 已在 behavior.md，RM-01 指過去，不重抄。
+- 「免運門檻該拿哪個金額比」卡在 RM-01 上，要等營運／財務拍板——
+  記一列熱點 HS-01（open），連回 tech-debt.md 那一列。
+
+這支檔還不存在；這是第一次有東西要記，所以從 templates/analysis.md 建。
+```
+
+狀態與角色這兩類，這次讀的三個方法在例子裡都沒有答案，所以沒有記。
+
+寫下去的重點片段：
+
+```markdown
+## Read Models and Derived Figures
+
+### RM-01: 運費（`ShippingFee`）
+
+三個產出點，彼此沒有共用實作：購物車頁 `ShoppingCart.CalculateShippingFee()` 與結帳頁 `Checkout.BindShippingSummary()` 各自計算；出貨通知信 `ShipmentNoticeBuilder.BuildFeeLine()` 不計算，讀下單時存下的快照。
+
+購物車與結帳頁用同一份重量級距表（例：5–10kg = 150）與同一條免運門檻 2,000：拿去比的金額達到 2,000 就免運（0），未達就依級距收費。兩處拿去比的金額不同——購物車比**折扣前**金額，結帳頁比**折扣後**金額，所以同一張訂單可能一處免運、一處收費。
+
+通知信不重算：它讀訂單建立當下寫進 `Order.ShippingFee` 的快照（下單走的是購物車那條計算路徑）。下單之後運費規則若改了，通知信照舊顯示下單當下的值。
+
+三處的情境見 [`behavior.md`](./behavior.md)；該拿哪個金額比門檻還沒有決定，見 HS-01。
+
+Evidence: code - `OrderManager.Web/Pages/Cart/ShoppingCart.aspx.cs` `CalculateShippingFee()`（約 lines 88-131）、`OrderManager.Web/Pages/Checkout/Checkout.aspx.cs` `BindShippingSummary()`（約 lines 152-190）、`OrderManager.Jobs/Notifications/ShipmentNoticeBuilder.cs` `BuildFeeLine()`（約 lines 44-77） (2026-05-11)
+
+## Open Questions and Hotspots
+
+| Item | ID | Affects | Why it matters | Status | Evidence |
+|---|---|---|---|---|---|
+| 免運門檻該拿哪個金額比 | HS-01 | RM-01 | 購物車比折扣前、結帳頁比折扣後，同一張訂單三處顯示 0 / 150 / 0<br>以哪一個為準要等營運／財務拍板，拍板前不寫成 BR<br>待決的決定記在 [`tech-debt.md`](../../migration/tech-debt.md)「Shipment 免運門檻判斷基準三處不一致」 | open | code - `ShoppingCart.aspx.cs` `CalculateShippingFee()` vs `Checkout.aspx.cs` `BindShippingSummary()` (2026-05-11) |
+```
+
+完整文件範例：
+[`outputs/dflow/specs/domain/Shipment/analysis.md`](outputs/dflow/specs/domain/Shipment/analysis.md)
+
+兩個細節：
+
+- **`behavior.md` 記三處各自發生什麼，`analysis.md` 記這個數字怎麼來。** 三個情境的 Given/When/Then
+  在 `behavior.md`；RM-01 把三處放在一起，講這個數字的產出點、比門檻用哪個金額，以及通知信那份快照
+  在規則改了之後會過期——那是任何一個情境單獨講不出來的。
+- **HS-01 和 tech-debt 那一列各記一半。** tech-debt 記待決的決定本身（以哪一個為準）；HS-01 記它卡在
+  哪一條知識上（RM-01），並連過去。它的 `Evidence` 寫 `code`：打開那兩個方法，拿去比的金額就是不一樣，
+  這就是「它還開著」的證據。
 
 ## 產出 1 — `Tier = baseline` 那一列
 
@@ -262,7 +320,7 @@ Dflow:
 ```markdown
 | Date | Tier | Description | Commit |
 |---|---|---|---|
-| 2026-05-11 | baseline | Shipment 運費在購物車 / 結帳 / 出貨通知三處的現行計算與顯示行為 capture（observation-only，未改任何輸出）— `dflow/specs/domain/Shipment/behavior.md` | 4b17d92 |
+| 2026-05-11 | baseline | Shipment 運費在購物車 / 結帳 / 出貨通知三處的現行計算與顯示行為 capture（observation-only，未改任何輸出）— `dflow/specs/domain/Shipment/behavior.md`、`dflow/specs/domain/Shipment/analysis.md` | 4b17d92 |
 ```
 
 三個地方要看：
@@ -270,7 +328,7 @@ Dflow:
 | 欄位 | 值 | 為什麼 |
 |---|---|---|
 | `Tier` | **`baseline`** | 不是 T2、不是 T3。closeout 與 pr-review 的 reader 都認得這個值。 |
-| Description 末尾的路徑 | `dflow/specs/domain/Shipment/behavior.md` | 每一列都要宣告「碰到什麼」。baseline 宣告的是**它寫進去的 BC 層文件**——它沒有原始碼變更。 |
+| Description 末尾的路徑 | `dflow/specs/domain/Shipment/behavior.md`、`dflow/specs/domain/Shipment/analysis.md` | 每一列都要宣告「碰到什麼」。baseline 宣告的是**它寫進去的文件**——它沒有原始碼變更。兩支都要列：closeout 會檢查 `spec-baseline` 那個 commit 帶的 BC 層文件都在這一列宣告過，漏列 `analysis.md`，它就成了不該出現的路徑，closeout 被擋下。 |
 | `Commit` | `4b17d92` | 就是 `spec-baseline` 那個 checkpoint 的 hash。 |
 
 ## 產出 2 — 為什麼 checkpoint 叫 `spec-baseline`
@@ -321,8 +379,9 @@ Step 1 — Validate（最小 host 相關項）：
     (a) 4b17d92 是 commit
     (b) 是 HEAD 的 ancestor
     (c) 它改動過的路徑包含這一列宣告的
-        dflow/specs/domain/Shipment/behavior.md，
-        而且那份文件**存在於它的樹裡**
+        dflow/specs/domain/Shipment/behavior.md 與
+        dflow/specs/domain/Shipment/analysis.md，
+        而且那兩份文件都**存在於它的樹裡**
         —— 這是 baseline 列在**最小 host** 上的加強條款
         （Step 1 那組檢查整組標著 Minimal host (zero-phase) only）：
         capture 必須由這個 commit 新增或修改，刪掉或改名走的
@@ -391,7 +450,7 @@ Next Steps (developer) — Integration / PR gate (needs network):
 ```
 
 `BC:` 是 **`Shipment`** 而不是 `none`——這是 baseline host 與 no-BC standalone host 最明顯的
-差別。baseline 有真實的 bounded context，它捕捉的內容就住在那裡。
+差別。baseline 有真實的 bounded context，這一次捕捉的內容就住在那裡。
 
 **注意這裡沒有 `Aggregates affected:` 也沒有 `Domain Events Changes:`。** 那兩欄是
 **Greenfield** Integration Summary 才有的。Brownfield 的 canonical 形狀
@@ -420,6 +479,7 @@ baseline host **走完整個生命週期然後歸檔**，不會以一個半開�
 |---|---|---|
 | 新建 | [`.../SPEC-20260511-001-shipment-fee-baseline/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260511-001-shipment-fee-baseline/_index.md) | baseline 最小 host：七個必要段落、`Tier = baseline` 列、`spec-baseline` checkpoint。（`BC: Shipment` 是 Integration Summary 的欄位，不在 fixture 裡；fixture 對 BC 的宣告在 Goals & Scope。） |
 | 新建 | [`outputs/dflow/specs/domain/Shipment/behavior.md`](outputs/dflow/specs/domain/Shipment/behavior.md) | 三處 confirmed behavior 的捕捉結果，含「未捕捉的範圍」與「已知不一致（不在本文件裁定）」。 |
+| 新建 | [`outputs/dflow/specs/domain/Shipment/analysis.md`](outputs/dflow/specs/domain/Shipment/analysis.md) | RM-01：運費的三個產出點、比門檻用哪個金額、通知信讀的快照；HS-01：免運門檻該拿哪個金額比（open，連回 tech-debt）。Step 2 第一次有東西要記時從範本建。 |
 | 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | 「三處免運門檻判斷基準不一致」記為 open，來源指回本 SPEC-ID。 |
 | 故意不建 | `phase-spec-*.md` / `lightweight-*.md` | baseline 不產 spec 檔；`Tier = baseline` 那一列就是它的記錄。 |
 | 故意不改 | 任何 `.aspx.cs` / `.cs` | observation-only。今天不改輸出。 |
@@ -453,6 +513,7 @@ baseline host **走完整個生命週期然後歸檔**，不會以一個半開�
 - **產出一列合法的 `Tier = baseline` row**，那就是它的記錄；不產 spec 檔。
 - **BC 在 capture 當下就寫好**，closeout 沒有東西要再 sync；但 `BC:` 欄填真實的 context，不是 `none`。
 - **confirmed 進 `behavior.md`，unknown / buggy 進 `tech-debt.md`**，不硬升成 BR。
+- **一個數字在哪幾處、怎麼算，以及卡在它上面的待決決定，進 `analysis.md`**；它指回 `behavior.md` 的情境與 `tech-debt.md` 的待決那一列，不重抄。
 - **不留空的 active feature**——baseline host 走完生命週期並歸檔。
 
 ## 下一個 walkthrough

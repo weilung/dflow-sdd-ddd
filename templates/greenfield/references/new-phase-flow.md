@@ -138,9 +138,20 @@ Walk the developer through what the new phase covers:
 4. **Cross-context impact?** Does this phase introduce / change Domain
    Events that other contexts consume? (If yes, plan for `context-map.md`
    updates at finish-feature time.)
-5. **Data structure impact?** New tables, columns, indices, EF
+5. **System-level knowledge?** Does this phase add, change, or uncover an
+   ordered cross-context flow (always the domain-root copy), the lifecycle a
+   status field moves through, a figure computed rather than stored, a
+   mechanism no single rule explains, or which roles reach a function (always
+   the domain-root copy) — or work around a spot in one of them that only a
+   domain decision will settle (in the copy that holds the knowledge it is
+   stuck on)? If yes, record it in
+   `dflow/specs/domain/{context}/analysis.md` when one context owns what it
+   describes and in `dflow/specs/domain/analysis.md` when no one context does,
+   creating the file from `templates/analysis.md` the first time there is
+   something to record.
+6. **Data structure impact?** New tables, columns, indices, EF
    configuration changes?
-6. **Why now?** Priority — informs sequencing relative to other phases.
+7. **Why now?** Priority — informs sequencing relative to other phases.
 
 This is also the moment to ask: "Should this be its own follow-up feature
 instead of a phase here?" — useful when the scope drift suggests a
@@ -151,7 +162,7 @@ separate concern (different Aggregate, different BC, etc.).
 ## Step 3: Phase Slug Confirmation
 
 AI proposes the new phase-spec filename and asks the developer to confirm
-before any file is written.
+before the phase-spec is written.
 
 > "Proposed phase-spec for `{SPEC-ID}-{slug}`:
 >
@@ -285,6 +296,14 @@ During implementation, continuously verify:
 - [ ] No business logic leaks into Application handlers, Infrastructure queries,
       or Presentation controllers
 - [ ] Test failures have been resolved or explicitly recorded as follow-up
+- [ ] Every entry Step 2 recorded in `analysis.md`, at either of its two
+      paths, still holds. An entry for what this phase was to add or change
+      matches what it built — corrected where the build differs, removed
+      where nothing was built for it. An entry for something Step 2
+      uncovered in the existing system matches the system as it now stands —
+      corrected where this phase changed it, never removed because this
+      phase built nothing for it. Read the entries in the file, not in a
+      diff: a checkpoint may already have committed them.
 
 If implementation changes the agreed Delta, update the phase-spec before
 continuing. Do not let code and spec diverge silently.
@@ -322,8 +341,9 @@ Update the feature artifacts:
 
 The bounded context's `rules.md` / `behavior.md` / `events.md` and the
 feature directory move to `completed/` remain `/dflow:finish-feature`
-responsibilities. Do not sync BC-level current state or archive the whole
-feature from `/dflow:new-phase`.
+responsibilities; Step 2 records into `analysis.md` directly, at whichever of
+its two paths the entry belongs to. Do not sync any other BC-level current
+state or archive the whole feature from `/dflow:new-phase`.
 
 After completion, summarize for the developer:
 > "Phase {N+1} is implemented and marked completed. `_index.md` is refreshed.

@@ -87,8 +87,9 @@ dflow init
 在**還沒有任何 AI tool 檔**的專案裡它標 `(default: none)`，按 Enter 等於一家都不建：
 選幾家就少幾個 shim 與幾份 `SKILL.md`，**而且 canonical 的 `AI-AGENT-GUIDE.md` 也不會建**。
 實測的規則是：**少掉的 = 1 份 guide ＋ 每選一家 2 列**（一個 shim ＋ 一份 `SKILL.md`）。
-兩軌 walkthrough 的例子就是這條規則的兩個代入：greenfield 40 → 33（Alice 選三家）、
-brownfield 32 → 29（Bob 只選一家）。
+兩軌 walkthrough 的例子就是這條規則的兩個代入——數字是 `File plan:` 的 create 列數，
+左邊照 walkthrough 的答法、右邊只把第 8 題改成按 Enter：greenfield 47 → 40（Alice 選三家）、
+brownfield 39 → 36（Bob 只選一家）。
 但若 repo 已經**已經有別的工具留下的 `AGENTS.md`** 之類的 shim，提示會變成 `(default: 1)`
 這種形式——那時按 Enter 是**沿用既有選擇**，不是不建。
 預設值本身沒有錯，錯的是把「有預設」讀成「可以不管」。
@@ -324,8 +325,8 @@ Implementation Tasks 實作與驗證，最後把該 phase 標記 completed。
 - 只適用 active feature
 - 如果 feature 已經在 `completed/`，應改用 `/dflow:modify-existing` 開 follow-up
 - 不應該把 completed feature 重新打開硬塞新需求
-- 不同步 BC-level living docs、不搬移 feature directory；那些是 `/dflow:finish-feature`
-  的責任
+- 除了 Step 2 當場寫進 `analysis.md` 的條目，不同步 BC-level living docs、也不搬移
+  feature directory；那些是 `/dflow:finish-feature` 的責任
 
 ## Closeout commands
 

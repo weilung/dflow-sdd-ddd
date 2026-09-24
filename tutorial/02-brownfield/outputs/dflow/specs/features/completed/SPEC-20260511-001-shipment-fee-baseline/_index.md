@@ -66,7 +66,7 @@ branch: feature/SPEC-20260511-001-shipment-fee-baseline
 
 | Date | Tier | Description | Commit |
 |---|---|---|---|
-| 2026-05-11 | baseline | Shipment 運費在購物車 / 結帳 / 出貨通知三處的現行計算與顯示行為 capture（observation-only，未改任何輸出）— `dflow/specs/domain/Shipment/behavior.md` | 4b17d92 |
+| 2026-05-11 | baseline | Shipment 運費在購物車 / 結帳 / 出貨通知三處的現行計算與顯示行為 capture（observation-only，未改任何輸出）— `dflow/specs/domain/Shipment/behavior.md`、`dflow/specs/domain/Shipment/analysis.md` | 4b17d92 |
 
 <!-- dflow:section checkpoint-log -->
 ## Checkpoint Log
@@ -104,7 +104,8 @@ branch: feature/SPEC-20260511-001-shipment-fee-baseline
 post-commit 驗證比的是 Step 1 讀到的內容有沒有被改動。多一段不會被擋下——
 這裡不寫，是因為 Step 5 這麼說。
 
-三處 capture 的結果本身住在 BC 層：dflow/specs/domain/Shipment/behavior.md
+三處 capture 的結果本身住在 BC 層：dflow/specs/domain/Shipment/behavior.md（三處情境）
+與 dflow/specs/domain/Shipment/analysis.md（運費怎麼產出的 RM-01、免運門檻的熱點 HS-01）
 待決的業務問題住在：dflow/specs/migration/tech-debt.md
 
 Integration Summary 的逐欄形狀（含 brownfield 沒有 `Aggregates affected` /

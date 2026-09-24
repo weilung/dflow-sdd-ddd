@@ -37,7 +37,13 @@ touches and read them all.
       `/dflow:finish-feature` time)
 - [ ] Only then proceed to the code-review sections below
 
-If the PR has no spec or no `_index.md`:
+If the PR records its change in neither a spec nor an `_index.md` row (a T3
+inline row is such a record, and a host that carries one needs no spec), first
+check whether it only records existing behaviour or a decision in Domain
+documents, without changing output. That PR is observation-only and wants no
+host: answer it with the reply under "If the spec is missing or incomplete" at
+the end of Spec Compliance, not with the one below. For any other PR with no
+such record:
 ```
 "I don't see a feature directory or _index.md for this PR. Before I
 review the code, can you point me to the host feature? SDD relies on
@@ -264,10 +270,10 @@ skip one and the boundary is a hole rather than a division of labour.
       ⚠ **The path filter is deliberately wider than the prohibited set, so read
       the output before flagging.** `context-map.md` sits at `domain/` top level
       rather than under `{context}/`, and the filter has to reach up there to
-      catch it — which means it also lists `domain/glossary.md`. `glossary.md`
-      belongs to no bounded context and stays legitimate for a no-BC host:
-      **seeing it here is not a finding.** The tech-debt file is outside the
-      filter entirely and never appears.
+      catch it — which means it also lists `domain/glossary.md` and
+      `domain/analysis.md`. Both belong to no bounded context and stay
+      legitimate for a no-BC host: **seeing either here is not a finding.** The
+      tech-debt file is outside the filter entirely and never appears.
 
 If the spec is missing or incomplete:
 ```
@@ -275,7 +281,8 @@ If the spec is missing or incomplete:
 Can you describe what this change does? If it only records existing
 behaviour or a decision without changing output, it is observation-only
 and wants no host at all — it is captured in the relevant Domain
-document (models.md / rules.md / behavior.md / events.md) and stops
+document (models.md / rules.md / behavior.md / events.md / analysis.md)
+and stops
 there. Otherwise: if it belongs to a feature we already have, we can
 record it there retroactively — the tier decides what gets written
 (T2: a lightweight spec; T3: one inline _index.md row). If it's
@@ -398,6 +405,7 @@ create a separate review report.
       glossary)? Align it. (Judgment call, not a string match.)
 - [ ] **Context boundaries respected** — no reaching into another context's internals
 - [ ] **Domain Events documented** — events.md updated?
+- [ ] **analysis.md updated** — did this change touch a status transition, an ordered cross-context flow, which roles reach a function, or the way a figure is computed? If so, is the matching entry in `analysis.md` updated? Open one Evidence source it cites and confirm it still says what the entry claims. An entry whose Evidence is `inferred` names what its conclusion was drawn from: confirm instead that the conclusion still follows from it. An entry whose Evidence is `assumed` has no source to open: confirm instead that it says what it rests on and that the question of confirming it is recorded where the Evidence convention at the top of `analysis.md` says, and report it as unverified rather than blocking on it.
 - [ ] **Tests cover invariants** — not just happy path
 
 ## Architecture Score

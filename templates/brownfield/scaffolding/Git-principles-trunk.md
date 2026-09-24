@@ -158,8 +158,8 @@ one is not.
 > its record still open. Every item naming a **Domain or bounded-context
 > artifact** applies only to what this change **actually touched**: a **no-BC**
 > host has no context to sync or document, a **T3** does no Domain work at all,
-> and a **baseline capture** wrote the BC layer directly rather than syncing to
-> it — so for those they read N/A. **Bounded-context-scoped only** —
+> and a **baseline capture** wrote Domain documents directly rather than syncing
+> to them — so for those they read N/A. **Bounded-context-scoped only** —
 > `glossary.md` and `migration/tech-debt.md` belong to no bounded context, stay
 > in a no-BC host's sweep, and are a baseline capture's own capture
 > destinations, so they are **not** N/A for either. **Code invariants are not

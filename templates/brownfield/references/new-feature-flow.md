@@ -118,8 +118,11 @@ Walk through these questions:
 - **What are the key nouns?** → Potential Entities or Value Objects
 - **What are the key verbs?** → Potential Domain Services or Entity behaviors
 - **What are the rules/constraints?** → Business Rules to document
-- **What are the states/statuses?** → State machines to model
+- **What are the states/statuses?** → State machines to model, recorded in `analysis.md`
 - **What external data is needed?** → Interfaces to define
+- **What crosses a bounded context, and what does each step hand to the next?** → An ordered cross-context flow (always the domain-root copy)
+- **Which figures are derived rather than stored?** → A read model definition
+- **Who reaches this feature, and what data scope does each role see?** → A role × function entry (always the domain-root copy)
 
 If one concept gathers rules / invariants that must hold together — **a state
 machine over its lifecycle, or invariants spanning several of its fields /
@@ -147,6 +150,8 @@ For each new concept:
 2. Check if it already exists in models.md — extend if needed
 3. If entirely new, add to the appropriate context's models.md
 
+For each of the system-level answers above — the state machines included: record it in `dflow/specs/domain/{context}/analysis.md` when one context owns what it describes and in `dflow/specs/domain/analysis.md` when no one context does, creating the file from `templates/analysis.md` the first time there is something to record. That template's sections carry the notation.
+
 If foundational domain docs are missing, create them from templates before writing content:
 - `dflow/specs/domain/glossary.md` → `templates/glossary.md`
 - `dflow/specs/domain/{context}/models.md` → `templates/models.md`
@@ -156,7 +161,7 @@ If foundational domain docs are missing, create them from templates before writi
 **→ Step Gate: Step 3 → Step 3.5**
 
 Announce to developer:
-> "Domain concepts captured. Before I create any files, let me confirm the SPEC-ID, slug, directory name, and branch name with you (Step 3.5). `/dflow:next` to proceed."
+> "Domain concepts captured. Before I create the feature directory or branch, let me confirm the SPEC-ID, slug, directory name, and branch name with you (Step 3.5). `/dflow:next` to proceed."
 
 Wait for confirmation before entering Step 3.5.
 
@@ -452,12 +457,15 @@ Ask these one-by-one; do not dump all five at once.
 > **Table-cell formatting**: keep table cells concise — separate multiple short items with `<br>` (never chain them into one line with ；/; separators), and move long narrative detail out of the cell into a document section (full convention: the formatting comment at each spec doc's head).
 
 - [ ] `dflow/specs/domain/glossary.md` — new terms added
+- [ ] `dflow/specs/domain/analysis.md` — ordered cross-context flows, role reach, or anything else no one context owns, that this feature introduced, found or altered; any spot this feature worked around pending a domain decision, in those or in unrecorded knowledge that belongs here; and any open row there this feature settled (created from `templates/analysis.md` the first time there is something to record)
 - [ ] `dflow/specs/domain/{context}/models.md` — model definitions updated
+- [ ] `dflow/specs/domain/{context}/analysis.md` — lifecycles, derived figures or mechanisms no single rule explains this feature introduced, found or altered, in the owning context's copy, which may not be this host's; any spot this feature worked around pending a domain decision, in those or in a rule or unrecorded knowledge that belongs there; and any open row there this feature settled (created from `templates/analysis.md` the first time there is something to record)
 - [ ] `dflow/specs/domain/{context}/rules.md` — business rules updated
 - [ ] `dflow/specs/domain/{context}/behavior.md` — merge completed spec's Given/When/Then scenarios into consolidated behavior. Sub-steps:
       - Promote any Activity 3 (Spec Writing) draft sections (from B3 mid-sync) to formal sections
       - Update the corresponding `rules.md` anchor's `last-updated` date (B4)
 - [ ] `behavior.md` draft cleanup — if the spec was abandoned mid-way, keep the `## 提案中變更` section's history or explicitly REMOVE it
+- [ ] `analysis.md`, at either of its two paths — re-check every entry this feature recorded before building: an entry for what the feature was to add or change against what was built (corrected where the build differs, removed where nothing was built for it), and an entry for something already in the system against the system as it now stands (corrected where this feature changed it, never removed because this feature built nothing for it). Read the entries in the file, not in a diff: a checkpoint may already have committed them.
 - [ ] `dflow/specs/migration/tech-debt.md` — tech debt discovered during implementation recorded
 
 ### 8.4 Archival

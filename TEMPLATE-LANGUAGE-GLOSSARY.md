@@ -61,3 +61,7 @@ The "使用位置" column refers to file paths where the term appears structural
 | Structural language | 結構性語言 | Templates, generated specs, `TEMPLATE-COVERAGE.md` | 固定文件結構語言，例如 headings、table headers、labels、placeholders、IDs、anchors；Dflow 保持 canonical English |
 | Canonical English | 標準英文結構 | Templates, scaffolding, generated specs | Dflow 固定使用的英文結構詞彙，用於穩定 AI 導航、anchor 定位與跨檔維護 |
 | Code-facing terms | 面向程式碼的術語 | Templates, generated specs, `_conventions.md` | 不應只為符合 prose 語言而翻譯的內容，例如 code identifiers、DDD pattern names、BR IDs、SPEC IDs、file paths、branch names、anchors、inline code |
+| Evidence | 證據 / 出處 | `analysis.md` | 每一條 entry 都帶：敘事節的子節結尾一行 `Evidence:`，表格的每一列放在 `Evidence` 欄（生命週期的狀態表除外，理由見 rationale registry 的 `R-ANALYSIS-EVIDENCE-01`）；值只有六個：`code`／`data`／`confirmed by {role}`／`document`／`inferred`／`assumed`；值維持英文，其後的複查入口照 `Prose Language` 寫 |
+| Lifecycles | 生命週期 | `analysis.md`, `modify-existing-flow.md` | 一個狀態欄位有哪些值、從哪一個轉到哪一個、誰觸發、要滿足什麼；狀態欄位本身作為存下來的屬性仍在 `models.md`，單次轉移准不准發生是 `rules.md` 的一條規則 |
+| Read Models and Derived Figures | 讀取模型與衍生數字 | `analysis.md`, `modify-existing-flow.md` | 算出來、而不是存下來的數字：定義、計入條件、切換點；存下來的實體與值物件仍在 `models.md` |
+| Hotspots | 熱點 | `analysis.md`, `modify-existing-flow.md` | 專案一直在繞過、要靠一個還沒做的領域決定才解得掉的地方（卡在 `analysis.md` 收的知識、一條業務規則，或還沒記下的知識上）；要改程式才解得掉的屬技術債 |

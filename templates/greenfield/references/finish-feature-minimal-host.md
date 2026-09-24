@@ -195,9 +195,9 @@ A `✗` here stops closeout there, on the same terms.
       note), so nothing qualifies under (iii) for a T3. A **no-BC** host has no
       *BC-scoped* sweep — a dirty `dflow/specs/domain/{context}/…` or
       `context-map.md` under one is fiction and **blocks** — but the **global**
-      documents (`glossary.md`, `architecture/tech-debt.md`) belong to no
-      bounded context, stay in its sweep, and therefore still qualify under
-      (iii).
+      documents (`glossary.md`, `domain/analysis.md`,
+      `architecture/tech-debt.md`) belong to no bounded context, stay in its
+      sweep, and therefore still qualify under (iii).
       Read each delta (`git diff -- {path}`) — do not infer it from the
       filename. **The list is closed** — if a later change adds another
       finalization field, add it here explicitly; "a host file is dirty" is never
@@ -214,15 +214,16 @@ A `✗` here stops closeout there, on the same terms.
       — add, modify, delete or rename — any `dflow/specs/domain/{context}/…`
       document. A deletion is a BC-layer change like any other, and reading only
       the path list would accept one as if nothing had happened. The documents:
-      `rules.md`, `behavior.md`, `events.md`, `models.md` — and no
-      `context-map.md`. Any of them **blocks**
+      `rules.md`, `behavior.md`, `events.md`, `models.md`, `analysis.md` — and
+      no `context-map.md`. Any of them **blocks**
       (`modify-existing-flow.md` Step 2's no-BC guard is where this should have
       been caught first).
       **Do not over-reach:** this rejects only Domain documents that commit
       *added or changed* — pre-existing Domain files it never touched are
       irrelevant, and the **global** documents (`glossary.md`,
-      `architecture/tech-debt.md`) belong to no bounded context and stay
-      legitimate for a no-BC host, exactly as that check's allow-list says.
+      `domain/analysis.md`, `architecture/tech-debt.md`) belong to no bounded
+      context and stay legitimate for a no-BC host, exactly as that check's
+      allow-list says.
       **What this check cannot decide — stated, not asserted:** ⚠ **the rule it
       enforces is not minimal-host-only; only this proof is.** *No no-BC host of
       any shape may commit BC-scoped Domain material* — and what this reads is

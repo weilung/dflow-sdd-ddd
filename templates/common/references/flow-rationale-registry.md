@@ -1,7 +1,7 @@
 # Flow Rationale Registry
 
-Why the rules in the workflow flow files are shaped the way they are. One entry
-per physical line, so one lookup returns the whole answer:
+Why the rules in the workflow flow files and templates are shaped the way they
+are. One entry per physical line, so one lookup returns the whole answer:
 
 ```bash
 grep -E '^R-FF-BRANCH-02:' references/flow-rationale-registry.md
@@ -11,7 +11,7 @@ grep -E '^R-FF-BRANCH-02:' references/flow-rationale-registry.md
 here is needed to execute a flow. Look up an entry when a developer asks why a
 rule exists, or says a rule looks wrong.
 
-Every line reads `<id>: [<edition ·>? <flow file> · <step> · <the rule it
+Every line reads `<id>: [<edition ·>? <file> · <step or section> · <the rule it
 belongs to>]` followed by the reason, so a keyword search finds the line when
 you do not have an id. **Search a short fragment — four to eight words — not a whole sentence.**
 The flow files are hard-wrapped, so most sentences there span a line break and
@@ -106,3 +106,25 @@ R-FF-CKPTCOUNT-02: [finish-feature-minimal-host.md · Step 1 · "the Checkpoint 
 R-FF-FOLLOWUP-01: [finish-feature-minimal-host.md · Step 1 · "the reverse link was opened, not only closed"] Decidable from one commit and one blob per original, so it stays inside closeout's remit.
 
 R-FF-SUMMARY-01: [finish-feature-minimal-host.md · Step 5 · "Zero-phase minimal host — exact fields", on a no-BC host's `Related BR-IDs`] Forcing `none` here would erase a marker the approved zero-phase shape requires.
+
+## init-project-flow.md
+
+R-INIT-DEFERRED-01: [init-project-flow.md · Step 3.1 · "is NOT generated here", both bullets] Init creates neither a per-context `behavior.md` nor either `analysis.md`: an empty file created ahead of its content becomes a stale placeholder.
+
+## modify-existing-flow.md
+
+R-ME-BASELINE-01: [bf · modify-existing-flow.md · Step 2 · "Systematic Baseline Capture"] Baseline capture looks for system-level knowledge and records it in `analysis.md`, even though it runs only when the feature being modified has no prior spec: it is how a project that adopts Dflow midway gets its existing system into `analysis.md` in bulk, rather than one entry at a time. Every other entry point only records what the change in hand happens to touch; the observation-only route in Part A records without changing anything, but only what that observation reached.
+
+## new-phase-flow.md
+
+R-NP-ANALYSIS-01: [new-phase-flow.md · Step 2 · "System-level knowledge?"] Step 2 records into `analysis.md` on the spot rather than leaving it to closeout, because deferring needs two things this flow does not have: somewhere to hold the answer until closeout (the phase-spec template has no section for it), and a closeout step that always runs (a host with no bounded context skips `/dflow:finish-feature` Step 3 entirely). Each track's Step 7 carves these two paths out of its "remain `/dflow:finish-feature` responsibilities" sentence for the same reason. Step 6 re-checks what Step 2 recorded - what the phase was to add or change against what it built, what Step 2 uncovered in the existing system against the system as it now stands, since knowledge Step 2 uncovered was true before the phase began and does not stop being true because the phase built nothing for it - instead of leaving that to closeout as well: no closeout step is sure to reach the entry (`/dflow:new-feature` § 8.4 archives without `/dflow:finish-feature`), and by then a checkpoint has usually committed it, so no diff would show it.
+
+## templates/analysis.md
+
+R-ANALYSIS-PLACEMENT-01: [templates/analysis.md · Placement · "who owns what the entry describes"] This template fills two paths rather than one because the knowledge it holds splits that way in practice: a lifecycle, a derived figure and a mechanism usually have an owning context, while ordered flows across contexts and the function/role map are kept in the domain-root copy by policy, whoever owns what a given flow or row describes - a flow is read end to end across the contexts its steps belong to, and the index answers who reaches what across the whole system, which no one context's copy could show. Keeping all of it in one domain-root file would both deny the first three their owning context and make that single file grow with the whole system; asking who owns the thing an entry describes lets each copy grow with what it describes, and leaves a home for the cases that turn out to have no owner. A hotspot row goes with the knowledge it is stuck on - in whichever copy holds that knowledge, the ownership question deciding only when it is stuck on a business rule or on knowledge not recorded yet - so that whoever reads that knowledge also sees what the project is still working around in it. The per-context path costs little to enforce, because it is an ordinary BC-layer document to every closeout, no-BC and path check in the workflow - though the checks that enumerate those documents by name still name it.
+
+R-ANALYSIS-EVIDENCE-01: [templates/analysis.md · Lifecycles · "Evidence sits on the transitions"] The state list carries no Evidence column because it is the entry's vocabulary - what each value means and what it allows or blocks next - while each transition is a claim about how the system behaves now, which goes stale and must stay re-checkable. The cost is that the claim "these are all the values this field holds" cannot itself be re-checked from the table.
+
+R-ANALYSIS-QUESTIONS-01: [templates/analysis.md · Open Questions and Hotspots · "comes up while writing an entry here"] Questions are not routed into this file by subject: where a question belongs depends on the form its answer will take, and the two can disagree — "which role may approve a refund?" is about role reach, yet its answer is a business rule for the owning context's `rules.md`. An unanswered question therefore stays in the feature spec or in the Open Questions section of the document its answer belongs to; when that document is this template, the question goes in the copy that will hold the answer, whichever copy raised it, so that whoever comes to record the answer finds the question beside it - even where that means creating that copy for the question.
+
+R-ANALYSIS-IDCOL-01: [templates/analysis.md · the two tables with an ID column · "carries it there"] The ID column is placed after the name column, not first, because `dflow render` takes a table's first column as each card's title: with the id first, every card in these two tables would be titled `FN-01` or `HS-01` and the name or the hotspot itself would be demoted to a field. The flow table keeps `#` first because a step number is a reasonable card title.

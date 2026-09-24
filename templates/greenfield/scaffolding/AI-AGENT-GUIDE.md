@@ -68,6 +68,17 @@ input like this (supporting files live in the workflow bundle at
   `references/ddd-modeling-guide.md`.
 - **"Quick question about..." / "How does X work?"** → check
   `dflow/specs/domain/` first and answer from the documented domain knowledge.
+- **Knowledge that no single context document holds** — an ordered flow that
+  crosses contexts (always the domain-root copy), the lifecycle a status field
+  moves through, a figure computed rather than stored, the mechanism behind a
+  behavior no single rule explains, which roles reach which function (always
+  the domain-root copy), or a spot in one of these that this project keeps
+  working around until a domain decision settles it (in the copy that holds
+  the knowledge it is stuck on) → **record it in
+  `analysis.md`**: `dflow/specs/domain/{context}/analysis.md` when one context
+  owns what it describes, otherwise `dflow/specs/domain/analysis.md`. Create
+  the file from `templates/analysis.md` the first time there is something to
+  record. With no workflow running, offer to commit that record on its own.
 - **"I'm creating a branch"** → read `references/git-integration.md`.
 - **"Why does this rule exist?" / "This rule seems wrong"** → look the rule up in
   `references/flow-rationale-registry.md`. Grep the rule id when you have one
@@ -222,6 +233,8 @@ Dflow-owned project documents live under `dflow/specs/`.
 | System overview | `dflow/specs/shared/_overview.md` |
 | Domain glossary | `dflow/specs/domain/glossary.md` |
 | Context map | `dflow/specs/domain/context-map.md` |
+| Domain analysis (cross-context) | `dflow/specs/domain/analysis.md` |
+| Domain analysis (per context) | `dflow/specs/domain/{context}/analysis.md` |
 | Active feature specs | `dflow/specs/features/active/` |
 | Completed feature snapshots | `dflow/specs/features/completed/` |
 | Technical debt | `dflow/specs/architecture/tech-debt.md` or `dflow/specs/migration/tech-debt.md` |
@@ -238,10 +251,12 @@ dflow/specs/
 ├── domain/
 │   ├── glossary.md
 │   ├── context-map.md              # Bounded Context relationships
+│   ├── analysis.md                 # Cross-context flows and role reach
 │   └── {bounded-context}/
 │       ├── context.md
 │       ├── models.md               # Aggregates, Entities, VOs
 │       ├── rules.md                # Business rules index (BR-ID + one-line)
+│       ├── analysis.md             # Lifecycles, derived figures, mechanisms
 │       ├── behavior.md             # Consolidated behavior (Given/When/Then)
 │       └── events.md               # Domain Events catalog
 ├── features/

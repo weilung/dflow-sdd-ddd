@@ -57,13 +57,22 @@ the guide states them rather than continuing through the steps below.
 - **T2** → a lightweight-spec at the depth the change needs; run the
   behavior-capture / layer steps only where the change actually touches them.
 - **Observation-only (tier-exempt, step 0)** → record the capture where it belongs
-  (BC-layer `behavior.md`, `tech-debt.md`, the host's Resume Pointer) and stop
-  there. When the baseline capture needs its own host (no active feature to attach
+  (BC-layer `behavior.md` and `analysis.md`, `domain/analysis.md` for a
+  cross-context flow, for role reach and for whatever else no one context owns,
+  a hotspot in the copy that holds the knowledge it is stuck on,
+  `tech-debt.md`, the host's Resume Pointer) and stop there; create either
+  `analysis.md` from `templates/analysis.md` the first time there is something to
+  record.
+  When the baseline capture needs its own host (no active feature to attach
   it to), open a **baseline minimal host**: a related **completed** feature makes it
   a follow-up (Step 1.6 minimal variant), otherwise it is standalone (Step 1.7) —
   both are tier-exempt, cut `feature/{SPEC-ID}-{slug}`, and record a `Tier = baseline`
   row rather than a change. Do not invent a spec for it, and do not read the
   cascade's "below workflow" as permission to skip the record.
+  A capture about no bounded context at all — the role reach of functions that
+  belong to no context yet, say — is not a baseline capture and opens no host:
+  with no active feature to attach it to, record it and offer to commit that
+  record on its own.
 - **T1** → escalate to `/dflow:new-phase` (extending an active feature) or
   `/dflow:new-feature` (a truly new concern); full ceremony via that flow.
 
@@ -331,8 +340,8 @@ closeout's no-BC branch has nothing fictitious to skip past. A **T3** skips
 the Domain / extraction work and records an inline row in `_index.md`
 Lightweight Changes — **one row per atomic T3 change**, so a compound request
 records each of them here (see "minimal means zero-phase, not one-artifact"
-above). A **baseline capture** is observation-only: it records
-the captured behaviour in the BC-layer documents and one `Tier = baseline`
+above). A **baseline capture** is observation-only: it records the capture in
+its BC-layer documents and/or `domain/analysis.md` and one `Tier = baseline`
 row in `_index.md`, and its first checkpoint is named `spec-baseline` with
 Result `committed` (never `implementation` — there is no implementation
 work). Otherwise the **implementation commit is checkpoint 1** — the Step 5 →
@@ -345,7 +354,7 @@ instead; see Step 1.8 and Step 5's guard.)
 the outbound link to its lightweight-spec; a **baseline** capture's is its
 `Tier = baseline` row — all three are rows, and closeout requires one per
 artifact. Write them now, carrying the tier, the description and the
-implementation paths (for a baseline, the BC-layer documents it captured). The
+implementation paths (for a baseline, the documents it captured into). The
 **only** part that may appear afterwards is the `Commit` cell, which cannot
 exist until its commit does: closeout's allow-list admits that cell and no other
 change **to the row**, so a row added after checkpoint 1 **blocks**. (The
@@ -358,7 +367,7 @@ which is only mechanical if the artifact actually declares them. So a **T2**'s
 lightweight-spec names the source paths it changes, and a **T3**'s row
 Description names them alongside its one-line description and tag. Paths, not a
 diff — enough to compare a commit against. A **baseline capture** declares the
-BC-layer documents it wrote instead; that is its counterpart. An artifact that
+documents it wrote instead; that is its counterpart. An artifact that
 declares none leaves that check nothing to compare, and finish-feature treats a
 missing declaration as a **block**, not a pass.
 
@@ -396,7 +405,7 @@ The **mode** changes only *which hash* each surface carries:
   mode where the two values genuinely differ (Step 1.8 item 4).
 - **Baseline capture** — the `spec-baseline` checkpoint's Result
   `committed ({hash})` and the `Tier = baseline` row's `Commit` cell both name
-  that capture commit, the one that carried the BC-layer documents. Two cells,
+  that capture commit, the one that carried what it captured. Two cells,
   one hash; fill both.
 
 **A declined checkpoint still owes its hash.** If the developer answered **N**
@@ -514,7 +523,8 @@ When the feature being modified has no existing spec, take the opportunity to do
 2. Extract all business rules found (if/else conditions, calculations, validations)
 3. Identify domain concepts (potential Entities, Value Objects, Services)
 4. Check for duplicated logic across pages
-5. Record findings in the appropriate domain docs (`models.md`, `rules.md`) and `tech-debt.md`
+5. Identify the system-level knowledge no single context document holds — an ordered flow that crosses contexts (always the domain-root copy), the lifecycle a status field moves through, a figure computed rather than stored, a mechanism no single rule explains, which roles reach the function (always the domain-root copy), and any spot in those this system keeps working around pending a domain decision (in the copy that holds the knowledge it is stuck on)
+6. Record findings in the appropriate domain docs (`models.md`, `rules.md`, and `analysis.md` — the owning context's copy, or `dflow/specs/domain/analysis.md` when no one context owns what you found, created from `templates/analysis.md` the first time there is something to record) and `tech-debt.md`
 
 This is an **opportunistic** strategy — "capture while we're already here." Do not force a full codebase scan; scope it to the modified feature and its immediate neighbors. Share what you find:
 
@@ -524,6 +534,7 @@ the related delivery/entrypoint code. I found:
 - 3 business rules in {entrypoint file} (documented in rules.md)
 - Duplicated validation logic shared with {other entrypoint} (recorded in tech-debt.md)
 - A potential Money value object hiding in the calculation at line {N}
+- The approval status moves through four states, two of them set by the batch job (recorded in analysis.md)
 This gives us a better baseline before we make our change."
 ```
 
@@ -558,6 +569,17 @@ Record each finding in `dflow/specs/migration/tech-debt.md` with:
 ```markdown
 - [ ] {File}:{Line} — {Description} — Severity: {High|Medium|Low}
 ```
+
+### System-Level Knowledge to Record
+Look for what this change depends on and no single context document holds:
+- **Cross-context flows** — ordered steps owned by more than one context (always the domain-root copy)
+- **Lifecycles** — a status field and the transitions it moves through
+- **Read models and derived figures** — a number computed rather than stored
+- **Mechanisms** — behavior no single rule explains
+- **Function / role index** — which roles reach this function, and what data each one sees (always the domain-root copy)
+- **Hotspots** in any of the above — what this change worked around, pending a domain decision (in the copy that holds the knowledge it is stuck on)
+
+Record each finding in `dflow/specs/domain/{context}/analysis.md` when one context owns what it describes and in `dflow/specs/domain/analysis.md` when no one context does, creating the file from `templates/analysis.md` the first time there is something to record. That template's sections carry the notation.
 
 **→ Transition (step-internal)**: Step 3 complete. Announce "Step 3 complete (delivery/entrypoint layer analyzed, tech debt recorded). Entering Step 4: Evaluate Extraction Opportunity." and continue.
 
@@ -734,10 +756,12 @@ Ask these one-by-one.
 > **Table-cell formatting**: keep table cells concise — separate multiple short items with `<br>` (never chain them into one line with ；/; separators), and move long narrative detail out of the cell into a document section (full convention: the formatting comment at each spec doc's head).
 
 - [ ] Update or create the feature / bug spec; set `status: completed` — **T3 and baseline: N/A** (no spec file exists; the `_index.md` inline row — a T3 row, or a `Tier = baseline` row — is the record, and the host's own status is not touched)
-- [ ] The items below are the Domain sweep — **N/A for a T3**. For a **no-BC change** (one whose host Goals & Scope says it touches no bounded context) the **BC-scoped** items are N/A — everything under `dflow/specs/domain/{context}/`: there is no `{context}` to sweep, and inventing one plants the fiction Step 2's no-BC guard refuses. The **global** documents are *not* covered by that: `glossary.md` and `migration/tech-debt.md` belong to no bounded context, and a no-BC operational T2 can genuinely rename a term or discover migration debt — judge those two from the actual change, as always. For a no-BR family T2 only the *BR-derived* items are N/A; run each remaining item where this change actually touches that document
+- [ ] The items below are the Domain sweep — **N/A for a T3**. For a **no-BC change** (one whose host Goals & Scope says it touches no bounded context) the **BC-scoped** items are N/A — everything under `dflow/specs/domain/{context}/`: there is no `{context}` to sweep, and inventing one plants the fiction Step 2's no-BC guard refuses. The **global** documents are *not* covered by that: `glossary.md`, `domain/analysis.md` and `migration/tech-debt.md` belong to no bounded context, and a no-BC operational T2 can genuinely rename a term, change which roles reach a function, or discover migration debt — judge those three from the actual change, as always. For a no-BR family T2 only the *BR-derived* items are N/A; run each remaining item where this change actually touches that document
 - [ ] `dflow/specs/domain/{context}/rules.md` — business rules updated
 - [ ] `dflow/specs/domain/{context}/models.md` — domain model updated
+- [ ] `dflow/specs/domain/{context}/analysis.md` — lifecycles, derived figures or mechanisms no single rule explains this change found or altered, in the owning context's copy, which may not be this host's; any spot this change worked around pending a domain decision, in those or in a rule or unrecorded knowledge that belongs there; and any open row there this change settled (created from `templates/analysis.md` the first time there is something to record; N/A when there is none)
 - [ ] `dflow/specs/domain/glossary.md` — new / renamed terms (mirror any RENAMED delta entries here)
+- [ ] `dflow/specs/domain/analysis.md` — ordered cross-context flows, role reach, or anything else no one context owns, that this change found or altered; any spot this change worked around pending a domain decision, in those or in unrecorded knowledge that belongs here; and any open row there this change settled (created from `templates/analysis.md` the first time there is something to record; N/A when there is none)
 - [ ] `dflow/specs/domain/{context}/behavior.md` — update scenarios to reflect Delta result (merge final state, not Delta markup). Sub-steps:
       - Promote any Activity 3 (Spec Writing) draft sections (from B3 mid-sync) to formal sections
       - Update the corresponding `rules.md` anchor's `last-updated` date (B4)

@@ -51,7 +51,8 @@ dflow/specs/domain/Order/
 ├── context.md
 ├── models.md
 ├── rules.md
-└── behavior.md
+├── behavior.md
+└── analysis.md
 
 dflow/specs/features/active/
 └── SPEC-20260430-001-order-discount-calculation/
@@ -152,6 +153,9 @@ walkthrough 03 的 isVip * 0.93 unknown 已解決，
 - tech-debt.md 該 entry status 從 open 改成 resolved。
 - resolved note 引用本 feature：
   2026-05-05 業務確認為 dead code，由 SPEC-20260505-002 phase 1 implement task 移除。
+- Order/analysis.md 的 HS-01（walkthrough 03 記下的熱點）也從 open 改成 resolved。
+  那一列不刪；Evidence 改寫成解掉它的決定：
+  confirmed by 業務經理 Daniel，複查入口指向 tech-debt.md 那一列的 resolved note。
 ```
 
 Bob 補一句，避免同事誤會：
@@ -359,15 +363,47 @@ Bob:
 這裡展示的是 Brownfield DDD 的另一個重點：legacy schema 是重要線索，
 但不是最後的 ubiquitous language。
 
-## Step 3.5 — SPEC-ID、slug、目錄與 branch gate
-
-建立檔案前，Dflow 停下來確認命名：
+Step 3 另外四題問的是**系統層知識**（`new-feature-flow.md` Step 3 的 `What are the states/statuses?`、
+`What crosses a bounded context, and what does each step hand to the next?`、
+`Which figures are derived rather than stored?`、
+`Who reaches this feature, and what data scope does each role see?`）。
+這次有答案的，同樣是衍生數字與跨 context 那兩題：
 
 ```text
 Dflow:
-Domain concepts captured。
-Before I create any files, let me confirm the SPEC-ID, slug,
-feature directory, and branch name with you。
+有哪些數字是算出來、不是存下來的？
+
+- 訂單折扣後金額。Order/analysis.md 已經有 RM-01（SPEC-001 在它的 Step 3 記的），
+  這次它多計入一種折扣：
+  - VIP 7% off：VIP 客戶且 ContractValidUntil >= OrderDate 才計入，到期日當天仍計入；
+    合約過期就不計入，其餘照一般折扣。
+  - VIP 折扣與其他折扣的累積順序，以及 VIP 與 Senior 可以同時計入，各是一條規則。
+  - 計算要多讀 Customer reference data 的 VIP eligibility 與 ContractValidUntil。
+  這四條新規則接在 BR-004 後面，編成 BR-005～BR-008（Step 4 寫進 rules.md）。
+  RM-01 的 VIP 那一段記它多計入哪一種折扣、多讀哪些資料；計入條件與累積方式是規則，
+  只引這四個編號，不重抄。
+- VIP 資料來自 Customer，但算這個數字的是 Order，
+  所以改的仍是 Order/analysis.md 的 RM-01，不另開一條，也不放到 Customer。
+
+會跨 bounded context 嗎？
+Order 讀 Customer 的 reference data（GetVipContractInfo(customerId)）。
+拿掉先後順序也成立，這是 context-map.md 的事，不是有序的跨 context 流程。
+```
+
+狀態與角色那兩題，這個例子一樣沒有答案，所以沒有記：合約「有效／過期」是每次拿 `ContractValidUntil`
+跟 `OrderDate` 比出來的，不是存下來的狀態欄位；需求也沒交代誰能用 `OrderEntry`、各看得到多少資料。
+
+## Step 3.5 — SPEC-ID、slug、目錄與 branch gate
+
+建立 feature 目錄與 branch 之前，Dflow 停下來確認命名：
+
+```text
+Dflow:
+Domain concepts captured.
+Before I create the feature directory or branch, let me confirm the SPEC-ID,
+slug, directory name, and branch name with you (Step 3.5).
+
+/dflow:next to proceed.
 ```
 
 Bob 指定：
@@ -409,7 +445,7 @@ Bob:
 | 錯誤 | Gate 如何避免 |
 |---|---|
 | 把 VIP program 寫進舊 feature | 新 SPEC-ID 與 feature directory 明確切開。 |
-| 亂命名造成 trace 斷裂 | phase slug、branch、directory 在建檔前先確認。 |
+| 亂命名造成 trace 斷裂 | phase slug、branch、directory 在建 feature 目錄與 branch 之前先確認。 |
 
 ## Step 4 — Write the Spec
 
@@ -705,6 +741,43 @@ Customer reference data 透過 repository seam 表達：
 這段能讓未來 reviewer 看懂：dead code removal 不是突然刪 legacy 行為，而是有
 Daniel 的業務確認與 SPEC-002 task trace。
 
+### `analysis.md`：RM-01 加上 VIP 那一段，HS-01 標成 resolved
+
+這兩處不是 Step 4 寫的——HS-01 在進 Step 1 之前的 disposition 就改了，RM-01 是 Step 3 改的——
+放在這裡，是為了和其他 domain 文件一起看。重點片段：
+
+```markdown
+### RM-01: 訂單折扣後金額（`OrderEntry` 提交時由 `DiscountPolicy` 算出）
+
+（BR-001～BR-004 那一段、「總折扣率本身不存」那一段不變，略）
+
+VIP 合約折扣由進行中的 `SPEC-20260505-002` 加入：總折扣率多計入 VIP 合約折扣，什麼時候計入照 BR-005、BR-006，與其他折扣怎麼累積照 BR-007、BR-008。這一段另外讀 Customer reference data 的 VIP eligibility 與 `ContractValidUntil`（經 `CustomerReferenceRepository`）。
+
+Evidence: document - `SPEC-20260430-001` 的 `phase-spec-2026-04-30-baseline-and-fix.md`、`SPEC-20260505-002` 的 `phase-spec-2026-05-05-vip-rate-and-contract.md`（VIP 那一段） (2026-05-05)
+
+## Open Questions and Hotspots
+
+| Item | ID | Affects | Why it matters | Status | Evidence |
+|---|---|---|---|---|---|
+| `OrderList.BindGrid()` 對 IsVip 客戶多乘 0.93、來源不明 | HS-01 | RM-02 | 沒有註解、ticket 或對應的 BR，可能與 BR-003 互斥：業務確認前既不能寫成 BR，也不能直接刪<br>已解：業務確認是五年前促銷殘留的 dead code、不是規則，移除列為 `SPEC-20260505-002` phase 1 的 cleanup task | resolved | confirmed by 業務經理 Daniel - [`tech-debt.md`](../../migration/tech-debt.md)「OrderList isVip multiplier 0.93 規則來源不明」那一列的 resolved note (2026-05-05) |
+```
+
+完整文件範例：
+[`outputs/dflow/specs/domain/Order/analysis.md`](outputs/dflow/specs/domain/Order/analysis.md)
+
+三個細節：
+
+- **數字歸算它的 context，不歸它讀資料的 context。** VIP eligibility 與 `ContractValidUntil` 是 Customer
+  的資料，但算折扣後金額的是 Order——範本頂端 `Placement` 那句
+  `A derived figure is owned by the context that computes it, not the ones it reads from`。
+  所以 RM-01 留在 `Order/analysis.md`；Customer 供應 reference data 這件事，寫在 `context-map.md`。
+- **Evidence 多了一個來源。** VIP 那一段的根據是 SPEC-002 的 phase-spec，BR-001～BR-004 那一段照舊是
+  SPEC-001 的；兩支都是 `document`，寫在同一行，日期寫較新的那一個。VIP 那一段是還沒做出來的設計，
+  要等 SPEC-002 收尾時，由它自己 § 8.3 的複核項對照做出來的東西。
+- **解掉的熱點留成一列 `resolved`，不刪。** `Evidence` 改寫成解掉它的決定——Daniel 的確認，
+  複查入口指向 `tech-debt.md` 那一列的 resolved note。這一列留著，下一個讀到 `BindGrid()` 那個分支的人，
+  不必再推一次它是不是 VIP 規則。
+
 ## Step 5 — Implementation plan：擴張 `DiscountPolicy`，不是重寫
 
 Spec 寫完後，Dflow 停下來：
@@ -803,6 +876,7 @@ Step 7 implementation 尚未開始，所以 Step 8 completion checklist 不執�
 - 新 feature _index.md
 - phase-spec vip-rate-and-contract
 - 更新 Order BC 的 context.md、models.md、rules.md、behavior.md
+- 更新 Order BC 的 analysis.md：RM-01 加上 VIP 那一段，HS-01 標成 resolved
 - 更新 glossary.md、context-map.md
 - 更新 tech-debt.md，把 OrderList isVip multiplier 0.93 標成 resolved
 
@@ -823,6 +897,7 @@ Step 7 implementation 尚未開始，所以 Step 8 completion checklist 不執�
 | 修改 | [`outputs/dflow/specs/domain/Order/models.md`](outputs/dflow/specs/domain/Order/models.md) | `ContractValidUntil`、擴張後的 `DiscountPolicy`、Customer reference repository。 |
 | 修改 | [`outputs/dflow/specs/domain/Order/rules.md`](outputs/dflow/specs/domain/Order/rules.md) | BR-005~008 加入 Order BC cumulative rule index。 |
 | 修改（只加骨架） | [`outputs/dflow/specs/domain/Order/behavior.md`](outputs/dflow/specs/domain/Order/behavior.md) | 為 BR-005~008 各加一個 section anchor。⚠ Given/When/Then **不在這一步寫入**——它們留在 phase spec，要到 Step 8.3 / `finish-feature` 才 merge 進來，因為本檔記錄的是系統「現在」的行為，而 VIP 尚未落地。 |
+| 修改 | [`outputs/dflow/specs/domain/Order/analysis.md`](outputs/dflow/specs/domain/Order/analysis.md) | 進 Step 1 之前的 disposition 把 HS-01 標成 resolved；Step 3 在 RM-01 加上 VIP 合約折扣那一段（BR-005～BR-008、多讀的 Customer reference data 欄位）。 |
 | 修改 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) | `VIP`、`ContractValidUntil`、`VIP discount policy` 等 ubiquitous language。 |
 | 修改 | [`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md) | Customer 標為 candidate BC / reference data supplier。 |
 | 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | `isVip * 0.93` 從 unknown debt 變成 resolved dead code cleanup。 |
@@ -879,6 +954,7 @@ Brownfield 的難點不是「能不能新增功能」，而是新增功能時不
 - Brownfield 已有 BC 後，下一個 `/dflow:new-feature` 應沿用 cumulative domain docs，不重建模型。
 - 舊 code 數字剛好相同，不代表它是新需求來源；dead code cleanup 不能寫成 BR。
 - VIP / 合約有效期可以是 Customer reference data，但折扣計算 owner 仍可屬於 Order BC。
+- 同一個道理也管 `analysis.md`：數字歸算它的 context，所以 VIP 那一段加進 `Order/analysis.md` 既有的 RM-01，不放到 Customer。
 - BR-ID 在同一 BC 內連續累積；BR-005~008 接在 BR-001~004 後面。
 - Stack order 即使目前乘法可交換，也應寫進 spec，支援 UI、tests 與未來規則演進。
 - 沒有 implementation，就不執行 completion checklist，也不把 feature 標成 completed。

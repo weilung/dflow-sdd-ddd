@@ -8,10 +8,30 @@
 
 ## Unreleased
 
-**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）、PROPOSAL-086（受限標頭比讀者窄）、PROPOSAL-087（finish-feature 罕見路徑抽離）、PROPOSAL-090（`Git-principles-*.md` 的 canonical 區改為可刷新）、PROPOSAL-091（`doctor` 的兩條 false-clean 路徑）、PROPOSAL-093（closeout 尾巴的 cursor 矛盾）、PROPOSAL-095（BR Snapshot 範例列移出資料面）、PROPOSAL-096（closeout baseline 的鑰匙改為可推導）
+**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）、PROPOSAL-086（受限標頭比讀者窄）、PROPOSAL-087（finish-feature 罕見路徑抽離）、PROPOSAL-090（`Git-principles-*.md` 的 canonical 區改為可刷新）、PROPOSAL-091（`doctor` 的兩條 false-clean 路徑）、PROPOSAL-093（closeout 尾巴的 cursor 矛盾）、PROPOSAL-095（BR Snapshot 範例列移出資料面）、PROPOSAL-096（closeout baseline 的鑰匙改為可推導）、PROPOSAL-099（系統級知識的落點）
 
-> **目前投影版號：`0.14.6`**（**未發布到 npm**；npm latest 仍是 `0.14.0`）。
+> **目前投影版號：`0.14.7`**（**未發布到 npm**；npm latest 仍是 `0.14.0`）。
 > 以下項目都在這一版裡。
+
+- **系統級知識有了落點：`analysis.md`（P-099，dist issue #6）**：
+  跨 context 的有序流程、一個狀態欄位走過的生命週期、算出來而不是存下來的數字、單一規則解釋不了的機制、
+  哪些角色碰得到哪個功能——這幾類知識以前沒有任何一支 domain 文件收，結果不是只留在對話裡，
+  就是寫進 feature 產物、隨 feature 收尾一起凍結；這幾類知識裡一直被繞過、要等一個領域決定才解得掉的地方，也一樣沒有地方記。
+  新檔有**兩個落點**：由某一個 bounded context 擁有的，記在 `dflow/specs/domain/{context}/analysis.md`；
+  跨 context 的流程、整張角色索引，以及沒有任何一個 context 擁有的條目，記在 `dflow/specs/domain/analysis.md`；
+  卡在某一條已記下的條目上、要等領域決定的地方，跟著那一條記在同一份。
+  現在 `/dflow:modify-existing`、`/dflow:new-feature`、`/dflow:new-phase` 碰到它們時會記進去，完成與收尾時跟著維護；
+  沒有指令在跑時，guide 也會把它路由過去，並提議把那一筆單獨 commit；PR review 多一項，提醒回頭複查一條出處。
+  **⭐ 純觀察也收**：「只看不改」的路由現在也會把發現記進 `analysis.md`。
+  brownfield 修改一個還沒有規格的功能時，另會順便把那一塊的系統現況成批盤點進來——中途採用 Dflow 的專案，系統現況就是這樣補齊的。
+  **init 不建它**，第一次有東西要記時才從 `templates/analysis.md` 建立；每一條都帶出處
+  （`code`／`data`／`confirmed by {role}`／`document`／`inferred`／`assumed`）。
+  流程與生命週期用**表格**記——表格是 AI 讀寫的正本，也是人直接讀得懂的形式。
+  範本的每一節寫明哪些東西該記去既有的鄰居文件；已經寫在別處的分析內容留在原處、連過去就好；
+  `context-map.md` 範本的 `Integration Notes` 也改成只收沒有先後順序的資料交換。
+  既有專案不需遷移：重跑 `dflow configure-agents` 就會拿到新範本、更新後的 flow 檔，以及 guide canonical 區裡的新路由
+  （guide 還沒有 canonical marker 的專案，照舊由 `dflow doctor` 回報）。
+  ⚠ `dflow render` 目前把這些表格轉成一列一張卡片，還不會畫成流程圖或狀態圖。
 
 - **`doctor` 補掉兩條「靜默通過」路徑：值缺席不再關掉下游檢查，adapter／skill 層第一次被看（P-091）**：
   兩條都是 P-084 定義的**最糟**方向——doctor 說 `All checks passed`，而東西其實已經壞了或漂了。

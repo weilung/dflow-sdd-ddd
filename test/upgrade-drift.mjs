@@ -1426,20 +1426,24 @@ try {
   // the promise is wrong again. The other two items in that batch shipped with new
   // pins; this one shipped with none, which is why it is here.
   // ⚠ ORDER IS ASSERTED, not just membership: greenfield's list was produced by a
-  // `splice` before the fix and by an append after it, and "same five paths" was the
-  // claim that had to survive that rewrite.
+  // `splice` before the fix and by an append after it, and an unchanged path order
+  // was the claim that had to survive that rewrite.
   for (const [edition, projectType, expected] of [
     ['greenfield', '1', [
       'dflow/specs/domain/{context}/behavior.md',
       'dflow/specs/domain/{context}/models.md',
       'dflow/specs/domain/{context}/rules.md',
+      'dflow/specs/domain/{context}/analysis.md',
+      'dflow/specs/domain/analysis.md',
       'dflow/specs/domain/{context}/events.md',
       'dflow/specs/architecture/decisions/ADR-*.md'
     ]],
     ['brownfield', '2', [
       'dflow/specs/domain/{context}/behavior.md',
       'dflow/specs/domain/{context}/models.md',
-      'dflow/specs/domain/{context}/rules.md'
+      'dflow/specs/domain/{context}/rules.md',
+      'dflow/specs/domain/{context}/analysis.md',
+      'dflow/specs/domain/analysis.md'
     ]]
   ]) {
     const deferDir = join(tempRoot, `defer-${edition}`);

@@ -165,7 +165,7 @@ Driftcheck result：
 - ExpenseReportApproved / ExpenseReportRejected 已存在於 events.md
 - ⚠ dflow/specs/domain/Expense/behavior.md 只有 new-feature Step 3 建的骨架，
   而那時只存在 BR-001~004，所以檔內也只有這四個 anchor、還沒有場景。
-  BR-005~007 是 phase 2 新增的，new-phase 不同步 BC 層文件，anchor 還沒建
+  BR-005~007 是 phase 2 新增的，而 new-phase 不同步 behavior.md，anchor 還沒建
   → Step 3 的 BC sync 要補建 BR-005~007 的 anchor，並把 Given/When/Then
     場景補進全部七個
 - Unicode character counting strategy under i18n tech debt 仍是 open
@@ -408,7 +408,24 @@ Step 3 其他 BC layer checks：
 - glossary.md：ApprovalReason 已包含 2026-04-30 bilingual length wording，不更新
 - architecture/tech-debt.md：Unicode character counting strategy under i18n remains open，
   補 related-feature：SPEC-20260428-001 (completed 2026-05-07)
+- analysis.md（兩支；closeout sweep 帶的是 new-feature Step 8.3 的同一組項目）：
+  - domain/Expense/analysis.md：new-feature Step 3 記下、還沒對照過程式的
+    LC-01 Draft → Submitted 與 RM-01，對照 ExpenseReport.Submit() 都一致，
+    Evidence 改成 code（2026-05-07）。
+    aggregate-design.md 會隨 feature 目錄凍結；它的 State Transition Methods 上
+    每一個會改 Status 的方法，LC-01 都有對應的一列（Create() 給的初始值 Draft 寫在狀態表）。
+    phase 2 的三條轉移與 MX-01 在 new-phase Step 6 對照過，
+    之後的 T2 與 BUG-001 都沒有改到它們，照舊。
+  - domain/analysis.md：FN-01、FN-02 的 Entry point 補上實際做出來的 endpoint；
+    FN-01 照實際做法改名「建立費用單（連同費用項）」——Step 5 決定一次帶入整份 Draft。
+    FN-03～FN-05 在 new-phase Step 6 對照過，照舊。
+    Data scope 那兩格仍然沒有人答過，照舊留白；HS-01 仍然 open。
 ```
+
+⚠ **這一項讀的是檔案本身，不是 diff。** Step 8.3 的複核項寫明「Read the entries in the file,
+not in a diff: a checkpoint may already have committed them」——LC-01、RM-01、FN-01、FN-02
+是 2026-04-28 寫下的，中間隔了好幾個 checkpoint，看 diff 很可能以為沒有東西要複核。
+它對照的是**動手之前記下的條目**：計畫會變（FN-01 就是例子），複核把條目改成實際做出來的樣子。
 
 完整 tech debt 範例：
 [`outputs/dflow/specs/architecture/tech-debt.md`](outputs/dflow/specs/architecture/tech-debt.md)
@@ -426,9 +443,10 @@ BUG-001 修了 reject reason truncation，但更廣泛的 Unicode counting polic
 
 `behavior.md` 的**骨架**在 walkthrough 02 的 new-feature Step 3 就建好了——但只涵蓋
 **當時存在的 BR-001~004**，每條一個 anchor。BR-005~007 是 walkthrough 03 的 phase 2
-才新增的，而 `new-phase-flow.md` 明寫 phase 不同步 BC 層文件（「`rules.md` /
-`behavior.md` … are **NOT updated here** — that synchronisation happens at
-`/dflow:finish-feature`」），所以**它們的 anchor 要等這次 closeout 才會出現**。
+才新增的，而 `new-phase-flow.md` 明寫 phase 不同步 `rules.md`／`behavior.md`（「The bounded
+context's `rules.md` / `behavior.md` / `events.md` … remain `/dflow:finish-feature`
+responsibilities」；`analysis.md` 則不同，Step 2 會當場寫，見
+[walkthrough 03](walkthrough-03-new-phase.md)），所以**它們的 anchor 要等這次 closeout 才會出現**。
 從 walkthrough 02 到 05，**場景**則一律留在 phase spec 裡
 （見 [walkthrough 03 的文件表](walkthrough-03-new-phase.md)）。**到了 closeout，要求就變了。**
 `finish-feature-flow.md` 的 BC sync 明文規定：
@@ -800,6 +818,8 @@ new-phase 和 modify-existing 是「繼續這個 active feature」。finish-feat
 | 移動 | [`outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/`](outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/) | Feature 從 active archive 到 completed 後的完整目錄。 |
 | 修改 | [`outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/_index.md) | completed status（只翻 `status`）、Resume Pointer 終局狀態、Checkpoint Log 的 closeout 列、Lightweight Changes 回填的 `Commit` 格。⚠ Integration Summary **不寫進檔案**，見 Step 5。 |
 | 修改 | [`outputs/dflow/specs/domain/Expense/rules.md`](outputs/dflow/specs/domain/Expense/rules.md) | BC-level Rule Index 與 Lifecycle section，從 feature snapshot finalize。 |
+| 修改 | [`outputs/dflow/specs/domain/Expense/analysis.md`](outputs/dflow/specs/domain/Expense/analysis.md) | closeout sweep：LC-01 的 Draft → Submitted 與 RM-01 對照程式複核，Evidence 換成 `code`。 |
+| 修改 | [`outputs/dflow/specs/domain/analysis.md`](outputs/dflow/specs/domain/analysis.md) | closeout sweep：FN-01、FN-02 補上 Entry point，FN-01 照實際做法改名。 |
 | 修改 | [`outputs/dflow/specs/architecture/tech-debt.md`](outputs/dflow/specs/architecture/tech-debt.md) | Unicode counting debt 保持 open，補 related completed feature context。 |
 | 故意不改 | `outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/phase-spec-*.md` | phase specs 保留 frozen history，不在 closeout 重寫。 |
 | 故意不改 | `outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/lightweight-*.md` | T2 modify spec 保留 frozen history。 |

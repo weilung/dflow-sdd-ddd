@@ -394,10 +394,12 @@ recorded delta the same way** — on any host shape, for the reason above.
 > and the phase-specs, fix `_index.md` first, then re-run
 > `/dflow:finish-feature`.
 
-Also update `architecture/tech-debt.md` / `models.md` / `glossary.md` as
-discovered during the feature (the same items listed in
-`new-feature-flow.md` Step 8.3) — these may have been touched per phase
-already; this is the closeout sweep.
+Also update `architecture/tech-debt.md` / `models.md` / `glossary.md` /
+`analysis.md` as discovered during the feature (the same items listed in
+`new-feature-flow.md` Step 8.3; `analysis.md` is two files — the owning
+context's and the domain-root one — each created from `templates/analysis.md`
+the first time there is something to record) — these may have been touched per
+phase already; this is the closeout sweep.
 
 **→ Step Gate: Step 3 → Step 4**
 
@@ -411,7 +413,7 @@ For a **no-BC host** (case ii) the sync was skipped — do **not** announce a
 sync that did not happen. Say instead: "No BC-scoped sync was performed (no-BC
 host). Ready to archive the feature directory? `/dflow:next` to proceed." Do
 **not** say "nothing was written to the Domain layer" — a no-BC host may still
-have updated a **global** document (`glossary.md`,
+have updated a **global** document (`glossary.md`, `domain/analysis.md`,
 `architecture/tech-debt.md`); those belong to no bounded context and Step 4
 must still stage them.
 
@@ -528,9 +530,9 @@ Then, in this order:
    here, once, and it covers **every** host shape — take it from this
    instruction, not from a list kept somewhere else:
    **(a)** whatever Step 3 wrote (`rules.md`, `behavior.md`, `events.md`,
-   `models.md`, `context-map.md`, `glossary.md`, `architecture/tech-debt.md`) —
-   Step 3 is **skipped entirely for a no-BC host**, so this half is empty there;
-   **and**
+   `models.md`, `analysis.md`, `context-map.md`, `glossary.md`,
+   `domain/analysis.md`, `architecture/tech-debt.md`) — Step 3 is **skipped
+   entirely for a no-BC host**, so this half is empty there; **and**
    **(b)** the **documentation-sweep step of the flow that produced *this
    change*** — take the paths from that step, not from a list kept here. It runs
    *after* that flow's implementation checkpoint and *before* closeout, so **that
@@ -538,8 +540,9 @@ Then, in this order:
    committed them since, and staging an already-committed path is a no-op.
    Those sweeps reach
    Domain-layer documents under `dflow/specs/domain/`, plus the **global**
-   documents `glossary.md` and `architecture/tech-debt.md`, which belong to no
-   bounded context and stay legitimate for a **no-BC** host. The two that exist
+   documents `glossary.md`, `domain/analysis.md` and
+   `architecture/tech-debt.md`, which belong to no bounded context and stay
+   legitimate for a **no-BC** host. The two that exist
    today —
    `modify-existing-flow.md` **Step 5.3** and `new-feature-flow.md`
    **§ 8.3 Documentation updates** — are **illustrations, not the definition**:
@@ -557,13 +560,16 @@ Then, in this order:
    `/dflow:new-phase`, or `modify-existing-flow.md` Step 1.6 / 5.4 routing into
    the new-feature machinery — and **you do not have to tell them apart**:
    § 8.3 and Step 5.3 enumerate the same external paths, and `/dflow:new-phase`
-   has no sweep at all, so every branch yields the same set or the empty set.
+   has no sweep at all, so every branch yields that same set or a part of it.
    ⚠ **`/dflow:new-phase` has no sweep and is deliberately absent here.**
    `new-phase-flow.md` Step 7 updates the phase-spec and this host's own tables,
    and says so in as many words — "The bounded context's `rules.md` /
    `behavior.md` / `events.md` and the feature directory move to `completed/`
-   remain `/dflow:finish-feature` responsibilities. **Do not sync BC-level
-   current state**". It produces no external delta for this instruction to carry.
+   remain `/dflow:finish-feature` responsibilities; Step 2 records into
+   `analysis.md` directly, at whichever of its two paths the entry belongs to.
+   **Do not sync any other BC-level current state**". The external writes its
+   own steps call for are those two paths, and the set above already carries
+   them.
    On a **minimal host** that set is exactly what allow-list member (iii) of
    `references/finish-feature-minimal-host.md`'s uncommitted-source check
    admitted. On a **phase-bearing** host there is **no allow-list at all** —
