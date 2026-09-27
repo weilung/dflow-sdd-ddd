@@ -1211,15 +1211,19 @@ for (const [edition, track] of [['1', 'greenfield'], ['2', 'brownfield']]) {
     const noteAt = index1.indexOf('\n>', phaseAt + 1);
     assert.ok(phaseAt >= 0 && noteAt > phaseAt && noteAt < index1.indexOf('\n## ', phaseAt + 1), 'fixture: `## Phase Specs` opens with a `>` note');
     const noteEnd = index1.indexOf('\n', noteAt + 1);
-    const index2 = `${index1.slice(0, noteEnd)} (reworded)${index1.slice(noteEnd)}`.replace('greenfield/_index.md 1 —', 'greenfield/_index.md 2 —');
-    assert.ok(index2.includes('_index.md 2 —') && index2.includes(' (reworded)'), 'fixture: the _index.md marker went to 2 and a Phase Specs note was reworded');
     const r = JSON.parse(registry1);
     const e = r.templates['greenfield/_index.md'];
+    // The synthetic shape is the one after the highest registered shape, so the
+    // fixture keeps working when the real template gains a shape of its own.
+    const cur = e.shapes[e.shapes.length - 1];
+    const next = cur.number + 1;
+    const index2 = `${index1.slice(0, noteEnd)} (reworded)${index1.slice(noteEnd)}`.replace(`greenfield/_index.md ${cur.number} —`, `greenfield/_index.md ${next} —`);
+    assert.ok(index2.includes(`_index.md ${next} —`) && index2.includes(' (reworded)'), `fixture: the _index.md marker went to ${next} and a Phase Specs note was reworded`);
     const sk2 = doctorChecks.extractShapeSkeleton(index2, { variable: e.variable });
     const phaseNote = (sk) => sk.find((item) => item[0] === 'note' && item[1] === 'Phase Specs');
-    const indexChanges = [{ kind: 'reworded', from: phaseNote(e.shapes[0].skeleton), to: phaseNote(sk2) }];
-    assert.equal(changeListMismatch(e.shapes[0].skeleton, sk2, indexChanges), null, 'fixture: the synthetic _index.md shape 2 passes the registry guard');
-    e.shapes.push({ number: 2, digest: doctorChecks.shapeDigest(sk2), changes: indexChanges, skeleton: sk2 });
+    const indexChanges = [{ kind: 'reworded', from: phaseNote(cur.skeleton), to: phaseNote(sk2) }];
+    assert.equal(changeListMismatch(cur.skeleton, sk2, indexChanges), null, `fixture: the synthetic _index.md shape ${next} passes the registry guard`);
+    e.shapes.push({ number: next, digest: doctorChecks.shapeDigest(sk2), changes: indexChanges, skeleton: sk2 });
     await writeFile(indexPath, index2);
     await writeFile(join(pkg, REGISTRY_REL), JSON.stringify(r, null, 2));
     let qOut;
@@ -1233,7 +1237,7 @@ for (const [edition, track] of [['1', 'greenfield'], ['2', 'brownfield']]) {
       await writeFile(indexPath, index1);
       await writeFile(join(pkg, REGISTRY_REL), registry1);
     }
-    assert.match(qOut, /`greenfield\/_index\.md 1 → 2` \(dflow\/specs\/features\/active\/SPEC-20260101-006-odd\/_index\.md\): notes, comments and section order, which do not change the doc's structure — the `>` notes under `## Phase Specs` changed/, qOut);
+    assert.match(qOut, new RegExp(`\`greenfield/_index\\.md ${cur.number} → ${next}\` \\(dflow/specs/features/active/SPEC-20260101-006-odd/_index\\.md\\): notes, comments and section order, which do not change the doc's structure — the \`>\` notes under \`## Phase Specs\` changed`), qOut);
     assert.match(qOut, /Doctor cannot tell whether these belong to a minimal host that is still open[^\n]*SPEC-20260101-006-odd\/_index\.md[^\n]*\(they are listed with the rest above\)/);
     assert.doesNotMatch(qOut, /Not yet closed out/, 'not called an open minimal host');
   }

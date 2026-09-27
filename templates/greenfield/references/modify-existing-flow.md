@@ -329,9 +329,10 @@ skips the Domain / DDD-impact work and records an inline row in
 `_index.md` Lightweight Changes — **one row per atomic T3 change**, so a
 compound request records each of them here (see "minimal means zero-phase,
 not one-artifact" above). The **implementation commit is checkpoint
-1** — the Step 4 → Step 5 commit checkpoint records it in the Checkpoint
-Log. (For a **post-hoc** host, Step 4 is skipped and checkpoint 1 is the
-**documentation** commit instead; see Step 1.8 and Step 4's guard.)
+1** — offered at the end of Step 5 (§ 5.5), after Step 5 has written its
+record, and recorded in the Checkpoint Log. (For a **post-hoc** host, Step 4 is
+skipped and checkpoint 1 is the **documentation** commit instead; see Step 1.8
+and Step 4's guard.)
 
 **Every artifact gets a Lightweight Changes row, and every row is written
 *before* checkpoint 1.** A **T3**'s row *is* its whole record; a **T2**'s row is
@@ -341,8 +342,8 @@ implementation paths. The **only** part that may appear afterwards is the
 `Commit` cell, which cannot exist until its commit does: closeout's allow-list
 admits that cell and no other change **to the row**, so a row added after
 checkpoint 1 **blocks**. (The allow-list separately admits the Checkpoint Log
-rows, the Resume Pointer and the Current BR Snapshot — the finalization edits
-this step makes next.)
+rows, the Resume Pointer and the Current BR Snapshot; the first two are what
+"Finalize + close" writes after checkpoint 1.)
 
 **Name the implementation paths in the artifact.** Closeout's evidence checks
 assert that a commit *touches the implementation paths this change describes* —
@@ -353,14 +354,17 @@ diff — enough to compare a commit against. An artifact that declares none
 leaves that check nothing to compare, and finish-feature treats a missing
 declaration as a **block**, not a pass.
 
-**Finalize + close.** Before `/dflow:finish-feature`, run the Step 5
-completion checklist's minimal-host finalization. For **every** T2: set the
-lightweight-spec `status: completed`, record its commit evidence, and advance
-the Resume Pointer to the closeout-ready state. **Only when that T2 is
-BC-bearing**, additionally refresh the host's Current BR Snapshot — a no-BC T2
-has no snapshot to refresh, but still owes the commit evidence and the Resume
-Pointer. A **T3** has no spec file — record its inline row's commit evidence
-and advance the Resume Pointer.
+**Before checkpoint 1 — Step 5 finalizes the record.** Step 5's completion
+checklist runs before checkpoint 1, so everything it writes rides that commit.
+For **every** T2, 5.3 sets the lightweight-spec `status: completed`. **Only when
+that T2 is BC-bearing**, 5.3 also refreshes the host's Current BR Snapshot — a
+no-BC T2 has no snapshot to refresh. A **T3** has no spec file and no snapshot
+to refresh; Step 5 only re-verifies its row.
+
+**Finalize + close — after checkpoint 1.** Before `/dflow:finish-feature`,
+write what cannot exist until checkpoint 1 does, for every tier: each row's
+commit evidence (the two surfaces below) and the Resume Pointer advanced to the
+closeout-ready state.
 
 **Commit evidence goes to two surfaces, always — every row, every tier.** They
 answer different questions, so filling one is never filling the other, and
@@ -377,16 +381,17 @@ The **mode** changes only *which hash* each surface carries:
 
 - **Normal** (T2 or T3) — Checkpoint Log Result `committed ({hash})` and the
   row's `Commit` cell both name **checkpoint 1**, the single commit that
-  carried the artifact and the implementation together. Two cells, one hash;
-  fill both.
+  carried the artifact, the implementation and Step 5's record together. Two
+  cells, one hash; fill both.
 - **Post-hoc hotfix** (Step 1.8; T2 or T3) — the Checkpoint Log Result stays
   `reconciled ({merged-hotfix-hash})`, **never overwrite it**, while the row's
   `Commit` cell carries the **documentation** commit's hash. This is the one
   mode where the two values genuinely differ (Step 1.8 item 4).
 
 **A declined checkpoint still owes its hash.** If the developer answered **N**
-at the checkpoint-1 offer and made that commit themselves, the Checkpoint Log
-row was written `skipped` honestly — the AI did not commit — but it is now
+at the checkpoint-1 offer and made that commit themselves — the change together
+with Step 5's record — the Checkpoint Log row was written `skipped` honestly —
+the AI did not commit — but it is now
 **incomplete, not final**: complete it here to `committed ({hash})` with the
 developer's actual hash. **That completion is for a normal checkpoint 1.** On a
 **post-hoc** host the Result stays
@@ -396,7 +401,8 @@ developer's commit lands, never by overwriting the reconciliation hash, which
 records a different commit entirely. A row left reading `skipped` blocks closeout, and
 finish-feature cannot tell "declined then committed" from "never committed" on
 your behalf. The **closeout** row is the deliberate exception — it carries no
-hash at all, because a commit cannot contain its own. Its **Result is still
+hash at all, because no later commit of this host carries it
+(`references/git-integration.md` § Commit checkpoints). Its **Result is still
 read** afterwards — finish-feature's post-commit gate rejects `failed` there. A
 declined closeout stays `skipped` because that value records the declined offer
 honestly, not because the row goes unread.
@@ -569,9 +575,10 @@ Wait for confirmation before entering Step 4.
 > **Post-hoc hotfix (Step 1.8) — skip this step.** The implementation already
 > landed on the mainline before any ceremony ran; that is the whole premise of
 > post-hoc mode, and Step 1.8 item 2 forbids redoing it. There is nothing to
-> implement here. Go straight to the Step 4 → Step 5 gate and commit
-> **documentation only** — the T2 spec or T3 row plus this host's `_index.md`,
-> and no source. Re-implementing the fix on this branch would satisfy the letter
+> implement here. Go straight to the Step 4 → Step 5 gate and on through Step 5;
+> checkpoint 1 (§ 5.5) then commits **documentation only** — the T2 spec or T3
+> row, this host's `_index.md` and what Step 5 wrote, and no source.
+> Re-implementing the fix on this branch would satisfy the letter
 > of the checkpoint while breaking §8's reconciliation contract, which is why
 > closeout inspects that commit's changed paths.
 
@@ -589,9 +596,7 @@ Even for bug fixes, verify:
 Announce to developer:
 > "Implementation appears complete. Ready to update documentation (spec, models.md, rules.md, events.md, glossary, tech-debt)? `/dflow:next` to proceed."
 
-> Commit checkpoint (per `references/git-integration.md` § Commit Checkpoints, Branch Gate & AI Commits): offer to commit, then record the result in the `_index.md` Checkpoint Log. Tier sets the count — T2 commits the merged spec+implementation here (closeout is the second checkpoint); T3 is a single implementation commit, and its `_index.md` rows ride along on the host's next commit (see `references/git-integration.md` § Commit checkpoints). **Minimal host exception (Step 1.7 standalone *and* the Step 1.6 follow-up variant)**: a minimal host has no later host commit for a T3 row to ride along on, so **the row rides checkpoint 1 itself** — write it into `_index.md` *before* this commit, alongside the implementation, because finish-feature Step 1 reads **checkpoint 1's committed `_index.md`** for it. Only what cannot exist until the commit does — the row's `Commit` cell and the Checkpoint Log Result — is backfilled later and rides the closeout commit. And a minimal host takes a second **closeout** checkpoint too: **every** minimal host records **two** checkpoints (implementation, then closeout), for T3 as well as T2. **Post-hoc hotfix (Step 1.8) — the same two checkpoints, but the first carries no implementation**: the fix is already on the mainline, so checkpoint 1 is the **documentation** commit (spec / row + `_index.md`, no source), and its Checkpoint Log Result is `reconciled ({merged-hotfix-hash})` rather than `committed`. "Commits the merged spec+implementation" above describes a normal host and does **not** apply here.
-
-Wait for confirmation before entering Step 5. This step gate is where the completion checklist is triggered — do not skip.
+Wait for confirmation before entering Step 5. This step gate is where the completion checklist is triggered — do not skip. It offers **no** commit: checkpoint 1 is offered at the end of Step 5 (§ 5.5).
 
 ## Step 5: Update Documentation
 
@@ -632,6 +637,7 @@ Ask these one-by-one.
 > **Table-cell formatting**: keep table cells concise — separate multiple short items with `<br>` (never chain them into one line with ；/; separators), and move long narrative detail out of the cell into a document section (full convention: the formatting comment at each spec doc's head).
 
 - [ ] Update or create the feature / bug spec; set `status: completed` — **T3: N/A** (no spec file exists; the `_index.md` inline row is the record, and the host's own status is not touched)
+- [ ] **BC-bearing T2, on every host** — refresh the host `_index.md` Current BR Snapshot from this spec's final delta (`templates/_index.md` regenerates it when a T2 lightweight-spec is finalized; on a minimal host this is the refresh Step 1.7 places before checkpoint 1). A spec with no BR delta leaves the Snapshot as it is. N/A for a no-BC T2 and a T3
 - [ ] The items below are the Domain sweep — **N/A for a T3**. For a **no-BC change** (one whose host Goals & Scope says it touches no bounded context) the **BC-scoped** items are N/A — everything under `dflow/specs/domain/{context}/` plus `context-map.md`: there is no `{context}` to sweep, and inventing one plants the fiction Step 2's no-BC guard refuses. The **global** documents are *not* covered by that: `glossary.md`, `domain/analysis.md` and `architecture/tech-debt.md` belong to no bounded context, and a no-BC operational T2 can genuinely rename a term, change which roles reach a function, or discover architecture debt — judge those three from the actual change, as always. For a no-BR family T2 only the *BR-derived* items are N/A; run each remaining item where this change actually touches that document (an added event field still lands in `events.md`)
 - [ ] `dflow/specs/domain/{context}/models.md` — Aggregate structure updates
 - [ ] `dflow/specs/domain/{context}/analysis.md` — lifecycles, derived figures or mechanisms no single rule explains this change found or altered, in the owning context's copy, which may not be this host's; any spot this change worked around pending a domain decision, in those or in a rule or unrecorded knowledge that belongs there; and any open row there this change settled (created from `templates/analysis.md` the first time there is something to record; N/A when there is none)
@@ -678,3 +684,7 @@ directory — the closeout `git mv` happens at `/dflow:finish-feature` time
 
 Only announce "change complete" after the appropriate archival step
 above (or the Step 5.3 docs sweep) is done.
+
+### 5.5 Commit checkpoint (checkpoint 1)
+
+> Commit checkpoint (per `references/git-integration.md` § Commit Checkpoints, Branch Gate & AI Commits): fold the offer into the "change complete" announcement, then record the result in the `_index.md` Checkpoint Log. This commit is **checkpoint 1**: it carries the change — the spec or row plus the implementation — **and** everything Steps 2–5 wrote. Tier sets the count — T2 commits the merged spec+implementation here (closeout is the second checkpoint); T3 is a single implementation commit. The entries that carry this commit's hash — the Checkpoint Log Result and each Lightweight Changes `Commit` cell naming it — are written after the commit and ride the host's next commit; on a phase-bearing host, `/dflow:finish-feature` Step 4 backfills any `Commit` cell still unfilled at closeout. **Minimal host exception (Step 1.7 standalone *and* the Step 1.6 follow-up variant)**: a minimal host takes no host commit between checkpoint 1 and closeout, so **every row rides checkpoint 1 itself** — a T3 row included, written into `_index.md` *before* this commit, because finish-feature Step 1 reads **checkpoint 1's committed `_index.md`** for it. Only the entries that carry the hash come later: Step 1.7's "Finalize + close" writes them, and they ride the closeout commit. And a minimal host takes a second **closeout** checkpoint too: **every** minimal host records **two** checkpoints (implementation, then closeout), for T3 as well as T2. **Post-hoc hotfix (Step 1.8) — the same two checkpoints, but the first carries no implementation**: the fix is already on the mainline, so checkpoint 1 is the **documentation** commit (spec / row, `_index.md` and what Step 5 wrote, no source), and its Checkpoint Log Result is `reconciled ({merged-hotfix-hash})` rather than `committed`. "Commits the merged spec+implementation" above describes a normal host and does **not** apply here.

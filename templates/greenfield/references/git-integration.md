@@ -177,7 +177,8 @@ project's decision (GitFlow → `develop`, Trunk / GitHub Flow → `main`).
 ### Commit checkpoints
 
 At lifecycle milestones the AI offers a commit checkpoint, folded into the
-existing Step Gate prompt (it does not add a separate question):
+prompt the flow already shows there — a Step Gate, or the flow's closing
+announcement (it does not add a separate question):
 
 ```
 ✓ {milestone} complete
@@ -188,25 +189,36 @@ existing Step Gate prompt (it does not add a separate question):
 
 Tier sets how many checkpoints a change has: T1 three (spec / implementation /
 closeout), T2 two (spec+implementation merged / closeout), T3 a single commit.
-"T3 = a single commit" means a single **implementation** commit — its hash is
-only knowable afterwards, so the `_index.md` inline row and checkpoint row are
-swept up by the host's **next** commit (more work, or closeout). If the host has
-no next commit scheduled, one ledger-only tracking commit that references the T3
-hash is allowed. It is bookkeeping, not a lifecycle milestone: it adds no
-Checkpoint Log row of its own (unlike closeout, which is a checkpoint and does get
-a row).
+**What a checkpoint carries follows from where its flow offers it.**
+`references/modify-existing-flow.md` offers its checkpoint at the end of its
+artifact step (Step 5), so a T2's merged commit — and a T3's single commit —
+carries the change together with the documentation that step writes.
+`/dflow:new-feature` and `/dflow:new-phase` offer the implementation checkpoint
+at the gate into their completion step, so what that step writes rides the
+host's next commit, whichever that is — for example the next phase's first
+checkpoint, a hosted lightweight change's commit, or closeout.
+"T3 = a single commit" means a single **implementation** commit. On a hosted T3
+the entries that carry its hash ride the host's **next** commit (more work, or
+closeout), as every checkpoint's do (below). If the host has no next commit
+scheduled, one ledger-only tracking commit that references the T3 hash is
+allowed. It is bookkeeping, not a lifecycle milestone: it adds no Checkpoint Log
+row of its own (unlike closeout, which is a checkpoint and does get a row).
 **Minimal host (zero-phase) exception — there, tier does not set the count.**
 On a minimal host (`references/modify-existing-flow.md` Step 1.7 standalone, or
 its Step 1.6 follow-up minimal variant) there is no later host commit for a row
 to ride, so the count is **two for every tier** — implementation, then closeout
-— and a T3's `_index.md` row is written into checkpoint 1 itself instead of
-sweeping into a later commit. Everything above about "T3 = a single commit"
-describes a **hosted** T3, the case where a later host commit exists.
+— and every row, a T3's included, is written into checkpoint 1 itself; only the
+entries that carry checkpoint 1's hash ride the closeout commit. Everything
+above about "T3 = a single commit" describes a **hosted** T3, the case where a
+later host commit exists.
 Whether you choose Y or N, the AI records one row in the feature `_index.md`
 Checkpoint Log — every checkpoint is accounted for (`committed` / `skipped` /
-`failed`), even when no commit happens. A commit hash is written only after the
-commit succeeds; a hook rejection or failed commit is recorded as `failed`
-(never a fake hash).
+`failed`), even when no commit happens.
+**No checkpoint commit can contain its own hash.** The entries that carry a
+checkpoint's hash — its Checkpoint Log Result `committed ({hash})`, and any
+Lightweight Changes `Commit` cell holding that hash — are written after the
+commit succeeds and ride the host's **next** commit. A hook rejection or failed
+commit is recorded as `failed` (never a fake hash).
 **One further Result value — `reconciled ({merged-hotfix-hash})`.** It records
 that this checkpoint documents a change that was **already merged** before any
 ceremony ran, and it is written only on a post-hoc hotfix host's implementation
@@ -215,8 +227,8 @@ belongs to the **merged hotfix**, not to this host's own documentation commit �
 that one goes in the Lightweight Changes row's `Commit` cell, and the two have
 different provenance and must never be swapped. On every other host the three
 values above are the whole vocabulary.
-**Exception — the closeout row**: the closeout commit
-cannot contain its own hash, so the closeout row is written before the commit
+**Exception — the closeout row**: no later commit of this host's lifecycle
+carries it, so the closeout row is written before the commit
 as `closeout | committed` with **no hash** (see
 `references/finish-feature-flow.md` Step 4); trace that commit via
 `git log -1 -- dflow/specs/features/completed/{SPEC-ID}-{slug}` or the optional

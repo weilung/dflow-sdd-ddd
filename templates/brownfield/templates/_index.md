@@ -6,7 +6,7 @@ created: {YYYY-MM-DD}
 branch: feature/{SPEC-ID}-{slug}
 # follow-up-of: {原 SPEC-ID}    # 選用：本 feature 為某個已 completed feature 的 follow-up 時填入
 ---
-<!-- dflow-shape: brownfield/_index.md 1 — keep this line: dflow doctor reads it -->
+<!-- dflow-shape: brownfield/_index.md 2 — keep this line: dflow doctor reads it -->
 
 <!--
 Template note (for AI):
@@ -190,8 +190,9 @@ references/new-phase-flow.md。有衝突時以那些檔為準。
 > 生命週期 checkpoint 的 commit / skip 時間線（讓三週後回溯不必手動重建）。
 > 每個 checkpoint 無論 commit 或 skip 都記一列。Tier 決定 checkpoint 數：
 > T1 三點（spec 完 / impl 完 / closeout）、T2 兩點（spec+impl 合併 / closeout）、
-> T3 單一實作 commit（其 inline row 與本列的 hash 由 host 的下一個 commit 一併帶進；
+> T3 單一實作 commit（記它 hash 的那幾格由 host 的下一個 commit 帶進；
 > host 若沒有後續 commit，允許一個只動 ledger 的 tracking commit 收尾，該 commit 不另成列）。
+> `modify-existing` 的那一顆在更新文件那一步（Step 6）做完之後才 commit，連同那一步寫的文件一起帶。
 > ⚠ **上面那些「點」在本表 `Checkpoint` 欄各有固定的字面值**：spec 里程碑寫
 > **`spec-baseline`**、實作寫 **`implementation`**、關帳寫 **`closeout`**（下表的
 > `spec-baseline` / `implementation` / `closeout` 三列就是這幾個值；表中另有一列
@@ -204,11 +205,11 @@ references/new-phase-flow.md。有衝突時以那些檔為準。
 > **Minimal host（zero-phase）例外**——見 references/modify-existing-flow.md
 > Step 1.7（standalone）、Step 1.6 的 follow-up minimal 變體，或 Step 1.8 的
 > post-hoc hotfix（其 linkage 落在前兩者之一）：這種 host 之後
-> 沒有別的 commit 可以收攏 T3 的 row，所以**不分 tier 一律記兩個 checkpoint**
+> 沒有別的 commit 可以收攏 row，所以**不分 tier 一律記兩個 checkpoint**
 > （implementation——baseline capture 記 `spec-baseline`——然後 closeout），
-> 而且 T3 的 inline row 要**寫進 checkpoint 1 本身**、不是等下一個 commit 帶
-> 進來。上一段「T3 單一實作 commit ／ 由下一個 commit 帶進」講的是**掛在既有
-> feature 底下的** T3，不適用於 minimal host。
+> 而且每一列（T3 的 inline row 也一樣）都要**寫進 checkpoint 1 本身**；之後只補記
+> checkpoint 1 hash 的那幾格，搭 closeout commit。上一段「T3 單一實作 commit ／
+> 由下一個 commit 帶進」講的是**掛在既有 feature 底下的** T3，不適用於 minimal host。
 >
 > Result 的合法值是 `committed ({hash})` / `skipped` / `failed`，外加
 > **`reconciled ({merged-hotfix-hash})`**——只給 post-hoc hotfix（Step 1.8）的
@@ -229,9 +230,11 @@ references/new-phase-flow.md。有衝突時以那些檔為準。
 > **minimal host**（Step 1.6 follow-up 變體／Step 1.7 standalone／Step 1.8
 > post-hoc）**不提供**這個選項——那些 host 正是拿 `branch:` 當權威來斷言分支相等的。
 >
-> commit hash 只在 commit 實際成功後填入；pre-commit hook reject 或 commit
-> 失敗記 `failed`、不寫假 hash。**例外：closeout 列不填 hash**——closeout
-> commit 無法自含自身 hash，該列於 commit 前寫入、隨歸檔目錄一起進 commit；
+> **checkpoint 的 commit 不可能帶著自己的 hash**：記它 hash 的那幾格（本表那一列的
+> `committed ({hash})`、Lightweight Changes 填同一個 hash 的 `Commit` 格）一律在 commit
+> 實際成功後才寫，搭 host 的**下一個** commit；pre-commit hook reject 或 commit
+> 失敗記 `failed`、不寫假 hash。**例外：closeout 列不填 hash**——這個 host 之後再也
+> 沒有 commit 會帶上它，所以該列於 commit 前寫入、隨歸檔目錄一起進 commit；
 > 溯源用 `git log -1 -- completed/{SPEC-ID}-{slug}` 或選配的
 > `Dflow-Checkpoint` trailer（見 references/git-integration.md）。
 >

@@ -185,15 +185,17 @@ A `✗` here stops closeout there, on the same terms.
       `Commit` must still name the **same single documentation commit**.
 - [ ] **Minimal host (zero-phase) only** — **nothing that constitutes the change
       itself is still uncommitted.** This is deliberately not "the host
-      directory is clean": **checkpoint 1 carries the change, the closeout
-      commit carries the record the flow writes afterwards.** Checkpoint 1 sits
-      at `modify-existing-flow.md`'s Step 5 → Step 6 gate and holds the change
-      itself — for a **T2** its lightweight-spec plus the implementation source,
-      for a **T3** its `_index.md` row plus the implementation source, and for a
-      **baseline** host the capture itself, which *is* that host's
-      change. What the flow writes *after* that gate — Step 6's completion
-      checklist and Step 1.7's "Finalize + close" — is derived record and rides
-      into the closeout commit.
+      directory is clean": **checkpoint 1 carries the change and the record
+      Step 6 writes; the closeout commit carries what the flow writes after
+      checkpoint 1.** Checkpoint 1 is offered at the end of
+      `modify-existing-flow.md`'s Step 6 (§ 6.5) and holds the change itself —
+      for a **T2** its lightweight-spec plus the implementation source, for a
+      **T3** its `_index.md` row plus the implementation source, and for a
+      **baseline** host the capture itself, which *is* that host's change —
+      together with Step 6's completion checklist. What the flow writes *after*
+      checkpoint 1 — Step 1.7's "Finalize + close" — is derived record and
+      rides into the closeout commit, and so may a correction to Step 6's
+      record made after checkpoint 1.
       **A post-hoc host (Step 1.8) inverts the source half, and this is where
       the reconciliation contract is enforced.** Its change is the *already
       merged* hotfix; checkpoint 1 is the **documentation** commit. So that
@@ -236,8 +238,9 @@ A `✗` here stops closeout there, on the same terms.
       to both phase-spec and lightweight-spec"): ticking the tasks this change
       completed and labelling each unchecked one as follow-up (6.1), and — when
       the developer accepted the offer — collapsing or removing the section
-      (6.2). On a minimal host that checklist necessarily runs *after*
-      checkpoint 1, so these edits are uncommitted here by construction;
+      (6.2). That checklist runs before checkpoint 1, so these edits are
+      normally committed already; this admits a correction to them made after
+      checkpoint 1;
       (iii) the Domain-layer documents **this change's Step 6.3 sweep** updates
       — under `dflow/specs/domain/`, plus
       `dflow/specs/migration/tech-debt.md` — scoped to *this change's* delta.

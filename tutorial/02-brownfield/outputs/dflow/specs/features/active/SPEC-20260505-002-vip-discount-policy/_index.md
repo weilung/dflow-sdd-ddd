@@ -5,7 +5,7 @@ status: in-progress
 created: 2026-05-05
 branch: feature/SPEC-20260505-002-vip-discount-policy
 ---
-<!-- dflow-shape: brownfield/_index.md 1 — keep this line: dflow doctor reads it -->
+<!-- dflow-shape: brownfield/_index.md 2 — keep this line: dflow doctor reads it -->
 
 <!-- dflow:section metadata -->
 # VIP Discount Policy

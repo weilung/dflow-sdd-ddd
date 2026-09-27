@@ -288,9 +288,10 @@ Dflow:
 原因是 closeout 會去讀 **checkpoint 1 那個 commit 裡的 _index.md**，
 確認這一列當時就在。
 
-一般掛在 feature 底下的 T3 不是這樣——它的 row 由 host 的**下一個** commit
-順便帶進去。但最小 host 只有兩個 commit，第二個是 closeout，
-沒有「下一個 commit」可以收攏它。
+一般掛在 feature 底下的 T3 不一樣：closeout 不檢查它那一列落在哪一顆 commit，
+只有記 hash 的那幾格固定等 host 的**下一個** commit 帶進去。
+最小 host 只有兩個 commit，第二個是 closeout，而 closeout 會去讀
+checkpoint 1 裡的 _index.md。
 所以在最小 host 上，row 必須騎 checkpoint 1 本身。
 
 唯一可以之後才填的是 `Commit` 欄——commit 還不存在，它不可能先有 hash。
@@ -317,7 +318,7 @@ closeout 對它們根本不跑這項檢查，因為 hosted row 從來沒有被�
 一個什麼都沒宣告的 artifact，會讓那個檢查沒有東西可以比對。如果讓它通過，這個檢查就
 變成一份文件而不是一道閘門。
 
-## Step 4 — 實作 + checkpoint 1
+## Step 4 實作 → Step 5 完成檢查表 → checkpoint 1
 
 Alice 改掉那一行：
 
@@ -327,7 +328,17 @@ public const string Banner = "歡迎使用本系統登入";
 
 ```text
 Dflow:
-✓ Implementation 完成
+Implementation appears complete.
+Ready to update documentation? /dflow:next to proceed.
+（這是 Step 4 → Step 5 的 step gate——這一關不問 commit）
+```
+
+Alice 回 OK。Step 5 的完成檢查表對 T3 幾乎都是 N/A：沒有 spec 檔、不動 Domain 文件，
+只重新核對那一列 T3 row 還在、宣告的路徑對。檢查表跑完，commit 才在這裡問：
+
+```text
+Dflow:
+✓ 變更完成（Step 5 跑完）
    Commit here?
    [Y] Yes — AI 以你的 Git identity commit
    [N] No — 你自己 commit
@@ -349,9 +360,10 @@ Dflow:
 
 ```text
 Dflow:
-進 finish-feature 之前，先跑 Step 5 完成檢查表的 minimal-host finalization。
+commit 之後、進 finish-feature 之前，跑 Step 1.7 的「Finalize + close」。
 
-T3 沒有 spec 檔，所以只有兩件事：
+Step 5 的完成檢查表在 commit 之前就跑完了；
+這裡只剩 commit 之後才寫得出來的兩件事：
 
 1. 回填 commit evidence——**兩個面，各回答不同問題**：
    - Checkpoint Log 的 Result：這個**生命週期 checkpoint** 發生了什麼
@@ -424,7 +436,7 @@ Step 4 — Archive：
   **緊接著寫 Resume Pointer 終局值**（Active Workflow: none、
   Current Step / Gates Passed: n/a、Awaiting: none）——中間不插任何等待點，
   連下面那個「要現在 commit 嗎？」的 Y／N 提示都不行。
-  接著寫 closeout 那一列（**不帶 hash**——commit 無法自含自身 hash），
+  接著寫 closeout 那一列（**不帶 hash**——這個 host 之後再也沒有 commit 會帶上它），
   再 git add 整個歸檔目錄，然後 commit。
 
   這是 **checkpoint 2**。歸檔 rename 就在這個 commit 裡。
@@ -447,8 +459,8 @@ Step 4 — Archive：
 
 | 情境 | checkpoint 數 | 為什麼 |
 |---|---|---|
-| **掛在既有 feature 底下**的 T3（walkthrough 04 / 05 的模式） | 單一實作 commit | 它的 inline row 與 hash 由 host 的**下一個** commit 一併帶進。 |
-| **最小 host** 上的 T3（本篇） | **兩個**（implementation、closeout） | 沒有「下一個 commit」了。row 必須騎 checkpoint 1，closeout 自成第二個。 |
+| **掛在既有 feature 底下**的 T3（walkthrough 04 / 05 的模式） | 單一實作 commit | 記它 hash 的那幾格由 host 的**下一個** commit 帶進。 |
+| **最小 host** 上的 T3（本篇） | **兩個**（implementation、closeout） | 沒有別的 commit 能收攏那一列：row 必須騎 checkpoint 1，closeout 自成第二個（記 hash 的那幾格就搭它）。 |
 
 兩句話**同時為真**，只是講的不是同一種 host。canonical 那句「T3 ＝ 單一 commit」在
 `git-integration.md` 裡已經明寫它描述的是 hosted T3。

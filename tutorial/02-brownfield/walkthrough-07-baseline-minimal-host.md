@@ -333,9 +333,25 @@ Evidence: code - `OrderManager.Web/Pages/Cart/ShoppingCart.aspx.cs` `CalculateSh
 
 ## 產出 2 — 為什麼 checkpoint 叫 `spec-baseline`
 
+capture 記完之後不是馬上 commit。baseline 沒有實作，Step 5 跳過，但它照樣走 Step 5 → Step 6 的
+step gate、跑完 Step 6，commit 才在 Step 6 結尾問：
+
 ```text
 Dflow:
-✓ Baseline capture 完成
+Baseline capture recorded. Ready to update artifacts? /dflow:next to proceed.
+（這是 Step 5 → Step 6 的 step gate——baseline 沒有實作，Step 5 跳過；這一關不問 commit）
+```
+
+Bob 回 OK。Step 6 的完成檢查表對 baseline 只做重新核對，不新建任何東西：
+
+```text
+Dflow:
+Step 6 完成檢查表：
+- spec 那幾項：N/A（baseline 沒有 spec 檔）
+- behavior.md、analysis.md：Step 2 寫的，重新核對一次
+- Tier = baseline 那一列：在，宣告的兩支文件都對得上
+
+✓ 變更完成（Step 6 跑完）
    Commit here?
 ```
 
@@ -403,7 +419,7 @@ Step 2 — status → completed，branch: 保持不變。
 
 Step 3 — Sync BR Snapshot to BC Layer：
   這是 **(iii) baseline-precaptured** 的情況——
-  BC 層在 capture 當下（checkpoint 1）就已經寫好了，
+  BC 層在 capture 當下就已經寫好了（隨 checkpoint 1 進版控），
   closeout **沒有東西要再 sync**。
 
   注意這和 no-BC 的「整段跳過」不一樣：

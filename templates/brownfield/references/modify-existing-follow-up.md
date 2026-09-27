@@ -103,7 +103,8 @@ hardcoded `feature/` branch). Step 1.7's **step 1 does not apply**: it is the
 standalone-classification gate, and this caller has already been classified as
 a follow-up. Everything Step 1.7 states **after** step 4 *does* apply
 unchanged — every artifact's row written before checkpoint 1, the
-implementation-path declaration, tier-aware "Finalize + close", and the two
+implementation-path declaration, the finalization before checkpoint 1 and
+"Finalize + close" after it, and the two
 commit-evidence surfaces — because finish-feature reads for all of it on a
 follow-up host exactly as on a standalone one. Then record the change's
 artifacts — a T2 lightweight-spec, one

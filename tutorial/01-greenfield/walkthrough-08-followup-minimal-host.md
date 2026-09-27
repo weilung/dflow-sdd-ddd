@@ -301,31 +301,12 @@ closeout 會拿 checkpoint 1 的 diff 跟這些路徑比對。
  那裡沒有這道 gate。BUG-001 當年就沒被要求。）
 ```
 
-## checkpoint 1 — 一個 commit，三樣東西
+## Step 5 完成檢查表 → checkpoint 1：一個 commit，三樣東西
 
 ```text
 Dflow:
-已 commit：7c41e8d
-  [SPEC-20260512-001] BUG-002 persist ExpenseReport state on reject (T2);
-  add follow-up reference to SPEC-20260512-001
-
-這個 commit 帶著：
-- 實作（RejectExpenseReportHandler.cs、ExpenseUnitOfWork.cs）
-- 這個 host 的 _index.md + BUG-002 spec
-- **原 feature 的 _index.md**（初始 reverse-link，in-progress）
-
-這是 checkpoint 1。到目前為止這條 branch 上**只有這一個 commit**。
-```
-
-## Finalize + closeout
-
-```text
-Dflow:
-finalization（T2）：
+Step 5 的完成檢查表（在 commit 之前跑完，它寫的東西跟著 checkpoint 1 進去）：
 - BUG-002 spec 的 frontmatter status → completed
-- 回填兩個 commit evidence 面：
-    Checkpoint Log Result → committed (7c41e8d)
-    Lightweight Changes row 的 Commit 欄 → 7c41e8d
 - Current BR Snapshot：這個 host 是 **BC-bearing**（Expense），
   所以要**繼承 baseline**，不是留空。
 
@@ -343,6 +324,30 @@ finalization（T2）：
   所以 Last Updated 全部留空、也不新增 BR；
   但 baseline 仍然要在，否則 closeout 讀不到這個 host
   治理在哪幾條規則之下。
+
+✓ 變更完成（Step 5 跑完）—— Commit here? → Alice 選 Y
+
+已 commit：7c41e8d
+  [SPEC-20260512-001] BUG-002 persist ExpenseReport state on reject (T2);
+  add follow-up reference to SPEC-20260512-001
+
+這個 commit 帶著：
+- 實作（RejectExpenseReportHandler.cs、ExpenseUnitOfWork.cs）
+- 這個 host 的 _index.md（含 BR Snapshot）+ BUG-002 spec（status: completed）
+- **原 feature 的 _index.md**（初始 reverse-link，in-progress）
+
+這是 checkpoint 1。到目前為止這條 branch 上**只有這一個 commit**。
+```
+
+## Finalize + closeout
+
+```text
+Dflow:
+Finalize + close（commit 之後才寫得出來的）：
+- 回填兩個 commit evidence 面：
+    Checkpoint Log Result → committed (7c41e8d)
+    Lightweight Changes row 的 Commit 欄 → 7c41e8d
+- Resume Pointer 推到 closeout-ready
 
 Step 1 驗證（最小 host 相關項）：
 ✓ Phase Specs 空表、無 phase-spec-* 檔 → 最小 host

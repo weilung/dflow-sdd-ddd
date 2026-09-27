@@ -8,10 +8,34 @@
 
 ## Unreleased
 
-**Proposals**：PROPOSAL-094（`new-feature` 8.4 不再是收尾路）
+**Proposals**：PROPOSAL-094（`new-feature` 8.4 不再是收尾路）、PROPOSAL-103（`modify-existing` 的 commit 檢查點移到更新文件之後）
 
-> **目前投影版號：`0.15.1`**（**未發布到 npm**；npm latest 仍是 `0.15.0`）。
+> **目前投影版號：`0.15.2`**（**未發布到 npm**；npm latest 仍是 `0.15.0`）。
 > 以下項目都在這一版裡。
+
+- **`modify-existing`（含 `/dflow:bug-fix`）的 commit 詢問，移到更新文件那一步做完之後（P-103，issue #7）**：
+  以前在「實作完成」那一關（brownfield Step 5 → Step 6、greenfield Step 4 → Step 5）就問要不要 commit，接著才更新
+  文件（規格標成完成、`rules.md`／`behavior.md` 等）。那一步寫的東西原本要等收尾那一顆 commit 才帶走，但流程在那一步
+  沒講；照直覺另外 commit，就多出一顆——在最小 host（只為一個小改動開的 feature 目錄）上，PR review 的「剛好兩顆」會
+  把它標出來。現在：
+  - 那一關只問要不要進更新文件那一步；**那一步（brownfield Step 6、greenfield Step 5）全部做完、宣告完成時才問要不要
+    commit**。這一顆 checkpoint 1 同時帶著程式、規格和那一步更新的文件，T2 就是這一顆加上收尾那一顆。那一步的驗證
+    因此在 commit 之前做完，驗不過先修再 commit。
+  - 最小 host 的收尾工作分成兩半：規格標成完成、Current BR Snapshot 的最後一次更新在 commit 之前做；commit 之後只補記
+    checkpoint 1 的 hash（Checkpoint Log、`Commit` 欄）與 Resume Pointer。
+  - 在新位置回答 N（不要 AI 代 commit）：程式連同更新好的文件由你自己 commit。之後照舊補帳：最小 host 把 Checkpoint Log
+    那一列從 `skipped` 補成 `committed ({hash})`（post-hoc host 維持 `reconciled (...)`），各列 `Commit` 欄填你那顆 commit
+    的 hash；有 phase 的 feature 底下的變更，那一列照舊記 `skipped`，`Commit` 欄照舊由之後的 commit 補上（最晚在收尾時）。
+  - `/dflow:new-feature`、`/dflow:new-phase` 的檢查點位置不變：它們完成那一步寫的東西，照舊搭這個 feature 的下一顆
+    commit——不管下一顆是什麼：下一個 phase 的第一個檢查點、掛在同一個 feature 底下的小改動那一顆，或收尾。
+  - 照舊時序做完的 feature（在實作完成那一關就 commit、文件等收尾才帶）用新版收尾，照樣過得了檢查。
+- **「commit 帶不了自己的 hash」寫成一條規則（P-103，issue #7）**：記一顆 commit 的 hash 的那幾格（Checkpoint Log 的
+  `committed ({hash})`、Lightweight Changes 的 `Commit` 欄）一律在那顆 commit 之後才寫，搭這個 feature 的下一顆 commit；
+  收尾那一列不填 hash，因為這個 feature 之後再也沒有 commit 會帶上它。以前只有收尾那一列講清楚。
+- **`_index.md` 範本升成形狀第 2 號**：Checkpoint Log 那段說明跟著上面兩項改寫（只改說明文字，段落與欄位都沒變）。
+  `dflow doctor` 看到帶著第 1 號標記的 `_index.md`：`active/` 底下有 phase 的 feature，多一條 `info`，說明那段 `>`
+  說明改了措辭、不影響結構，要不要同步由你和 AI 決定；還沒收尾的最小 host，同一條 `info` 只請你先別動它（收尾後它移到
+  `completed/`，就不再檢查）；`completed/` 底下的 feature 不檢查。
 
 ### 從 `0.15.0` 升上來
 

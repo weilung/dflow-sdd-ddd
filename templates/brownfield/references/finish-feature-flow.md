@@ -161,8 +161,9 @@ Step 4's post-commit verification, and to Step 5's Integration Summary fields.
       carries none. Decide from the artifact, not from a
       declaration: "the feature is intentionally no-BR" is a claim, and the
       record is what settles it. A classic BR-delta spec carrying ADDED /
-      MODIFIED / RENAMED entries **and** an empty Snapshot means finalization
-      never refreshed it (`modify-existing-flow.md` Step 1.7) and **blocks**.
+      MODIFIED / RENAMED entries **and** an empty Snapshot means the
+      completion checklist never refreshed it (`modify-existing-flow.md`
+      Step 6.3, before checkpoint 1) and **blocks**.
 
 If any check fails:
 > "Cannot finish feature `{SPEC-ID}-{slug}` yet — {N} validation issues
@@ -487,13 +488,13 @@ Then, in this order:
 
 1. **Record the checkpoint row first.** Write one row in the moved
    `_index.md` Checkpoint Log — `closeout | committed` for Y, `closeout |
-   skipped` for N. The closeout row carries **no commit hash**: the closeout
-   commit cannot contain its own hash. Trace it later via
+   skipped` for N. The closeout row carries **no commit hash**: no later
+   commit of this host carries it. Trace it later via
    `git log -1 -- dflow/specs/features/completed/{SPEC-ID}-{slug}` (or the
-   optional `Dflow-Checkpoint` trailer). The "hash only after success" rule
-   still applies to spec / implementation rows — closeout is the documented
-   exception (see `references/git-integration.md` § Commit Checkpoints,
-   Branch Gate & AI Commits).
+   optional `Dflow-Checkpoint` trailer). On any other checkpoint row, a
+   `committed ({hash})` Result is written after its commit and carried by the
+   host's next commit (see `references/git-integration.md` § Commit
+   Checkpoints, Branch Gate & AI Commits).
    **Backfill any unfilled hosted `Commit` cell in the same edit** — a hosted row
    waits for the host's *next* commit and this is it. **Unfilled means empty *or*
    holding a placeholder** — `{hash}`, `{pending}`, `（待 commit）`, anything that
@@ -527,10 +528,11 @@ Then, in this order:
    `migration/tech-debt.md`) — Step 3 is **skipped entirely for a no-BC host**
    (and for a baseline host), so this half is empty there; **and**
    **(b)** the **documentation-sweep step of the flow that produced *this
-   change*** — take the paths from that step, not from a list kept here. It runs
-   *after* that flow's implementation checkpoint and *before* closeout, so **that
-   flow** leaves its deltas uncommitted; a later phase's own checkpoints may have
-   committed them since, and staging an already-committed path is a no-op.
+   change*** — take the paths from that step, not from a list kept here. A
+   commit may already have carried them — `modify-existing-flow.md`'s
+   checkpoint 1 carries its own sweep, and a later phase's checkpoint may have
+   carried a `new-feature-flow.md` sweep — and staging an already-committed path
+   is a no-op, so stage them either way.
    Those sweeps reach
    Domain-layer documents under `dflow/specs/domain/`, plus the **global**
    documents `glossary.md`, `domain/analysis.md` and `migration/tech-debt.md`,
@@ -622,10 +624,9 @@ every item:
       only when the baseline became unreadable *during* closeout.
       Step 1 blocks unless every
       spec in the host already reads `status: completed`, so those flips are
-      already **in** the baseline whichever step made them: a **minimal** host's
-      come from `modify-existing-flow.md` Step 1.7's finalization, a
-      **phase-bearing** host's from its phases completing — no phase-bearing
-      host runs Step 1.7, whichever flow opened it. Either way the
+      already **in** the baseline whichever step made them: a lightweight-spec's
+      comes from `modify-existing-flow.md` Step 6.3, a phase-spec's from its
+      phase completing. Either way the
       flips are not differences this check admits; they are part of what it
       compares against. (They are differences only from the *pre-flip* record,
       which is not the baseline.)
@@ -757,8 +758,8 @@ itself, state in the conversation *how* Step 4's post-commit verification
 reached its result — not that it passed, but how it was computed:
 
 1. **The baseline** — the tree Step 1 read, and which step put each spec's
-   `status: completed` flip into it (Step 1.7's finalization on a minimal host;
-   the phases completing on a phase-bearing one, which never runs Step 1.7).
+   `status: completed` flip into it (`modify-existing-flow.md` Step 6.3 for a
+   lightweight-spec; the phase completing for a phase-spec).
 2. **The differences you derived, each with the step that ordered it** —
    Step 2, Step 4's terminal Resume Pointer write, or Step 4 instruction 1. This
    is the set the check *derives* instead of listing, so printing it is what
