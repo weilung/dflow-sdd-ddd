@@ -142,7 +142,8 @@ Dflow:
 - Current BR Snapshot：4 條 BR（BR-001..004）
 - phase 1 open question：
   Approval 要拆獨立 BC，還是留在 Expense BC 內當另一個 Aggregate
-- 最新 Resume Pointer 還停在 phase 1 實作前；
+- 最新 Resume Pointer：phase 1 已完成，下一步 `/dflow:new-phase`
+  （new-feature 8.4 記下的）；
   你剛補充 phase 1 已 merge，
   所以 phase 2 spec 會以「MVP 已完成」為前提
 

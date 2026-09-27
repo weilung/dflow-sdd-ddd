@@ -347,5 +347,5 @@ state or archive the whole feature from `/dflow:new-phase`.
 
 After completion, summarize for the developer:
 > "Phase {N+1} is implemented and marked completed. `_index.md` is refreshed.
-> If another slice is needed, run `/dflow:new-phase`; if the feature is done,
-> run `/dflow:finish-feature`."
+> If another slice is needed, run `/dflow:new-phase`; if there is no further
+> phase, run `/dflow:finish-feature` to close the feature out."

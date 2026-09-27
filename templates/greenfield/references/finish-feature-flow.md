@@ -26,9 +26,10 @@ state, archives the feature directory, and emits a Git-strategy-neutral
   stance — the AI helps at natural checkpoints, you keep the final say.
 - The BC-layer sync in Step 3 **reuses the existing documentation-sync
   mechanism** from `new-feature-flow` (§ 8.3) and `modify-existing-flow`
-  (Step 5.3) — it does not introduce a new sync flow. Treat it as "lift
-  that step out of the per-phase checklist and run it once at feature
-  closeout, with the `_index.md` Current BR Snapshot as input."
+  (Step 5.3) — it does not introduce a new sync flow. § 8.3 and Step 5.3
+  sync when the work they record completes; Step 3 runs the same mechanism
+  once more at feature closeout, with the `_index.md` Current BR Snapshot as
+  input.
 
 **Step Gates** in this flow (stop-and-confirm before proceeding):
 - Step 1 → Step 2 (validation passed → flip status)
@@ -388,10 +389,10 @@ Deltas are the audit trail. **Cross-reference each hosted lightweight-spec's
 recorded delta the same way** — on any host shape, for the reason above.
 
 > Note: this step does NOT read individual phase-specs to re-derive the BR
-> set — that work was already reconciled by `/dflow:new-phase` Step 7 each
-> time a phase completed. We trust `_index.md` Current BR Snapshot as the
-> feature-level truth here. If the developer finds drift between Snapshot
-> and the phase-specs, fix `_index.md` first, then re-run
+> set. `/dflow:new-feature` § 8.4 and `/dflow:new-phase` Step 7 reconcile the
+> Snapshot when they complete a phase, and we trust `_index.md` Current BR
+> Snapshot as the feature-level truth here. If the developer finds drift
+> between Snapshot and the phase-specs, fix `_index.md` first, then re-run
 > `/dflow:finish-feature`.
 
 Also update `architecture/tech-debt.md` / `models.md` / `glossary.md` /

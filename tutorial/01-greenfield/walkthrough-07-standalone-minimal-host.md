@@ -496,18 +496,21 @@ T3-only 的 no-BC host 兩者皆無，所以留空。把它一起寫成 `none` �
 ## 產出 4 — pre-integration gate 的正反兩面
 
 這是本篇最值得記住的一組對照。`git-integration.md` 的
-`feature/ — Before Merging` gate 第一項就是 `_index.md status: completed`：
+`feature/ — Before Merging` gate 裡，這一組對照要看的是 `_index.md status: completed` 與
+**Closeout complete**（`/dflow:finish-feature` 已宣告收尾完成：收尾 commit 做了、commit 之後的驗證過了）。
+只看 status 不夠——finish-feature 在 Step 2 就把 status 翻成 `completed`，收尾 commit 要到 Step 4 才做：
 
-| 時點 | `_index.md` status | gate 判定 |
-|---|---|---|
-| checkpoint 1 之後、closeout 之前 | `in-progress` | **擋下。** 一個還沒 closeout、還沒歸檔的 host 不能 merge。 |
-| closeout 之後 | `completed` | 放行。 |
+| 時點 | `_index.md` status | 收尾完成？ | gate 判定 |
+|---|---|---|---|
+| checkpoint 1 之後、closeout 之前 | `in-progress` | 否 | **擋下。** 一個還沒 closeout、還沒歸檔的 host 不能 merge。 |
+| closeout 做到一半（Step 2 翻了 status，收尾 commit 還沒做或還沒驗證過） | `completed` | 否 | **擋下。** status 已經翻了，但收尾還沒完成。 |
+| finish-feature 宣告收尾完成之後 | `completed` | 是 | 這兩項過了；其餘適用的項目（見下一張表）也都過了，才放行。 |
 
 最小 host 對這個 gate 的例外分得很細，**三類項目三種待遇**：
 
 | 項目種類 | 最小 host 上怎麼讀 |
 |---|---|
-| **這個 host 自己的記錄**（status、歸檔就緒、phase-spec 檢查） | **原封不動適用**。它們正是擋住「記錄還開著就 merge」的那道防線。 |
+| **這個 host 自己的記錄**（status、收尾完成、phase-spec 檢查） | **原封不動適用**。它們正是擋住「記錄還開著就 merge」的那道防線。 |
 | **點名 Domain / bounded-context artifact 的項目**（BR-Snapshot sync、events.md、glossary/models/rules） | 只適用於這次變更**實際碰到**的部分。no-BC host 沒有 BC 要 sync、T3 不做 Domain 工作 → 讀 N/A。但 `glossary.md` 與 tech-debt 不屬於任何 bounded context，**不是** N/A。 |
 | **講原始碼規則、而不是點名文件的項目**（Domain 層零外部相依、業務邏輯不外洩、Domain entity 不掛 ORM attribute、Domain 單元測試要過） | **永遠不是 N/A。** 只要變更碰到 code 就成立——而且一個謊稱自己 no-BC 的 host，正是靠這幾項抓出來的。 |
 
@@ -535,7 +538,7 @@ T3-only 的 no-BC host 兩者皆無，所以留空。把它一起寫成 `none` �
 | 不變式優先於便利 | 拒絕「更輕的 T3 ledger」，並說明理由，而不是靜靜地放行。 |
 | 記錄先於 commit | T3 row 在 checkpoint 1 之前寫入，closeout 讀 committed blob 驗證。 |
 | 不製造虛構 artifact | no-BC host 跳過 BC sync，不建 rules.md / behavior.md / events.md。 |
-| 例外有邊界 | 最小 host 的 merge-gate 例外只放寬 Domain-artifact 項目，保留 status 檢查。 |
+| 例外有邊界 | 最小 host 的 merge-gate 例外只放寬 Domain-artifact 項目，保留 status 與收尾完成的檢查。 |
 
 ## 這一段帶來的實際好處
 
@@ -544,7 +547,7 @@ T3-only 的 no-BC host 兩者皆無，所以留空。把它一起寫成 `none` �
 | 小修改沒有任何記錄 | 直接 commit 到 main，三個月後 blame 只剩「fix typo」。 | 一個最小 host 記下 SPEC-ID、路徑、兩個 checkpoint。 |
 | 小修改被硬掛到不相干的 feature | 那個 feature 的 Integration Summary 宣稱它做了沒做的事。 | Part B 第 2 項用**語意相關**判斷，不是「剛好只有這一個」。 |
 | 為了通過檢查而發明文件 | 建一個空的 bounded context 或假的 phase-spec。 | no-BC / zero-phase 分支明文說「記 N/A，不要製造 artifact」。 |
-| 未 closeout 就 merge | 一個半開的 host 進了 main，記錄永遠停在 in-progress。 | merge gate 第一項擋下，且最小 host 的例外沒有繞過它。 |
+| 未 closeout 就 merge | 一個半開的 host 進了 main，記錄永遠停在 in-progress。 | merge gate 的 status 與收尾完成兩項擋下，且最小 host 的例外沒有繞過它們。 |
 
 ## Key takeaways
 

@@ -140,8 +140,12 @@ one is not.
 
 ### Gate Checks — Before merging a feature PR to `main`
 
-- [ ] `/dflow:finish-feature` has run (or the equivalent Step 8.4
-      manual archival is complete)
+- [ ] **Closeout complete**: `/dflow:finish-feature` has announced closeout
+      complete for this host — its Local-closeout gate is satisfied (the
+      closeout commit landed and passed post-commit verification) and, if
+      the host carries `follow-up-of`, the Step 6 tracking commit has also
+      landed and been verified. `status: completed` or a directory already
+      under `completed/` does not show this on its own.
 - [ ] `_index.md` status = `completed`, feature directory moved to
       `dflow/specs/features/completed/` via `git mv`
 - [ ] BC layer synced: `dflow/specs/domain/{context}/rules.md` and
@@ -153,8 +157,8 @@ one is not.
 - [ ] PR has at least one review approval
 
 > **Minimal (zero-phase) host.** The items about this host's own record —
-> `/dflow:finish-feature` having run, `_index.md` status `completed`, and the
-> archival move — apply **unchanged**: they are what stops a host merging with
+> **Closeout complete**, `_index.md` status `completed`, and the archival
+> move — apply **unchanged**: they are what stops a host merging with
 > its record still open. Every item naming a **Domain or bounded-context
 > artifact** applies only to what this change **actually touched**: a **no-BC**
 > host has no context to sync or document, a **T3** does no Domain work at all,

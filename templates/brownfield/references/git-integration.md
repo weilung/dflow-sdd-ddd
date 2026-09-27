@@ -405,8 +405,12 @@ AI should verify:
 - [ ] All `phase-spec-*.md` in the feature directory have `status: completed`
 - [ ] `_index.md` Current BR Snapshot has been synced to BC layer
       (`rules.md` / `behavior.md`) — typically by `/dflow:finish-feature`
-- [ ] Whole feature directory ready to `git mv` to `dflow/specs/features/completed/`
-      (or already moved if `/dflow:finish-feature` ran)
+- [ ] **Closeout complete**: `/dflow:finish-feature` has announced closeout
+      complete for this host — its Local-closeout gate is satisfied (the
+      closeout commit landed and passed post-commit verification) and, if
+      the host carries `follow-up-of`, the Step 6 tracking commit has also
+      landed and been verified. `status: completed` or a directory already
+      under `completed/` does not show this on its own.
 - [ ] All new business logic is in `src/Domain/` (not delivery/entrypoint code — presentation/UI layer, controllers, handlers, jobs, message consumers, data pipelines, or stored procedures)
 - [ ] New terms added to `glossary.md`
 - [ ] `rules.md` and `models.md` updated if applicable
@@ -414,8 +418,8 @@ AI should verify:
 - [ ] Domain layer code has no delivery-framework references
 
 > **On a minimal (zero-phase) host**, split this list by what each item reads.
-> Items about **this host's own record** — `_index.md` status, archival
-> readiness, and the phase-spec check, which passes vacuously on an empty
+> Items about **this host's own record** — `_index.md` status, **Closeout
+> complete**, and the phase-spec check, which passes vacuously on an empty
 > table — apply **unchanged**: they are what stops a host merging with its
 > record still open. Every item that names a **Domain or bounded-context
 > artifact**, the BR-Snapshot sync included, applies only to what this change
@@ -464,10 +468,15 @@ AI should verify:
 
 ### bugfix/ branch — Before Merging (Pre-PR / Pre-Integration)
 
-- [ ] `_index.md` status: `completed`, and the whole feature directory ready to
-      `git mv` to `dflow/specs/features/completed/` (or already moved if
-      `/dflow:finish-feature` ran). A `bugfix/` host closes out exactly like a
-      `feature/` one; an un-closed-out host must not merge.
+- [ ] `_index.md` status: `completed`
+- [ ] **Closeout complete**: `/dflow:finish-feature` has announced closeout
+      complete for this host — its Local-closeout gate is satisfied (the
+      closeout commit landed and passed post-commit verification) and, if
+      the host carries `follow-up-of`, the Step 6 tracking commit has also
+      landed and been verified. `status: completed` or a directory already
+      under `completed/` does not show this on its own.
+      A `bugfix/` host closes out exactly like a `feature/` one; an
+      un-closed-out host must not merge.
 - [ ] **The tier's artifact** has the fix documented — a **T2**'s lightweight
       spec, or for a **T3** the host `_index.md` Lightweight Changes row, which
       is its whole record. Do not ask a T3 for a spec file here either: the

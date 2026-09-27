@@ -6,6 +6,61 @@
 
 ---
 
+## Unreleased
+
+**Proposals**：PROPOSAL-094（`new-feature` 8.4 不再是收尾路）
+
+> **目前投影版號：`0.15.1`**（**未發布到 npm**；npm latest 仍是 `0.15.0`）。
+> 以下項目都在這一版裡。
+
+### 從 `0.15.0` 升上來
+
+照 [`docs/upgrading.md`](docs/upgrading.md) 升級：先升 CLI，在專案根目錄跑 `dflow configure-agents`，再跑 `dflow doctor`。這一版另外要注意：
+
+1. **收尾做到一半的 feature，先用你現在這一版收完，再升級。**
+2. **已經走舊 8.4 收掉、commit 進 `completed/` 的 feature：不用改。** 它們是凍結的歷史：`completed/` 裡的 feature
+   不再接受新的規格或變更（follow-up 在原 feature 的 Follow-up Tracking 加列、收尾時翻那一列，這類追蹤更新例外）。
+   這些 feature 會留著兩個過期的欄位：Resume Pointer 停在「new-feature／Step 8」、Phase Specs 表那一列是
+   `in-progress`。`/dflow:status` 不讀它們（它只讀 `active/` 底下的 cursor），`dflow render` 會照原樣畫出來；
+   之後若有人對這樣的 feature 跑 PR review，它會把「Phase Specs 那一列與 phase-spec 的狀態不一致」標出來——那是
+   舊路徑留下的歷史，一樣不用改。
+
+### 各項變更
+
+- **單 phase 的 feature 也一律用 `/dflow:finish-feature` 收尾（P-094）**：
+  `/dflow:new-feature` 的 8.4 原本是第二條收尾路——只有一個 phase 的 feature 可以不跑 finish-feature，直接在這裡翻
+  `_index.md` 的 `status`、把目錄 `git mv` 進 `completed/`。但它不把 Resume Pointer 設回 `none`，也沒有 `git add`、
+  沒有 commit：走這條路收掉的 feature，`_index.md` 永遠停在 `Active Workflow: new-feature`／`Current Step: Step 8`。
+  現在 8.4 改名 **Phase completion and handoff**，只做兩件事：
+  - **完成這個 phase**：phase-spec 的 `status`、`_index.md` Phase Specs 表那一列都翻成 `completed`；Current BR Snapshot
+    對照這個 phase-spec 的 Business Rules 對帳（只動這個 phase 自己的列）；Resume Pointer 的 Current Progress、
+    Next Action 兩行都改寫。這四項正是 finish-feature 接手時會檢查、或直接採信的。
+  - **交出去**：還有下一個 phase → `/dflow:new-phase`；沒有了 → `/dflow:finish-feature`，唯一的收尾路。
+    new-feature 不再宣告「feature complete」——那要等 finish-feature 宣告收尾完成才說。
+
+  **你會多遇到的**：單 phase 的 feature 收尾變成 finish-feature 的完整流程——開頭要讀得到 `_conventions.md` 的
+  `## Prose Language`；Step 1 的結構檢查與分支檢查（要在這個 feature 的分支上，或它記錄過的 override 分支；
+  「已經切到別的分支才想起要歸檔」會被擋下）；兩道 Step Gate；收尾 commit checkpoint（AI 問要不要替你 commit——
+  可以選的是誰 commit，不是要不要 commit：選 N 就要自己 commit）與 commit 之後的驗證；AI 先說明收尾驗證是怎麼
+  算出來的，再給最後的 Integration Summary；宣告收尾完成之後，還會列出其他還在進行的 feature 與分支。
+  bounded context 的文件同步會跑兩次：8.3 先依實作同步，finish-feature 的 Step 3 再以 Current BR Snapshot 為準對一次
+  （8.4 已經對過帳，第二次通常只是確認一致）。
+  多 phase feature 的第一個 phase 也照新的 8.4 標成完成——以前沒有任何 flow 替它做，到 finish-feature 時會被 Step 1 擋下、
+  只能手修。
+
+- **merge 前的關統一成同一個「收尾完成」（P-094）**：`git-integration.md` 的 `feature/`、`bugfix/` merge 前清單，
+  與四支 `Git-principles-*.md` starter 的 merge 前清單，原本只看「目錄可以 `git mv`／已經搬了」或「finish-feature 跑過
+  （或 8.4 手動歸檔）」——都擋不住收尾做到一半的 feature：`status` 在 finish-feature 的 Step 2 就翻了，`git mv` 在收尾
+  commit 之前。現在一律是 **Closeout complete**：finish-feature 已宣告收尾完成，也就是收尾 commit 做了、commit 之後的
+  驗證過了；帶 `follow-up-of` 的，Step 6 的追蹤 commit 也做了、驗證過。
+  starter 那一格在 `git-principles-canonical` 區內：採用了 marker 的專案重跑 `dflow configure-agents` 就會刷新——前提是
+  `_conventions.md` 的 `## Git Policy` 讀得到所選的 policy，讀不到時它不刷新這支檔、並說明原因；還沒採用 marker 的，
+  `dflow doctor` 照舊會提示。
+
+- **README 的流程圖**：進 `/dflow:finish-feature` 那條箭頭的標籤改成「沒有下一個 phase」（英文版 `no further phase`），
+  前一格改成「這個 phase 完成」（`Phase done`）；中文版進 `/dflow:new-phase` 那條箭頭跟著改成「還有下一個 phase」。
+  「feature 完成」要等 finish-feature 收尾完成才說。
+
 ## 0.15.0 — 2026-09-27 — 分級改為順序判定、analysis.md 與 render 畫圖、doctor 看不準就直說
 
 **Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）、PROPOSAL-086（受限標頭比讀者窄）、PROPOSAL-087（finish-feature 罕見路徑抽離）、PROPOSAL-090（`Git-principles-*.md` 的 canonical 區改為可刷新）、PROPOSAL-091（`doctor` 的兩條 false-clean 路徑）、PROPOSAL-093（closeout 尾巴的 cursor 矛盾）、PROPOSAL-095（BR Snapshot 範例列移出資料面）、PROPOSAL-096（closeout baseline 的鑰匙改為可推導）、PROPOSAL-099（系統級知識的落點）、PROPOSAL-100（render 把生命週期與流程畫成圖）、PROPOSAL-101（render 首頁改成分組目錄）、PROPOSAL-092（規格文件的形狀版號）

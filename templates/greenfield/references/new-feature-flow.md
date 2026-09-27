@@ -449,7 +449,7 @@ During implementation, continuously verify:
 **→ Step Gate: Step 7 → Step 8**
 
 Announce to developer:
-> "Implementation appears complete across all four layers. Ready to run the completion checklist (verify against spec, update domain docs + context-map, ensure test coverage, archive the spec)? `/dflow:next` to proceed."
+> "Implementation appears complete across all four layers. Ready to run the completion checklist (verify against spec, update domain docs + context-map, ensure test coverage, complete the phase)? `/dflow:next` to proceed."
 
 > Commit checkpoint (T1 milestone 2 of 3): offer to commit the implementation, then record the result in the `_index.md` Checkpoint Log. Milestone 3 (closeout) is the `/dflow:finish-feature` checkpoint.
 
@@ -507,33 +507,51 @@ Ask these one-by-one; do not dump all six at once.
 - [ ] `dflow/specs/domain/context-map.md` — updated if cross-context interaction was added or changed
 - [ ] `dflow/specs/architecture/tech-debt.md` — tech debt discovered during implementation recorded
 
-### 8.4 Archival
+### 8.4 Phase completion and handoff
 
-For a single-phase feature, this is the closeout point. If the feature has
-later phases still ahead, this phase is complete but the feature is not —
-don't archive yet; run `/dflow:new-phase` to start the next phase, not
-`/dflow:finish-feature` yet. For a multi-phase feature, the developer
-typically reaches this point at the end of the final phase — at which time
-`/dflow:finish-feature` is the recommended trigger (it bundles steps 8.1 /
-8.2 verification, BC sync, and archival into one explicit ceremony). Either
-path is acceptable; pick the one that matches the developer's habit.
+This step completes the phase and hands the feature on. It does not close the
+feature out: `/dflow:finish-feature` is the only closeout path — it flips the
+`_index.md` `status`, moves the feature directory to `completed/`, and takes
+the closeout commit checkpoint.
 
-- [ ] `_index.md` `status` field changed to `completed`
-- [ ] All `phase-spec-*.md` files in the feature directory have `status:
-      completed` in their frontmatter
-- [ ] **Whole feature directory** moved from `dflow/specs/features/active/`
-      to `dflow/specs/features/completed/` using `git mv` (preserves rename
-      tracking — see `references/git-integration.md` § "Directory Moves
-      Must Use git mv"):
-      ```
-      git mv dflow/specs/features/active/{SPEC-ID}-{slug} \
-             dflow/specs/features/completed/{SPEC-ID}-{slug}
-      ```
+**Complete this phase** — all four items, whether or not another phase
+follows:
 
-> **Recommended path for multi-phase features**: instead of doing
-> 8.1–8.4 manually at the end of every phase, run `/dflow:finish-feature`
-> once the feature's last phase is complete. It executes the same checks
-> + BC sync + `git mv` + emits an Integration Summary. See
-> `references/finish-feature-flow.md`.
+- [ ] This phase-spec's frontmatter `status` changed from `in-progress` to
+      `completed`
+- [ ] This phase's row in the `_index.md` Phase Specs table changed from
+      `in-progress` to `completed`
+- [ ] `_index.md` Current BR Snapshot reconciled against this phase-spec's
+      **Business Rules** section — this is the feature's first phase, so it
+      has no Delta from prior phases. If implementation changed a rule, update
+      the phase-spec first, then reconcile. Touch only this phase's rows: a
+      row that another change in this host wrote — a lightweight change
+      hosted under this feature, for example — stays as it is. Where this
+      phase and such a change both changed the same rule, keep the later
+      change's text; if the host's record does not show which change came
+      later, ask the developer which text is current instead of choosing.
+- [ ] `_index.md` Resume Pointer: rewrite **both** narrative lines — Current
+      Progress says this phase is completed, and Next Action names the
+      command the handoff below picks. Step 4 wrote "phase-1 in progress:
+      drafting phase-spec." and "finish phase-spec, then implement …" into
+      these two lines; either one left standing reads as open work.
 
-Only announce "feature complete" after 8.4 is done.
+`/dflow:finish-feature` relies on these four whenever the feature reaches it,
+next or after later phases. Its Step 1 checks the phase-spec `status`, the
+Phase Specs row and the Resume Pointer, and stops closeout on a stale one.
+Its Step 3 syncs the Current BR Snapshot into the bounded context as it
+stands, without re-deriving it from the phase-specs.
+
+`Implementation Tasks` is not on this list: 8.1 verified it, and 8.2 may have
+collapsed or removed it by team convention. BC document sync is not on it
+either: 8.3 did it.
+
+**Hand off:**
+
+- Another phase is still ahead → run `/dflow:new-phase` next.
+- No further phase — a single-phase feature, or this was the last phase →
+  run `/dflow:finish-feature` next. It is the only closeout path.
+
+Announce that this phase is completed and name the next command. Do not
+announce the feature as complete: `/dflow:finish-feature` announces that once
+its closeout is complete.
