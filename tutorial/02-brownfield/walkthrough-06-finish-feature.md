@@ -701,11 +701,11 @@ walkthrough 07 有一整段在講它。
 Goals & Scope，不是改寫成 Aggregate / VO 清單。抽出來的 Domain model 清單留在摘要
 **之外**（見下方「走查補充」），brownfield 的摘要本來就不報告它。
 
-**`Related BR-IDs` 這一欄不要拿上面 Step 3 的 sync 結果去反推。** flow 在兩軌的
-Step 3、Step 5 與 `Git-principles-*` scaffolding 都寫了同一句：
+**`Related BR-IDs` 這一欄不要拿上面 Step 3 的 sync 結果去反推。** 兩軌
+`finish-feature-flow.md` 的 Step 3 都寫了同一句：
 
 > **`Related BR-IDs` is not one of those**: it reports what this change's own
-> record carries, **not what was synced**
+> record carries
 
 「那一組」指的是 `BC` 這類**報告有沒有做 sync** 的欄；`Related BR-IDs` 不屬於它們。
 值要去這個 host 自己的 `_index.md` Current BR Snapshot 拿——本 feature 四列的

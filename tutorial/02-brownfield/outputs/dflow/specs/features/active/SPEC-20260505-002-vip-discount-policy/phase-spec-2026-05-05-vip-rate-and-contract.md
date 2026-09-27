@@ -1,5 +1,5 @@
 ---
-id: SPEC-20260505-002-P1
+spec-id: SPEC-20260505-002
 title: VIP Rate and Contract Validity
 status: in-progress
 bounded-context: Order
@@ -7,6 +7,7 @@ created: 2026-05-05
 author: Bob
 branch: feature/SPEC-20260505-002-vip-discount-policy
 ---
+<!-- dflow-shape: brownfield/phase-spec.md 1 — keep this line: dflow doctor reads it -->
 
 # VIP Rate and Contract Validity
 

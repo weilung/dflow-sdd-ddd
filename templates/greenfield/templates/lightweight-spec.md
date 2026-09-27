@@ -8,6 +8,7 @@ branch: bugfix/BUG-{NUMBER}-{slug}    # must equal the host _index.md `branch:` 
 # hotfix-branch: hotfix/{name}    # ADD (uncomment) only for a post-hoc T2 — references/modify-existing-flow.md Step 1.8. The already-merged emergency fix's own branch, kept even after that branch was deleted.
 # hotfix-identity: {PR / incident / tracker reference}    # ADD only for a post-hoc T2 — the source the asserted `reconciled ({merged-hotfix-hash})` identity rests on; an uncited hash blocks closeout. Keep it adjacent to hotfix-branch.
 ---
+<!-- dflow-shape: greenfield/lightweight-spec.md 1 — keep this line: dflow doctor reads it -->
 
 <!--
 Template note (for AI):

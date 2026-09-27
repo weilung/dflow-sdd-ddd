@@ -37,7 +37,7 @@ Dflow specs 可以先用三層理解。
 |---|---|---|
 | Phase / change layer | `phase-spec-*.md`、`lightweight-*.md`、`BUG-*.md` | 讀「這一次變更」：問題、場景、Delta、implementation tasks、驗收條件。 |
 | Feature layer | `features/active/.../_index.md` 或 `features/completed/.../_index.md` | 讀「這個 feature 目前累積到哪裡」：phase 列表、Current BR Snapshot、Checkpoint Log、Resume Pointer。 |
-| System layer | `domain/{BC}/rules.md`、`behavior.md`、`models.md`；**Greenfield 另有** `events.md`；技術債 **Greenfield 在** `architecture/tech-debt.md`、**Brownfield 在** `migration/tech-debt.md` | 讀「整個系統目前相信什麼」：跨 feature 累積規則、行為、模型、事件與技術債狀態。 |
+| System layer | `domain/{BC}/rules.md`、`behavior.md`、`models.md`、`analysis.md`；**Greenfield 另有** `events.md`；跨 context 的分析在 `domain/analysis.md`；技術債 **Greenfield 在** `architecture/tech-debt.md`、**Brownfield 在** `migration/tech-debt.md` | 讀「整個系統目前相信什麼」：跨 feature 累積規則、行為、模型、事件、流程與生命週期，以及技術債狀態。 |
 
 這三層不是重複文件。它們的時間尺度不同。
 
@@ -121,6 +121,7 @@ phase spec 或 lightweight / BUG spec 的 Delta。
 | `rules.md` | BR-ID、規則 wording、status、lifecycle note。 |
 | `behavior.md` | behavior scenarios，特別適合 Brownfield confirmed behavior。 |
 | `events.md` <br>（**Greenfield only**） | Domain Events 與 payload / consumer 註記。Brownfield 沒有這一份。 |
+| `analysis.md` | 這個 context 的狀態欄位怎麼流轉（生命週期）、算出來的數字怎麼算、單一規則解釋不了的機制，每一條帶出處。跨 context 的流程與角色索引記在 `domain/analysis.md`。第一次有東西要記時才建立，所以不一定每個 BC 都有。 |
 | `glossary.md` | Ubiquitous Language。 |
 
 關鍵讀法：

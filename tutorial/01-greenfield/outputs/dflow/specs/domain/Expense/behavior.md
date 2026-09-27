@@ -1,3 +1,4 @@
+<!-- dflow-shape: greenfield/behavior.md 1 — keep this line: dflow doctor reads it -->
 # Expense — Behavior Specification
 
 > **Purpose**: Expense context current behavior 的 consolidated source of truth。

@@ -6,6 +6,7 @@ created: {YYYY-MM-DD}
 branch: feature/{SPEC-ID}-{slug}
 # follow-up-of: {原 SPEC-ID}    # 選用：本 feature 為某個已 completed feature 的 follow-up 時填入
 ---
+<!-- dflow-shape: greenfield/_index.md 1 — keep this line: dflow doctor reads it -->
 
 <!--
 Template note (for AI):

@@ -342,19 +342,22 @@ Three categories:
 | `git branch` (listing only) |
 | `gh pr status` / `gh pr view` |
 
-### AI commit authorship (suggested, not enforced)
+### AI commit authorship
 
-When an AI assists in producing a commit, appending a `Co-Authored-By`
-line is **suggested** but not mandatory. The canonical form for
-Claude is:
+How AI-made commits are marked is chosen once at `dflow init` and recorded in
+`dflow/specs/shared/_conventions.md` § AI Commit Policy:
 
-```
-Co-Authored-By: Claude <noreply@anthropic.com>
-```
+- `none` — AI commits carry no extra marker.
+- `co-authored-by` — a `Co-Authored-By: dflow-ai <noreply@dflow.local>` trailer
+  (teams may customize the name / email).
+- `prefix` — an `[ai-assisted]` commit-subject prefix.
 
-For other AI assistants, use the vendor-documented author line (or omit
-it). This is a project-level transparency convention, not a Dflow
-requirement.
+This recorded setting is authoritative and the runtime does not re-ask. The AI
+offers commits at lifecycle checkpoints (see `references/git-integration.md`
+§ Commit Checkpoints, Branch Gate & AI Commits) using your Git identity, and you
+can always decline. If your team also wants vendor attribution, appending the
+assistant's documented line (e.g. `Co-Authored-By: Claude
+<noreply@anthropic.com>`) is an independent, optional convention on top.
 
 ### Merge strategy
 
@@ -370,16 +373,26 @@ project settled on:
 There is no separate `hotfix/*` branch. A hotfix is:
 
 1. A (small) feature branch cut from `main`
-2. Named `feature/{SPEC-ID}-{slug}` where SPEC-ID is a lightweight spec
-   or a full-ceremony spec depending on severity
+2. Named by the normal Dflow branch scheme, chosen by severity: a
+   bug-type hotfix (T2 lightweight) uses `bugfix/{BUG-ID}-{slug}`; a
+   hotfix that warrants full ceremony uses `feature/{SPEC-ID}-{slug}`
+   (see `references/git-integration.md` § Branch Naming Convention)
 3. Merged back to `main` via the team's chosen merge strategy
 4. Deployed via the same pipeline as any other change
 
 **Hotfix spec requirement (team convention)**: Hotfixes often skip the
-upfront SDD cycle for speed. This project commits to writing a
-lightweight spec within **24 hours** after the hotfix lands, documenting
-root cause + fix + (if applicable) a tech-debt entry in
-`dflow/specs/architecture/tech-debt.md` if the bug reveals a systemic issue.
+upfront SDD cycle for speed. This project commits to documenting the fix
+within **24 hours** after it lands. Run `/dflow:modify-existing` in
+**post-hoc mode** (`references/modify-existing-flow.md` Step 1.8): it opens a
+minimal host of its own for the fix, records the implementation checkpoint as
+`reconciled ({merged-hotfix-hash})`, and reconciles rather than re-running work
+that is already on the mainline.
+What gets written is whatever the cascade's tier calls for — a **T2** lands a
+lightweight spec (root cause + fix + a `dflow/specs/architecture/tech-debt.md` entry
+if the bug reveals a systemic issue); a **T3** lands one `_index.md` Lightweight
+Changes row and no spec file. Step 1.8 admits **T2 / T3 only**: a **T1**
+post-hoc keeps the normal phase-bearing route and documents the merged work
+there.
 This is a **human-to-human commitment** — Dflow / AI cannot track the
 24-hour clock; the team enforces it in retros.
 
@@ -413,14 +426,15 @@ release.
 
 ## 9. CI / CD
 
-{Fill in this project's CI/CD pipeline shape: trigger (push to main,
-tag), stages (build → test → deploy), environments
-(dev / staging / prod). Reference the pipeline config file if one
-exists, e.g. `.github/workflows/ci.yml` or `azure-pipelines.yml`.}
+ExpenseTracker is a new project and has no pipeline yet. The first one
+will build and run the Domain and Application tests on every pull request
+and on every push to `main` (the gates below).
+
+<!-- TODO: fill in the pipeline config file, the integration test gate and the deployment environments once the pipeline exists. -->
 
 ### Suggested CI gates for Clean Architecture
 
-- Verify Domain project has zero (or allow-listed) NuGet deps
+- Verify Domain project has zero (or allow-listed) external package deps
 - Run Domain unit tests + Application tests on every PR
 - Run Integration tests on `main` and pre-deploy
 - Verify EF migrations build cleanly

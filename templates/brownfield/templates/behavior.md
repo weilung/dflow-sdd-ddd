@@ -1,3 +1,4 @@
+<!-- dflow-shape: brownfield/behavior.md 1 — keep this line: dflow doctor reads it -->
 # {Bounded Context} — Behavior Specification
 
 > **Purpose**: Consolidated source of truth for this context's current behavior.

@@ -16,14 +16,41 @@
 | 特點 | 對工程團隊的幫助 |
 |---|---|
 | **Greenfield 與 Brownfield 雙軌** | 新專案有空間早期塑形架構與領域模型；既有 codebase 不必先做大規模重構，邊改邊把散落各處的領域規則抽出來。 |
-| **混合式工作流程控制** | 明確命令進入、AI 在你忘記啟動時建議切入、重要決策點停下確認。三層共存，AI 不會一路跑偏、也不會把每一步都變成繁瑣流程。 |
+| **AI 指引，不用先學指令** | 你把要做的事講出來，AI 判斷該走哪一條 workflow、要寫多少規格，並主動啟動；想自己指定也可以直接下命令。重要決策點一律停下確認——AI 不會一路跑偏，也不會把每一步都變成繁瑣流程。 |
 | **DDD 語意骨幹** | 先把領域語言、邊界、業務規則寫下來，AI 補細節時受專案約束、而不是憑感覺發明業務規則——那種錯誤 review 時人眼很難察覺。 |
 | **防過度設計內建於引導** | AI 被 DDD 引導後容易全面套用 rich model 與重型 pattern；Dflow 在多個常見的過衝位置寫了反向判準——哪裡不值得深度建模、何時停在最簡階梯。 |
 | **三層文件模型** | phase（單次提案-實作循環）／feature（整條 branch 的累積狀態）／system（跨 feature 長期知識），對應 feature branch 的實際節奏。下方有完整說明。 |
+| **DDD 的模型與規則裝不下的那一塊（`analysis.md`）** | `models.md` 收「存下來的是什麼」、`rules.md` 收「一條規則」、`behavior.md` 收「一個情境」——**沒有一支收「它怎麼動的」**。`analysis.md` 就是那一支，六節：跨 context 的交手順序（`FL-nn`）、一個狀態欄位的生命週期（`LC-nn`）、算出來而不是存下來的數字（`RM-nn`）、單一規則解釋不了的機制（`MX-nn`）、誰碰得到哪個功能的索引，以及一直被繞過的熱點。每一條標明出處（程式碼、資料、誰確認的、推論或假設）。不再只留在對話裡、或跟著 feature 收尾一起凍結；中途採用 Dflow 的既有專案，也靠它把系統現況一塊塊補齊。 |
 | **依改動深淺的 Tier 制（T1/T2/T3）** | AI 依改動深淺自動決定規格與驗證量級：改顏色／typo 這類小修（掛在所屬 feature 下）只需 `_index.md` 一行、功能性 bug fix 用 lightweight spec（T3 顯示層 defect 仍是 `_index.md` 一行）、新 feature 或動到 bounded context 級的變更才走完整 phase-spec。小修改不會被流程拖累。 |
 | **漂移驗證** | `/dflow:verify` 交叉比對規格、領域文件、實作、測試與債務紀錄，抓出「文件還在描述舊行為」這種 PR review 人眼看不出的漂移。 |
-| **Specs 給 AI 讀、也給人讀（md → HTML）** | `dflow render` 把 AI 取向的密集 Markdown specs 轉成可瀏覽的靜態 HTML（表格變卡片、標記變 badge；下方有對照截圖）。Markdown 仍是 AI 讀的 source of truth。 |
+| **Specs 給 AI 讀、也給人讀（md → HTML）** | `dflow render` 把 AI 取向的密集 Markdown specs 轉成可瀏覽的靜態 HTML。`analysis.md` 裡的狀態生命週期與跨 context 流程畫成圖：哪個狀態會繞回去、哪裡是終點，交手在哪幾個 context 之間移動，一眼看出來；其餘表格變卡片、標記變 badge（下方有對照截圖）。Markdown 仍是 AI 讀的 source of truth。 |
 | **多 AI 工具共用一份規則** | Canonical 專案指南＋各工具薄 shim（`CLAUDE.md` / `AGENTS.md` / Copilot instructions），在 Claude / Codex / Copilot 間切換不必維護多份規則；三家共用依 agentskills.io 開放標準的 project-level skill，可自然語言自動觸發（Copilot CLI 需先打 `/dflow` 喚起）。 |
+
+## 你不用先學指令
+
+把要做的事講出來就好，AI 會判斷該走哪一條 workflow、要寫多少規格：
+
+| 你說 | AI 走的路 |
+|---|---|
+| 「幫我加一個報銷單審核的功能」 | 新功能 → 完整規格（T1） |
+| 「這個欄位算錯了」 | 修 bug → 判 tier，多半是輕量規格（T2） |
+| 「把這個按鈕改成藍色」 | 顯示層小修（T3）→ `_index.md` 記一行就好 |
+
+`/dflow:new-feature`、`/dflow:modify-existing`、`/dflow:bug-fix` 這些名字**你可以完全不記得**
+——而且後兩個走的本來就是同一份 flow 文件，選錯也沒有後果。
+
+下面這張圖是你講完需求之後會發生的事。綠色的每一格都是 AI **停下來等你確認**的地方（Step Gate）；
+綠色那一格帶 commit 標記時，那個 Step Gate 會同時問你要不要 commit；藍色那一格帶標記則表示
+那一步會單獨問你要不要 commit——**它一樣會停，只是它不是 Step Gate**。
+⚠ **你會遇到幾個 Step Gate，由 flow 與 tier 一起決定**：不同 flow 不同；同一條 flow 裡，輕的 tier
+還會跳過一些關（`/dflow:modify-existing` 判成 T3 就不跑 DDD 影響評估那一關）；判成 T1 則可能整條
+升到 `/dflow:new-feature`／`/dflow:new-phase`。圖上走的是 `new-feature` 的四個，加上
+`finish-feature` 自己的兩個。
+
+![Dflow 流程圖：從「你講需求」開始，AI 判定要多少規格，分流到新功能或改既有／修 bug，接著沿 T1 完整路徑走過 new-feature 的四個 Step Gate 與兩個 commit 檢查點，最後回到 new-phase，或交給 finish-feature 走它自己的兩個 Step Gate，在歸檔那一步做第三個 commit 檢查點之後凍結歷史](media/ai-guided-flow.zh-TW.png)
+
+要直接指定某條 flow、想糾正 AI 選錯的那一條、或想盤點 Dflow 涵蓋哪些情境，
+見[指令參考](docs/commands.md)。
 
 ## 開始使用
 
@@ -64,32 +91,22 @@ dflow configure-agents --command-adapters --skills
 
 ### 開始使用 Dflow workflow
 
-完成 init 之後，透過 AI 程式設計助理走 Dflow workflow：
+完成 init 之後，直接把要做的事講給 AI 程式設計助理聽：
 
 ```text
-/dflow:new-feature
-/dflow:modify-existing
-/dflow:bug-fix
-/dflow:new-phase
-/dflow:finish-feature
-/dflow:verify
-/dflow:pr-review
+幫我加一個報銷單審核的功能
 ```
 
-`/dflow:*` 是 Dflow 的 canonical 共同詞彙；各 AI 工具的 `/` parser 行為不同。實際輸入方式如下：
+AI 會判斷該走哪一條 workflow 並主動啟動，然後在每個決策點停下來等你確認——流程見上方
+[你不用先學指令](#你不用先學指令)。
 
-| 工具 | 建議叫法 |
-|---|---|
-| Claude Code（安裝 `--command-adapters` 後） | `/dflow:<id>`，例如 `/dflow:new-feature` |
-| GitHub Copilot（VS Code Chat） | 命令入口用 `/dflow-<id>`（連字號，需 `--command-adapters`）；也可自然語言自動觸發。`/dflow:<id>`（冒號）僅當文字稱呼、非命令 |
-| GitHub Copilot CLI | 沒有 per-id 命令；先打 `/dflow` 喚起 skill，再用自然語言描述 workflow |
-| Codex CLI | 不帶斜線的純文字 `dflow:<id>`，例如 `dflow:new-feature` |
-
-若你的工具不支援自訂 slash command，把 workflow 名稱當成普通對話訊息輸入即可。Dflow 是 Markdown-based 的 workflow 材料加一個 scaffolding CLI，能與任何可讀專案指示與 repo 上下文的 AI 程式設計助理一起運作。
+想自己指定某條 flow（例如你已經確定這是一個新 feature），或想知道 Dflow 總共涵蓋哪些
+情境，見[指令參考](docs/commands.md)：11 條 workflow、各 AI 工具的輸入方式、以及 `dflow`
+CLI 的四個指令。
 
 第一次採用建議用 branch 或一次性試用專案，讓團隊先檢視產生的 `dflow/specs/` 工作區，再把流程引入正式程式碼。
 
-完整評估流程（init 產生哪些檔案、AI 工具支援、模式選擇、30 分鐘試用 playbook）見 [評估 Dflow](docs/evaluating-dflow.md)。Greenfield 與 Brownfield 端到端劇情走完與規格範例見 [`tutorial/`](tutorial/README.md) 索引。
+完整評估流程（init 產生哪些檔案、AI 工具支援、模式選擇、30 分鐘試用 playbook）見 [評估 Dflow](docs/evaluating-dflow.md)。Greenfield 與 Brownfield 端到端劇情走完與規格範例見 [`tutorial/`](https://github.com/weilung/dflow-sdd-ddd/blob/main/tutorial/README.md) 索引（在 source repository，不隨 npm 套件安裝）。
 
 ### 把 specs 轉成人類可讀的 HTML
 
@@ -105,7 +122,11 @@ dflow render
 
 ![同一份 models.md：左為 AI 讀的 Markdown 源，右為 dflow render 產生的 HTML 頁面](media/render-side-by-side.png)
 
-範例取自本 repo 的 Expense 教學規格（[`tutorial/01-greenfield/outputs`](tutorial/01-greenfield/outputs/)），clone、`npm install` 後可用 `node bin/dflow.js render --src tutorial/01-greenfield/outputs/dflow/specs` 自行重現。
+`analysis.md` 的生命週期也是同樣的兩種讀法——左：狀態表與轉移表；右：render 在卡片上方畫出的圖（`Rejected` 繞回 `Draft` 的重編迴圈、`Approved` 是終點，一眼就看得出來）：
+
+![同一個生命週期 LC-01：左為 analysis.md 的狀態表與轉移表，右為 dflow render 畫出的狀態圖](media/render-lifecycle-diagram.png)
+
+兩張範例都取自本 repo 的 Expense 教學規格（[`tutorial/01-greenfield/outputs`](https://github.com/weilung/dflow-sdd-ddd/tree/main/tutorial/01-greenfield/outputs)），clone、`npm install` 後可用 `node bin/dflow.js render --src tutorial/01-greenfield/outputs/dflow/specs` 自行重現。
 
 分工模型：**Markdown 是 AI 閱讀的 source of truth；HTML 是人類閱讀投影**。specs 一變就重跑一次 `dflow render` 即刷新（每次執行都是全量重建）。輸出目錄由 render 管理、**非 render 產生的檔案永不會被動到**——屬可重生成的衍生物，建議加進 `.gitignore`：
 
@@ -138,8 +159,8 @@ Dflow 採用混合設計，user 跟 AI 互動有三個層面：
 
 | 層 | 用途 |
 |---|---|
-| **命令進入** | 開發者主動以 `/dflow:new-feature`、`/dflow:modify-existing` 等命令開始工作。 |
-| **自動偵測安全網** | 當對話明顯指向某個 feature、phase、bug fix、verification、review 時，AI 應主動建議對應的 Dflow flow。 |
+| **自然語言進入（預設）** | 你描述要做的事，AI 判斷這指向哪個 feature、phase、bug fix、verification 或 review，並主動啟動對應的 flow。多數時候這就是全部。 |
+| **命令進入（想自己指定時）** | 已經知道要走哪一條，就直接下 `/dflow:new-feature`、`/dflow:modify-existing` 等命令。名稱與各工具的輸入方式見[指令參考](docs/commands.md)。 |
 | **透明的決策檢查點** | AI 在工作的關鍵節點（flow 進入、Step Gate、重要內部步驟）會停下來告知並等開發者確認方向，避免一路自動跑下去。 |
 
 ### Workflow 內部結構
@@ -180,7 +201,7 @@ tier 不是每次都 user 決定 — `/dflow:new-feature` 與 `/dflow:new-phase`
 |---|---|---|---|
 | **Phase Delta** | `phase-spec-{date}-{slug}.md`（或 lightweight spec） | 紀錄此次循環改了什麼、為什麼、怎麼實作與驗證 | feature branch 內的一次 milestone 區間 |
 | **Feature Snapshot** | `_index.md`（每個 feature 目錄內） | feature 級 dashboard：phase 列表、cumulative BR Snapshot、Resume Pointer | feature branch 自己的「目前進度」 |
-| **System State** | `rules.md` / `behavior.md` / `glossary.md` / `context-map.md` | 跨 feature 的長期知識：術語、業務規則、模型、慣例、技術債 | main / trunk 累積下來的「系統現在實際是什麼」 |
+| **System State** | `rules.md` / `behavior.md` / `glossary.md` / `context-map.md` / `analysis.md` | 跨 feature 的長期知識：術語、業務規則、模型、流程與生命週期、慣例、技術債 | main / trunk 累積下來的「系統現在實際是什麼」 |
 
 `_index.md` 是關鍵的中間層。很多 spec 工具只有 phase + system 兩層，但 feature branch 跨多次 phase 是常態，少了中間層就會遇到三個痛點：
 
@@ -189,6 +210,12 @@ tier 不是每次都 user 決定 — `/dflow:new-feature` 與 `/dflow:new-phase`
 - 歸檔顆粒度太細或太粗 — 要嘛一份份歸檔失去 feature 全貌，要嘛全部塞進 system 層失去 phase 軌跡
 
 Dflow 用 `_index.md` 解決這三點：Current BR Snapshot 每完成一個 phase 就 regenerate、Resume Pointer 寫接續指引、整個 feature 目錄是自然的歸檔單位。`/dflow:finish-feature` 收尾時，把 `_index.md` 的 BR Snapshot reconcile 到 `rules.md` / `behavior.md`（feature 層晉升到 system 層），然後 `git mv` 整個 feature 目錄到 `completed/`。
+
+### completed feature 是凍結歷史
+
+當 `/dflow:finish-feature` 把 feature 目錄 `git mv` 到 `completed/` 後，**該 feature 不接受任何直接寫入**，無論是新 phase-spec、lightweight-spec、還是 `_index.md` inline 一行（唯一 sanctioned 例外：Follow-up Tracking 段的 derived metadata——有 follow-up feature 連回時，其 reverse-link 列由 `in-progress` 翻 `completed`；specs、BR Snapshot、inline change history 仍凍結）。如果之後要再改它，必須建一個 follow-up feature：新 feature 目錄、新 SPEC-ID、`_index.md` 用 `follow-up-of: {原 SPEC-ID}` metadata 連回原 feature。
+
+理由：「completed = 凍結歷史」是 Dflow 的核心保證；若接受 post-completion 修改，feature lifecycle 就失去明確終點、`_index.md` BR Snapshot 也無法可信。`/dflow:modify-existing` 偵測到目標是 completed feature 時會主動詢問 user 三個選項：A 走 follow-up、B 當獨立新需求（**T1** 走 `/dflow:new-feature`；**T2／T3** 留在 `/dflow:modify-existing`，開一個 standalone minimal host）、C（被拒絕，重新引導至 A）。
 
 ## Init 產生的檔案
 
@@ -210,6 +237,8 @@ dflow/
         ├── active/
         └── completed/
 ```
+
+`analysis.md` 不在 init 產生之列：跨 context 的記在 `domain/analysis.md`、單一 context 擁有的記在 `domain/{context}/analysis.md`，都是第一次有東西要記時才從範本建立。
 
 Dflow 也會為你的 AI 程式設計助理建立或更新專案指示檔；確切檔名取決於目標工具與既有專案設定。Dflow 不覆寫既有專案指示中的自訂內容。
 
@@ -246,64 +275,7 @@ Dflow 也會為你的 AI 程式設計助理建立或更新專案指示檔；確�
 - [在 Codex CLI 中使用 Dflow](docs/using-with-codex.md)
 - [在 GitHub Copilot 中使用 Dflow](docs/using-with-github-copilot.md)
 
-Init 不會把 `tutorial/` 目錄複製進你的專案。[`tutorial/`](tutorial/README.md) 目錄存放在本 source repository，作為理解 Dflow 如何在 Greenfield / Brownfield 劇情中運作的評估材料。
-
-## 主要 Flow
-
-Dflow 指令依角色分四類。「我要做的事」對應到指令的速查表附在最後。
-
-### 入口指令（從這裡開始一個 workflow）
-
-啟動一次 workflow run；可在沒有任何既有 feature 的狀態下使用。三者彼此獨立、不互為前置。
-
-| Flow | 何時用 | 典型產出 |
-|---|---|---|
-| `/dflow:new-feature` | 完全新功能、新增一條系統要實現的業務規則 | feature 目錄 + `_index.md` + 第 1 份 phase-spec（一律 T1） |
-| `/dflow:modify-existing` | 改既有行為 — **不確定改動屬於哪類**時用，AI 內部會分流 | T1 → 升 new-phase / new-feature；T2 → lightweight-spec；T3 → `_index.md` inline 一行 |
-| `/dflow:bug-fix` | 可清楚陳述預期行為的 defect | AI 判 tier（多為 T2 lightweight-spec）。無所屬 feature 的 orphan bug 會開一個 minimal（zero-phase）host：**功能性 bug** 走 `bugfix/BUG-{NUMBER}-{slug}`，其餘 standalone T2／T3 走 `feature/{SPEC-ID}-{slug}` |
-
-### Feature 內指令（限 active feature）
-
-只在已啟動的 active feature 內可用。指向 `completed/` 的 feature 會被拒絕。
-
-| Flow | 何時用 | 典型產出 |
-|---|---|---|
-| `/dflow:new-phase` | active feature 需要再一個實作切片 | 新一份 `phase-spec-{date}-{slug}.md` + Implementation Tasks + 程式實作 / 驗證 + phase 標記完成（一律 T1） |
-| `/dflow:finish-feature` | feature 全部 phase 完成、要收尾 | `git mv` 整個 feature dir 到 `completed/`、sync BR Snapshot 到 BC 層、Integration Summary（不 auto-merge） |
-
-### 流程控制（管理進行中的 workflow run）
-
-| Flow | 何時用 |
-|---|---|
-| `/dflow:status` | 看現在在哪個 workflow / Step / 進度 |
-| `/dflow:next` | 確認過 Step Gate（等同自然語言「OK」/「繼續」） |
-| `/dflow:cancel` | 放棄目前 workflow run、回到自由對話。已建立的 artifacts 保留 |
-
-### 獨立工具（任何時候可呼叫，不綁定 feature 或 workflow）
-
-| Flow | 何時用 | 典型產出 |
-|---|---|---|
-| `/dflow:verify` | 需要確認文件、程式、測試、債務紀錄是否一致 | 跨規格、領域文件、實作、測試、債務的 drift report |
-| `/dflow:pr-review` | 變更已準備接受審查 | SDD/DDD 合規 review 清單，含風險、缺口、後續項目 |
-| `/dflow:report-dflow-feedback` | 你或 AI 在使用中發現 Dflow 本身的問題 | sanitized 的本地草稿，逐欄對齊上游 issue 表單可直接貼上；不自動送出 |
-
-### 該選哪個指令（rule of thumb）
-
-| 我要做的事 | 直接下指令 |
-|---|---|
-| 完全新功能（與現有 feature 無關） | `/dflow:new-feature` |
-| 為 active feature 加規劃中的下一個 phase | `/dflow:new-phase` |
-| 修一個明確的 bug | `/dflow:bug-fix` |
-| **不確定**怎麼分類、反正是改既有的 | `/dflow:modify-existing` |
-| feature 全部 phase 都完成、要收尾 | `/dflow:finish-feature` |
-| 跑變更 review | `/dflow:pr-review` |
-| 檢查文件與程式碼 drift | `/dflow:verify` |
-
-### completed feature 是凍結歷史
-
-當 `/dflow:finish-feature` 把 feature 目錄 `git mv` 到 `completed/` 後，**該 feature 不接受任何直接寫入**，無論是新 phase-spec、lightweight-spec、還是 `_index.md` inline 一行（唯一 sanctioned 例外：Follow-up Tracking 段的 derived metadata——有 follow-up feature 連回時，其 reverse-link 列由 `in-progress` 翻 `completed`；specs、BR Snapshot、inline change history 仍凍結）。如果之後要再改它，必須建一個 follow-up feature：新 feature 目錄、新 SPEC-ID、`_index.md` 用 `follow-up-of: {原 SPEC-ID}` metadata 連回原 feature。
-
-理由：「completed = 凍結歷史」是 Dflow 的核心保證；若接受 post-completion 修改，feature lifecycle 就失去明確終點、`_index.md` BR Snapshot 也無法可信。`/dflow:modify-existing` 偵測到目標是 completed feature 時會主動詢問 user 三個選項：A 走 follow-up、B 當獨立新需求（**T1** 走 `/dflow:new-feature`；**T2／T3** 留在 `/dflow:modify-existing`，開一個 standalone minimal host）、C（被拒絕，重新引導至 A）。
+Init 不會把 `tutorial/` 目錄複製進你的專案，npm 套件裡也沒有它。[`tutorial/`](https://github.com/weilung/dflow-sdd-ddd/blob/main/tutorial/README.md) 目錄存放在 source repository，作為理解 Dflow 如何在 Greenfield / Brownfield 劇情中運作的評估材料。
 
 ## 為什麼 DDD 在 AI 時代更重要
 
@@ -329,14 +301,15 @@ issue 與 pull request 指引見 [CONTRIBUTING.md](CONTRIBUTING.md)。Pull reque
 
 ## 狀態
 
-Dflow 目前以 `dflow-sdd-ddd` 名稱發佈於 npm。最新發佈版本為 `0.14.0`，提供：
+Dflow 目前以 `dflow-sdd-ddd` 名稱發佈於 npm。最新發佈版本為 `0.15.0`，提供：
 
 - 專案 scaffolding 與升級：`dflow init`（初始化）、`dflow configure-agents`（idempotent 升級重投影）、`dflow doctor`（唯讀健康檢查與漂移偵測）、`dflow render`（specs → 人類可讀 HTML）
 - Workflow 文件（11 個 `/dflow:*` 流程）＋隨專案 vendored 的 workflow bundle＋多 AI 工具設定（canonical 指南、各工具薄 shim、預設安裝的 project-level skill）
-- 公開評估與教學材料：evaluator 指南、Claude Code / Codex CLI / GitHub Copilot per-tool walkthrough、Greenfield / Brownfield 劇情教學
+- 套件內的公開評估材料：evaluator 指南、Claude Code / Codex CLI / GitHub Copilot per-tool walkthrough（都在 `docs/`）
+- Greenfield / Brownfield 劇情教學與規格範例：**在 source repository，不在 npm 套件裡**（tarball 不含 `tutorial/`）——見 [`tutorial/`](https://github.com/weilung/dflow-sdd-ddd/tree/main/tutorial)
 - 僅驗證的 CI workflow（不執行 publish）
 
-GitHub 上的 source 可能包含 `0.14.0` 之後尚未發佈的 repo 變更。完整 release history 見 [CHANGELOG.md](CHANGELOG.md)。
+GitHub 上的 source 可能包含 `0.15.0` 之後尚未發佈的 repo 變更。完整 release history 見 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 授權
 

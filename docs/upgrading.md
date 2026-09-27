@@ -67,7 +67,8 @@ doctor 是**唯讀**檢查——只回報、不寫任何檔案。升級相關的
   no-BR 家族、SPEC-ID Format 的 minimal-host 例外）。逐節點名,並告訴你該補什麼
 - guide 凍結（無 marker）、或 bundle 的 `§` 參照指向不存在的段落
 - 你所選 Git policy 對應的 `Git-principles-{policy}.md` starter 缺漏，或其 **canonical §§ 1–5** 與本版不同——另外三種狀態分開回報：還沒採納 marker、marker 損壞、以及安裝的套件自己那份 starter 不堪用。只比 §§ 1–5，所以你自己的段落永遠不會被報成 drift
-- `features/active/` 內的 feature `_index.md` 還是舊模板形狀（`completed/` 不掃）
+- `features/active/` 內的 feature `_index.md` 還是舊模板形狀（`completed/` 不掃）——只針對沒有形狀標記的 dashboard；帶著標記的由下一項判讀
+- 規格文件的**形狀標記**比現行範本舊、比現行範本新、沒有標記，或看不準（見[形狀標記](#形狀標記)）
 - 已指向 canonical 指南、卻未受 Dflow 管理的 agent 檔
 - 命令入口**只裝了一部分**——`.claude/commands/dflow/` 或 `.github/prompts/dflow-*.prompt.md` 有幾支但不是 11 支全到，以及留著 `0.5.0` 舊檔名的殘留。⚠ **整組都不存在時不會報**，理由見上面 ownership 表下方那段
 - Dflow 產生的 `SKILL.md`（Claude／Codex／Copilot 三份任一）內容落後於目前 CLI——它的 `description` frontmatter 就是工具拿去比對、決定要不要自動接手的那段文字，所以落後的那份等於還用著舊版的觸發邊界。沒有 Dflow marker 的 `SKILL.md` 是你的檔，永遠不報
@@ -90,13 +91,77 @@ doctor 是第一道；要完整確認升級沒有漏，基準做法是「乾淨�
    `### SPEC-ID Format` 現在 doctor 會直接點名；`### Slug Conventions` 沒有指紋，
    仍屬「只能靠 CHANGELOG」那一類。
    三類都歸不進去的差異才是漏修，逐一處理。
+   ⚠ 有一種差異不屬於這三類，而且**不要**抄過去：全新文件第一行的 `<!-- dflow-shape: ... -->`。它的號碼代表「這份文件跟第幾號範本形狀對照過」，所以既有文件的標記只能照[形狀標記](#形狀標記)那一節的做法補。
 
-## 含 P-082／P-083 那一版另外要做的事
+## 形狀標記
 
-> ⚠ **本節只適用於含 P-082／P-083 的版本。** 你若裝的是 0.14.0，下面講的 router
-> 措辭還不存在，跳過即可（`dflow --version` 可確認）。
+Dflow 的 flow 用來建立規格文件的每一支範本，都帶著一行標記，文件從範本建立時會一起帶過去：
 
-那一版把 **決定 Dflow 何時自己出現** 的觸發措辭換掉了。舊的排除句是無限定的——
+```markdown
+<!-- dflow-shape: greenfield/rules.md 1 — keep this line: dflow doctor reads it -->
+```
+
+它記的是**這份文件是照哪一軌的哪一支範本、第幾號形狀寫的**——就像紙本表單角落印的版號。它在文件的第一行；文件有 frontmatter 的話，在 frontmatter 收尾那一行的下一行。畫面上看不到它；請讓它留在原位。doctor 只從這個位置讀它；號碼後面那段說明（`— keep this line: …`）可有可無。文件裡別的地方只要還有一行含 `dflow-shape:`——當例子引用的、被註解掉的舊標記也算——doctor 就不判讀這份文件，而是報看不準：它不去判斷哪一行才是有效的標記。
+
+**哪些文件有。** flow 從 workflow bundle 的範本建立的文件——`glossary.md`、`context-map.md`、各個 context 的 `models.md`、`rules.md`、`behavior.md`、`analysis.md` 與 `context.md`、`tech-debt.md`（greenfield 另有 `events.md`），以及 feature 目錄裡的 `_index.md`、phase spec 與 lightweight spec（greenfield 另有 `aggregate-design.md`）——再加上 `shared/_overview.md`。`_conventions.md`、`Git-principles-*.md`、`AI-AGENT-GUIDE.md`、agent 用的 snippet 與 ADR 資料夾的 README 沒有。
+
+**`dflow doctor` 怎麼用它。** 拿文件上的號碼，跟你裝的這一版 CLI 裡同一支範本的現行號碼比：
+
+| 文件上的標記 | `dflow doctor` |
+|---|---|
+| 與現行同號 | 不報。文件跟範本不一樣的地方，都是你自己的決定 |
+| 比現行舊 | 一條 `info`，列出哪幾份文件、從第幾號到第幾號，以及這兩號之間變了什麼，分三類：<br>**新增**——段、欄或 frontmatter 欄位：可以照補；<br>**改名、拆分、搬移或移除**——只報：由你判斷怎麼改；<br>**說明與順序**——`>` 說明、HTML 註解、段落的先後：不影響結構，由你（和 AI 助手）判斷要不要跟範本同步 |
+| 比現行新 | 一條 `warn`：你的 CLI 比文件舊——先升級 CLI |
+| 沒有標記 | 一條 `info`，列出哪幾份；這一項檢查**不**判讀它們的形狀（見下一節）。沒有標記的 feature `_index.md` 仍然走上面列的那一項舊範本形狀檢查 |
+| 看不準（標記不在它的位置、格式不對，或不只一行含 `dflow-shape:`） | 一條 `uncertain`，`unreadable-shape-marker`（[doctor-uncertainty.md](doctor-uncertainty.md)），列出行號與處理方式 |
+
+doctor 檢查 `dflow/specs/` 底下的文件，但 `shared/` 是 Dflow 自己的檔、只檢查其中的 `shared/_overview.md`；`features/` 底下只看 `active/`，`completed/` 與 `backlog/` 都不檢查。你的專案的 workflow bundle 若來自比你裝的 CLI 還新的 Dflow，doctor 會跳過這項檢查並說明原因：那樣比，等於拿比你專案用的還舊的範本來判讀你的文件。
+
+### 替沒有標記的文件補上標記（一次）
+
+加入形狀標記的那一版之前建立的文件都沒有標記，所以 doctor 會把它們列出來，但不判讀它們的形狀——它不去猜哪些差異是範本造成的、哪些是你造成的。補標記是一次性的工作，最好交給你的 AI 助手一份一份做，**每一個差異都由你判斷**：
+
+1. **拿現行範本來比。** doctor 說你的 workflow bundle 比 CLI 舊的話，先跑 `dflow configure-agents`。`_overview.md` 不在 bundle 裡：用你裝的套件裡的 `templates/<track>/scaffolding/_overview.md`，或在一個暫存目錄跑一次 `dflow init`。
+2. **確認軌別**（greenfield 或 brownfield）——標記裡要寫。
+3. **拿文件跟範本比**：`##` 與 `###` 標題與它們的先後、每張表的表頭、frontmatter 欄位，以及 `>` 說明與 HTML 註解。略過範例標題與範例列（帶 `{…}` 佔位字的都算）、其他說明文字；lightweight spec 如果是用沒有 BR 的那幾種 family 寫的，`## Root Cause` 與 `## Behavior Delta` 底下那個變更類型小節也略過——family 本來就會替換它們。
+4. **逐一判斷每個差異。** 文件寫好之後範本才加的 → 補形狀：補那一段；或補那一欄，既有的列填 `{TBD}`，並在表格上方留一條註解寫明這個值是什麼、什麼時候回填、怎麼判定完成；或補那個 frontmatter 欄位。只補形狀，不補內容。文件寫好之後範本改名、拆分、搬移或移除的 → 由你決定這份文件怎麼跟著改：把範本的新寫法搬進來、又留著你原本的，會讓新舊兩段並存。你自己決定的 → 照原樣保留。（一個專案只寫一段 `## Rules`、而範本有三段，這是它的選擇；有了標記，doctor 才不會再把它當成漂移。）`>` 說明、註解與段落順序不影響結構：要不要跟範本同步由你決定，照原樣保留也可以。
+5. **加上標記那一行**：從現行範本抄過來，放在文件第一行——有 frontmatter 就放在它後面。
+
+⚠ **號碼是你判斷過的結論，不是可以自動化的步驟。** 一份形狀其實還是舊的文件蓋上現行號碼，doctor 從此對它保持沉默——這是 doctor 唯一偵測不到的錯。
+⚠ **還沒關帳的 zero-phase feature 先不要動**——也就是 minimal host：只掛一個小改動、Phase Specs 表是空的、目錄裡也沒有 phase spec 的 feature 目錄。它的關帳恰好兩個 commit，而且只允許一張封閉清單上的變動，現在補標記會讓關帳被擋下。doctor 會把這些文件分開列；關帳後它們搬進 `features/completed/`，就不再被檢查。Phase Specs 表是空的、目錄裡卻有 phase spec 的 feature，doctor 判不出是不是 minimal host，也會分開列：是 minimal host 就先別動，不是就照一般做法補。
+⚠ **不要把整段範本檔頭抄進舊文件**——例如只是想補表格排版那條註解時。檔頭裡帶著範本的現行標記。
+
+可以直接交給 AI 助手的提示：
+
+```text
+For each doc `dflow doctor` lists as having no shape marker — except the ones it says to leave alone until closeout (for a feature doctor cannot place, ask me first whether it is a minimal host) — compare it with its current template under dflow/specs/shared/dflow-workflows/templates/ (for shared/_overview.md: templates/<track>/scaffolding/_overview.md in the installed dflow package). Compare the ## and ### headings and their order, each table's header row, the frontmatter fields, and the > notes and HTML comments; ignore {…} placeholder headings and rows, other prose, and the sections a lightweight spec's no-BR family replaces. List every difference and ask me, one at a time, whether the template added it later, the template renamed, split, moved or removed it later, or I chose it; for a note, a comment or the section order, ask me whether to bring the doc in line. For template additions, add the shape only: the section, the column (existing rows get {TBD}, plus a comment above the table saying what the value is, when to backfill it and how to tell it is done) or the frontmatter field. For a rename, split, move or removal, show me the doc's version and the template's and let me decide how to change the doc — never keep both side by side. Keep my choices as they are. Then copy the template's <!-- dflow-shape: ... --> line into the doc, as its first line or right after its frontmatter. Change nothing else.
+```
+
+### 範本的號碼往上加的時候
+
+升級之後，doctor 會列出落後的文件與變了什麼。**新增**的項目，照上面第 4 步補形狀；**改名、拆分、搬移或移除**的項目，由你判斷文件怎麼改——照補會讓新舊兩段並存；**說明與順序**的項目不影響結構，拿現行範本的那一段對照，判斷要不要同步。處理完——補了、同步了，或判定維持原樣——就把它那一行標記的號碼改成現行號；沒改之前，doctor 每次都會再報一次。
+
+### 標記管不到的地方
+
+以下每一項都想過，也刻意不防：要防住，每一次執行（或每一個採用者）要付的代價，比它防的錯還大。這些風險由你承擔；適用的項目會寫明什麼情況下會重新考慮。
+
+- **AI 建文件時沒有帶上標記。** 沒有任何東西保證 AI 照範本建文件時會把那一行抄過去；那一行自己說明了用途，能降低它被弄掉的機會，但不是保證。這樣的文件會退回「沒有標記」——全新專案在建完第一個 feature 之後就可能看到。要百分之百防住，得在每一支會建文件的 flow 裡加一句指示，每次執行都要讀。*會重新考慮的情況*：實際上常常掉。
+- **標記後來被刪掉或寫壞**，會退回「沒有標記」或「看不準」。doctor 會照實說，不會把它當成現行形狀。
+- **標記被當成例子引用，或舊標記被註解掉**：doctor 不判斷那一行是不是有效的標記，會報看不準——多一條要處理的提示，換來不會把它讀不到的文件報成通過。
+- ⚠ **號碼合法但錯誤**——例如把範本檔頭抄到舊文件上——會被當成現行形狀，doctor 保持沉默。這一種偵測不到：文件裡沒有任何東西分得出號碼是對是錯。
+- **形狀以外的改動。** 形狀指的是 `##`／`###` 標題與它們的先後、表頭、frontmatter 欄位、`>` 區塊裡的說明（連同其中的表格），以及 HTML 註解——範本寫給 AI 的填寫說明多半在註解裡，lightweight spec 那幾種沒有 BR 的 family 也定義在那裡。固定的標籤文字、詞彙表的列（例如 `rules.md` 的 Status Legend）、`####` 以下、frontmatter 裡的 `#` 註解，以及上面以外的說明文字，改了不會讓範本加號，doctor 也就不會報。*會重新考慮的情況*：這種改動對真實專案造成影響。
+- **同號不報——也包括 AI 不小心刪掉的段落**，不只是你刻意拿掉的。這是「同號代表你的決定」的代價。
+- **不在 flow 慣用路徑上、又沒有標記的文件**（改過名或搬過位置）不會被列為沒有標記；doctor 對它們什麼都不說。在上面說的檢查範圍內，有標記的文件不論放在哪裡，都照標記判讀。
+- **補了形狀卻沒改號**：doctor 下次會再報一次。改好了就改號。
+- **在 Dflow 這一側**，已發布的形狀號碼由 Dflow 自己的測試裡的摘要值守住；同時改掉形狀與摘要值的改動，只有 review 看得到。
+- **標記只說「跟第幾號範本形狀對照過」，不保證內容正確。**
+
+## `0.15.0` 另外要做的事
+
+> ⚠ **本節只適用於 `0.15.0`（含 P-082／P-083 的那一版）。** 你若裝的是 0.14.0，
+> 下面講的 router 措辭還不存在，跳過即可（`dflow --version` 可確認）。
+
+`0.15.0` 把 **決定 Dflow 何時自己出現** 的觸發措辭換掉了。舊的排除句是無限定的——
 refactors／renames／chores／formatting／dependency bumps 一律不觸發，root shim 還
 額外寫著「你不需要先讀 guide」。但同一版的 cascade 判定 security／CVE 的 dependency
 bump、碰 payment 這類操作語意面的 refactor、Domain／schema rename 都**要**進

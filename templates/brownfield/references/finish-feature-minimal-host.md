@@ -231,11 +231,13 @@ A `✗` here stops closeout there, on the same terms.
       BR Snapshot;
       (ii) an **already-committed** `lightweight-*.md` / `BUG-*.md`, with its
       uncommitted delta confined to the frontmatter `status:` flip to
-      `completed` and — when the developer accepted the offer — the
-      `Implementation Tasks` collapse / removal `modify-existing-flow.md`
-      Step 6's completion checklist makes once those tasks are done ("applies to
-      both phase-spec and lightweight-spec"). On a minimal host that checklist necessarily runs
-      *after* checkpoint 1, so this edit is uncommitted here by construction;
+      `completed` and the `Implementation Tasks` edits
+      `modify-existing-flow.md` Step 6's completion checklist makes ("applies
+      to both phase-spec and lightweight-spec"): ticking the tasks this change
+      completed and labelling each unchecked one as follow-up (6.1), and — when
+      the developer accepted the offer — collapsing or removing the section
+      (6.2). On a minimal host that checklist necessarily runs *after*
+      checkpoint 1, so these edits are uncommitted here by construction;
       (iii) the Domain-layer documents **this change's Step 6.3 sweep** updates
       — under `dflow/specs/domain/`, plus
       `dflow/specs/migration/tech-debt.md` — scoped to *this change's* delta.

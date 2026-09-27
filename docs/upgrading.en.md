@@ -64,7 +64,8 @@ doctor is a **read-only** check — it reports and never writes. Upgrade-relevan
 - `_conventions.md` **content sections** lagging the current contract — a current rule absent, or wording PROPOSAL-082 retired still present (the escalate-only rule in Ceremony Scaling, the no-BR families in Filling the Templates, the minimal-host exception in SPEC-ID Format). Named section by section, with what to restore
 - a frozen (marker-less) guide, or bundle `§` references pointing at sections that no longer exist
 - the `Git-principles-{policy}.md` starter for your selected Git policy being missing, or its **canonical sections 1-5** differing from this version — reported apart from three other states: markers not yet adopted, markers damaged, and an installed package whose own packaged starter is unusable. Only sections 1-5 are compared, so your own sections never show up as drift
-- feature `_index.md` files under `features/active/` still in an older template shape (`completed/` is not scanned)
+- feature `_index.md` files under `features/active/` still in an older template shape (`completed/` is not scanned) — for a dashboard without a shape marker; one that carries a marker is judged by the next check
+- spec docs whose **shape marker** is older or newer than the current template's, missing, or unreadable — out of place, damaged, or not the only one (see [Shape markers](#shape-markers))
 - agent files that point at the canonical guide but are not managed by Dflow
 - a **partially installed** set of command entries — `.claude/commands/dflow/` or `.github/prompts/dflow-*.prompt.md` holding some of the 11 but not all, and `0.5.0`-era filenames left behind. ⚠ A set that is entirely absent is **not** reported; see the ownership table above
 - a Dflow-generated `SKILL.md` (Claude, Codex, or Copilot) whose content has fallen behind this CLI — its `description` frontmatter is what a tool matches on to auto-engage, so a stale copy keeps an older trigger boundary. A `SKILL.md` without the Dflow marker is yours and is never reported
@@ -79,14 +80,78 @@ doctor is the first pass. To fully confirm nothing was missed, use the clean-com
 1. Run a fresh `dflow init` somewhere else with the **same edition and the same answers** (and the same CLI version).
 2. Diff it file by file against your project.
 3. Every difference should classify as one of three things: "your user content", "a known outside-the-markers region", or **"a section a newer template added that your project predates"**. The third class has two routes: `dflow doctor` (previous section) names the missing sections it recognizes and tells you how to restore them; for anything doctor does not name, see `CHANGELOG.md` (currently zh-TW only), where the release entry says what the section is and whether to adopt it — and, where placement matters, where it goes (e.g. P-083 restoring `### SPEC-ID Format` and `### Slug Conventions` to `_conventions.md` notes they belong above `## Prose Language`). Of that pair, doctor now names `### SPEC-ID Format` directly; `### Slug Conventions` has no fingerprint, so it remains a CHANGELOG-only case. Anything that fits none of the three is a missed fix — handle it item by item.
+   ⚠ One difference is none of the three and is **not** to be copied across: the `<!-- dflow-shape: ... -->` line at the top of a fresh doc. Its number states which template shape a doc was compared against, so give your existing docs one only through the procedure in [Shape markers](#shape-markers).
 
-## Extra steps for the release containing P-082 / P-083
+## Shape markers
 
-> ⚠ **This section applies only to the release containing P-082 / P-083.** If you
-> are on 0.14.0, the router wording described below does not exist yet — skip it
-> (`dflow --version` confirms).
+Every template a Dflow flow creates a spec doc from carries one line, and the doc takes it along:
 
-That release replaces the wording that decides **when Dflow engages at all**. The
+```markdown
+<!-- dflow-shape: greenfield/rules.md 1 — keep this line: dflow doctor reads it -->
+```
+
+It records **which track's template, and which shape number of it, the doc was written against** — like the version number printed on a paper form. It is the first line of the doc, or the line right after the frontmatter when the doc has one. The rendered page does not show it; leave it where it is. Doctor reads it from that line only, and the text after the number (`— keep this line: …`) is optional. If any other line in the doc contains `dflow-shape:` — a marker quoted as an example, or an old one commented out, included — doctor does not judge the doc and reports it as unreadable instead: it does not decide which of those lines is the live marker.
+
+**Which docs carry one.** The docs flows create from the workflow bundle's templates — `glossary.md`, `context-map.md`, a context's `models.md`, `rules.md`, `behavior.md`, `analysis.md` and `context.md`, `tech-debt.md` (plus `events.md` on greenfield), and in a feature directory `_index.md`, the phase specs and the lightweight specs (plus `aggregate-design.md` on greenfield) — and `shared/_overview.md`. Not `_conventions.md`, `Git-principles-*.md`, `AI-AGENT-GUIDE.md`, the agent snippets, or the ADR folder's README.
+
+**What `dflow doctor` does with it.** It compares the number with the current number of the same template, in the CLI you have installed:
+
+| The doc's marker | `dflow doctor` |
+|---|---|
+| Same number | Nothing. Wherever the doc differs from the template, that is your decision |
+| Older number | One `info` listing the docs, the two numbers, and what changed in between, in three kinds:<br>**added** — a section, a column or a frontmatter field: you can add these;<br>**renamed, split, moved or removed** — reported only: you decide how to adapt;<br>**notes, comments and section order** — `>` notes, HTML comments, the order of the sections: they do not change the doc's structure, and you (with your AI assistant) decide whether to bring the doc in line |
+| Newer number | One `warn`: your CLI is older than the doc — upgrade it |
+| No marker | One `info` listing the docs; this check does **not** judge their shape (next section). A feature `_index.md` without a marker still gets the older-template check listed above |
+| Unreadable (not on the marker's line, damaged, or more than one line containing `dflow-shape:`) | One `uncertain`, `unreadable-shape-marker` ([doctor-uncertainty.en.md](doctor-uncertainty.en.md)), with the line numbers and what to do |
+
+Doctor checks the docs under `dflow/specs/`, except `shared/` — Dflow's own files; of those only `shared/_overview.md` is checked — and, under `features/`, anything outside `active/`: `completed/` and `backlog/` are never checked. When your project's workflow bundle comes from a newer Dflow than the installed CLI, doctor skips this check and says so: it would be comparing your docs against templates older than the ones your project uses.
+
+### Adding markers to docs that have none (once)
+
+Docs created before the release that introduced markers have none, so doctor lists them and leaves their shape alone — it will not guess which differences the template made and which you made. Adding the markers is a one-time job, best done with your AI assistant, doc by doc, **with you judging each difference**:
+
+1. **Use the current templates.** If doctor says your workflow bundle is older than the CLI, run `dflow configure-agents` first. `_overview.md` is not in the bundle: use `templates/<track>/scaffolding/_overview.md` in the installed package, or run `dflow init` in a scratch directory.
+2. **Confirm the track** (greenfield or brownfield) — the marker names it.
+3. **Compare the doc with its template**: the `##` and `###` headings and their order, each table's header row, the frontmatter fields, and the `>` notes and HTML comments. Ignore example headings and rows (anything with a `{…}` placeholder), other prose, and — in a lightweight spec written in a no-BR family — `## Root Cause` and the change-type subsection under `## Behavior Delta`, which the family replaces on purpose.
+4. **Judge every difference.** Something the template added after the doc was written → add the shape: the section; or the column, with `{TBD}` in existing rows and a comment above the table saying what the value is, when to backfill it and how to tell it is done; or the frontmatter field. Add the shape, not the content. Something the template renamed, split, moved or removed after the doc was written → decide how to adapt the doc yourself: carrying the template's version in beside yours would leave the old and the new side by side. Something you chose → keep it exactly as it is. (A project that writes one `## Rules` section where the template has three is making a choice; the marker is what lets doctor stop calling it drift.) Notes, comments and section order do not change the doc's structure: bring them in line with the template or keep yours — either is fine.
+5. **Add the marker line**, copied from the current template, at the top of the doc — or right after its frontmatter.
+
+⚠ **The number is a conclusion you reached, not a step to automate.** A current number on a doc that still has an older shape makes doctor silent about that doc from then on — the one mistake doctor cannot detect.
+⚠ **Leave a zero-phase feature that has not closed out alone** — a minimal host: a feature directory holding one small change, with an empty Phase Specs table and no phase spec. Its closeout takes exactly two commits and allows only a closed list of changes, so a marker added now would block it. Doctor lists those docs apart; at closeout they move to `features/completed/`, which is not checked. A feature whose Phase Specs table is empty while its directory holds a phase spec is one doctor cannot place, so it lists those docs apart too: leave them alone if the feature is a minimal host, and handle them like the rest if it is not.
+⚠ **Do not copy a whole template head into an older doc** — for example to pick up the table-formatting comment. The head carries the template's current marker.
+
+A prompt you can give your AI assistant:
+
+```text
+For each doc `dflow doctor` lists as having no shape marker — except the ones it says to leave alone until closeout (for a feature doctor cannot place, ask me first whether it is a minimal host) — compare it with its current template under dflow/specs/shared/dflow-workflows/templates/ (for shared/_overview.md: templates/<track>/scaffolding/_overview.md in the installed dflow package). Compare the ## and ### headings and their order, each table's header row, the frontmatter fields, and the > notes and HTML comments; ignore {…} placeholder headings and rows, other prose, and the sections a lightweight spec's no-BR family replaces. List every difference and ask me, one at a time, whether the template added it later, the template renamed, split, moved or removed it later, or I chose it; for a note, a comment or the section order, ask me whether to bring the doc in line. For template additions, add the shape only: the section, the column (existing rows get {TBD}, plus a comment above the table saying what the value is, when to backfill it and how to tell it is done) or the frontmatter field. For a rename, split, move or removal, show me the doc's version and the template's and let me decide how to change the doc — never keep both side by side. Keep my choices as they are. Then copy the template's <!-- dflow-shape: ... --> line into the doc, as its first line or right after its frontmatter. Change nothing else.
+```
+
+### When a template's number goes up
+
+After an upgrade, doctor lists the docs that are behind and what changed. For each **added** item, add the shape as in step 4 above. For each **renamed, split, moved or removed** item, decide how to adapt the doc yourself — adding blindly would leave the old and the new section side by side. **Notes, comments and section order** do not change the doc's structure: compare them with the current template and decide whether to bring the doc in line. When the doc is handled — added to, brought in line, or a difference kept on purpose — change the number on its marker line to the current one; until then doctor reports it on every run.
+
+### What the marker does not cover
+
+Each of these was considered and deliberately left open, because closing it would cost every run — or every adopter — more than the failure it prevents. You carry them; where it applies, each says when it would be looked at again.
+
+- **A doc created without the marker line.** Nothing makes an AI copy the line when it creates a doc from a template; the line says why it is there, which makes losing it less likely, not impossible. Such a doc falls back to "no marker" — possibly in a new project right after its first feature. Closing this for sure would take an instruction in every flow that creates a doc, read on every run. *Looked at again if* the line turns out to be dropped often in practice.
+- **A marker deleted or damaged later** falls back to "no marker" or "unreadable". Doctor says so, and never treats such a doc as current.
+- **A marker quoted as an example, or an old one commented out**: doctor does not decide whether such a line is the live marker, so it reports the doc as unreadable — one more thing to handle, in exchange for never reporting a doc it cannot read as passing.
+- ⚠ **A valid but wrong number** — for example a template head copied onto an older doc — reads as the current shape, and doctor stays silent. This one cannot be detected: nothing in the doc tells a right number from a wrong one.
+- **Changes outside the shape.** A shape is the `##` / `###` headings and their order, table header rows, frontmatter fields, notes in `>` blocks (tables in them included) and HTML comments — most of what a template tells the AI about filling it in is in its comments, and so are the definitions of a lightweight spec's no-BR families. Fixed label text, the rows of a vocabulary table (such as `rules.md`'s Status Legend), `####` and below, `#` comments in frontmatter, and other prose do not change a template's number, so doctor never reports them. *Looked at again if* such a change turns out to matter to a real project.
+- **Same number, no report — including a section an AI deleted by mistake**, not only one you removed on purpose. That is the price of "same number means your decision".
+- **Unmarked docs at paths the flows do not use** — renamed or moved ones — are not listed as missing a marker; doctor says nothing about them. Within the part of `dflow/specs/` doctor checks (above), a doc that carries a marker is judged by it wherever it sits.
+- **Shape added, number not changed**: doctor reports the doc again on the next run. Change the number when you are done.
+- **On Dflow's side**, a released shape number is protected by a checksum in Dflow's own test suite; a change that rewrites both a shape and its checksum is caught only by review.
+- **The marker records which template shape a doc was compared against — not that its content is right.**
+
+## Extra steps for `0.15.0`
+
+> ⚠ **This section applies only to `0.15.0`** (the release containing P-082 /
+> P-083). If you are on 0.14.0, the router wording described below does not exist
+> yet — skip it (`dflow --version` confirms).
+
+`0.15.0` replaces the wording that decides **when Dflow engages at all**. The
 old exclusion was unqualified — refactors, renames, chores, formatting and
 dependency bumps never triggered, and the root shim additionally said "you need
 not read the guide first". But the cascade in the same release classifies a

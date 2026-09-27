@@ -5,6 +5,7 @@ owner: 差旅費用平台小組
 created: 2026-04-28
 last-updated: 2026-04-30
 ---
+<!-- dflow-shape: greenfield/context-definition.md 1 — keep this line: dflow doctor reads it -->
 
 # Expense Bounded Context
 

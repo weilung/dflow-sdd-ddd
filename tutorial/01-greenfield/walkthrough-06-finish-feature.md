@@ -677,11 +677,10 @@ Next Steps (developer) — Integration / PR gate (needs network):
 兩個欄位值得停下來看：
 
 **`Related BR-IDs` 這一欄最容易被讀錯，而且錯法很固定：把它當成「這次 sync 做了
-什麼」。** 它不是。flow 在**兩軌的 Step 3、Step 5，以及兩軌的 `Git-principles-*`
-scaffolding**裡都寫了同一句話：
+什麼」。** 它不是。兩軌 `finish-feature-flow.md` 的 Step 3 都寫了同一句話：
 
 > **`Related BR-IDs` is not one of those**: it reports what this change's own
-> record carries, **not what was synced**
+> record carries
 
 同一段還特別點名：`BC`、`Aggregates affected`、`Domain Events Changes` 才是「報告
 有沒有做 sync」的那一組，**`Related BR-IDs` 不屬於那一組**。

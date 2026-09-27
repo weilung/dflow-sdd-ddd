@@ -6,12 +6,113 @@
 
 ---
 
-## Unreleased
+## 0.15.0 — 2026-09-27 — 分級改為順序判定、analysis.md 與 render 畫圖、doctor 看不準就直說
 
-**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）、PROPOSAL-086（受限標頭比讀者窄）、PROPOSAL-087（finish-feature 罕見路徑抽離）、PROPOSAL-090（`Git-principles-*.md` 的 canonical 區改為可刷新）、PROPOSAL-091（`doctor` 的兩條 false-clean 路徑）、PROPOSAL-093（closeout 尾巴的 cursor 矛盾）、PROPOSAL-095（BR Snapshot 範例列移出資料面）、PROPOSAL-096（closeout baseline 的鑰匙改為可推導）、PROPOSAL-099（系統級知識的落點）、PROPOSAL-100（render 把生命週期與流程畫成圖）、PROPOSAL-101（render 首頁改成分組目錄）
+**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）、PROPOSAL-086（受限標頭比讀者窄）、PROPOSAL-087（finish-feature 罕見路徑抽離）、PROPOSAL-090（`Git-principles-*.md` 的 canonical 區改為可刷新）、PROPOSAL-091（`doctor` 的兩條 false-clean 路徑）、PROPOSAL-093（closeout 尾巴的 cursor 矛盾）、PROPOSAL-095（BR Snapshot 範例列移出資料面）、PROPOSAL-096（closeout baseline 的鑰匙改為可推導）、PROPOSAL-099（系統級知識的落點）、PROPOSAL-100（render 把生命週期與流程畫成圖）、PROPOSAL-101（render 首頁改成分組目錄）、PROPOSAL-092（規格文件的形狀版號）
 
-> **目前投影版號：`0.14.8`**（**未發布到 npm**；npm latest 仍是 `0.14.0`）。
-> 以下項目都在這一版裡。
+### 從 `0.14.0` 升上來
+
+照 [`docs/upgrading.md`](docs/upgrading.md) 升級：先升 CLI，在專案根目錄跑 `dflow configure-agents`，再跑 `dflow doctor`。這一版另外要注意：
+
+1. **分級結果與 Dflow 自己出現的時機都會變**（P-082）：同一個改動，升級前後可能分到不同的 tier。
+   要跑 `dflow configure-agents --skills` 換新 skill；root shim 若你改過、又沒有 Dflow 的 marker，
+   照 doctor 的提示手動換掉 routine 那一段（升級說明頁 § `0.15.0` 另外要做的事）。
+2. **有幾件要你自己補**：`_conventions.md` 少的 `### SPEC-ID Format`、`### Slug Conventions` 兩節
+   （P-083；⚠ 只有 `### SPEC-ID Format` doctor 會直接點名，`### Slug Conventions` 沒有指紋，要自己對照）；trunk 專案若在 `Git-principles-trunk.md` 的 §2／§3 填過合併策略，
+   改記到 `## 6.` 底下（P-090）；`_index.md` 若照抄了範本的範例列——Current BR Snapshot 的範例列、
+   預先放下的 Checkpoint Log `closeout` 列——刪掉那一列（P-095、dist issue #11）。
+3. **doctor 會多出幾條提示，多半不代表專案壞了**：沒有形狀標記的文件（P-092；補法見升級說明頁
+   § 形狀標記，可以之後再做，還沒關帳的 minimal host 先別補）、`Git-principles-*.md` 還沒採納
+   marker（P-090；互動式 `configure-agents` 會問，預設否）、表格缺排版註解（P-078）。
+   出現 `uncertain` 時 doctor 不會印 `All checks passed`（P-084），照它連到的說明頁處理；
+   以前會靜默通過的幾種狀態現在會報（P-091）——那些狀況本來就存在。
+4. **沒有自動遷移**：Dflow 不改寫你寫的 spec；舊的 lightweight-spec 寫法照舊合法（P-082）。
+
+### 各項變更
+
+- **規格文件有了形狀版號（PROPOSAL-092）**：
+  每一支範本的第一行（有 frontmatter 就在它後面）多一行
+  `<!-- dflow-shape: {軌別}/{範本} {號碼} — keep this line: dflow doctor reads it -->`（號碼後面的說明可有可無），
+  記下照它寫的文件是哪一軌、哪一支範本的第幾號形狀——就像紙本表單角落的版號。兩軌 26 支範本
+  （系統層、feature 層與 `_overview.md`）都加上了，目前全部是第 1 號。照範本建立的文件會帶著
+  這一行：`dflow init` 寫的文件一定有；AI 照範本建的文件通常會一起帶上，**但沒有保證**，
+  掉了的話 doctor 會照實說（見下面「沒有標記」）。
+  `dflow doctor` 拿它跟你裝的 CLI 裡同一支範本的現行號碼比：**同號不報**（文件跟範本不同的地方
+  都當成你自己的決定）；比現行舊 → 一條 `info`，列出兩號之間變了什麼，**新增**的可以照補，
+  **改名／拆分／搬移／移除**的只報、由你判斷，**說明與順序**（`>` 說明、HTML 註解、段落的先後）
+  標明不影響結構、由你和 AI 判斷要不要同步；比現行新 → 一條 `warn`（先升級 CLI）；看不準——
+  標記不在它的位置、格式不對，或文件裡不只一行含 `dflow-shape:`（當例子引用、被註解掉的也算，
+  doctor 不去判斷哪一行才是有效的標記）→ 一條 `uncertain`（`unreadable-shape-marker`），列出
+  行號與處理方式；**沒有標記 → 一條 `info`，doctor 不判讀它們的形狀**。
+  專案的 bundle 比 CLI 新時，這項檢查會跳過並說明原因。
+  - **升級要做的事**：這一版之前建立的文件都沒有標記，升級後 doctor 會多一條提示。照
+    `docs/upgrading.md` § 形狀標記 的一次性補法，交給 AI 逐份比對、由你判斷每個差異之後蓋號；
+    還沒關帳的 minimal host（只掛一個小改動的 feature 目錄）先不要補，doctor 會把它們分開列；
+    Phase Specs 表是空的、目錄裡卻有 phase spec 的 feature，doctor 判不出是不是 minimal host，
+    也分開列、兩種處理方式都附上。
+    **沒有自動遷移**，doctor 也不會改你的文件。
+  - 帶著標記的 feature `_index.md` 改由標記判讀，不再逐段比對 H2；沒有標記的照舊。
+  - 「表格排版註解」那條提示改成**只抄那一行**，不要把範本檔頭整段抄過去——檔頭帶著範本的標記。
+  - 刻意接受、寫在說明頁上的殘餘風險：形狀以外的改動（固定標籤、詞彙表的列、`####` 以下、
+    frontmatter 的 `#` 註解，以及 `>` 說明與 HTML 註解之外的說明文字）不會讓號碼變；合法但錯誤的
+    號碼偵測不到；同號不報也會蓋掉 AI 不小心刪掉的段落；標記被當例子引用或被註解掉時會報看不準。
+  - tutorial：init 寫的文件與範例裡 AI 建的文件，照一次性補法判斷過差異後蓋上第 1 號
+    （`features/completed/` 不動）；其中 11 支開頭還是舊範本的註解，換成現行範本開頭的兩行
+    （`Seeded by Dflow.` 與表格排版慣例），範例自己的說明照原樣保留；brownfield 範例進行中的 phase-spec，把現行範本已不用的
+    `id: …-P1` 改成 `spec-id:`。
+  - 維護者：範本的形狀（`##`／`###` 與它們的先後、表頭、frontmatter 欄位、`>` 說明、HTML 註解；
+    只是重新折行不算）一變就要加號並登記在 `lib/doc-shapes.json`，`test/doc-shapes.mjs` 會擋；`TEMPLATE-COVERAGE.md` 寫明這個契約，
+    並把兩列過時的路徑對齊 flow（`context.md`、feature 目錄裡的 `aggregate-design.md`）。
+
+- **minimal host 關帳不再擋下「把任務打勾」（dist issue #16 的第一個缺口）**：
+  minimal host（只記一筆小改動、不分階段的 feature 目錄）關帳時，有一份**封閉**清單規定哪些
+  還沒 commit 的修改可以跟著進關帳 commit。它對 lightweight／BUG spec 只收 `status:` 翻成
+  `completed`，以及開發者同意時整段收掉 `Implementation Tasks`。但 `modify-existing` 的完成檢查
+  （brownfield Step 6.1、greenfield Step 5.1）要求任務全部打勾、沒勾的標成 follow-up，而在
+  minimal host 上這一步一定發生在第一個 commit 之後，flow 前面也沒有叫 AI 邊做邊勾 ——
+  **照著每一條指示做完，關帳照樣被擋**，AI 只能違規放行，或多開一個 commit。
+  清單現在收下完成檢查命令的那幾種編輯：把完成的任務打勾、把沒勾的標成 follow-up，以及同意時
+  的整段收掉或移除；spec 其他內容的修改照舊擋下。
+  兩軌對稱。既有專案再跑一次 `dflow configure-agents` 即取得；**沒有遷移動作**。
+  ⚠ #16 的第二個缺口（`_overview.md` 與 `features/backlog/` 不在清單 (iii) 裡）沒有動，
+  它與 #15 是同一件事，一起處理。
+
+- **tutorial 跟上出貨內容**：
+  - 閱讀指南（`tutorial/how-to-read-dflow-specs.md`）的系統層與 BC 文件表補上 `analysis.md`。
+  - 兩支範例產出的 `Git-principles-*.md` 跟上現行範本：「AI commit authorship」一節改成
+    init 時三選一、記在 `_conventions.md`（不再寫「建議、不強制」）；greenfield 那支另外跟上
+    hotfix 一節（post-hoc 模式）與一行套件相依的措辭。這幾段都在可刷新區（§§ 1–5）之外，之前
+    的範本改動沒有帶進範例。
+  - 兩軌 `walkthrough-06` 說某句話「在 Step 3、Step 5 與 `Git-principles-*` 都寫了」，改成它
+    實際所在的位置：兩軌 `finish-feature-flow.md` 的 Step 3。
+
+- **README**：兩份 README 的功能介紹補上 `analysis.md`（P-099）與 render 把生命週期、流程畫成圖
+  （P-100）；文件模型的系統層加上 `analysis.md`，並註明它不由 init 建立。主要特點的 render 那一列
+  把畫圖放到前面、講出圖讓人看出什麼；render 那一節補一張生命週期圖的對照截圖（Expense 範例的
+  `LC-01`：左是狀態表與轉移表，右是 render 畫出的圖）。
+
+- **README 改成「你不用先學指令」，指令目錄搬到 `docs/commands.md`**：
+  讀者原本得先讀過兩輪指令表——「開始使用」列 7 條、「主要 Flow」整節再把 11 條分四類列一次，
+  外加一張各 AI 工具怎麼打斜線的表——才會讀到「AI 會判斷該走哪一條」。**順序本身就在教人「先學指令」**，
+  而實際使用不需要學：講出要做的事，AI 就會判該走哪一條 workflow、要寫多少規格。
+  現在主要特點之後新增一節「你不用先學指令」，先給三個「你說什麼 → AI 走哪條」的例子
+  （新功能走完整規格、欄位算錯多半是輕量規格、按鈕改顏色只在 `_index.md` 記一行），
+  再放一張流程圖：從「你講需求」開始，AI 判定要多少規格、分流到新功能或改既有／修 bug，
+  接著沿 T1 完整路徑走過 `/dflow:new-feature` 的四個 Step Gate 與兩個 commit 檢查點，
+  最後回到 `/dflow:new-phase`，或交給 `/dflow:finish-feature` 走它自己的兩個 Step Gate、
+  在歸檔那一步做第三個 commit 檢查點之後凍結歷史。**AI 停下來等你確認的每一格都標出來**；
+  commit 標記落在綠色那一格，代表那個 Step Gate 同時問你要不要 commit；落在藍色那一格，
+  代表那一步單獨問——**它一樣會停，只是不是 Step Gate**（收尾那一個就是這種）。
+  commit 檢查點的數量由 tier 決定（T1 三個、T2 兩個、T3 一個；zero-phase 的 minimal host
+  不論 tier 都是兩個）；**你會遇到幾個 Step Gate，由 flow 與 tier 一起決定**——不同 flow 不同，
+  同一條 flow 裡輕的 tier 還會跳過一些關（`/dflow:modify-existing` 判成 T3 就不跑 DDD
+  影響評估那一關），判成 T1 則可能整條升到 `/dflow:new-feature`／`/dflow:new-phase`。
+  「主要 Flow」整節與各工具叫法表都移到新的
+  [`docs/commands.md`](docs/commands.md)／[`.en.md`](docs/commands.en.md)——一般使用不需要那一頁，
+  它是給「想直接指定某條 flow、想糾正 AI 選錯的那一條、或想盤點 Dflow 涵蓋哪些情境」的人看的。
+  「completed feature 是凍結歷史」留在 README，移到文件模型段末（它講的是核心保證，不是指令）。
+  Workflow 模型的三層表把「自然語言進入（預設）」排到「命令進入」前面，
+  取代原本「自動偵測安全網」那個把自然語言寫成備援的講法。兩份 README 逐節對等。
 
 - **`dflow render` 把生命週期與流程畫成圖（P-100，dist issue #6）**：
   `analysis.md` 裡填好的 `### LC-nn`（一個狀態欄位的生命週期）與 `### FL-nn`（跨 context 的流程）小節，

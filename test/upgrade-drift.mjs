@@ -1821,7 +1821,12 @@ try {
         'inline-html-comment': 'lib/doctor-checks.js `inlineHtmlCommentLine`',
         'comment-inside-container': 'lib/doctor-checks.js `containerHtmlCommentLine`',
         'html-block-type-7': 'lib/doctor-checks.js `htmlBlockType7Line`',
-        'unclosed-html-block': 'lib/doctor-checks.js `unclosedHtmlBlockLine`'
+        'unclosed-html-block': 'lib/doctor-checks.js `unclosedHtmlBlockLine`',
+        // PROPOSAL-092. Its through-the-CLI fixture is in `test/doc-shapes.mjs`
+        // beside the other shape-marker states, not in the `shapes` loop below:
+        // that loop plants every shape in `_conventions.md`, and a shape marker is
+        // read from spec docs.
+        'unreadable-shape-marker': 'lib/init.js `checkDocumentShapes` (via lib/doctor-checks.js `readShapeMarker`)'
       };
       // A detector added without a row here would report through an `undefined`
       // source, which is worse than the id-only message this replaced.
@@ -3581,7 +3586,21 @@ try {
           // decided, this only consumes the label, and being wrong here makes a
           // warning noisy or absent rather than moving a boundary.
           'inUnparsedContainer',
-          'htmlBlockType7Line'
+          'htmlBlockType7Line',
+          // PROPOSAL-092. The shape helpers decide no block boundary. The marker
+          // finder reads raw lines on purpose (any line mentioning the marker
+          // counts, wherever it sits — D2); the skeleton helpers READ the
+          // classification. Being wrong makes a shape finding noisy or absent, or
+          // makes a registry shape differ — and the latter is caught by
+          // test/doc-shapes.mjs on every packaged template. `frontmatterLineCount`
+          // is the one that draws a line, and its rule is `dflow render`'s by
+          // design (PROPOSAL-092 D6), pinned against render there; tightening it
+          // here alone would split the two.
+          'findShapeMarkerLines', 'readShapeMarker', 'shapeMarkerStandardLine', 'frontmatterLineCount',
+          'splitShapeFrontmatter', 'frontmatterFieldName', 'shapeHeadingText', 'tableHeaderCells',
+          'extractShapeSkeleton', 'extractShapeSections', 'shapeCommentSpans', 'shapeTextDigest', 'shapeHeadingOrder', 'shapeOrderChanges',
+          'skeletonDifference', 'shapeDigest', 'isShapeTextItem', 'describeShapeItem', 'describeShapeOrder',
+          'shapePathMatches', 'sectionTableRowCount'
         ];
         const strayFns = declaredFns.filter((n) => !blockFunctions.includes(n) && !nonBlockFns.includes(n));
         assert.deepEqual(
@@ -3642,6 +3661,11 @@ try {
           // shape — so it cannot carry the invisible-character defect the tight-
           // whitespace rule exists for, and it decides no boundary.
           'UNPARSED_CONTAINER_TYPES',
+          // PROPOSAL-092. The shape-marker, frontmatter-field and placeholder
+          // patterns, and the digest's hash module: read to find a marker or build
+          // a skeleton, never to classify a line.
+          'crypto', 'SHAPE_MARKER_MENTION', 'SHAPE_MARKER_RE',
+          'FRONTMATTER_COMMENTED_FIELD_RE', 'SHAPE_PLACEHOLDER_RE',
         ];
         const strayConsts = declaredConsts.filter((n) => !blockConstants.includes(n) && !nonBlockConsts.includes(n));
         assert.deepEqual(
@@ -5689,7 +5713,9 @@ try {
 
       const featureDir = join(p, 'dflow/specs/features/active/BR-001-probe');
       await mkdir(featureDir, { recursive: true });
-      const currentTemplate = await readFile(join(p, 'dflow/specs/shared/dflow-workflows/templates/_index.md'), 'utf8');
+      // The projected copy minus its bundle line — the doc a flow writes from it.
+      const currentTemplate = (await readFile(join(p, 'dflow/specs/shared/dflow-workflows/templates/_index.md'), 'utf8'))
+        .replace(/^<!-- dflow-generated: workflow-bundle -->\n\n/, '');
       await writeFile(join(featureDir, '_index.md'), currentTemplate);
       assert.match((await runDoctorAt(p)).stdout, /All checks passed/, 'gate 2 control: a current-shape _index.md must stay clean even when the edition is unknown');
 

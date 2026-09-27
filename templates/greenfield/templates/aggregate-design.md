@@ -3,6 +3,7 @@ aggregate: {AggregateName}
 bounded-context: {ContextName}
 created: {YYYY-MM-DD}
 ---
+<!-- dflow-shape: greenfield/aggregate-design.md 1 — keep this line: dflow doctor reads it -->
 
 <!-- Formatting convention: keep table cells concise. When one cell holds multiple short items (invariants, rules, steps), separate them with <br> so each renders on its own line - never chain them into one line with ；/; separators. Long narrative detail does not belong in a table cell: keep the cell to a concise summary and put extended detail in an existing section of this document when one fits, or give each item its own row. -->
 

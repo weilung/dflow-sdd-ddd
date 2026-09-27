@@ -1,3 +1,4 @@
+<!-- dflow-shape: brownfield/behavior.md 1 — keep this line: dflow doctor reads it -->
 # Order — Behavior Specification
 
 > **Purpose**: Order context current behavior 的 consolidated source of truth。

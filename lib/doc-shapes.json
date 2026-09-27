@@ -1,0 +1,997 @@
+{
+  "about": "PROPOSAL-092. What each shape number of each template looks like, what changed from the number before it, and the paths the flows create each document at. The CURRENT number is not stored here: it is the number on the template's own `<!-- dflow-shape: ... -->` line. Paths are relative to dflow/specs/, and `*` matches within one path segment.",
+  "templates": {
+    "greenfield/_index.md": {
+      "source": "templates/_index.md",
+      "paths": ["features/active/*/_index.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "3e7937d8e5a67f7a087fafb70699cc5ef5e73fea09cb63bc024f74113ea3cf92",
+          "changes": [],
+          "skeleton": [
+            ["field","spec-id"],
+            ["field","slug"],
+            ["field","status"],
+            ["field","created"],
+            ["field","branch"],
+            ["field","follow-up-of","optional"],
+            ["h2","Goals & Scope"],
+            ["h2","Phase Specs"],
+            ["column","Phase Specs","",1,1,"Phase"],
+            ["column","Phase Specs","",1,2,"Date"],
+            ["column","Phase Specs","",1,3,"Slug"],
+            ["column","Phase Specs","",1,4,"Status"],
+            ["column","Phase Specs","",1,5,"File Link"],
+            ["h2","Current BR Snapshot"],
+            ["column","Current BR Snapshot","",1,1,"BR-ID"],
+            ["column","Current BR Snapshot","",1,2,"Current Rule"],
+            ["column","Current BR Snapshot","",1,3,"First Seen (phase)"],
+            ["column","Current BR Snapshot","",1,4,"Last Updated (phase)"],
+            ["column","Current BR Snapshot","",1,5,"Status"],
+            ["h2","Lightweight Changes"],
+            ["column","Lightweight Changes","",1,1,"Date"],
+            ["column","Lightweight Changes","",1,2,"Tier"],
+            ["column","Lightweight Changes","",1,3,"Description"],
+            ["column","Lightweight Changes","",1,4,"Commit"],
+            ["h2","Checkpoint Log"],
+            ["column","Checkpoint Log","",1,1,"Timestamp"],
+            ["column","Checkpoint Log","",1,2,"Checkpoint"],
+            ["column","Checkpoint Log","",1,3,"Result"],
+            ["h2","Resume Pointer"],
+            ["comment","","","43746d19844776ca"],
+            ["note","Goals & Scope","","6bf4aa3e408ea8bc"],
+            ["note","Phase Specs","","5dff0b02b2fefdac"],
+            ["comment","Phase Specs","","60305a8c385cd40f"],
+            ["note","Current BR Snapshot","","6a432bf9bd86ac85"],
+            ["comment","Current BR Snapshot","","44a797a7db5f5224"],
+            ["note","Lightweight Changes","","673f6f4bda4182b3"],
+            ["comment","Lightweight Changes","","013165e8c56f2b73"],
+            ["note","Checkpoint Log","","7ba7cd7e457fce40"],
+            ["note","Resume Pointer","","6282e389a109b5f3"],
+            ["comment","Resume Pointer","","5b3dcd00f70f0239"]
+          ]
+        }
+      ]
+    },
+    "greenfield/_overview.md": {
+      "source": "scaffolding/_overview.md",
+      "paths": ["shared/_overview.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "978c0694155d490fd73a10e32f832edaf9510396be98dfc64616f464280e598a",
+          "changes": [],
+          "skeleton": [
+            ["h2","System Summary"],
+            ["h3","System Summary","Business Domain"],
+            ["h2","Technical Architecture"],
+            ["h3","Technical Architecture","Stack"],
+            ["column","Technical Architecture","Stack",1,1,"Item"],
+            ["column","Technical Architecture","Stack",1,2,"Choice"],
+            ["h3","Technical Architecture","Clean Architecture Layers"],
+            ["column","Technical Architecture","Clean Architecture Layers",1,1,"Layer"],
+            ["column","Technical Architecture","Clean Architecture Layers",1,2,"Responsibilities"],
+            ["column","Technical Architecture","Clean Architecture Layers",1,3,"Must NOT"],
+            ["h3","Technical Architecture","Project Layout"],
+            ["h2","Bounded Contexts (Current Map)"],
+            ["h2","Principles This Project Adopts"],
+            ["h2","Architecture Decision Records (ADRs)"],
+            ["h2","Related Documents"],
+            ["note","","","bbdbdc4be053ed99"],
+            ["comment","","","5d868a781afaa3ac"],
+            ["note","Technical Architecture","Project Layout","1d8aafda4ad18fe6"]
+          ]
+        }
+      ]
+    },
+    "greenfield/aggregate-design.md": {
+      "source": "templates/aggregate-design.md",
+      "paths": ["features/active/*/aggregate-design.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "732a739e8b28ae909a1e8c6df24775acaf8534dd0a37b66aa1b815ca592a47d2",
+          "changes": [],
+          "skeleton": [
+            ["field","aggregate"],
+            ["field","bounded-context"],
+            ["field","created"],
+            ["h2","Purpose"],
+            ["h2","Invariants"],
+            ["column","Invariants","",1,1,"ID"],
+            ["column","Invariants","",1,2,"Invariant"],
+            ["column","Invariants","",1,3,"Behavior on Violation"],
+            ["h2","Structure"],
+            ["h2","Aggregate Root"],
+            ["column","Aggregate Root","",1,1,"Property"],
+            ["column","Aggregate Root","",1,2,"Type"],
+            ["column","Aggregate Root","",1,3,"Description"],
+            ["h2","State Transition Methods"],
+            ["column","State Transition Methods","",1,1,"Method"],
+            ["column","State Transition Methods","",1,2,"Preconditions"],
+            ["column","State Transition Methods","",1,3,"Postconditions"],
+            ["column","State Transition Methods","",1,4,"Domain Event"],
+            ["h2","Domain Events"],
+            ["column","Domain Events","",1,1,"Event"],
+            ["column","Domain Events","",1,2,"Trigger"],
+            ["column","Domain Events","",1,3,"Consumer"],
+            ["h2","Referenced Aggregates (ID only)"],
+            ["column","Referenced Aggregates (ID only)","",1,1,"Aggregate"],
+            ["column","Referenced Aggregates (ID only)","",1,2,"Reference Type"],
+            ["column","Referenced Aggregates (ID only)","",1,3,"Purpose"],
+            ["h2","Design Decisions"],
+            ["comment","","","1a3002dd72a93e2e"],
+            ["note","Purpose","","792f8b823598d204"],
+            ["note","Invariants","","00918681a1ba4f14"],
+            ["note","Design Decisions","","15a965bf36263328"]
+          ]
+        }
+      ]
+    },
+    "greenfield/analysis.md": {
+      "source": "templates/analysis.md",
+      "paths": ["domain/analysis.md","domain/*/analysis.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "7179f1686d90a17b4f6fe2d51f44653d2aff945749d0256c81392418c269a07b",
+          "changes": [],
+          "skeleton": [
+            ["h2","Cross-Context Flows"],
+            ["h2","Lifecycles"],
+            ["h2","Read Models and Derived Figures"],
+            ["h2","Mechanisms"],
+            ["h2","Function / Role Index"],
+            ["column","Function / Role Index","",1,1,"Function"],
+            ["column","Function / Role Index","",1,2,"ID"],
+            ["column","Function / Role Index","",1,3,"Entry point"],
+            ["column","Function / Role Index","",1,4,"Bounded Context"],
+            ["column","Function / Role Index","",1,5,"Roles"],
+            ["column","Function / Role Index","",1,6,"Data scope"],
+            ["column","Function / Role Index","",1,7,"Evidence"],
+            ["h2","Open Questions and Hotspots"],
+            ["column","Open Questions and Hotspots","",1,1,"Item"],
+            ["column","Open Questions and Hotspots","",1,2,"ID"],
+            ["column","Open Questions and Hotspots","",1,3,"Affects"],
+            ["column","Open Questions and Hotspots","",1,4,"Why it matters"],
+            ["column","Open Questions and Hotspots","",1,5,"Status"],
+            ["column","Open Questions and Hotspots","",1,6,"Evidence"],
+            ["note","","","23509306ad136809"],
+            ["comment","","","93c6b2685375e8e5"],
+            ["comment","Cross-Context Flows","","505af0d4053e83e0"],
+            ["comment","Lifecycles","","3fbee580d5045bbb"],
+            ["comment","Read Models and Derived Figures","","e1a41eda56feb9f7"],
+            ["comment","Mechanisms","","71613b6c1373dba1"],
+            ["comment","Function / Role Index","","300acb329e3dcf17"],
+            ["comment","Open Questions and Hotspots","","e2b881baeb772be7"]
+          ]
+        }
+      ]
+    },
+    "greenfield/behavior.md": {
+      "source": "templates/behavior.md",
+      "paths": ["domain/*/behavior.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "811a571084d049a33463f5abcded307669f4d9f30b3619ee11d120645b45ea77",
+          "changes": [],
+          "skeleton": [
+            ["note","","","53833764a88eab3b"],
+            ["comment","","","e798bd7586dcb886"]
+          ]
+        }
+      ]
+    },
+    "greenfield/context-definition.md": {
+      "source": "templates/context-definition.md",
+      "paths": ["domain/*/context.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "e41fb5f0ecb02efe2b727e68e2a653c18857a7ea07b2aa8a79524911cb450056",
+          "changes": [],
+          "skeleton": [
+            ["field","context"],
+            ["field","chinese-name"],
+            ["field","owner"],
+            ["field","created"],
+            ["h2","Responsibilities"],
+            ["h2","Boundaries"],
+            ["h3","Boundaries","In Scope"],
+            ["h3","Boundaries","Out of Scope"],
+            ["h2","Core Domain Models"],
+            ["h3","Core Domain Models","Aggregates"],
+            ["h3","Core Domain Models","Entities"],
+            ["h3","Core Domain Models","Value Objects"],
+            ["h3","Core Domain Models","Domain Services"],
+            ["h3","Core Domain Models","Repository Interfaces"],
+            ["h2","Interactions with Other Contexts"],
+            ["column","Interactions with Other Contexts","",1,1,"Other Context"],
+            ["column","Interactions with Other Contexts","",1,2,"Interaction Type"],
+            ["column","Interactions with Other Contexts","",1,3,"Description"],
+            ["h2","Key Business Rules"],
+            ["h2","Code Mapping"],
+            ["h3","Code Mapping","Current Implementation"],
+            ["h3","Code Mapping","Architecture Notes"],
+            ["comment","","","1a3002dd72a93e2e"],
+            ["note","Responsibilities","","d23e179c49d4eb57"],
+            ["note","Core Domain Models","","7f72819295893a87"],
+            ["note","Key Business Rules","","26159293b3a17462"]
+          ]
+        }
+      ]
+    },
+    "greenfield/context-map.md": {
+      "source": "templates/context-map.md",
+      "paths": ["domain/context-map.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "356796beca17ae808f92af995dbc2a7310bf5b42c396631748956498526a43cd",
+          "changes": [],
+          "skeleton": [
+            ["h2","Contexts"],
+            ["column","Contexts","",1,1,"Bounded Context"],
+            ["column","Contexts","",1,2,"Responsibility"],
+            ["column","Contexts","",1,3,"Subdomain Type"],
+            ["column","Contexts","",1,4,"Owner / Team"],
+            ["column","Contexts","",1,5,"Primary Module"],
+            ["column","Contexts","",1,6,"Notes"],
+            ["h2","Relationships"],
+            ["column","Relationships","",1,1,"Upstream"],
+            ["column","Relationships","",1,2,"Downstream"],
+            ["column","Relationships","",1,3,"Relationship Type"],
+            ["column","Relationships","",1,4,"Published Language"],
+            ["column","Relationships","",1,5,"ACL"],
+            ["column","Relationships","",1,6,"Events"],
+            ["h2","Integration Notes"],
+            ["h2","Open Questions"],
+            ["note","","","fa3096f788a26b67"],
+            ["comment","","","14592fdd6506429b"],
+            ["note","Contexts","","ef3bfeebd01a25e2"]
+          ]
+        }
+      ]
+    },
+    "greenfield/events.md": {
+      "source": "templates/events.md",
+      "paths": ["domain/*/events.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "171838630709eb46d29d36e4f598aacb2157e0736834fc698006b2318446ec86",
+          "changes": [],
+          "skeleton": [
+            ["h2","Event Catalog"],
+            ["column","Event Catalog","",1,1,"Event name"],
+            ["column","Event Catalog","",1,2,"Producer"],
+            ["column","Event Catalog","",1,3,"Trigger"],
+            ["column","Event Catalog","",1,4,"Payload"],
+            ["column","Event Catalog","",1,5,"Consumers"],
+            ["column","Event Catalog","",1,6,"Delivery expectation"],
+            ["h2","Event Flow Notes"],
+            ["h2","Open Questions"],
+            ["note","","","4013eb12258254a0"],
+            ["comment","","","14592fdd6506429b"]
+          ]
+        }
+      ]
+    },
+    "greenfield/glossary.md": {
+      "source": "templates/glossary.md",
+      "paths": ["domain/glossary.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "5a40a00ec68efead0bbf31657fb3e55277ea5298b059ce1a880eff292d7dafad",
+          "changes": [],
+          "skeleton": [
+            ["h2","Terms"],
+            ["column","Terms","",1,1,"Term"],
+            ["column","Terms","",1,2,"Definition"],
+            ["column","Terms","",1,3,"Bounded Context"],
+            ["column","Terms","",1,4,"Code Mapping"],
+            ["column","Terms","",1,5,"Notes"],
+            ["h2","Open Questions"],
+            ["note","","","6d9c3fab52614fda"],
+            ["comment","","","14592fdd6506429b"]
+          ]
+        }
+      ]
+    },
+    "greenfield/lightweight-spec.md": {
+      "source": "templates/lightweight-spec.md",
+      "paths": ["features/active/*/lightweight-*.md","features/active/*/BUG-*.md"],
+      "variable": [["Root Cause"],["Behavior Delta","MODIFIED - behavior modified in this fix"]],
+      "conditionalFields": ["id"],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "807b92f0911e3038a05cda7a1b84c8a3e90e5925098e5c1b9e54921dd5e4d97f",
+          "changes": [],
+          "skeleton": [
+            ["field","id"],
+            ["field","title"],
+            ["field","status"],
+            ["field","bounded-context"],
+            ["field","created"],
+            ["field","branch"],
+            ["field","hotfix-branch","optional"],
+            ["field","hotfix-identity","optional"],
+            ["h2","Problem"],
+            ["h2","Behavior Delta"],
+            ["h2","Fix Approach"],
+            ["h2","Implementation Paths"],
+            ["h2","Implementation Tasks"],
+            ["h2","Tech Debt Discovered (if any)"],
+            ["comment","","","66ee7bcc021bdf60"],
+            ["note","Behavior Delta","","9274a756d68ba622"],
+            ["note","Implementation Paths","","fbcdf6221b244a7f"],
+            ["comment","Implementation Paths","","6945fc7a16909c8a"],
+            ["note","Implementation Tasks","","d2e611e883d181c9"]
+          ]
+        }
+      ]
+    },
+    "greenfield/models.md": {
+      "source": "templates/models.md",
+      "paths": ["domain/*/models.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "d7619f9d204e61ea69a0098bd206a0d286220058063c74373e556ddfc4f9e855",
+          "changes": [],
+          "skeleton": [
+            ["h2","Context"],
+            ["h2","Aggregates"],
+            ["column","Aggregates","",1,1,"Aggregate"],
+            ["column","Aggregates","",1,2,"Root Entity"],
+            ["column","Aggregates","",1,3,"Invariants"],
+            ["column","Aggregates","",1,4,"Code Mapping"],
+            ["column","Aggregates","",1,5,"Notes"],
+            ["h2","Entities"],
+            ["column","Entities","",1,1,"Entity"],
+            ["column","Entities","",1,2,"Responsibility"],
+            ["column","Entities","",1,3,"Key Identity"],
+            ["column","Entities","",1,4,"Aggregate"],
+            ["column","Entities","",1,5,"Code Mapping"],
+            ["h2","Value Objects"],
+            ["column","Value Objects","",1,1,"Value Object"],
+            ["column","Value Objects","",1,2,"Responsibility"],
+            ["column","Value Objects","",1,3,"Equality Components"],
+            ["column","Value Objects","",1,4,"Code Mapping"],
+            ["column","Value Objects","",1,5,"Notes"],
+            ["h2","Domain Services"],
+            ["column","Domain Services","",1,1,"Service"],
+            ["column","Domain Services","",1,2,"Responsibility"],
+            ["column","Domain Services","",1,3,"Inputs / Outputs"],
+            ["column","Domain Services","",1,4,"Code Mapping"],
+            ["column","Domain Services","",1,5,"Notes"],
+            ["h2","Specifications"],
+            ["column","Specifications","",1,1,"Specification"],
+            ["column","Specifications","",1,2,"Rule / Invariant"],
+            ["column","Specifications","",1,3,"Used By"],
+            ["column","Specifications","",1,4,"Code Mapping"],
+            ["column","Specifications","",1,5,"Notes"],
+            ["h2","Repository Interfaces"],
+            ["column","Repository Interfaces","",1,1,"Repository"],
+            ["column","Repository Interfaces","",1,2,"Aggregate"],
+            ["column","Repository Interfaces","",1,3,"Query Responsibility"],
+            ["column","Repository Interfaces","",1,4,"Code Mapping"],
+            ["column","Repository Interfaces","",1,5,"Notes"],
+            ["note","","","39e433bff042d5cf"],
+            ["comment","","","14592fdd6506429b"]
+          ]
+        }
+      ]
+    },
+    "greenfield/phase-spec.md": {
+      "source": "templates/phase-spec.md",
+      "paths": ["features/active/*/phase-spec-*.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "0c7c919884a4e1927518af800f0d4285f8d98a2bde076e3d210129e09e93c585",
+          "changes": [],
+          "skeleton": [
+            ["field","spec-id"],
+            ["field","title"],
+            ["field","status"],
+            ["field","bounded-context"],
+            ["field","created"],
+            ["field","author"],
+            ["field","branch"],
+            ["h2","Problem Description"],
+            ["h2","Domain Concepts"],
+            ["column","Domain Concepts","",1,1,"Concept"],
+            ["column","Domain Concepts","",1,2,"Type"],
+            ["column","Domain Concepts","",1,3,"Description"],
+            ["h2","Behavior Scenarios"],
+            ["h3","Behavior Scenarios","Main Success Scenario"],
+            ["h3","Behavior Scenarios","Alternative Scenarios"],
+            ["h2","Business Rules"],
+            ["column","Business Rules","",1,1,"BR-ID"],
+            ["column","Business Rules","",1,2,"Rule"],
+            ["column","Business Rules","",1,3,"Implementation Location"],
+            ["h2","Delta from prior phases"],
+            ["h3","Delta from prior phases","ADDED - BR / behavior added in this phase"],
+            ["h3","Delta from prior phases","MODIFIED - BR / behavior modified in this phase"],
+            ["h3","Delta from prior phases","REMOVED - BR removed in this phase"],
+            ["h3","Delta from prior phases","RENAMED - BR renamed in this phase"],
+            ["h3","Delta from prior phases","UNCHANGED - explicitly unaffected (optional)"],
+            ["h2","Edge Cases"],
+            ["column","Edge Cases","",1,1,"ID"],
+            ["column","Edge Cases","",1,2,"Case"],
+            ["column","Edge Cases","",1,3,"Expected Handling"],
+            ["h2","Domain Events"],
+            ["column","Domain Events","",1,1,"Event"],
+            ["column","Domain Events","",1,2,"Trigger"],
+            ["column","Domain Events","",1,3,"Handler"],
+            ["column","Domain Events","",1,4,"Sync / Async"],
+            ["h2","Implementation Plan (Layer by Layer)"],
+            ["h3","Implementation Plan (Layer by Layer)","Domain Layer"],
+            ["h3","Implementation Plan (Layer by Layer)","Application Layer"],
+            ["h3","Implementation Plan (Layer by Layer)","Infrastructure Layer"],
+            ["h3","Implementation Plan (Layer by Layer)","Presentation Layer"],
+            ["h2","Data Structure Changes"],
+            ["column","Data Structure Changes","",1,1,"Table"],
+            ["column","Data Structure Changes","",1,2,"Column"],
+            ["column","Data Structure Changes","",1,3,"Change Type"],
+            ["column","Data Structure Changes","",1,4,"Description"],
+            ["h2","Test Strategy"],
+            ["h3","Test Strategy","Domain Unit Tests"],
+            ["h3","Test Strategy","Application Tests"],
+            ["h3","Test Strategy","Integration Tests"],
+            ["h2","Open Questions"],
+            ["h2","Implementation Tasks"],
+            ["comment","","","ce77a9387cd875ac"],
+            ["note","Problem Description","","4a70d14f1c4778be"],
+            ["comment","Problem Description","","045168ac3cf58468"],
+            ["comment","Domain Concepts","","e9a468593b9a1ed0"],
+            ["comment","Behavior Scenarios","","cf1bfc6341687ac2"],
+            ["note","Business Rules","","b5618acd1f4e1464"],
+            ["comment","Business Rules","","cf1bfc6341687ac2"],
+            ["note","Delta from prior phases","","b260ad0fb144c471"],
+            ["comment","Delta from prior phases","","a60457fb84afbbe1"],
+            ["comment","Edge Cases","","cf1bfc6341687ac2"],
+            ["comment","Domain Events","","41b11ba1f9c870f1"],
+            ["comment","Implementation Plan (Layer by Layer)","","0907e63466dc3f49"],
+            ["note","Implementation Plan (Layer by Layer)","Domain Layer","d1898ee572eb1e51"],
+            ["note","Implementation Plan (Layer by Layer)","Application Layer","eba7b2fa68791c7a"],
+            ["note","Implementation Plan (Layer by Layer)","Infrastructure Layer","61db9db58b828e3d"],
+            ["note","Implementation Plan (Layer by Layer)","Presentation Layer","9fdbb63ddb1ac286"],
+            ["comment","Data Structure Changes","","0907e63466dc3f49"],
+            ["comment","Test Strategy","","0907e63466dc3f49"],
+            ["comment","Test Strategy","Integration Tests","003c54b700db072f"],
+            ["comment","Open Questions","","a9d1632b0ae9577a"],
+            ["note","Implementation Tasks","","473dcea091924e18"],
+            ["comment","Implementation Tasks","","c8a9178ac857d785"]
+          ]
+        }
+      ]
+    },
+    "greenfield/rules.md": {
+      "source": "templates/rules.md",
+      "paths": ["domain/*/rules.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "a45ca156e2b37347f8077c45347d64e55d22bdfa43cfe938fe3aba8f6ac375fd",
+          "changes": [],
+          "skeleton": [
+            ["h2","Rule Index"],
+            ["column","Rule Index","",1,1,"BR-ID"],
+            ["column","Rule Index","",1,2,"Rule summary"],
+            ["column","Rule Index","",1,3,"Behavior anchor"],
+            ["column","Rule Index","",1,4,"Aggregate"],
+            ["column","Rule Index","",1,5,"Status"],
+            ["column","Rule Index","",1,6,"Last updated"],
+            ["h2","Status Legend"],
+            ["column","Status Legend","",1,1,"Status"],
+            ["column","Status Legend","",1,2,"Meaning"],
+            ["h2","Open Questions"],
+            ["note","","","64e8ff1bdfecbdfe"],
+            ["comment","","","3a4253074adb61f4"]
+          ]
+        }
+      ]
+    },
+    "greenfield/tech-debt.md": {
+      "source": "templates/tech-debt.md",
+      "paths": ["architecture/tech-debt.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "6520e913341f37d7c3a2ef0229c9937ae6f0f9b0f18413f7b880523b8f53d710",
+          "changes": [],
+          "skeleton": [
+            ["h2","Debt Items"],
+            ["column","Debt Items","",1,1,"Item"],
+            ["column","Debt Items","",1,2,"Layer"],
+            ["column","Debt Items","",1,3,"Decision / debt"],
+            ["column","Debt Items","",1,4,"Impact"],
+            ["column","Debt Items","",1,5,"Follow-up"],
+            ["column","Debt Items","",1,6,"Status"],
+            ["h2","Follow-up Notes"],
+            ["note","","","f787c6ab866433e8"],
+            ["comment","","","14592fdd6506429b"]
+          ]
+        }
+      ]
+    },
+    "brownfield/_index.md": {
+      "source": "templates/_index.md",
+      "paths": ["features/active/*/_index.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "5ba96682e40a4f8fdeb10d869825033137c313c66af62ed3cd9c8138ef275005",
+          "changes": [],
+          "skeleton": [
+            ["field","spec-id"],
+            ["field","slug"],
+            ["field","status"],
+            ["field","created"],
+            ["field","branch"],
+            ["field","follow-up-of","optional"],
+            ["h2","Goals & Scope"],
+            ["h2","Phase Specs"],
+            ["column","Phase Specs","",1,1,"Phase"],
+            ["column","Phase Specs","",1,2,"Date"],
+            ["column","Phase Specs","",1,3,"Slug"],
+            ["column","Phase Specs","",1,4,"Status"],
+            ["column","Phase Specs","",1,5,"File Link"],
+            ["h2","Current BR Snapshot"],
+            ["column","Current BR Snapshot","",1,1,"BR-ID"],
+            ["column","Current BR Snapshot","",1,2,"Current Rule"],
+            ["column","Current BR Snapshot","",1,3,"First Seen (phase)"],
+            ["column","Current BR Snapshot","",1,4,"Last Updated (phase)"],
+            ["column","Current BR Snapshot","",1,5,"Status"],
+            ["h2","Lightweight Changes"],
+            ["column","Lightweight Changes","",1,1,"Date"],
+            ["column","Lightweight Changes","",1,2,"Tier"],
+            ["column","Lightweight Changes","",1,3,"Description"],
+            ["column","Lightweight Changes","",1,4,"Commit"],
+            ["h2","Checkpoint Log"],
+            ["column","Checkpoint Log","",1,1,"Timestamp"],
+            ["column","Checkpoint Log","",1,2,"Checkpoint"],
+            ["column","Checkpoint Log","",1,3,"Result"],
+            ["h2","Resume Pointer"],
+            ["comment","","","ebf6a0dffec4e89d"],
+            ["note","Goals & Scope","","47f7d220a44ffc70"],
+            ["note","Phase Specs","","5dff0b02b2fefdac"],
+            ["comment","Phase Specs","","60305a8c385cd40f"],
+            ["note","Current BR Snapshot","","bb237977c8b6a9c8"],
+            ["comment","Current BR Snapshot","","44a797a7db5f5224"],
+            ["note","Lightweight Changes","","5194f717a8955b59"],
+            ["comment","Lightweight Changes","","013165e8c56f2b73"],
+            ["note","Checkpoint Log","","359aef25b21362ca"],
+            ["note","Resume Pointer","","6282e389a109b5f3"],
+            ["comment","Resume Pointer","","5b3dcd00f70f0239"]
+          ]
+        }
+      ]
+    },
+    "brownfield/_overview.md": {
+      "source": "scaffolding/_overview.md",
+      "paths": ["shared/_overview.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "d727ea85097dee03d7ca5f72dad65f056d0fdd9722bceca5458b761f10f7ee11",
+          "changes": [],
+          "skeleton": [
+            ["h2","System Summary"],
+            ["h3","System Summary","Business Domain"],
+            ["h2","Technical Architecture (Current)"],
+            ["column","Technical Architecture (Current)","",1,1,"Item"],
+            ["column","Technical Architecture (Current)","",1,2,"Current"],
+            ["h3","Technical Architecture (Current)","Code Layout (High Level)"],
+            ["h2","Existing Issues / Known Pain Points"],
+            ["h2","Target Architecture Strategy"],
+            ["h3","Target Architecture Strategy","Target Architecture"],
+            ["h2","Related Documents"],
+            ["note","","","3dd68aa110718b0f"],
+            ["comment","","","5d868a781afaa3ac"],
+            ["note","Technical Architecture (Current)","Code Layout (High Level)","8e76f2da31c0b788"]
+          ]
+        }
+      ]
+    },
+    "brownfield/analysis.md": {
+      "source": "templates/analysis.md",
+      "paths": ["domain/analysis.md","domain/*/analysis.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "7179f1686d90a17b4f6fe2d51f44653d2aff945749d0256c81392418c269a07b",
+          "changes": [],
+          "skeleton": [
+            ["h2","Cross-Context Flows"],
+            ["h2","Lifecycles"],
+            ["h2","Read Models and Derived Figures"],
+            ["h2","Mechanisms"],
+            ["h2","Function / Role Index"],
+            ["column","Function / Role Index","",1,1,"Function"],
+            ["column","Function / Role Index","",1,2,"ID"],
+            ["column","Function / Role Index","",1,3,"Entry point"],
+            ["column","Function / Role Index","",1,4,"Bounded Context"],
+            ["column","Function / Role Index","",1,5,"Roles"],
+            ["column","Function / Role Index","",1,6,"Data scope"],
+            ["column","Function / Role Index","",1,7,"Evidence"],
+            ["h2","Open Questions and Hotspots"],
+            ["column","Open Questions and Hotspots","",1,1,"Item"],
+            ["column","Open Questions and Hotspots","",1,2,"ID"],
+            ["column","Open Questions and Hotspots","",1,3,"Affects"],
+            ["column","Open Questions and Hotspots","",1,4,"Why it matters"],
+            ["column","Open Questions and Hotspots","",1,5,"Status"],
+            ["column","Open Questions and Hotspots","",1,6,"Evidence"],
+            ["note","","","23509306ad136809"],
+            ["comment","","","93c6b2685375e8e5"],
+            ["comment","Cross-Context Flows","","505af0d4053e83e0"],
+            ["comment","Lifecycles","","3fbee580d5045bbb"],
+            ["comment","Read Models and Derived Figures","","e1a41eda56feb9f7"],
+            ["comment","Mechanisms","","71613b6c1373dba1"],
+            ["comment","Function / Role Index","","300acb329e3dcf17"],
+            ["comment","Open Questions and Hotspots","","e2b881baeb772be7"]
+          ]
+        }
+      ]
+    },
+    "brownfield/behavior.md": {
+      "source": "templates/behavior.md",
+      "paths": ["domain/*/behavior.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "cf082448d64446835111001368ade8cd96d967525c228bb6908444c5a3a03aa1",
+          "changes": [],
+          "skeleton": [
+            ["note","","","1456ca29334299e1"],
+            ["comment","","","e798bd7586dcb886"]
+          ]
+        }
+      ]
+    },
+    "brownfield/context-definition.md": {
+      "source": "templates/context-definition.md",
+      "paths": ["domain/*/context.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "57867790b143aa904b55cee9e3ea63f6c65e500cbe3b28cb63474cb37d32747f",
+          "changes": [],
+          "skeleton": [
+            ["field","context"],
+            ["field","chinese-name"],
+            ["field","owner"],
+            ["field","created"],
+            ["h2","Responsibilities"],
+            ["h2","Boundaries"],
+            ["h3","Boundaries","In Scope"],
+            ["h3","Boundaries","Out of Scope"],
+            ["h2","Core Domain Models"],
+            ["h3","Core Domain Models","Entities"],
+            ["h3","Core Domain Models","Value Objects"],
+            ["h3","Core Domain Models","Domain Services"],
+            ["h2","Interactions with Other Contexts"],
+            ["column","Interactions with Other Contexts","",1,1,"Other Context"],
+            ["column","Interactions with Other Contexts","",1,2,"Interaction Type"],
+            ["column","Interactions with Other Contexts","",1,3,"Description"],
+            ["h2","Key Business Rules"],
+            ["h2","Code Mapping"],
+            ["h3","Code Mapping","Current Delivery/Entrypoint Mapping"],
+            ["h3","Code Mapping","Target Architecture"],
+            ["comment","","","1a3002dd72a93e2e"],
+            ["note","Responsibilities","","d23e179c49d4eb57"],
+            ["note","Core Domain Models","","7f72819295893a87"],
+            ["note","Key Business Rules","","26159293b3a17462"]
+          ]
+        }
+      ]
+    },
+    "brownfield/context-map.md": {
+      "source": "templates/context-map.md",
+      "paths": ["domain/context-map.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "c9bc851c852dfb51682f74063bf0e1764fc4a57b1032d8f72907f1ba4604bc4d",
+          "changes": [],
+          "skeleton": [
+            ["h2","Context List"],
+            ["column","Context List","",1,1,"Bounded Context"],
+            ["column","Context List","",1,2,"Responsibility"],
+            ["column","Context List","",1,3,"Subdomain Type"],
+            ["column","Context List","",1,4,"Owner / Team"],
+            ["column","Context List","",1,5,"Primary Code Area"],
+            ["column","Context List","",1,6,"Notes"],
+            ["h2","Relationships"],
+            ["column","Relationships","",1,1,"Source Context"],
+            ["column","Relationships","",1,2,"Target Context"],
+            ["column","Relationships","",1,3,"Relationship Type"],
+            ["column","Relationships","",1,4,"Integration Mechanism"],
+            ["column","Relationships","",1,5,"Notes"],
+            ["h2","Integration Notes"],
+            ["h2","Open Questions"],
+            ["note","","","f50eb4efa07651f3"],
+            ["comment","","","14592fdd6506429b"],
+            ["note","Context List","","6304b838f27c10ca"]
+          ]
+        }
+      ]
+    },
+    "brownfield/glossary.md": {
+      "source": "templates/glossary.md",
+      "paths": ["domain/glossary.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "5a40a00ec68efead0bbf31657fb3e55277ea5298b059ce1a880eff292d7dafad",
+          "changes": [],
+          "skeleton": [
+            ["h2","Terms"],
+            ["column","Terms","",1,1,"Term"],
+            ["column","Terms","",1,2,"Definition"],
+            ["column","Terms","",1,3,"Bounded Context"],
+            ["column","Terms","",1,4,"Code Mapping"],
+            ["column","Terms","",1,5,"Notes"],
+            ["h2","Open Questions"],
+            ["note","","","6d9c3fab52614fda"],
+            ["comment","","","14592fdd6506429b"]
+          ]
+        }
+      ]
+    },
+    "brownfield/lightweight-spec.md": {
+      "source": "templates/lightweight-spec.md",
+      "paths": ["features/active/*/lightweight-*.md","features/active/*/BUG-*.md"],
+      "variable": [["Root Cause"],["Behavior Delta","MODIFIED - behavior modified in this fix"]],
+      "conditionalFields": ["id"],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "0ab6dff302dff239258871a2367a6bfaba7a0f37280816e214d0f732d2aa19c2",
+          "changes": [],
+          "skeleton": [
+            ["field","id"],
+            ["field","title"],
+            ["field","status"],
+            ["field","bounded-context"],
+            ["field","created"],
+            ["field","branch"],
+            ["field","hotfix-branch","optional"],
+            ["field","hotfix-identity","optional"],
+            ["h2","Problem"],
+            ["h2","Behavior Delta"],
+            ["h2","Fix Approach"],
+            ["h2","Implementation Paths"],
+            ["h2","Implementation Tasks"],
+            ["h2","Tech Debt Discovered (if any)"],
+            ["comment","","","66ee7bcc021bdf60"],
+            ["note","Behavior Delta","","9274a756d68ba622"],
+            ["note","Implementation Paths","","fbcdf6221b244a7f"],
+            ["comment","Implementation Paths","","6945fc7a16909c8a"],
+            ["note","Implementation Tasks","","53aeda10c7c5a2b5"]
+          ]
+        }
+      ]
+    },
+    "brownfield/models.md": {
+      "source": "templates/models.md",
+      "paths": ["domain/*/models.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "d0681b3c3c8f7a40719aab1d623326b4b88cb717dbda3e728282da705bb0592c",
+          "changes": [],
+          "skeleton": [
+            ["h2","Context"],
+            ["h2","Entities"],
+            ["column","Entities","",1,1,"Entity"],
+            ["column","Entities","",1,2,"Responsibility"],
+            ["column","Entities","",1,3,"Key Identity"],
+            ["column","Entities","",1,4,"Code Mapping"],
+            ["column","Entities","",1,5,"Notes"],
+            ["h2","Value Objects"],
+            ["column","Value Objects","",1,1,"Value Object"],
+            ["column","Value Objects","",1,2,"Responsibility"],
+            ["column","Value Objects","",1,3,"Equality Components"],
+            ["column","Value Objects","",1,4,"Code Mapping"],
+            ["column","Value Objects","",1,5,"Notes"],
+            ["h2","Domain Services"],
+            ["column","Domain Services","",1,1,"Service"],
+            ["column","Domain Services","",1,2,"Responsibility"],
+            ["column","Domain Services","",1,3,"Inputs / Outputs"],
+            ["column","Domain Services","",1,4,"Code Mapping"],
+            ["column","Domain Services","",1,5,"Notes"],
+            ["h2","Repository Interfaces"],
+            ["column","Repository Interfaces","",1,1,"Repository"],
+            ["column","Repository Interfaces","",1,2,"Aggregate / Entity"],
+            ["column","Repository Interfaces","",1,3,"Query Responsibility"],
+            ["column","Repository Interfaces","",1,4,"Code Mapping"],
+            ["column","Repository Interfaces","",1,5,"Notes"],
+            ["h2","Code Mapping Notes"],
+            ["note","","","1afc2b26ac19235e"],
+            ["comment","","","14592fdd6506429b"]
+          ]
+        }
+      ]
+    },
+    "brownfield/phase-spec.md": {
+      "source": "templates/phase-spec.md",
+      "paths": ["features/active/*/phase-spec-*.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "c489d6f5963c65fa1f9b65025a595777035dad9a79548a412015cc297dc5db05",
+          "changes": [],
+          "skeleton": [
+            ["field","spec-id"],
+            ["field","title"],
+            ["field","status"],
+            ["field","bounded-context"],
+            ["field","created"],
+            ["field","author"],
+            ["field","branch"],
+            ["h2","Problem Description"],
+            ["h2","Domain Concepts"],
+            ["column","Domain Concepts","",1,1,"Concept"],
+            ["column","Domain Concepts","",1,2,"Type"],
+            ["column","Domain Concepts","",1,3,"Description"],
+            ["h2","Behavior Scenarios"],
+            ["h3","Behavior Scenarios","Main Success Scenario"],
+            ["h3","Behavior Scenarios","Alternative Scenarios"],
+            ["h2","Business Rules"],
+            ["column","Business Rules","",1,1,"BR-ID"],
+            ["column","Business Rules","",1,2,"Rule"],
+            ["column","Business Rules","",1,3,"Notes"],
+            ["h2","Delta from prior phases"],
+            ["h3","Delta from prior phases","ADDED - BR / behavior added in this phase"],
+            ["h3","Delta from prior phases","MODIFIED - BR / behavior modified in this phase"],
+            ["h3","Delta from prior phases","REMOVED - BR removed in this phase"],
+            ["h3","Delta from prior phases","RENAMED - BR renamed in this phase"],
+            ["h3","Delta from prior phases","UNCHANGED - explicitly unaffected (optional)"],
+            ["h2","Edge Cases"],
+            ["column","Edge Cases","",1,1,"ID"],
+            ["column","Edge Cases","",1,2,"Case"],
+            ["column","Edge Cases","",1,3,"Expected Handling"],
+            ["h2","Implementation Notes"],
+            ["h3","Implementation Notes","Current Delivery-Layer Implementation"],
+            ["h3","Implementation Notes","Domain Layer Design"],
+            ["h3","Implementation Notes","Keep Delivery/Entrypoint Code Thin"],
+            ["h3","Implementation Notes","Target Architecture Considerations"],
+            ["h2","Data Structure Changes"],
+            ["column","Data Structure Changes","",1,1,"Table"],
+            ["column","Data Structure Changes","",1,2,"Column"],
+            ["column","Data Structure Changes","",1,3,"Change Type"],
+            ["column","Data Structure Changes","",1,4,"Description"],
+            ["h2","Test Strategy"],
+            ["h2","Open Questions"],
+            ["h2","Implementation Tasks"],
+            ["comment","","","22d03947b5430523"],
+            ["note","Problem Description","","4a70d14f1c4778be"],
+            ["comment","Problem Description","","045168ac3cf58468"],
+            ["comment","Domain Concepts","","72e938bcba7f437e"],
+            ["comment","Behavior Scenarios","","cf1bfc6341687ac2"],
+            ["note","Business Rules","","b5618acd1f4e1464"],
+            ["comment","Business Rules","","cf1bfc6341687ac2"],
+            ["note","Delta from prior phases","","3f4fcb96597b87fc"],
+            ["comment","Delta from prior phases","","a60457fb84afbbe1"],
+            ["comment","Edge Cases","","cf1bfc6341687ac2"],
+            ["comment","Implementation Notes","","0907e63466dc3f49"],
+            ["note","Implementation Notes","Current Delivery-Layer Implementation","4ce8df070ffdc60f"],
+            ["note","Implementation Notes","Domain Layer Design","a8b8a9ddbbd65fd0"],
+            ["note","Implementation Notes","Keep Delivery/Entrypoint Code Thin","f782f772aec177bf"],
+            ["note","Implementation Notes","Target Architecture Considerations","131b0bebdff07dea"],
+            ["note","Data Structure Changes","","0c88c6ba8884dea9"],
+            ["comment","Data Structure Changes","","0907e63466dc3f49"],
+            ["note","Test Strategy","","f8fae1d2d73bd996"],
+            ["comment","Test Strategy","","934dd23ce8eb6bc7"],
+            ["comment","Open Questions","","a9d1632b0ae9577a"],
+            ["note","Implementation Tasks","","c7ca1fff244b8ee5"],
+            ["comment","Implementation Tasks","","c8a9178ac857d785"]
+          ]
+        }
+      ]
+    },
+    "brownfield/rules.md": {
+      "source": "templates/rules.md",
+      "paths": ["domain/*/rules.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "879453d938c564d0f8332e68103ee1795af9ed4d642cac119fdf376cd9d681d8",
+          "changes": [],
+          "skeleton": [
+            ["h2","Rule Index"],
+            ["column","Rule Index","",1,1,"BR-ID"],
+            ["column","Rule Index","",1,2,"Rule summary"],
+            ["column","Rule Index","",1,3,"Behavior anchor"],
+            ["column","Rule Index","",1,4,"Status"],
+            ["column","Rule Index","",1,5,"Last updated"],
+            ["h2","Status Legend"],
+            ["column","Status Legend","",1,1,"Status"],
+            ["column","Status Legend","",1,2,"Meaning"],
+            ["h2","Open Questions"],
+            ["note","","","64e8ff1bdfecbdfe"],
+            ["comment","","","3a4253074adb61f4"]
+          ]
+        }
+      ]
+    },
+    "brownfield/tech-debt.md": {
+      "source": "templates/tech-debt.md",
+      "paths": ["migration/tech-debt.md"],
+      "variable": [],
+      "conditionalFields": [],
+      "shapes": [
+        {
+          "number": 1,
+          "digest": "60cc642b99f5126a6ac42499ab1e7aeb9ecd419d768e295222a47cecf3de63e5",
+          "changes": [],
+          "skeleton": [
+            ["h2","Debt Items"],
+            ["column","Debt Items","",1,1,"Item"],
+            ["column","Debt Items","",1,2,"Location"],
+            ["column","Debt Items","",1,3,"Description"],
+            ["column","Debt Items","",1,4,"Severity"],
+            ["column","Debt Items","",1,5,"Migration impact"],
+            ["column","Debt Items","",1,6,"Status"],
+            ["h2","Follow-up Notes"],
+            ["note","","","4e4356c466d4914e"],
+            ["comment","","","14592fdd6506429b"]
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -4,6 +4,7 @@ chinese-name: 訂單
 owner: OrderManager 維運團隊
 created: 2026-04-30
 ---
+<!-- dflow-shape: brownfield/context-definition.md 1 — keep this line: dflow doctor reads it -->
 
 # Order Bounded Context
 

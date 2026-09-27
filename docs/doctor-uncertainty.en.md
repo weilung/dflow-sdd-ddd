@@ -12,7 +12,7 @@
 
 ## What `uncertain` means
 
-`dflow doctor` answers one question about the two files whose content it makes claims about — `dflow/specs/shared/_conventions.md` and `dflow/specs/shared/AI-AGENT-GUIDE.md`: **are the rules and settings from the upstream template still in your file?**
+Most of this page is about one question `dflow doctor` answers about the two files whose content it makes claims about — `dflow/specs/shared/_conventions.md` and `dflow/specs/shared/AI-AGENT-GUIDE.md`: **are the rules and settings from the upstream template still in your file?** One id is about something else: the shape marker line in your spec docs (`unreadable-shape-marker`, below).
 
 To answer it, doctor has to work out which section each line belongs to — which means reading Markdown block structure. Its reader is a deliberately small one, and there are shapes it is known to get wrong. Rather than guess, doctor now says so:
 
@@ -164,6 +164,16 @@ A **closing** tag counts as well — `</my-widget>` above the same underline is 
 **Which way it fails.** Usually loudly: doctor ends the section earlier than a renderer does, so it reports drift that is not there — and a `stale` you cannot reproduce is its own problem, which is why it is named rather than left as a mystery. ⚠ But not *only* loudly, and this was stated too confidently for several rounds: ending the section early also drops the rest of it, so a retired rule sitting below the shape stops being seen and its finding disappears. Treat results about that section as unknown in **both** directions.
 
 **How to rewrite it.** Put a blank line between the tag and the underline. If the tag is being *shown* rather than used, fence it as an example.
+
+### `unreadable-shape-marker`
+
+**The shape.** A spec doc under `dflow/specs/` whose shape marker — the `<!-- dflow-shape: {track}/{template} {number} -->` line it takes from its template, with any text after the number optional (see [Shape markers](upgrading.en.md#shape-markers)) — doctor cannot read: the line where the marker belongs (the first line, or the one right after the frontmatter's closing `---`) is malformed (for example a number that is not a positive whole number, such as `0` or `01`); a line containing `dflow-shape:` sits anywhere else (quoted as an example, commented out, inside a list or a quote — all count; so does a marker under frontmatter that a byte-order mark at the start of the file hides, because `dflow render` does not see that frontmatter either); the doc has two or more lines containing `dflow-shape:`; or the line names a template this CLI does not ship (a typo, or a template only the other track has).
+
+**Why it cannot be read reliably.** The marker is the only record of which template shape the doc was written against. With the line damaged, doctor does not guess: a guessed number could keep it silent about a doc that is behind, or have it report one that is not. Nor does doctor decide whether a marker line anywhere else is the live one: that would mean reading lists, quotes, comments and code blocks exactly as `dflow render` does, and it would rather say it cannot tell than report a doc it cannot read as passing.
+
+**Which way it fails.** Only in silence, and only for the docs listed: doctor did not judge their shape, so saying nothing about it is not a pass. For a feature `_index.md` the same holds for the section-by-section comparison doctor otherwise runs on a dashboard without a marker. Every other check is unaffected.
+
+**How to rewrite it.** Leave exactly one marker line in the doc, on the line where it belongs. A marker quoted as an example, or an old one commented out, counts too: reword it so it no longer contains `dflow-shape:`. If the doc was copied whole from the bundle's template copy and its first line is `<!-- dflow-generated: workflow-bundle -->`, delete that line and the blank line after it (doctor names this case). If the file starts with a byte-order mark (BOM) in front of its frontmatter, save it as UTF-8 without a BOM (doctor names this case too). If you know which template and number it had, write the line back with that number: the line in the installed template carries the current number, so copying it marks an older doc as current. If you are not sure of the number, remove the damaged lines and treat the doc as one without a marker — the one-time procedure in [Shape markers](upgrading.en.md#shape-markers) decides the number. ⚠ A doc in a zero-phase feature that has not closed out yet is listed apart: leave it alone until closeout, after which it moves to `features/completed/` and is no longer checked. A feature whose Phase Specs table is empty while its directory holds a phase spec is one doctor cannot place, and is listed apart too: leave it alone if it is a minimal host, and rewrite as above if it is not.
 
 ## Shapes that are known and deliberately not reported
 
