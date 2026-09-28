@@ -2,7 +2,7 @@
 
 > **繁體中文** | [English](closeout-check.en.md)
 
-> 本頁跟著原始碼的 `main` 分支走。`dflow check-closeout` 從 Dflow `0.15.5` 起才有；如果 `dflow check-closeout --help` 回 `Unsupported subcommand`，就是你裝的 CLI 比它早。`@latest` 裝的是最新**已發布**的 CLI，不保證本頁講的功能已經發布——一個已發布版本包含什麼，看它的 changelog。
+> 本頁跟著原始碼的 `main` 分支走。`dflow check-closeout` 從 Dflow `0.16.0` 起才有（公開的原始碼從 `0.15.5` 起就有）；如果 `dflow check-closeout --help` 回 `Unsupported subcommand`，就是你裝的 CLI 比它早。`@latest` 裝的是最新**已發布**的 CLI，不保證本頁講的功能已經發布——一個已發布版本包含什麼，看它的 changelog。
 
 `/dflow:finish-feature` 收尾一個 feature 時：把 feature 目錄標成完成、用 `git mv` 從 `dflow/specs/features/active/` 搬到 `dflow/specs/features/completed/`、在 `_index.md` 記下收尾，然後 commit——commit 完再檢查一遍。這些步驟每一步都是交給 AI 照做的指示。其中一步被跳過，不一致的歸檔就可能沒有人發現地落地：目錄已經在 `completed/`，裡面的 `_index.md` 卻還寫著 `status: in-progress`；或是 `active/` 裡留著一份副本。落地之後，不會再有任何東西去讀這份歸檔。
 

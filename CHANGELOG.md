@@ -6,12 +6,30 @@
 
 ---
 
-## Unreleased
+## 0.16.0 — 2026-09-28 — 收尾歸檔的機械檢查 `dflow check-closeout`、單 phase 也走 finish-feature、commit 檢查點與 post-hoc 的紀錄、最小 host 更正自己的紀錄
 
 **Proposals**：PROPOSAL-094（`new-feature` 8.4 不再是收尾路）、PROPOSAL-103（`modify-existing` 的 commit 檢查點移到更新文件之後）、PROPOSAL-102（post-hoc 補文件記哪一顆 commit、從哪裡切）、PROPOSAL-104（最小 host 在 checkpoint 1 之後更正它自己的紀錄）、PROPOSAL-105（收尾歸檔的機械檢查 `dflow check-closeout`）
 
-> **目前投影版號：`0.15.5`**（**未發布到 npm**；npm latest 仍是 `0.15.0`）。
-> 以下項目都在這一版裡。
+### 從 `0.15.0` 升上來
+
+照 [`docs/upgrading.md`](docs/upgrading.md) 升級：先升 CLI，在專案根目錄跑 `dflow configure-agents`，再跑 `dflow doctor`。這一版另外要注意：
+
+1. **收尾做到一半的 feature，先用你現在這一版收完，再升級。**
+2. **已經走舊 8.4 收掉、commit 進 `completed/` 的 feature：不用改。** 它們是凍結的歷史：`completed/` 裡的 feature
+   不再接受新的規格或變更（follow-up 在原 feature 的 Follow-up Tracking 加列、收尾時翻那一列，這類追蹤更新例外）。
+   這些 feature 會留著兩個過期的欄位：Resume Pointer 停在「new-feature／Step 8」、Phase Specs 表那一列是
+   `in-progress`。`/dflow:status` 不讀它們（它只讀 `active/` 底下的 cursor），`dflow render` 會照原樣畫出來；
+   之後若有人對這樣的 feature 跑 PR review，它會把「Phase Specs 那一列與 phase-spec 的狀態不一致」標出來——那是
+   舊路徑留下的歷史，一樣不用改。
+3. **`_index.md` 範本升成形狀第 3 號**（下面 P-103、P-102 兩項；只改說明文字，段落與欄位都沒變）：`dflow doctor` 看到帶著舊標記的
+   `_index.md` 會多一條 `info`，說明怎麼處理（見下面 P-103 那一項）；`completed/` 底下的 feature 不檢查。
+4. **新子指令 `dflow check-closeout`** 要用才接（pre-commit hook 或 CI），接法見 [`docs/closeout-check.md`](docs/closeout-check.md)；
+   沒接就沒有任何變化。
+5. 其餘各項都沒有遷移動作。dist 投影過的 `0.15.1`–`0.15.5` 都在這一版裡。
+
+**驗證**：發布前 `scripts/check-repo-consistency.sh` 全數通過（含 `npm test` 十支與 `npm pack --dry-run`）。
+
+### 各項變更
 
 - **收尾歸檔的機械檢查：新子指令 `dflow check-closeout`（PROPOSAL-105，dist issue #5）**：
   `/dflow:finish-feature` 收尾時的一致性檢查全部由 AI 執行；某一步被跳過，不一致的歸檔就會沒人發現地落地——
@@ -109,20 +127,6 @@
   `dflow doctor` 看到帶著第 1 號標記的 `_index.md`：`active/` 底下有 phase 的 feature，多一條 `info`，說明那段 `>`
   說明改了措辭、不影響結構，要不要同步由你和 AI 決定；還沒收尾的最小 host，同一條 `info` 只請你先別動它（收尾後它移到
   `completed/`，就不再檢查）；`completed/` 底下的 feature 不檢查。
-
-### 從 `0.15.0` 升上來
-
-照 [`docs/upgrading.md`](docs/upgrading.md) 升級：先升 CLI，在專案根目錄跑 `dflow configure-agents`，再跑 `dflow doctor`。這一版另外要注意：
-
-1. **收尾做到一半的 feature，先用你現在這一版收完，再升級。**
-2. **已經走舊 8.4 收掉、commit 進 `completed/` 的 feature：不用改。** 它們是凍結的歷史：`completed/` 裡的 feature
-   不再接受新的規格或變更（follow-up 在原 feature 的 Follow-up Tracking 加列、收尾時翻那一列，這類追蹤更新例外）。
-   這些 feature 會留著兩個過期的欄位：Resume Pointer 停在「new-feature／Step 8」、Phase Specs 表那一列是
-   `in-progress`。`/dflow:status` 不讀它們（它只讀 `active/` 底下的 cursor），`dflow render` 會照原樣畫出來；
-   之後若有人對這樣的 feature 跑 PR review，它會把「Phase Specs 那一列與 phase-spec 的狀態不一致」標出來——那是
-   舊路徑留下的歷史，一樣不用改。
-
-### 各項變更
 
 - **單 phase 的 feature 也一律用 `/dflow:finish-feature` 收尾（P-094）**：
   `/dflow:new-feature` 的 8.4 原本是第二條收尾路——只有一個 phase 的 feature 可以不跑 finish-feature，直接在這裡翻

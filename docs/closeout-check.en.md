@@ -2,7 +2,7 @@
 
 > [繁體中文](closeout-check.md) | **English**
 
-> This page tracks the source `main` branch. `dflow check-closeout` first ships in Dflow `0.15.5`; if `dflow check-closeout --help` answers `Unsupported subcommand`, your installed CLI predates it. `@latest` installs the latest **published** CLI, which does not guarantee that a feature on this page has been released — the changelog of a published release says what it includes.
+> This page tracks the source `main` branch. `dflow check-closeout` first ships in Dflow `0.16.0` (the public source has it from `0.15.5`); if `dflow check-closeout --help` answers `Unsupported subcommand`, your installed CLI predates it. `@latest` installs the latest **published** CLI, which does not guarantee that a feature on this page has been released — the changelog of a published release says what it includes.
 
 `/dflow:finish-feature` closes a feature out: it marks the feature directory completed, moves it from `dflow/specs/features/active/` to `dflow/specs/features/completed/` with `git mv`, records the closeout in its `_index.md`, and commits — then checks the commit. Every one of those steps is an instruction the AI follows. When one is skipped, an inconsistent archive can land without anyone noticing: the directory is in `completed/` while the `_index.md` inside it still says `status: in-progress`, or a copy is left behind in `active/`. Nothing reads an archive after that.
 

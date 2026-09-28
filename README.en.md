@@ -425,15 +425,16 @@ Publish Checklist](docs/npm-publish-checklist.md).
 ## Status
 
 Dflow is currently published as `dflow-sdd-ddd` on npm. The latest published
-npm package is `0.15.0`, providing:
+npm package is `0.16.0`, providing:
 
 - Project scaffolding and upgrades: `dflow init` (initialization), `dflow configure-agents` (idempotent upgrade re-projection), `dflow doctor` (read-only health check with drift detection), `dflow render` (specs → human-readable HTML)
+- A mechanical closeout check: `dflow check-closeout` (its exit code is the gate; your team wires it into a pre-commit hook or CI — see [`docs/closeout-check.en.md`](docs/closeout-check.en.md))
 - Workflow documentation (the 11 `/dflow:*` flows) plus the project-vendored workflow bundle and multi-AI-tool setup (canonical guide, thin per-tool shims, project-level skill installed by default)
 - Public evaluation material inside the package: evaluator guide and per-tool walkthroughs for Claude Code / Codex CLI / GitHub Copilot (all under `docs/`)
 - Greenfield / Brownfield scenario tutorials and worked spec examples: **in the source repository, not in the npm package** (the tarball does not include `tutorial/`) — see [`tutorial/`](https://github.com/weilung/dflow-sdd-ddd/tree/main/tutorial)
-- A verification-only CI workflow (it does not execute publish)
+- A verification-only CI workflow (it does not execute publish): **in the source repository, not in the npm package**
 
-The GitHub source may include post-`0.15.0` repository changes before the
+The GitHub source may include post-`0.16.0` repository changes before the
 next npm release is published. See [CHANGELOG.md](CHANGELOG.md) for full
 release history.
 
