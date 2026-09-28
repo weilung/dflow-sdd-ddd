@@ -109,6 +109,7 @@ Common synchronized flow files include:
 - `finish-feature-follow-up.md`
 - `finish-feature-minimal-host.md`
 - `finish-feature-post-hoc-hotfix.md`
+- `finish-feature-record-correction.md`
 - `modify-existing-follow-up.md`
 - `modify-existing-post-hoc-hotfix.md`
 - `drift-verification.md`

@@ -574,7 +574,8 @@ Then, in this order:
    admitted. On a **phase-bearing** host there is **no allow-list at all** —
    that check is minimal-host-only and lives in that branch file — so read the
    sweep directly and **do not go looking for a list that host never produced.**
-   Read each delta (`git diff -- {path}`) and scope every one to *this change*;
+   Read each delta (`git diff HEAD -- {path}`, which includes what is already
+   staged) and scope every one to *this change*;
    staging only "what Step 3 wrote" leaves a no-BC host's global delta dirty and
    the post-commit clean-tree check fails.
 3. **Commit (Y) or stop (N).** For Y the AI commits. If a pre-commit hook

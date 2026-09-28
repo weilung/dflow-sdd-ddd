@@ -160,7 +160,17 @@ skip one and the boundary is a hole rather than a division of labour.
       checkpoint 1 and closeout. A third, typically a host opened in its own
       commit before the work landed, breaks the two-commit lifecycle while
       every closeout check still passes, because those read only the hashes
-      the record points at. **This count applies to a minimal host only**: a
+      the record points at. A third that comes **after** checkpoint 1 and
+      changes only the host's record text — no implementation path, no new
+      host file — may instead be a correction committed on its own once
+      checkpoint 1 was pushed (`references/finish-feature-record-correction.md`
+      sends the developer that way and asks for it to be named in the PR
+      description). Report which it is: the count still fails, and
+      accepting a correction commit is your call after reading its full
+      diff and the PR description. A correction that touches only a record
+      outside this directory — a follow-up's original `_index.md` — is not in
+      this walk; the PR description is where it is named.
+      **This count applies to a minimal host only**: a
       phase-bearing feature has no fixed number of host commits, so there is
       nothing to count there and this item is N/A.
       This is also where closeout's minimal-host **selector** boundary is

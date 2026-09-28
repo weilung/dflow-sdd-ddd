@@ -107,7 +107,13 @@ R-FF-FOLLOWUP-01: [finish-feature-minimal-host.md · Step 1 · "the reverse link
 
 R-FF-RECONCILE-01: [finish-feature-minimal-host.md · Step 1 · "Minimal host, hotfix post-hoc only", (c) "touches **at least one** of the implementation paths"] The recorded commit is one of the fix's own commits, or the commit it landed as on the base branch (`modify-existing-post-hoc-hotfix.md` item 3), and a fix made of several commits has no single commit carrying all of it: the record names the last of them that touches a declared path. Requiring every declared path would block that legitimate record. The check is a plausibility test — identity is confirmed by `pr-review-checklist.md` — and "at least one" still rejects a commit unrelated to the declaration. The normal minimal host's "checkpoint 1 is *one* commit" check keeps asking for the declared paths without that qualifier, because there the commit *is* the implementation.
 
+R-FF-RECORDFIX-01: [finish-feature-minimal-host.md · Step 1 · "Checkpoint 1's own record, corrected after checkpoint 1"] The closeout commit cannot take the correction: its closed list admits only what a flow step writes after checkpoint 1, and this is checkpoint 1's own content. So the correction goes into checkpoint 1 itself (an amend) or, once checkpoint 1 is pushed, into a commit of its own that review reports as a departure from the two-commit lifecycle — there is no declared "maintenance" row that makes a third commit legitimate. Such a row would let any third commit through on a label, the stray host-open commit the whole-history count exists to catch included, and a reviewer would still have to judge it.
+
 R-FF-SUMMARY-01: [finish-feature-minimal-host.md · Step 5 · "Zero-phase minimal host — exact fields", on a no-BC host's `Related BR-IDs`] Forcing `none` here would erase a marker the approved zero-phase shape requires.
+
+## finish-feature-record-correction.md
+
+R-FF-RECORDFIX-02: [finish-feature-record-correction.md · "Not pushed, and checkpoint 1 is `HEAD`"] `git commit --amend` rewrites whatever commit is on top; with a later commit there, the amend would miss checkpoint 1 and leave its old hash an ancestor, so hash evidence (b) would no longer catch an entry nobody refilled. The entries holding checkpoint 1's hash are set back to checkpoint 1's state before staging because a hash on the same line as the correction, or on a neighbouring row — a T3 row's text beside its `Commit` cell, a compound host's next row — leaves `git add -p` a hunk it cannot split.
 
 ## init-project-flow.md
 

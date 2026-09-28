@@ -388,9 +388,10 @@ The **mode** changes only *which hash* each surface carries:
   carried the artifact, the implementation and Step 5's record together. Two
   cells, one hash; fill both.
 - **Post-hoc hotfix** (Step 1.8; T2 or T3) — the Checkpoint Log Result stays
-  `reconciled ({merged-hotfix-hash})`, **never overwrite it**, while the row's
-  `Commit` cell carries the **documentation** commit's hash. This is the one
-  mode where the two values genuinely differ (Step 1.8 item 4).
+  `reconciled ({merged-hotfix-hash})`, **never overwrite it** — only closeout
+  corrects it, through `references/modify-existing-post-hoc-hotfix.md` item 6 —
+  while the row's `Commit` cell carries the **documentation** commit's hash.
+  This is the one mode where the two values genuinely differ (Step 1.8 item 4).
 
 **A declined checkpoint still owes its hash.** If the developer answered **N**
 at the checkpoint-1 offer and made that commit themselves — the change together

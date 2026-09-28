@@ -8,10 +8,33 @@
 
 ## Unreleased
 
-**Proposals**：PROPOSAL-094（`new-feature` 8.4 不再是收尾路）、PROPOSAL-103（`modify-existing` 的 commit 檢查點移到更新文件之後）、PROPOSAL-102（post-hoc 補文件記哪一顆 commit、從哪裡切）
+**Proposals**：PROPOSAL-094（`new-feature` 8.4 不再是收尾路）、PROPOSAL-103（`modify-existing` 的 commit 檢查點移到更新文件之後）、PROPOSAL-102（post-hoc 補文件記哪一顆 commit、從哪裡切）、PROPOSAL-104（最小 host 在 checkpoint 1 之後更正它自己的紀錄）
 
-> **目前投影版號：`0.15.3`**（**未發布到 npm**；npm latest 仍是 `0.15.0`）。
+> **目前投影版號：`0.15.4`**（**未發布到 npm**；npm latest 仍是 `0.15.0`）。
 > 以下項目都在這一版裡。
+
+- **最小 host 在 checkpoint 1 之後更正它自己的紀錄（PROPOSAL-104，dist issue #8）**：
+  checkpoint 1 之後、關帳之前才發現 checkpoint 1 自己的紀錄寫錯了（規格內文、某一列的文字、baseline capture 寫進的
+  文件、follow-up 在原 feature 寫的反向連結），關帳會擋下，卻沒有任何地方說怎麼辦。現在：
+  - **關帳照舊擋下，並指到新的分支檔 `finish-feature-record-correction.md`**（只在這種情況才打開，平常的關帳不讀它）：
+    還沒 push、而且 checkpoint 1 就是 `HEAD` → 只 stage 更正、`git diff --cached` 確認、`git commit --amend`，再把記
+    checkpoint 1 hash 的格子改成新的 hash；checkpoint 1 之後已經有別的 commit、或已經 push → 停下來交給你決定。
+    另成一顆的更正不加 Checkpoint Log 列，並在 PR 說明裡指名。
+  - **關帳讀每支檔的變動改用 `git diff HEAD -- {path}`**：原本的 `git diff -- {path}` 看不到已經 `git add` 的變動 ——
+    已 stage 的更正在最小 host 的工作樹檢查裡會顯示成沒有變動，可能就這樣搭上關帳那顆 commit。最小 host 的工作樹檢查與
+    關帳 commit 要 stage 哪些變動的那一步（每一種 host）都改了。
+  - **pr-review 的「剛好兩顆 commit」規則不變**：另成一顆的更正碰到 host 目錄時，那一項照樣標出偏離，並說明它可能是
+    這種更正，接不接受由審查的人讀完它的 diff 與 PR 說明之後判斷；只碰 host 目錄以外的紀錄（baseline capture 的文件、
+    原 feature 的 `_index.md`）時，那一項看不到它，只有 PR 說明會提到它。
+  - **post-hoc 補文件記成了別的修正**（關帳時的 item 6）：照同一支分支檔更正 checkpoint 1，並把 Checkpoint Log 的
+    `reconciled (...)` 改記正確那個修正的 commit，再照 item 6 驗一次。`modify-existing` 裡「`reconciled (...)` 不得覆寫」
+    那句同時寫明例外：只有關帳照 item 6 更正它。
+  - **#8 的另一半 —— 改動被 cherry-pick 到第二條長期分支之後 `Commit` 格填哪一顆 —— 不在出貨檔加規則。**
+    GitFlow starter 用 merge 把 hotfix 帶回 `main` 與 `develop`；Dflow 的 host 分支（`feature/`、`bugfix/`）又是在
+    merge 之前就收尾完成，關帳在 host 自己的分支上驗它自己的那一顆。收尾之後再被 cherry-pick 到別的分支，跟著過去的
+    紀錄仍指原本那一顆，那是預期的樣子。`Commit` 格只放一個 hash：寫成 `A / B` 這種多個值，關帳一律當成「從未填入」。
+  - 兩軌對稱（baseline capture 只在 brownfield）。既有專案再跑一次 `dflow configure-agents` 即取得（workflow bundle
+    多一支分支檔）；**沒有遷移動作**。
 
 - **post-hoc 補文件：記哪一顆 commit、文件分支從哪裡切，都寫明了（PROPOSAL-102，dist issue #13）**：
   急修（hotfix）合併之後才補 Dflow 文件（post-hoc 模式）時，關帳會檢查記下的那顆 commit 是不是文件分支的祖先。

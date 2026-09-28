@@ -194,6 +194,7 @@ If you arrived here with a T1, go back to Part A's routing.
      commits into `develop` when this branch merges.
    - **The record names a different fix** (the citation, the hotfix branch and
      the declared paths are all wrong) — checkpoint 1's own record is wrong,
-     and closeout cannot repair that. Not pushed yet → amend checkpoint 1 and
-     refill every Lightweight Changes row's `Commit` cell. Already pushed →
-     stop and leave the decision to the developer.
+     and closeout cannot repair that. Follow
+     `references/finish-feature-record-correction.md`: it says when
+     checkpoint 1 can be amended and when to stop for the developer, and it
+     covers `reconciled (...)`, which names the wrong fix too.

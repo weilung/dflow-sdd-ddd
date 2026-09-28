@@ -254,11 +254,24 @@ A `✗` here stops closeout there, on the same terms.
       and therefore still qualify under (iii). **(iii) never covers a baseline
       host** either — its capture *is* the change, and is blocked
       above.
-      Read each delta (`git diff -- {path}`) — do not infer it from the
-      filename. **The list is closed** — if a later change adds another
+      Read each delta with `git diff HEAD -- {path}` — plain `git diff` hides
+      what is already staged — and do not infer it from the filename.
+      **The list is closed** — if a later change adds another
       finalization field, add it here explicitly; "a host file is dirty" is never
       on its own a reason to pass. (Unrelated work in progress elsewhere is
       fine; say which files you judged unrelated.)
+      **Checkpoint 1's own record, corrected after checkpoint 1, is outside the
+      list** — the spec's content beyond (ii)'s edits, a row's own text, a
+      document a baseline capture wrote, or the reverse-link row a follow-up
+      wrote into its original's `_index.md`. It blocks: the closeout commit
+      does not carry checkpoint 1's content. The dispatch right after this
+      item gives the repair.
+
+**Open `references/finish-feature-record-correction.md` and follow it there.**
+Do this only when the check above blocked on a correction to checkpoint 1's own
+record: the repair depends on where checkpoint 1 stands now, and that file gives
+it for each case. Otherwise go on to the next check.
+
 - [ ] **Minimal host (zero-phase), no-BC only** — **the host did not commit a
       bounded context it does not have.** This file's `nothing that constitutes
       the change itself is still uncommitted` check reads the *working
