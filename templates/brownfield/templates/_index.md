@@ -6,7 +6,7 @@ created: {YYYY-MM-DD}
 branch: feature/{SPEC-ID}-{slug}
 # follow-up-of: {原 SPEC-ID}    # 選用：本 feature 為某個已 completed feature 的 follow-up 時填入
 ---
-<!-- dflow-shape: brownfield/_index.md 2 — keep this line: dflow doctor reads it -->
+<!-- dflow-shape: brownfield/_index.md 3 — keep this line: dflow doctor reads it -->
 
 <!--
 Template note (for AI):
@@ -133,8 +133,8 @@ references/new-phase-flow.md。有衝突時以那些檔為準。
 > Description 另外標明這是 hotfix，並寫出識別依據（PR／incident／tracker 編號）
 > ——沒有依據的 hash 會擋下 closeout。此時路徑指的是**已合併的那個 hotfix**
 > 碰到的檔案；本列 `Commit` 欄填的是**補文件那個 commit** 的 hash，不是 hotfix
-> 的 hash（後者記在 Checkpoint Log 的 `reconciled (...)` 列）。兩者來源不同，
-> 不可互填。
+> 的 hash（後者記在 Checkpoint Log 的 `reconciled (...)` 列，記哪一顆見
+> references/modify-existing-post-hoc-hotfix.md item 3）。兩者來源不同，不可互填。
 >
 > Tier 判準見 AI-AGENT-GUIDE.md § Ceremony Scaling 的 ordered cascade（步驟 0–4，先命中者勝）。
 
@@ -214,8 +214,9 @@ references/new-phase-flow.md。有衝突時以那些檔為準。
 > Result 的合法值是 `committed ({hash})` / `skipped` / `failed`，外加
 > **`reconciled ({merged-hotfix-hash})`**——只給 post-hoc hotfix（Step 1.8）的
 > implementation 列用，意思是「本 checkpoint 記錄的是一個已經合併的變更」。
-> 括號裡是**那個 hotfix 的 hash**，不是本 host 補文件那個 commit 的 hash
-> （後者填在 Lightweight Changes 該列的 `Commit` 欄）。完整詞彙見
+> 括號裡是**那個修正的 commit**（記哪一顆見
+> references/modify-existing-post-hoc-hotfix.md item 3），不是本 host 補文件那個
+> commit 的 hash（後者填在 Lightweight Changes 該列的 `Commit` 欄）。完整詞彙見
 > references/git-integration.md § Commit Checkpoints, Branch Gate & AI Commits。
 >
 > **`branch-override` 是紀錄列，不是生命週期 checkpoint。** 在 branch gate 選了

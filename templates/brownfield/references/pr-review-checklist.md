@@ -175,9 +175,23 @@ skip one and the boundary is a hole rather than a division of labour.
       so the developer asserts it and cites what the claim rests on —
       `hotfix-identity:` beside `hotfix-branch:` in a **T2**'s
       lightweight-spec frontmatter, or in the row Description for a **T3**.
-      **Open that source** — PR, incident, or tracker — and confirm it names
-      this fix and this commit. Closeout already checked that a citation is
-      *present*; only review can check that it *matches*.
+      **Open that source** — PR, incident, or tracker — and confirm that it
+      names **this fix** and the recorded commit: one of the fix's own
+      commits, or the squash commit when the fix was squashed
+      (`references/modify-existing-post-hoc-hotfix.md` item 3). A fix merged
+      without a PR is identified by the source and the base branch's history
+      instead — the hotfix branch's name or the source's number in commit
+      messages.
+      **When the fix landed as a copy** — a rebase merge or a cherry-pick —
+      the recorded commit is that copy, and the source may not name it. Git
+      cannot prove that one commit is a copy of another: ancestry does not
+      follow copies, and patch comparison (`git cherry`, `git patch-id`)
+      cannot tell apart two changes that differ only in whitespace. A
+      `(cherry picked from commit …)` line or a matching subject is a clue,
+      not proof — settle it with the author from the source, and do not
+      report the identity as confirmed from command output alone.
+      Closeout already checked that a citation is *present*; only review can
+      check that it *matches*.
 - [ ] **Hosted `Commit` cell identity — confirm each hash is *that row's own*
       implementation commit** (phase-bearing host only). `finish-feature-flow.md`
       Step 4 instruction 1 orders the value ("each row's own implementation

@@ -276,10 +276,11 @@ A `✗` here stops closeout there, on the same terms.
       assertion.
       The plausibility conditions, all required: the
       `reconciled ({merged-hotfix-hash})` value passes hash evidence — (a) and
-      (b) as usual, and for **(c)** its diff touches the implementation paths
-      the T2 lightweight-spec or the T3 row **declares** (Step 1.7 requires that
-      declaration; an artifact naming none leaves (c) nothing to compare and
-      **blocks** rather than passing vacuously). It must also **differ**
+      (b) as usual, and for **(c)** its diff touches **at least one** of the
+      implementation paths the T2 lightweight-spec or the T3 row **declares**
+      (Step 1.7 requires that declaration; an artifact naming none leaves (c)
+      nothing to compare and **blocks** rather than passing vacuously). It
+      must also **differ**
       from the Lightweight Changes row's documentation-commit hash (different
       provenance; see Step 1.8). The per-tier trace must exist too: a **T2**
       carries `hotfix-branch:` in its lightweight-spec frontmatter, a **T3** has
@@ -291,6 +292,10 @@ A `✗` here stops closeout there, on the same terms.
       for a **T3**. An uncited hash **blocks** closeout: it leaves pr-review
       nothing to confirm against, and this gate is not a substitute for that
       confirmation.
+      **When (b) fails for the `reconciled (...)` hash, do not report only
+      "not an ancestor".** Open `references/modify-existing-post-hoc-hotfix.md`
+      item 6: it names the causes and the repair for each; report the one that
+      is true.
 
 > **Zero-phase minimal host (`modify-existing-flow.md` Step 1.7 / the Step 1.6
 > minimal variant / Step 1.8's post-hoc hotfix, whose linkage resolves to one of

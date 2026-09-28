@@ -300,6 +300,10 @@ observation-only and carries its own capture alone.
    recorded, or a stale branch is still carrying it — and it is settled that
    way with the developer, as duplicate / existing work or branch-history
    cleanup. All identifiers are settled here, before the host exists.
+
+   For a **post-hoc hotfix** (Step 1.8), also run the branch-base check in
+   `references/modify-existing-post-hoc-hotfix.md` item 2 here, before step 3
+   creates anything: step 4 cuts from the base branch it settles.
 3. **Create the minimal `_index.md`** from `templates/_index.md` at
    `dflow/specs/features/active/{SPEC-ID}-{slug}/_index.md`, carrying all
    **seven required sections** that template names — the Metadata front

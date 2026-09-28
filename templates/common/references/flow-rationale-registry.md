@@ -105,6 +105,8 @@ R-FF-CKPTCOUNT-02: [finish-feature-minimal-host.md · Step 1 · "the Checkpoint 
 
 R-FF-FOLLOWUP-01: [finish-feature-minimal-host.md · Step 1 · "the reverse link was opened, not only closed"] Decidable from one commit and one blob per original, so it stays inside closeout's remit.
 
+R-FF-RECONCILE-01: [finish-feature-minimal-host.md · Step 1 · "Minimal host, hotfix post-hoc only", (c) "touches **at least one** of the implementation paths"] The recorded commit is one of the fix's own commits, or the commit it landed as on the base branch (`modify-existing-post-hoc-hotfix.md` item 3), and a fix made of several commits has no single commit carrying all of it: the record names the last of them that touches a declared path. Requiring every declared path would block that legitimate record. The check is a plausibility test — identity is confirmed by `pr-review-checklist.md` — and "at least one" still rejects a commit unrelated to the declaration. The normal minimal host's "checkpoint 1 is *one* commit" check keeps asking for the declared paths without that qualifier, because there the commit *is* the implementation.
+
 R-FF-SUMMARY-01: [finish-feature-minimal-host.md · Step 5 · "Zero-phase minimal host — exact fields", on a no-BC host's `Related BR-IDs`] Forcing `none` here would erase a marker the approved zero-phase shape requires.
 
 ## init-project-flow.md

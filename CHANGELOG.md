@@ -8,10 +8,36 @@
 
 ## Unreleased
 
-**Proposals**：PROPOSAL-094（`new-feature` 8.4 不再是收尾路）、PROPOSAL-103（`modify-existing` 的 commit 檢查點移到更新文件之後）
+**Proposals**：PROPOSAL-094（`new-feature` 8.4 不再是收尾路）、PROPOSAL-103（`modify-existing` 的 commit 檢查點移到更新文件之後）、PROPOSAL-102（post-hoc 補文件記哪一顆 commit、從哪裡切）
 
-> **目前投影版號：`0.15.2`**（**未發布到 npm**；npm latest 仍是 `0.15.0`）。
+> **目前投影版號：`0.15.3`**（**未發布到 npm**；npm latest 仍是 `0.15.0`）。
 > 以下項目都在這一版裡。
+
+- **post-hoc 補文件：記哪一顆 commit、文件分支從哪裡切，都寫明了（PROPOSAL-102，dist issue #13）**：
+  急修（hotfix）合併之後才補 Dflow 文件（post-hoc 模式）時，關帳會檢查記下的那顆 commit 是不是文件分支的祖先。
+  但記哪一顆沒有定，文件分支從哪裡切也沒寫，於是 GitFlow 專案照 Dflow 自己的 starter 做 —— 記 `main` 上打 tag
+  的那顆 merge commit、從 `develop` 切文件分支 —— 一路順利，**要到關帳才被擋**，訊息只說「不是祖先」。現在：
+  - **記修正自己的 commit**（修正分成幾顆的，記碰到宣告路徑的最後一顆）：**不記任何 merge commit**，GitFlow 下也不是
+    打 tag 的那顆（合回的是 hotfix 分支，那顆不會跟著進 `develop`）。squash 合併記那顆 squash commit；rebase 合併或
+    cherry-pick 進 base 的，記它落到 base 上的副本。修正自己的 commit 在 base 上時就記它，即使先進來的是副本（例如先
+    cherry-pick、之後才合回）。出處照舊引用 PR／事件／追蹤單，不寫 hash。
+  - **建立任何東西之前先檢查切點**：先 fetch base 所在的 remote，確認那顆是 commit、不是 merge commit、它的改動碰到要宣告的實作路徑、而且已經在
+    要切的 base 上；不在的話說出兩種成因（記錯了顆，或還沒合回），**不要改從 `main` 切**。切的時候不追蹤 base。
+  - **關帳時祖先檢查不過，會說原因並給更正路徑**：記錯了顆 → 只改 Checkpoint Log 那一列，跟著關帳 commit 進去；
+    文件分支切得比修正進 base 還早 → 先把 base 合進來；**絕不把 `main` 或 tag 合進文件分支**。
+  - 關帳對那顆 commit 的路徑檢查寫明為「**至少碰到一條**宣告的路徑」—— 修正分成幾顆 commit 時，記下的那一顆只帶自己那一份。
+  - **pr-review 確認身分：對照出處**。打開出處（PR／事件／追蹤單），確認它指名的是這個修正，以及記下的那一顆（修正自己的
+    commit，或 squash commit）—— 有 PR 時，PR 頁面上直接看得到；沒有 PR 的急修，靠出處與 base 的歷史（hotfix 分支名、
+    commit 訊息裡的編號）認出修正的 commit。修正以副本落到 base 的（rebase 合併、
+    cherry-pick），出處不一定列得到那顆副本：清單寫明 git 證明不了一顆 commit 是另一顆的副本（祖先關係追不到副本；
+    `git cherry` 這類 patch 比對分不出只差在空白的兩個改動），`(cherry picked from commit …)` 那一行只是線索；遇到時
+    照出處跟作者確認，不拿指令輸出當成已確認。
+  - GitFlow starter 的「Hotfix spec requirement」多一句：記 hotfix 自己的 commit，不是打 tag 的那顆（記下的從來不是
+    merge commit，而且第 4 步合回的是 hotfix 分支，打 tag 那顆不會跟著進 `develop`）。tutorial 的 brownfield 範例跟著帶上。
+  - **`_index.md` 範本升成形狀第 3 號**：Lightweight Changes 與 Checkpoint Log 的兩段說明改成指向 post-hoc 分支檔的規則
+    （只改說明文字，段落與欄位都沒變）。`dflow doctor` 對帶著較舊標記的 `_index.md` 照舊只給 `info`：說明改了措辭、
+    不影響結構，要不要同步由你和 AI 決定；還沒收尾的最小 host 請先別動它，`completed/` 底下的 feature 不檢查。
+  - 兩軌對稱。既有專案再跑一次 `dflow configure-agents` 即取得（starter 那一句在可刷新區內）；**沒有遷移動作**。
 
 - **`modify-existing`（含 `/dflow:bug-fix`）的 commit 詢問，移到更新文件那一步做完之後（P-103，issue #7）**：
   以前在「實作完成」那一關（brownfield Step 5 → Step 6、greenfield Step 4 → Step 5）就問要不要 commit，接著才更新

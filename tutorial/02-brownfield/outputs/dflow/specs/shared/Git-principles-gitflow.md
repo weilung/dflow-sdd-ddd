@@ -126,7 +126,11 @@ within **24 hours** after it lands. Run `/dflow:modify-existing` in
 **post-hoc mode** (`references/modify-existing-flow.md` Step 1.8): it opens a
 minimal host of its own for the fix, records the implementation checkpoint as
 `reconciled ({merged-hotfix-hash})`, and reconciles rather than re-running work
-that is already on the mainline.
+that is already on the mainline. The hash it records is the hotfix's own
+commit, **not** the tagged merge commit on `main` (step 3): the record is
+never a merge commit, and step 4 merges the hotfix **branch**, so the tagged
+commit does not come into `develop` with it.
+`references/modify-existing-post-hoc-hotfix.md` item 3 has the rule.
 What gets written is whatever the cascade's tier calls for — a **T2** lands a
 lightweight spec (root cause + fix + a `dflow/specs/migration/tech-debt.md` entry
 if the bug reveals a systemic issue); a **T3** lands one `_index.md` Lightweight
