@@ -87,7 +87,7 @@ Markdown-based 的 workflow 材料加一個 scaffolding CLI，能與任何可讀
 
 ## CLI 指令（在終端機執行，不是對 AI 講）
 
-上面的 `/dflow:*` 是給 AI 助理的 workflow；下面四個是 `dflow` CLI 本身：
+上面的 `/dflow:*` 是給 AI 助理的 workflow；下面五個是 `dflow` CLI 本身：
 
 | 指令 | 用途 |
 |---|---|
@@ -95,7 +95,9 @@ Markdown-based 的 workflow 材料加一個 scaffolding CLI，能與任何可讀
 | `dflow configure-agents` | 冪等地重新投影：加新的 AI 工具、刷新 workflow bundle；`--skills` 重生成 skill、`--command-adapters` 產生原生 `/` 命令 |
 | `dflow doctor` | 唯讀健康檢查與漂移偵測 |
 | `dflow render` | 把 `dflow/specs/` 轉成人類可讀的靜態 HTML |
+| `dflow check-closeout` | 收尾 commit 的機械檢查：以結束碼當閘，接在 pre-commit hook 或 CI 上 |
 
 每個指令的完整旗標見它自己的 `--help`（例如 `dflow render --help`）。
 `init`、`configure-agents`、`render` 的使用情境與版控建議見 [README「開始使用」](../README.md#開始使用)；
-`doctor` 報出來的東西怎麼處理，見[升級既有 Dflow 專案](upgrading.md)與[當 `dflow doctor` 說它沒有把握](doctor-uncertainty.md)。
+`doctor` 報出來的東西怎麼處理，見[升級既有 Dflow 專案](upgrading.md)與[當 `dflow doctor` 說它沒有把握](doctor-uncertainty.md)；
+`check-closeout` 檢查什麼、hook 與 CI 的接法範本，見[收尾 commit 的機械檢查](closeout-check.md)。

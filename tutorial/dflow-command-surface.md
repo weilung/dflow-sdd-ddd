@@ -11,7 +11,7 @@ Dflow 有兩層命令表面：
 
 | 層級 | 形式 | 在哪裡執行 | 用途 |
 |---|---|---|---|
-| npm CLI | `dflow init`、`dflow configure-agents`、`dflow doctor`、`dflow render`（共四個子命令） | shell / terminal | 建立或檢查 Dflow workspace、AI tool shim 與選配 command adapters；`render` 另把 specs 投影成可瀏覽的 HTML。 |
+| npm CLI | `dflow init`、`dflow configure-agents`、`dflow doctor`、`dflow render`、`dflow check-closeout`（共五個子命令） | shell / terminal | 建立或檢查 Dflow workspace、AI tool shim 與選配 command adapters；`render` 另把 specs 投影成可瀏覽的 HTML；`check-closeout` 是接在 pre-commit hook 或 CI 上的收尾檢查。 |
 | AI workflow command | `/dflow:new-feature`、`/dflow:modify-existing` 等 | AI coding agent 對話 | 引導 feature、phase、bug fix、finish、verify、review 等日常協作流程。 |
 
 兩者不是替代關係。CLI 負責把 Dflow 裝進專案；`/dflow:*` workflow 負責讓 AI
@@ -59,7 +59,7 @@ dflow init
 
 > **npx 替代路徑**：若不想做全域安裝（無 admin 權限、暫時性環境、或只想一次性評估），
 > 可改用 `npx dflow-sdd-ddd init`。使用此路徑時，後續所有 CLI 命令（`configure-agents`、
-> `doctor`、`render`）也必須使用 `npx dflow-sdd-ddd <subcommand>` 形式。
+> `doctor`、`render`、`check-closeout`）也必須使用 `npx dflow-sdd-ddd <subcommand>` 形式。
 > 完整說明見 [README.md 的「Alternative: try without installing」段](../README.md)。
 
 它會依序詢問九個問題：
@@ -211,6 +211,26 @@ dflow render --src dflow/specs --out dflow-specs-html --title "我的專案 spec
 ```bash
 dflow render --src tutorial/01-greenfield/outputs/dflow/specs --out /tmp/expense-html
 ```
+
+### `dflow check-closeout`
+
+收尾 commit 的機械檢查。`/dflow:finish-feature` 把 feature 目錄 `git mv` 到 `completed/`
+之後，它檢查這次新歸檔的目錄是否一致：`_index.md` 與每一份 spec 都寫著
+`status: completed`、`active/` 沒有留下副本、Checkpoint Log 有一列真正的 `closeout`，以及
+（`--staged`）歸檔目錄底下沒有漏 stage 的東西。它以結束碼當閘：`0` 放行、`1` 擋下。
+
+```bash
+dflow check-closeout                          # 同 --staged：pre-commit hook 用，檢查 index
+dflow check-closeout --range <base>..<head>   # CI 用：檢查 merge request 的最終狀態
+```
+
+要點：
+
+- 它是給 **pre-commit hook 與 CI** 呼叫的，平常不用手動跑；接法範本見
+  [收尾 commit 的機械檢查](../docs/closeout-check.md)。Dflow 不會替你安裝 hook 或 CI 檔。
+- **通過不代表收尾是乾淨的**：它只檢查機械判得準的那一部分，`/dflow:finish-feature`
+  Step 4 其餘的驗證仍由 AI 做、由 pr-review 把關。
+- 它也**不是 workflow command**：不在 `/dflow:*` 那 11 個命令裡，也沒有 command adapter。
 
 ## AI workflow command：日常開發流程
 
@@ -544,8 +564,9 @@ Git branch 要叫 `bugfix/...`、`hotfix/...`、或直接短命 feature branch�
 
 - `dflow init`（全域安裝後）是 shell CLI；`/dflow:*` 是 AI workflow。
 - `dflow doctor` 是 CLI health check；`/dflow:verify` 是 AI drift verification。
-- CLI 共四個子命令：`init`、`configure-agents`、`doctor`、`render`。`render` 把 specs
-  投影成給人讀的 HTML，不是 workflow command。
+- CLI 共五個子命令：`init`、`configure-agents`、`doctor`、`render`、`check-closeout`。
+  `render` 把 specs 投影成給人讀的 HTML；`check-closeout` 是接在 pre-commit hook 或 CI 上的
+  收尾檢查。兩者都不是 workflow command。
 - `/dflow:new-feature`、`/dflow:modify-existing`、`/dflow:bug-fix` 是日常工作入口。
 - `/dflow:new-phase` 只適用 active feature 的下一個 phase，會一路做到 phase-level implementation / verification / completion。
 - `/dflow:finish-feature` 是 closeout，不是 merge、publish 或 release。

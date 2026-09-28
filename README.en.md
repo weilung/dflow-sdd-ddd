@@ -132,7 +132,7 @@ confirm direction with you — the flow is drawn above in
 
 To name a flow yourself (when you already know this is a new feature, say), or to see
 everything Dflow covers, read the [Command Reference](docs/commands.en.md): the 11
-workflows, how to type them in each AI tool, and the four `dflow` CLI commands.
+workflows, how to type them in each AI tool, and the five `dflow` CLI commands.
 
 For the first adoption pass, use a branch or disposable sample project so your
 team can inspect the generated `dflow/specs/` workspace before bringing the
@@ -286,6 +286,8 @@ Dflow solves these with `_index.md`: the Current BR Snapshot regenerates after e
 Once `/dflow:finish-feature` moves a feature directory into `completed/`, **no direct writes are allowed** — not new phase-specs, not lightweight-specs, not even inline rows in `_index.md` (the one sanctioned exception: the Follow-up Tracking section's derived metadata — when a follow-up feature links back, its reverse-link row flips from `in-progress` to `completed`; specs, the BR Snapshot, and inline change history stay frozen). To change anything later, you build a **follow-up feature**: a new feature directory with a fresh SPEC-ID and `follow-up-of: {original SPEC-ID}` metadata pointing back to the original.
 
 Why: "completed = frozen history" is a core Dflow guarantee. Accepting post-completion edits would erase the feature-lifecycle endpoint and make `_index.md`'s BR Snapshot unreliable. `/dflow:modify-existing` detects when the target is a completed feature and prompts the developer with three choices: A — follow-up; B — independent concern (**T1** goes to `/dflow:new-feature`; **T2 / T3** stay in `/dflow:modify-existing` and open a standalone minimal host); C (refused, re-directed to A).
+
+**Advanced: wire the closeout check into a hook or CI.** The AI runs the closeout's consistency checks; when a step is skipped, an inconsistent archive (the directory in `completed/` while the `_index.md` inside it still says `in-progress`) can land without anyone noticing. To have git stop it mechanically on the closeout commit or the merge request, see [Checking the closeout commit](docs/closeout-check.en.md): `dflow check-closeout` plus pre-commit hook and GitLab / GitHub CI templates, which your team wires in itself.
 
 ## Files Created by Init
 

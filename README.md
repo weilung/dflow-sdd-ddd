@@ -102,7 +102,7 @@ AI 會判斷該走哪一條 workflow 並主動啟動，然後在每個決策點�
 
 想自己指定某條 flow（例如你已經確定這是一個新 feature），或想知道 Dflow 總共涵蓋哪些
 情境，見[指令參考](docs/commands.md)：11 條 workflow、各 AI 工具的輸入方式、以及 `dflow`
-CLI 的四個指令。
+CLI 的五個指令。
 
 第一次採用建議用 branch 或一次性試用專案，讓團隊先檢視產生的 `dflow/specs/` 工作區，再把流程引入正式程式碼。
 
@@ -216,6 +216,8 @@ Dflow 用 `_index.md` 解決這三點：Current BR Snapshot 每完成一個 phas
 當 `/dflow:finish-feature` 把 feature 目錄 `git mv` 到 `completed/` 後，**該 feature 不接受任何直接寫入**，無論是新 phase-spec、lightweight-spec、還是 `_index.md` inline 一行（唯一 sanctioned 例外：Follow-up Tracking 段的 derived metadata——有 follow-up feature 連回時，其 reverse-link 列由 `in-progress` 翻 `completed`；specs、BR Snapshot、inline change history 仍凍結）。如果之後要再改它，必須建一個 follow-up feature：新 feature 目錄、新 SPEC-ID、`_index.md` 用 `follow-up-of: {原 SPEC-ID}` metadata 連回原 feature。
 
 理由：「completed = 凍結歷史」是 Dflow 的核心保證；若接受 post-completion 修改，feature lifecycle 就失去明確終點、`_index.md` BR Snapshot 也無法可信。`/dflow:modify-existing` 偵測到目標是 completed feature 時會主動詢問 user 三個選項：A 走 follow-up、B 當獨立新需求（**T1** 走 `/dflow:new-feature`；**T2／T3** 留在 `/dflow:modify-existing`，開一個 standalone minimal host）、C（被拒絕，重新引導至 A）。
+
+**進階：把收尾檢查接到 hook／CI。** 收尾的一致性檢查由 AI 執行；某一步被跳過時，不一致的歸檔（目錄已在 `completed/`，裡面的 `_index.md` 卻還是 `in-progress`）會沒人發現地落地。想讓 git 在收尾 commit 或 merge request 上機械地擋下它，見[收尾 commit 的機械檢查](docs/closeout-check.md)：`dflow check-closeout` 加上 pre-commit hook 與 GitLab／GitHub CI 的接法範本，由你的團隊自己接。
 
 ## Init 產生的檔案
 

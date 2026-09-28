@@ -351,12 +351,25 @@ heavily enough that git's similarity index dropped below the rename
 threshold; consider using `git mv` for the move, then making content
 edits in a follow-up commit).
 
-### CI / hook automation (future)
+### CI / hook automation
 
-A pre-commit hook can refuse commits where `dflow/specs/features/active/` or
-`dflow/specs/features/completed/` show paired `D` + `A` instead of `R` for
-the same feature directory. Not part of Dflow today, but compatible
-with the rule.
+Dflow ships `dflow check-closeout`, a gate for the closeout commit. For each
+feature directory newly archived to `dflow/specs/features/completed/` it checks
+that `_index.md` and every spec say `status: completed`, that nothing is left
+under `active/`, that the Checkpoint Log has a real `closeout` row reading
+`committed` or `skipped`, and — with `--staged` — that nothing under the
+archived directory is left unstaged; it exits 1 when one fails. A project wires
+it into a pre-commit hook (`--staged`) or a CI job (`--range <base>..<head>`)
+itself — Dflow installs neither. `dflow check-closeout --help` names the page
+with the hook and CI templates. When the hook refuses a closeout commit, handle
+it as `references/finish-feature-flow.md` Step 4 instruction 3 says.
+
+Passing it is not a clean closeout: the post-commit verification in
+`references/finish-feature-flow.md` Step 4 still applies in full.
+
+A hook that refuses paired `D` + `A` instead of `R` for the same feature
+directory is compatible with the `git mv` rule, but it is not part of
+`check-closeout`.
 
 ## Gate Checks by Branch Type
 

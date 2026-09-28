@@ -8,10 +8,34 @@
 
 ## Unreleased
 
-**Proposals**：PROPOSAL-094（`new-feature` 8.4 不再是收尾路）、PROPOSAL-103（`modify-existing` 的 commit 檢查點移到更新文件之後）、PROPOSAL-102（post-hoc 補文件記哪一顆 commit、從哪裡切）、PROPOSAL-104（最小 host 在 checkpoint 1 之後更正它自己的紀錄）
+**Proposals**：PROPOSAL-094（`new-feature` 8.4 不再是收尾路）、PROPOSAL-103（`modify-existing` 的 commit 檢查點移到更新文件之後）、PROPOSAL-102（post-hoc 補文件記哪一顆 commit、從哪裡切）、PROPOSAL-104（最小 host 在 checkpoint 1 之後更正它自己的紀錄）、PROPOSAL-105（收尾歸檔的機械檢查 `dflow check-closeout`）
 
-> **目前投影版號：`0.15.4`**（**未發布到 npm**；npm latest 仍是 `0.15.0`）。
+> **目前投影版號：`0.15.5`**（**未發布到 npm**；npm latest 仍是 `0.15.0`）。
 > 以下項目都在這一版裡。
+
+- **收尾歸檔的機械檢查：新子指令 `dflow check-closeout`（PROPOSAL-105，dist issue #5）**：
+  `/dflow:finish-feature` 收尾時的一致性檢查全部由 AI 執行；某一步被跳過，不一致的歸檔就會沒人發現地落地——
+  目錄已經搬進 `completed/`，裡面的 `_index.md` 卻還寫著 `status: in-progress`（#5 回報的正是這種：`git mv` 之後的
+  修改沒有 `git add`）。現在多了一個以結束碼當閘的檢查，由團隊自己接到 pre-commit hook 或 CI：
+  - **`dflow check-closeout`**（同 `--staged`，給 pre-commit hook）檢查 index，也就是這顆 commit 要記下的內容；
+    **`--range <base>..<head>`**（給 CI）檢查 merge request 的最終狀態。只看這次變動**新歸檔**的 feature 目錄；
+    已經在 `completed/` 的不回頭讀，只有一個例外：`--staged` 會再檢查一次 `HEAD` 這顆 commit 自己歸檔的（好讓修正
+    收尾 commit 的 amend 也被檢查）。
+  - 每個新歸檔的目錄檢查五項：`_index.md` 與每一份 spec（`lightweight-*`、`BUG-*`、`phase-spec-*`，從出貨範本推導）
+    都寫著 `status: completed`；`active/` 沒有留下副本；Checkpoint Log 有一列真正的 `closeout`，Result 是
+    `committed` 或 `skipped`（範本自帶的佔位列不算，`failed` 擋下）；`--staged` 時，歸檔目錄底下沒有漏 stage、
+    也沒有還沒 add 的檔。
+  - 結束碼 `0` 放行、`1` 擋下，每一條都寫出是哪個目錄、哪裡不對、怎麼修。讀不準的寫法（沒有 frontmatter、較早的
+    closeout 列寫法、不是從 `active/` 同名搬來的目錄——包括替已歸檔的 host 改名……）報成 `[uncertain]`，一樣擋下，
+    不報成通過，由人確認後放行。
+  - **通過不代表收尾是乾淨的**：`/dflow:finish-feature` Step 4 其餘的驗證（對照收尾基準的逐檔比對、收尾 commit
+    只帶准許的路徑、回填 hash 的身分、最小 host 剛好兩顆 commit）仍由 AI 做、由 pr-review 把關。
+  - **接法範本**在新文件 [`docs/closeout-check.md`](docs/closeout-check.md)（英文版 `closeout-check.en.md`）：
+    pre-commit hook（POSIX sh；一般 commit 不啟動 Node；沒裝 `dflow` 的電腦印一行後放行），以及 GitLab 與
+    GitHub Actions 的 CI job（版號取自專案 workflow bundle 的 manifest）。**Dflow 不在你的專案裡安裝任何 hook 或
+    CI 檔**；`dflow doctor` 不變（仍然只回報，結束碼仍是 0）。
+  - 兩軌 `git-integration.md` 的「CI / hook automation」一節改寫成出貨的現況。既有專案再跑一次
+    `dflow configure-agents` 即取得那一節；**沒有遷移動作**，hook 與 CI 要用才接。
 
 - **最小 host 在 checkpoint 1 之後更正它自己的紀錄（PROPOSAL-104，dist issue #8）**：
   checkpoint 1 之後、關帳之前才發現 checkpoint 1 自己的紀錄寫錯了（規格內文、某一列的文字、baseline capture 寫進的

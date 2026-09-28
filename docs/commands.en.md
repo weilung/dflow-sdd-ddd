@@ -93,7 +93,7 @@ language triggering and plain-text invocation work without them.
 
 ## CLI commands (run in a terminal, not said to the AI)
 
-The `/dflow:*` names above are workflows for your AI assistant. These four are the
+The `/dflow:*` names above are workflows for your AI assistant. These five are the
 `dflow` CLI itself:
 
 | Command | Purpose |
@@ -102,9 +102,11 @@ The `/dflow:*` names above are workflows for your AI assistant. These four are t
 | `dflow configure-agents` | Idempotent re-projection: add AI tools, refresh the workflow bundle; `--skills` regenerates skills, `--command-adapters` generates native `/` commands |
 | `dflow doctor` | Read-only health check and drift detection |
 | `dflow render` | Turn `dflow/specs/` into browsable static HTML for humans |
+| `dflow check-closeout` | A mechanical check of the closeout commit: its exit code is a gate, for a pre-commit hook or CI |
 
 Each command’s full set of flags is in its own `--help` (for example `dflow render --help`).
 When to reach for `init`, `configure-agents` and `render`, and the version-control advice, are
 in [README "Get Started"](../README.en.md#get-started); what to do about what `doctor` reports
 is in [Upgrading an Existing Dflow Project](upgrading.en.md) and
-[When `dflow doctor` is not sure](doctor-uncertainty.en.md).
+[When `dflow doctor` is not sure](doctor-uncertainty.en.md); what `check-closeout` checks, and the hook and CI
+templates, are in [Checking the closeout commit](closeout-check.en.md).

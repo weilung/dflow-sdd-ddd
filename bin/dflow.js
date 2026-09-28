@@ -14,6 +14,7 @@ Usage:
   dflow configure-agents  Add or update AI agent instruction shims
   dflow doctor            Read-only project health check
   dflow render            Render the specs Markdown tree to browsable HTML
+  dflow check-closeout    Gate a closeout commit (for a pre-commit hook or CI)
   dflow --help            Show this help
   dflow --version         Show the CLI version
 `);
@@ -130,6 +131,62 @@ Doctor never modifies files.
 `);
 }
 
+function printCheckCloseoutHelp(specGlobs, docUrl) {
+  process.stdout.write(`Usage:
+  dflow check-closeout [--staged]
+  dflow check-closeout --range <base>..<head>
+
+A gate for the closeout commit of /dflow:finish-feature: it checks the
+feature directories newly archived to dflow/specs/features/completed/ and
+exits 1 when one is inconsistent, so a pre-commit hook or a CI job can stop
+the commit or the merge request. It reads git only and never modifies
+anything. Run it from the directory that holds dflow/specs/ (the project may
+sit below the repository root).
+
+Modes:
+  --staged (default)       Check the index (what git commit will record),
+                           for a pre-commit hook. A host the HEAD commit
+                           itself archived is checked too unless HEAD is a
+                           merge, so amending a closeout commit is checked;
+                           the commit after a closeout re-checks that host.
+  --range <base>..<head>   Check the final state of <head> against its merge
+                           base with <base>, for CI on a merge request or
+                           pull request. Needs the full history.
+
+In scope: a directory under completed/ that has files after the change and
+had none before. One that was in active/ under the same name (for --range:
+at the merge base or in any commit of the range) is checked. Any other —
+renamed on the way, created directly in completed/, or an archived host
+renamed — is reported as uncertain, for a person to confirm. Hosts that were
+already in completed/ are not read again, except the ones --staged re-checks
+because the HEAD commit archived them.
+
+Checked for each newly archived host:
+  1. _index.md exists and its frontmatter says status: completed
+  2. nothing is left under features/active/<host>/ (moved, not copied)
+  3. every spec file (${specGlobs.join(', ')}) says status: completed
+  4. the Checkpoint Log has a closeout row (not the template's placeholder)
+     whose Result is committed or skipped
+  5. --staged only: nothing under the archived directory is left unstaged
+     or untracked in the working tree
+
+Not checked, and still up to the AI's Step 4 verification and pr-review: the
+file-by-file comparison with the closeout baseline, that the commit carries
+only the paths closeout may write, the identity of hosted Commit cells, and a
+minimal host's hash evidence and exactly-two-commits rule. Passing does not
+mean the closeout is clean.
+
+Exit status: 0 when no host is in scope or every one passes; 1 when a check
+fails, a shape cannot be read with confidence ([uncertain]), or the check
+cannot run (not a git repository, no dflow/specs/ here, bad arguments).
+
+Hook and CI templates, and how to handle [uncertain]:
+${docUrl}
+(offline: docs/closeout-check.en.md in the installed package; Traditional
+Chinese: docs/closeout-check.md)
+`);
+}
+
 async function main() {
   if (args.length === 0 || args[0] === '--help' || args[0] === '-h') {
     printHelp();
@@ -212,6 +269,24 @@ async function main() {
 
     return await runDoctor({
       cwd: process.cwd(),
+      stdout: process.stdout,
+      stderr: process.stderr
+    });
+  }
+
+  if (args[0] === 'check-closeout') {
+    // Loaded only for this subcommand. It reads lib/doc-shapes.json when it runs,
+    // never when it loads, so a damaged registry cannot stop `dflow doctor` from
+    // starting and reporting it; here a damaged registry is an error.
+    const closeoutCheck = require('../lib/closeout-check');
+    if (args.length > 1 && (args[1] === '--help' || args[1] === '-h')) {
+      printCheckCloseoutHelp(await closeoutCheck.specFileGlobs(), closeoutCheck.CLOSEOUT_CHECK_DOC_URL);
+      return 0;
+    }
+
+    return await closeoutCheck.runCheckCloseout({
+      cwd: process.cwd(),
+      args: args.slice(1),
       stdout: process.stdout,
       stderr: process.stderr
     });
