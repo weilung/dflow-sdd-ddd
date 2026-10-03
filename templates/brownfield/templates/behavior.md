@@ -47,7 +47,7 @@ Then {expected result}
 
 ---
 
-<!-- 
+<!--
 Maintenance notes:
 - Organize by feature area, not by spec ID (specs are transient; behavior areas are stable)
 - When merging a completed spec, place its scenarios under the matching feature area

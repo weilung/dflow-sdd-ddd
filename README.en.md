@@ -158,7 +158,10 @@ It mirrors `dflow/specs/` into a static HTML tree (default output
 tables become one card per row, AI-facing comment markers become badges,
 gherkin blocks get keyword highlighting, and in-tree links are rewritten to
 the matching HTML pages; the filled lifecycle and flow tables in
-`analysis.md` are also drawn as diagrams above their cards. Open the output
+`analysis.md` are also drawn as diagrams above their cards (one that cannot
+be drawn gets a one-line note on its page instead, and the command lists each
+such diagram with its file, entry id and reason; what can be drawn is in
+`dflow render --help`). Open the output
 directory's `index.html` in a browser (`file://` works; no server needed):
 the front page is a grouped directory — Features, Domain, architecture and
 migration, shared documents, and the rest — each group collapsed until you

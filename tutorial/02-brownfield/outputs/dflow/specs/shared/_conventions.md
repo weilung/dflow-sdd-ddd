@@ -91,7 +91,7 @@ Dflow ships these templates (do **not** re-inline their content here
 | `templates/_index.md` | Creating a feature directory (every feature) |
 | `templates/phase-spec.md` | T1 Heavy |
 | `templates/lightweight-spec.md` | T2 Light — classic BR-delta form, or one of the no-BR family variants (presentation, non-breaking contract, operational / security, performance, implementation defect, intentional change) |
-| `templates/context-definition.md` | When a new Bounded Context is introduced |
+| `templates/context-definition.md` | When a new Bounded Context is introduced — saved as `dflow/specs/domain/{context}/context.md` |
 | `templates/behavior.md` | BC-level consolidated behavior spec |
 
 Which tier applies is decided by the cascade in `AI-AGENT-GUIDE.md` § Ceremony

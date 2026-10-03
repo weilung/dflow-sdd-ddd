@@ -6,6 +6,46 @@
 
 ---
 
+## Unreleased
+
+**來源**：dist issue #17（一個 brownfield 專案升級到 `0.16.0` 之後的使用回報）裡只有一種修法的幾條，以及同一次升級時
+`dflow configure-agents` 的輸出問題。沒有提案。
+
+> **目前投影版號：`0.16.1`**（**未發布到 npm**；npm latest 仍是 `0.16.0`）。
+> 以下項目都在這一版裡。
+
+- **`dflow render` 說出哪一張圖沒畫成、為什麼（#17 第 9 條）**：畫不成圖的 `LC-nn`／`FL-nn`，以前命令列只印總數
+  （`diagrams: 2 drawn, 1 not drawn`），原因要一頁一頁打開找。現在總數底下逐張列一行：檔案、編號與原因（和頁面上那一行
+  說明同一句）。畫得出圖的條件——狀態與轉移的上限、From／To 只能放狀態表裡的一個值、分道、圖寬圖高、格子的長度——寫進
+  `dflow render --help`，README 指過去。
+- **`/dflow:verify` 寫明 anchor 怎麼算（#17 第 6 條）**：兩軌 `drift-verification.md` Step 4 補上 slug 規則（GitHub 對一般
+  文字用的規則，GitLab 17.0 起相同：小寫、刪掉字母（任何文字的字母，含中文）、數字、空白、`-`、`_` 以外的字元、每個空白換成一個 `-`、重複的依序加 `-1`、`-2`），並列出已知
+  各家算法不一樣的標題：兩個以上連續的空白（打出來的，或刪掉夾在兩個空白中間的符號後留下的，例如 ` → `、` ＋ `）——`dflow render` 只換成一個 `-`，
+  GitHub 與 GitLab 每個空白各換一個；帶組合字元的 emoji（`⚠️`、`1️⃣`）、不是一般數字的數字（`①`）、全形底線（`＿`）。BR 標題含這些時，不論 anchor 有沒有對上都會以 `ℹ` 點名（算在 informational）、建議改標題——在一種渲染器下對得上的
+  連結，到專案實際看文件的那一種可能就連不到。
+- **Git 原則：workflow 之外的 commit 怎麼寫（#17 第 11 條）**：兩軌、兩種 Git 政策的 `Git-principles-*.md` § 2 原本只說
+  每顆 commit 都要對到 SPEC-ID，現在補一段：不屬於任何 workflow 的 commit（低於 workflow 的改動、升級 Dflow、單獨 commit 的
+  一筆知識紀錄）沒有 SPEC-ID，照專案自己的慣例寫。這一段在可刷新區內：檔案帶著可刷新區的 marker 時，再跑一次
+  `dflow configure-agents` 即取得；沒有 marker 的檔要先在互動模式採用 marker（見 `docs/upgrading.md`）。tutorial 範例跟著刷新。
+- **補形狀標記：翻譯過的說明算同一段（#17 第 5 條）**：`docs/upgrading.md`（與英文版）「替沒有標記的文件補上標記」第 4 步
+  與附的 AI 提示補三件事：範本的說明已經翻成專案語言的，算同一段，不要再補英文原文；分不出一個差異是範本後來改的、還是
+  自己的寫法時，拿建立那份文件的那顆 commit 裡的 bundle 範本來比（文件改過名的話用 `git log --follow` 往回找；那顆 commit 沒有這支範本時判不了，交給你判斷，不拿之後的
+  commit 比）；同一個差異出現在好幾份照同一版範本建立的文件裡，可以一次判斷。
+- **`_conventions.md` 範本表寫出 context 文件存在哪（#17 第 1 條）**：`templates/context-definition.md` 那一列加上「存成
+  `dflow/specs/domain/{context}/context.md`」。照範本檔名存成 `context-definition.md`、又沒有形狀標記的文件不在 flow 的慣用路徑上，
+  `dflow doctor` 看不到它（帶著形狀標記的照常納入檢查）。只影響新專案（`_conventions.md` 是你的檔，Dflow 不改寫）；既有專案若有這樣的檔，要讓 doctor 看得到它就改名成 `context.md`；也建議在自己的 `_conventions.md`
+  那一列補上同一句存放位置，之後的 AI 才不會再照範本檔名存。
+- **`dflow configure-agents` 的輸出**：
+  - 內容沒變的檔（workflow bundle、它的 manifest、skill、指令檔）在預覽標成 `skip … already current`、結果列在 `Skipped:`，
+    不再列成 `update`——以前一次幾乎沒有改動的升級，看起來像改了幾十個檔。預覽之後、確認之前若有人改了或刪了其中一支，
+    寫入時會警告，而且 `> Dflow Version:` 那一行不推進（下次再跑一次即可）。合併用的 snippet 照舊每次寫出。
+  - 取消時印 `Dflow configure-agents aborted.`（原本印 `Dflow init aborted.`）：在確認題答 `N`、輸入提前結束、或同一題答錯三次都是。
+  - 沒有要延後建立的檔時，預覽不再印一張空的 `Will defer:` 表。
+- **`behavior.md` 範本**：維護說明那段註解的開頭行拿掉行尾空白（照範本補段落時 `git diff --check` 會報）。只動空白，
+  形狀號碼不變。
+
+---
+
 ## 0.16.0 — 2026-09-28 — 收尾歸檔的機械檢查 `dflow check-closeout`、單 phase 也走 finish-feature、commit 檢查點與 post-hoc 的紀錄、最小 host 更正自己的紀錄
 
 **Proposals**：PROPOSAL-094（`new-feature` 8.4 不再是收尾路）、PROPOSAL-103（`modify-existing` 的 commit 檢查點移到更新文件之後）、PROPOSAL-102（post-hoc 補文件記哪一顆 commit、從哪裡切）、PROPOSAL-104（最小 host 在 checkpoint 1 之後更正它自己的紀錄）、PROPOSAL-105（收尾歸檔的機械檢查 `dflow check-closeout`）

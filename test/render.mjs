@@ -107,6 +107,24 @@ try {
     assert.equal(help.code, 0, 'render --help exits 0');
     assert.match(help.stdout, /dflow render \[--src <dir>\] \[--out <dir>\] \[--title <text>\]/);
     assert.match(help.stdout, /full rebuild/, 'help states the full-rebuild model');
+    // The diagram limits the help states are the ones the renderer enforces:
+    // a limit changed in lib/render-diagrams.js without the help fails here.
+    const L = diagrams.DIAGRAM_LIMITS;
+    const helpText = help.stdout.replace(/\s+/g, ' ');
+    for (const phrase of [
+      `at most ${L.LC_MAX_STATES} states and ${L.LC_MAX_TRANSITIONS} transitions, ${L.DIAGRAM_MAX_WIDTH} wide and ${L.DIAGRAM_MAX_HEIGHT} tall`,
+      `at most ${L.LC_MAX_SIDE_LANES} routing lanes on either side, ${L.LC_MAX_SIDE_PORTS} arrow ends on one side of a state, ${L.LC_MAX_CROSSINGS} crossings in all and ${L.LC_MAX_CROSSINGS_PER_EDGE} on one arrow`,
+      `at most ${L.FL_MAX_PARTICIPANTS} participants and ${L.FL_MAX_STEPS} steps, ${L.DIAGRAM_MAX_HEIGHT} tall (no width limit`,
+      `a flow of at most ${L.FL_PRINT_MAX_PARTICIPANTS} participants`,
+      `at most ${L.IDENTITY_MAX_CODEPOINTS} characters on ${L.IDENTITY_MAX_LINES} lines`,
+      `Trigger, Guard, Handed over and State change each at most ${L.FIELD_MAX_ITEMS} values and ${L.FIELD_MAX_CODEPOINTS} characters`,
+      `more than ${L.PRIMARY_MAX_LINES} lines is cut short, which at most ${L.MAX_TRUNCATED_FIELDS} of them may be`,
+      'Means and Evidence have no limit, and Means is not drawn',
+      'an Evidence whose first word is inferred or assumed makes the arrow dashed and adds a one-row tag with that word, which counts toward the height'
+    ]) {
+      assert.ok(helpText.includes(phrase), `render --help states the renderer's limit: "${phrase}"`);
+    }
+    assert.equal(L.PRIMARY_MAX_LINES, L.SECONDARY_MAX_LINES, 'the help states one line limit for every other cell');
 
     const unknown = runRenderCli(tempRoot, ['--bogus']);
     assert.equal(unknown.code, 1, 'unknown option exits 1');
@@ -1194,8 +1212,8 @@ Scenario: submit expense
 
     const run = runRenderCli(proj, []);
     assert.equal(run.code, 0, `diagram render failed\nSTDERR:\n${run.stderr}`);
-    assert.match(run.stdout, /^rendered 2 md files -> .*\ndiagrams: 3 drawn, 15 not drawn\nopen: /m,
-      'stdout carries the diagram line between the two existing lines');
+    assert.match(run.stdout, /^rendered 2 md files -> .*\ndiagrams: 3 drawn, 15 not drawn\n(?: {2}not drawn: .*\n){15}open: /m,
+      'stdout carries the diagram line, then one line per note, between the two existing lines');
 
     const outDir = join(proj, 'dflow-specs-html');
     const page = await readOut(join(outDir, 'domain/analysis.html'));
@@ -1219,6 +1237,14 @@ Scenario: submit expense
       'LC-14 沒有畫成圖：找不到狀態表（要有 State 欄）。',
       'LC-15 沒有畫成圖：有 2 張狀態表，只能有一張。'
     ], 'one note per undrawable subsection, in page order, values escaped');
+    // stdout names the same notes, in the same order, with the file each is
+    // in and the reason unescaped — the copy not named analysis.md has none.
+    const unescape = (s) => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&');
+    const listed = [...run.stdout.matchAll(/^ {2}not drawn: (.*)$/gm)].map((m) => m[1]);
+    assert.deepEqual(listed, notes.map((note) => {
+      const [, id, reason] = /^([A-Z]{2}-\d+) 沒有畫成圖：(.*)。$/.exec(note);
+      return `domain/analysis.md ${id} — ${unescape(reason)}`;
+    }), 'one stdout line per page note: file, entry id and reason');
     const figures = [...page.matchAll(/<figure class="dflow-dg dg-(lc|fl)" data-entry="([^"]+)">/g)].map((m) => m[2]);
     assert.deepEqual(figures, ['FL-01', 'LC-01', 'LC-16'], 'only the filled, well-formed subsections are drawn');
     assert.ok(page.includes('>B &amp;#99999999;</text>') && page.includes('>送出 &amp;#88888888;</text>'),
@@ -1341,7 +1367,8 @@ Scenario: submit expense
     assert.doesNotThrow(() => {
       contained = inserted(diagrams.insertDiagrams(broken, containPage));
     }, 'a subsection that throws does not fail the page');
-    assert.deepEqual({ ...containPage }, { drawn: 2, notDrawn: 2 }, 'the throwing subsection is counted as one note');
+    assert.deepEqual({ drawn: containPage.drawn, notDrawn: containPage.notDrawn }, { drawn: 2, notDrawn: 2 }, 'the throwing subsection is counted as one note');
+    assert.deepEqual(containPage.notes.map((n) => n.entryId), ['LC-02', 'FL-02'], 'the page state names each note, in page order');
     assert.deepEqual(contained.map((html) => (/data-entry="([^"]+)"/.exec(html) || /notice">([A-Z]{2}-\d+)/.exec(html))[1]),
       ['LC-01', 'LC-02', 'FL-01', 'FL-02'], 'every other subsection keeps its picture or note');
     assert.match(contained[1], /^<p class="dflow-dg-notice">LC-02 沒有畫成圖：畫圖時發生內部錯誤（[^）]+）。<\/p>\n$/);
@@ -1353,7 +1380,40 @@ Scenario: submit expense
       untouched = inserted(diagrams.insertDiagrams(unreadable, untouchedPage));
     }, 'a throw while finding subsections does not fail the page');
     assert.equal(untouched.length, 0, 'nothing is inserted when finding subsections throws');
-    assert.deepEqual({ ...untouchedPage }, { drawn: 0, notDrawn: 0 });
+    assert.deepEqual({ ...untouchedPage }, { drawn: 0, notDrawn: 0, notes: [] });
+
+    // The scope of three `--help` claims, pinned on behaviour: a flow has no
+    // width limit (only a lifecycle does), Means / Evidence are not limited,
+    // and an inferred or assumed Evidence adds a tag row that counts toward
+    // the height. A help sentence that widens any of them fails the phrase
+    // checks above; a renderer that starts limiting either cell, or stops
+    // counting the tag, fails here.
+    const DL = diagrams.DIAGRAM_LIMITS;
+    const wideFlow = ['### FL-01: wide', '', '| From | To | Handed over |', '|---|---|---|',
+      ...Array.from({ length: DL.FL_MAX_PARTICIPANTS - 1 }, (_, i) => `| P${i + 1} | P${i + 2} | x |`), ''].join('\n');
+    const widePage = diagrams.newPageState();
+    const wideHtml = inserted(diagrams.insertDiagrams(lex(wideFlow), widePage));
+    assert.equal(widePage.drawn, 1, `a ${DL.FL_MAX_PARTICIPANTS}-participant flow is drawn`);
+    const wideWidth = Number(/<svg[^>]*\swidth="(\d+)"/.exec(wideHtml[0])[1]);
+    assert.ok(wideWidth > DL.DIAGRAM_MAX_WIDTH, `a flow is drawn wider than ${DL.DIAGRAM_MAX_WIDTH} (got ${wideWidth}): the width limit is a lifecycle limit`);
+    const longCell = 'x'.repeat(DL.FIELD_MAX_CODEPOINTS + 44);
+    const longLc = ['### LC-01: long cells', '', '| State | Means |', '|---|---|', `| \`A\` | ${longCell} |`, `| \`B\` | ${longCell} |`, '',
+      '| From | Trigger | To | Guard | Evidence |', '|---|---|---|---|---|', `| \`A\` | t | \`B\` |  | code - ${longCell} |`, ''].join('\n');
+    const longPage = diagrams.newPageState();
+    inserted(diagrams.insertDiagrams(lex(longLc), longPage));
+    assert.deepEqual({ drawn: longPage.drawn, notDrawn: longPage.notDrawn }, { drawn: 1, notDrawn: 0 },
+      'Means and Evidence cells longer than the cell limit do not stop a lifecycle from being drawn');
+    const flowHeight = (evidence) => {
+      const md = ['### FL-01: tag row', '', '| # | From | To | Handed over | State change | Evidence |', '|---|---|---|---|---|---|',
+        ...Array.from({ length: 4 }, (_, i) => `| ${i + 1} | ${i % 2 ? 'B' : 'A'} | ${i % 2 ? 'A' : 'B'} | x |  | ${evidence} - c |`), ''].join('\n');
+      const page = diagrams.newPageState();
+      const html = inserted(diagrams.insertDiagrams(lex(md), page));
+      assert.equal(page.drawn, 1, `a four-step flow with ${evidence} Evidence is drawn`);
+      return Number(/<svg[^>]*\sheight="(\d+)"/.exec(html[0])[1]);
+    };
+    for (const type of diagrams.DASHED_EVIDENCE) {
+      assert.ok(flowHeight(type) > flowHeight('code'), `an ${type} Evidence's tag row makes the drawing taller than a code Evidence`);
+    }
   }
 
   // --- PROPOSAL-100: diagram layout and SVG ---

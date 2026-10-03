@@ -153,6 +153,12 @@ Commits must tie back to a SPEC-ID:
 {optional detailed body}
 ```
 
+**Commits outside a Dflow workflow.** A commit that belongs to no workflow has
+no SPEC-ID to cite — a change below workflow (`AI-AGENT-GUIDE.md` § Ceremony
+Scaling), a Dflow upgrade, or a knowledge record committed on its own. Write
+it in the project's own convention instead (for example `chore: …` or
+`docs: …`).
+
 ### Type prefix (recommended)
 
 When applicable, prefix with a type (conventional commits-style):

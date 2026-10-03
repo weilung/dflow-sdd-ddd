@@ -936,6 +936,42 @@ try {
   assert.ok(removeBlocked.warnings.some((w) => w.includes('content changed after preview')), 'removal guard skip must warn');
   assert.match(await readFile(raceConventionsPath, 'utf8'), /^> Dflow Version: 0\.8\.0$/m, 'version line must not advance over a removal guard skip');
 
+  // (8b′) an already-current skip (`markUnchangedItemsCurrent`) whose file was
+  // changed, or removed, after the preview: reported, never written, and the
+  // version line does not advance over it.
+  for (const [label, prepare] of [
+    ['changed', (p) => writeFile(p, 'edited after the preview\n')],
+    ['removed', (p) => rm(p, { force: true })]
+  ]) {
+    const unchangedPath = join(race, `already-current-${label}.md`);
+    await writeFile(unchangedPath, 'packaged content\n');
+    await prepare(unchangedPath);
+    const unchangedBlocked = await writeFilePlan(race, {
+      items: [
+        {
+          relativePath: `already-current-${label}.md`,
+          source: 'test',
+          notes: 'workflow bundle; already current',
+          content: 'packaged content\n',
+          expectedContent: 'packaged content\n',
+          action: 'skip',
+          overwrite: false,
+          intentionalSkip: true,
+          unchangedSkip: true,
+          size: 1
+        },
+        versionItem()
+      ]
+    });
+    assert.ok(!unchangedBlocked.updated.includes(`already-current-${label}.md`) && !unchangedBlocked.created.includes(`already-current-${label}.md`), `already-current skip (${label} after preview) must not write`);
+    const leftAs = label === 'changed'
+      ? await readFile(unchangedPath, 'utf8')
+      : await readFile(unchangedPath, 'utf8').then(() => 'present', () => 'absent');
+    assert.equal(leftAs, label === 'changed' ? 'edited after the preview\n' : 'absent', `already-current skip (${label} after preview) leaves the file as the user left it`);
+    assert.ok(unchangedBlocked.warnings.some((w) => w.includes(`already-current-${label}.md because it changed after the preview`)), `already-current skip (${label} after preview) must warn`);
+    assert.match(await readFile(raceConventionsPath, 'utf8'), /^> Dflow Version: 0\.8\.0$/m, `version line must not advance over an already-current skip ${label} after the preview`);
+  }
+
   // (8c) a previewed create that lands on an unexpectedly existing target (the
   // pre-write pathExists branch; the deeper EEXIST TOCTOU catch mirrors the
   // same flag and is unreachable deterministically without fs interception)
@@ -971,6 +1007,13 @@ try {
   await writeFile(abortConventionsPath, (await readFile(abortConventionsPath, 'utf8')).replace(/^> Dflow Version: .+$/m, '> Dflow Version: 0.8.0'));
   const aborted = await runConfigure(abortProj, ['2', 'n']);
   assert.match(await readFile(abortConventionsPath, 'utf8'), /^> Dflow Version: 0\.8\.0$/m, 'declined final confirm must not advance the version line');
+  assert.match(aborted.stdout, /\(y\/N\) Dflow configure-agents aborted\.$/m, 'a declined configure-agents names itself (piped stdin: the message follows the prompt on its line)');
+  assert.doesNotMatch(aborted.all, /Dflow init aborted/, 'a declined configure-agents must not claim an init was running');
+  assert.doesNotMatch(aborted.stdout, /Will defer:/, 'configure-agents defers nothing, so its preview prints no empty Will defer table');
+  const tooMany = await runConfigure(abortProj, ['bogus', 'bogus', 'bogus']);
+  assert.notEqual(tooMany.code, 0, 'three invalid answers abort configure-agents');
+  assert.match(tooMany.stderr, /Too many invalid attempts for [^\n]*Dflow configure-agents aborted\./, 'the too-many-attempts abort names configure-agents');
+  assert.doesNotMatch(tooMany.all, /Dflow init aborted/, 'the too-many-attempts abort must not claim an init was running');
 
   // (9b) CRLF guide: refresh keeps the dominant EOL and preserves user content
   // after the END marker.

@@ -666,6 +666,36 @@ try {
   const c0Idempotent = await runDflow(c0RepairRoot, '1,2,3\ny\n', ['configure-agents']);
   assert.equal(c0Idempotent.code, 0, `C0 repair: idempotent re-run failed\nSTDOUT:\n${c0Idempotent.stdout}\nSTDERR:\n${c0Idempotent.stderr}`);
   assert.equal(await exists(c0BundleDir), true, 'C0 repair: bundle still present after idempotent re-run');
+  // Nothing changed since the first run, so no bundle file is previewed as an
+  // `update`: each is an already-current skip, and none lands under Updated.
+  assert.doesNotMatch(c0Idempotent.stdout, /\| dflow\/specs\/shared\/dflow-workflows\/[^|]* \| update \|/,
+    'C0 repair: an unchanged bundle file must not be previewed as update');
+  assert.match(c0Idempotent.stdout, /\| dflow\/specs\/shared\/dflow-workflows\/references\/new-feature-flow\.md \| skip \|[^\n]*already current/,
+    'C0 repair: an unchanged bundle file is previewed as an already-current skip');
+  assert.match(c0Idempotent.stdout, /\| dflow\/specs\/shared\/dflow-workflows\/\.dflow-bundle-manifest\.json \| skip \|[^\n]*already current/,
+    'C0 repair: an unchanged manifest is previewed as an already-current skip');
+
+  // "Unchanged" compares bytes, not text: a bundle file that differs from the
+  // packaged one only in its line endings, or only in its final newline, is
+  // still an `update`, and is rewritten to the packaged bytes.
+  const c0ByteCases = [
+    ['references/new-feature-flow.md', 'line endings', (text) => text.replace(/\n/g, '\r\n')],
+    ['references/drift-verification.md', 'final newline', (text) => text.replace(/\n$/, '')]
+  ];
+  const c0Packaged = new Map();
+  for (const [rel, , edit] of c0ByteCases) {
+    const packaged = await readFile(join(c0BundleDir, rel), 'utf8');
+    assert.notEqual(edit(packaged), packaged, `C0 repair: the ${rel} edit must change the file`);
+    c0Packaged.set(rel, packaged);
+    await writeFile(join(c0BundleDir, rel), edit(packaged));
+  }
+  const c0Bytes = await runDflow(c0RepairRoot, '1,2,3\ny\n', ['configure-agents']);
+  assert.equal(c0Bytes.code, 0, `C0 repair: re-run over byte-level edits failed\nSTDOUT:\n${c0Bytes.stdout}\nSTDERR:\n${c0Bytes.stderr}`);
+  for (const [rel, what] of c0ByteCases) {
+    const row = new RegExp(`\\| dflow/specs/shared/dflow-workflows/${rel.replace(/\./g, '\\.')} \\| update \\|`);
+    assert.match(c0Bytes.stdout, row, `C0 repair: a bundle file that differs only in its ${what} is previewed as update, not as already current`);
+    assert.equal(await readFile(join(c0BundleDir, rel), 'utf8'), c0Packaged.get(rel), `C0 repair: a bundle file that differs only in its ${what} is rewritten`);
+  }
 
   const webformsRoot = join(tempRoot, 'webforms-custom');
   await mkdir(webformsRoot, { recursive: true });

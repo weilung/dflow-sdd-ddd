@@ -123,6 +123,24 @@ Run the three checks using the primary set from Step 3 as the main comparison ba
 | Anchor | Every `behavior.md#anchor` in rules.md resolves to an existing heading | `✗ BR-NNN links to behavior.md#section but anchor not found` |
 | Reverse | Every BR-ID formally referenced in behavior.md (primary set) is declared in rules.md | `✗ BR-NNN referenced in behavior.md scenario but not declared in rules.md` |
 
+**How an anchor resolves.** An anchor resolves when it equals the slug of a
+heading in `behavior.md`: lowercase the heading text, delete every character
+that is not a letter (of any script, CJK included), a digit, a space, `-` or
+`_` (so `:`, full-width brackets, arrows and `＋` all go), then turn each
+space into one `-` — `### BR-001: Rule Name` gives `br-001-rule-name`. A
+second heading with the same slug gets `-1` appended, a third `-2`. This is
+the rule GitHub uses for plain text, and GitLab's since 17.0. Renderers
+disagree on some headings, and the ones this flow knows of are: a run of two
+or more spaces — typed, or left where a symbol between two spaces is deleted
+(` → `, ` ＋ `) — which `dflow render` turns into one `-` while GitHub and
+GitLab turn each space into its own `-`; an emoji written with an extra
+combining character (`⚠️`, `1️⃣`); a number that is not a plain digit (`①`); and
+non-ASCII connector punctuation (`＿`). Report every BR heading that holds one
+of these as an `ℹ` portability note (counted as informational in the
+Summary), **whether or not its anchor resolved**, and suggest rewording the
+heading — a link that resolves under one renderer can fail under the one the
+project reads its docs in.
+
 Body-text mentions (supplementary set) do **not** satisfy forward / reverse
 pass conditions on their own. They are reported separately as informational
 signals (see Step 5).
