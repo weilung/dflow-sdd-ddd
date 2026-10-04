@@ -217,7 +217,8 @@ skill body 與 frontmatter（`name` / `description`）都是純文字，只指�
 被自動觸發時，skill 的約定是：先判斷意圖、建議對應 `dflow:<id>`、等你確認後才進入
 workflow，而不會自行直接執行。
 
-重跑 `--skills` 會就地重寫帶 marker 的同一份 skill（idempotent）；若該路徑已存在一份
+重跑 `--skills` 時，帶 marker 的同一份 skill 只在內容與這一版產生的不同時才就地重寫，
+相同就預覽成 skip（already current）、不動它（idempotent）；若該路徑已存在一份
 **非** Dflow 產生的檔案（沒有 `<!-- dflow-generated: skill-adapter -->` marker），Dflow
 不會覆寫，只會 warn 並保留你的檔。
 

@@ -41,7 +41,7 @@ code，而是要在既有 Order BC 上新增第二個 feature。
    從 WebForms 客訴進入 `/dflow:modify-existing`，Dflow 判定為 T1 Heavy，升級成
    `/dflow:new-feature`，建立第一個 Order BC 與 BR-001~004。
 2. [〈Walkthrough 03 — baseline capture 跨頁面折扣顯示行為〉](walkthrough-03-baseline-capture.md)
-   不改 code，只讀 `OrderList` / `OrderDetail` immediate neighbors，把跨頁面現況分成
+   不改 code，只讀要盤點的那一塊（`OrderList` / `OrderDetail`），把跨頁面現況分成
    confirmed / buggy / unknown。
 
 到本篇開始時，Bob 已經有幾個重要資產：

@@ -244,7 +244,7 @@ Merge feature/{SPEC-ID}-{slug} into develop
 {Feature Goal block, copied from Integration Summary}
 
 Change Scope:
-- BC: {context-name}
+- BC: {context-name}[, {context-name} ...]
 - Phase Count: {N}
 - Lightweight Changes: {n_t2} T2 + {n_t3} T3
 
@@ -262,7 +262,7 @@ actually true rather than padded ones:
 
 ```
 Change Scope:
-- BC: none                          # or the real context, when the change has one
+- BC: none                          # or the real contexts, when the change has any
 - Phase Count: 0
 - Lightweight Changes: 1 T2 + 0 T3  # at least one row, always
 
@@ -278,8 +278,8 @@ zero-phase shape requires (`references/finish-feature-flow.md` Step 5 states
 the rule, and a baseline host leaves the field empty). A minimal host that genuinely touches a bounded context reports that
 context and its real BR delta exactly as a phase-bearing feature would — the
 zero is the **phase count**, not the significance. A **baseline capture** is
-the one variant that always reports a real `BC:` — capturing it is the whole
-point of the host.
+the one variant that always reports a real `BC:` — every context it recorded,
+as `references/finish-feature-flow.md` Step 5 derives them.
 
 ### Concrete example
 

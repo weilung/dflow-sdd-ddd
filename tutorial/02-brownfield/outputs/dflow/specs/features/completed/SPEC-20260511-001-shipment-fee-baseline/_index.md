@@ -28,6 +28,12 @@ branch: feature/SPEC-20260511-001-shipment-fee-baseline
 都與運費**不相關**，因此沒有 feature 能承接這次 capture，也沒有 completed feature
 被當成它的 follow-up。
 
+2026-05-11 baseline capture 的 6.2 確認（開發者 Bob）：
+- 技術債：Step 3 沒有漏記。
+- 抽離機會：「Shipment 免運門檻判斷基準三處不一致」那一列（拍板後建立單一判定 contract）寫得夠清楚。
+- `Shipment/behavior.md`：「運費計算的三個產生點」、Scenario 1～3、「未捕捉的範圍」、「已知不一致（不在本文件裁定）」都照現況寫對。
+- 名詞：「免運門檻」先不進 `glossary.md`，等免運門檻的判定拍板（`Shipment/analysis.md` HS-01）時一起定。
+
 ## Phase Specs
 
 > 最小 host 不帶 phase-spec，本表**刻意保持空白**。

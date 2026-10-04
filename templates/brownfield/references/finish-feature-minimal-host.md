@@ -420,8 +420,9 @@ Lightweight Changes.
 - a **BC-bearing host** (that step's case i) sets `BC:` to the context and `Related
   BR-IDs:` to what it actually touched — a real set, the per-family no-BR
   marker, or empty for a no-BR host.
-- a **baseline minimal host** (that step's case iii) sets `BC:` to the captured
-  context (not `none`); **every other field keeps its zero-phase form**, and
+- a **baseline minimal host** (that step's case iii) sets `BC:` as
+  `references/finish-feature-flow.md` Step 5's `BC:` field derives it (never
+  `none`); **every other field keeps its zero-phase form**, and
   `Related BR-IDs:` is **empty** — an observation-only capture has no BR delta,
   and BRs it merely *found* already in the code are system state, not this
   change's evidence.

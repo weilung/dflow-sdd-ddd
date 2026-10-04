@@ -255,8 +255,10 @@ auto-triggered, the skill's contract is to judge intent, suggest the matching
 `dflow:<id>`, and wait for your confirmation before entering a workflow rather
 than running one directly.
 
-Re-running `--skills` rewrites the same marker-stamped skill in place
-(idempotent). If a **non**-Dflow file already exists at that path (no
+Re-running `--skills` rewrites the same marker-stamped skill in place only
+when its content differs from what this version generates; an identical one
+is previewed as a skip (already current) and left as it is (idempotent). If a
+**non**-Dflow file already exists at that path (no
 `<!-- dflow-generated: skill-adapter -->` marker), Dflow does not overwrite it —
 it warns and leaves your file untouched.
 

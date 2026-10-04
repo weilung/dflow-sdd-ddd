@@ -297,7 +297,9 @@ not version-control it and regenerate it after clone with
 `dflow configure-agents --skills` (`.claude/skills/dflow/` is already in the
 recommended gitignore set); clone-ready teams may version-control it instead.
 Re-running `--skills` is idempotent: an existing marker-stamped skill is
-rewritten cleanly. If `.claude/skills/dflow/SKILL.md` is **not** Dflow-generated
+rewritten only when its content differs from what this version generates; an
+identical one is previewed as a skip (already current) and left as it is. If
+`.claude/skills/dflow/SKILL.md` is **not** Dflow-generated
 (no `<!-- dflow-generated: skill-adapter -->` marker), Dflow leaves it unchanged
 and prints a warning asking you to remove or rename it.
 

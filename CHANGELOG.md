@@ -8,11 +8,78 @@
 
 ## Unreleased
 
+> **目前投影版號：`0.16.2`**（**未發布到 npm**；npm latest 仍是 `0.16.0`）。
+> 以下三段都在這一版裡；每段標題標出它第一次投影的版號。
+
+### baseline 盤點這條路（PROPOSAL-106，dist issue #18）——`0.16.2`
+
+**來源**：dist issue #17 的第 3、4、10、12、13、14 條與第 19 條的一半（追蹤 issue 是 #18）。
+只影響 brownfield（greenfield 沒有 baseline capture）。
+
+- **新分支檔 `modify-existing-baseline.md`**：`/dflow:modify-existing` 把變更判成 baseline capture 時，Part A 一判完就打開，
+  一路開到 Step 6；平常的修改不讀它。主幹裡原本會誤導盤點的幾處各加一句例外，指回這支檔（從 Resume Pointer 接手到
+  Step 4–6 的 session 也讀得到）。它寫明：
+  - **Step 2–5 怎麼走**：不建 spec；盤點的範圍是你要盤點的那一塊，不是「被修改的 feature 與鄰近」；「缺就建」的文件
+    只建這次真的要寫、而且宣告在 `Tier = baseline` 那一列的；Step 4 沒有「現在抽離」的決定，看到的抽離機會與 Aggregate
+    的觀察記進 `tech-debt.md`（不建議升 T1、不動 `models.md` 的 Aggregate Root 標記）。2 → 3、4 → 5 兩道 gate 有
+    baseline 自己的台詞。
+  - **Step 6.2 問什麼**：原本五題裡第 1、5 題 N/A；第 4 題改成 baseline 版——這次寫進 `behavior.md` 的每一段，有沒有
+    BR-ID 都問；另加五題：`analysis.md` 裡 `inferred`／`assumed` 的條目、這次寫進或改了的 BR（「這就是規則」→
+    `active`；「程式做錯了」→ 確認的規則與程式現況記進技術債，三份文件怎麼寫照專案已定的做法，沒有就問你；
+    「確認不了」→ `draft`）、會改變既有文件意思的差異（已完成 feature 的紀錄不更正）、glossary 還沒有的名詞、
+    `models.md` 與 `context-map.md` 的新內容。
+  - **確認記在哪**：每一個確認在 host 的 Goals & Scope 記一行；`analysis.md` 的 Evidence 寫
+    `confirmed by {role} - {SPEC-ID} Goals & Scope ({date})`（用 SPEC-ID 指 host，不寫路徑——收尾會把 host 搬進
+    `completed/`）；`glossary.md` 的 Notes 寫同一個 SPEC-ID；Resume Pointer 不記確認內容。這次新增或改了文字的
+    `rules.md` 列，`Last updated` 填寫入的日期。
+  - **掛在 phase-bearing host、碰到 host 的 Current BR Snapshot 帶著的 BR**：不改規則意思的補充（多寫情境、證據、
+    出處頁面）照寫；要改意思的這次不改，記進那個 context `rules.md` 的 `## Open Questions` 一項並告訴你，交給之後
+    改這條 BR 的變更——否則收尾同步會拿 Snapshot 上的舊文字把剛確認的規則寫回去。
+  - **follow-up 還是 standalone**：盤點的那一塊正是某個已完成 feature 交付或改的東西（或其中幾個的聯集）才算相關，
+    同一個 context、同一個名詞不算；比那些主題大就 standalone。開 follow-up 時會先說代價（每個原 feature 一列反向連結、
+    收尾後一顆追蹤 commit）。
+- **什麼時候開 host**：透過 `/dflow:modify-existing` 做的盤點一律有 host，只寫 `analysis.md` 也一樣——掛到
+  BC-bearing、phase-bearing 的 active feature，否則開 baseline minimal host；開著的 minimal host 與 no-BC host 不收盤點
+  （以前掛到開著的 minimal host，要到收尾才被擋）。不開 host 的仍是兩種：沒有 workflow 在跑時聊天中記下、只寫 `analysis.md` 的知識，與整份
+  不屬於任何 bounded context 的紀錄。知識已經寫在別的 Dflow 文件裡的，照 `analysis.md` 範本留在原處、加一個指過去的
+  條目，不搬。
+- **`context-map.md`**：盤點可以寫它（兩個 context 怎麼整合、誰是上游、交換什麼資料），但要宣告在 `Tier = baseline`
+  那一列，收尾才放行；brownfield 的 init 不建它，第一次有東西要記時從範本建。
+- **收尾的 `BC:` 可以列多個**：`finish-feature-flow.md` Step 5 的 `BC:` 欄寫明每種 host 列什麼，逗號分隔；
+  phase-bearing host 是自己的 context 加上它掛的盤點推得出的。`Tier = baseline` 那一列推得出哪些 context，寫在新分支檔
+  `finish-feature-baseline.md`：它記下知識的每一個 context（寫進的 BC 層文件、domain 根目錄條目指名的、glossary 列的、
+  `context-map.md` 列指名的、技術債列關於的）；收尾只在 host 有這種列時才打開它。`Git-principles-*.md` § 4 的 merge 訊息範本同步改成可以
+  列多個。這一段在可刷新區內：檔案帶著可刷新區的 marker 時，再跑一次 `dflow configure-agents` 即取得；沒有 marker 的檔
+  要先在互動模式採用 marker（見 `docs/upgrading.md`）。tutorial 範例跟著刷新。
+- **`AI-AGENT-GUIDE.md` § Routing Non-Command Input**：補兩句——workflow 在跑時順帶得知的知識怎麼處理，與沒有
+  workflow 在跑時聊天中的紀錄怎麼分。這一節在 guide 的 `guide-canonical` marker 之內：帶著 marker 的 guide 再跑一次
+  `dflow configure-agents` 即取得；marker 之前的 guide 要先在互動模式採用 marker（見 `docs/upgrading.md`）。
+- **既有文件要不要跟著改**：不用。已經收尾的盤點不用補 Goals & Scope 的確認行；workflow bundle（含兩支新的分支檔）
+  再跑一次 `dflow configure-agents` 即取得；`_index.md`、`analysis.md`、`rules.md`、`behavior.md` 範本與它們的形狀號碼
+  都沒變。**沒有遷移動作**。
+- **tutorial**：brownfield walkthrough 03、07 補上 Step 6 的逐題確認與 Goals & Scope 的確認行，兩個範例 host 的
+  `_index.md` 跟著補。
+
+### `0.16.1` 之後的小修——`0.16.2`
+
+**來源**：`0.16.1` 那一批的收工審查留下的幾條小問題，每條只有一種修法。沒有提案。
+
+- **`dflow render --help` 補上三條原本沒寫的判斷**：放在列表項目或引用區塊（`>`）裡的表格不會被讀，當作不存在——
+  整段的表格都這樣放時，不畫、也不留說明；範本的佔位列留在已經填好的列旁邊，一樣會留一行說明；狀態表的 State
+  每格只能放一個值，也不能有兩列寫同一個狀態。
+- **兩軌 `git-integration.md` 指到 workflow 之外的 commit 的例外**：Commit Message Convention 那一節，以及 CI 的 commit
+  訊息 lint 建議，各補一句指到 `Git-principles-*.md` § 2 那段例外（不屬於任何 workflow 的 commit 沒有 SPEC-ID，照專案
+  自己的慣例寫）。以前 AI 讀這支檔時，可能對 `chore:`／`docs:` 這類 commit 也要 SPEC-ID，照建議做的 lint 也會擋下它們。
+- **使用說明不再說重跑 `--skills` 一定重寫 skill**：`docs/using-with-claude-code.md`、`docs/using-with-codex.md`（與英文版）
+  改成：帶 marker 的既有 skill 只在內容與這一版產生的不同時才重寫，相同就預覽成 `skip … already current`、不動它
+  （`0.16.1` 起就是這樣；最後的結果和以前相同）。
+- **測試**：釘住 `configure-agents` 的三件事——內容沒變的 skill 與指令檔標成 `skip … already current`；只差換行字元或
+  結尾換行的 skill 與指令檔仍是 `update`、寫回產生的內容；合併用的 snippet 每次都寫出，不會被標成 skip。
+
+### 落地專案回報的小修正（dist issue #17）——`0.16.1`
+
 **來源**：dist issue #17（一個 brownfield 專案升級到 `0.16.0` 之後的使用回報）裡只有一種修法的幾條，以及同一次升級時
 `dflow configure-agents` 的輸出問題。沒有提案。
-
-> **目前投影版號：`0.16.1`**（**未發布到 npm**；npm latest 仍是 `0.16.0`）。
-> 以下項目都在這一版裡。
 
 - **`dflow render` 說出哪一張圖沒畫成、為什麼（#17 第 9 條）**：畫不成圖的 `LC-nn`／`FL-nn`，以前命令列只印總數
   （`diagrams: 2 drawn, 1 not drawn`），原因要一頁一頁打開找。現在總數底下逐張列一行：檔案、編號與原因（和頁面上那一行

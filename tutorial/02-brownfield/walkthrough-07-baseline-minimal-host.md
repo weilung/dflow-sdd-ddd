@@ -25,6 +25,7 @@ Dflow 的答案是 **baseline 最小 host**：一個 **tier-exempt** 的 zero-ph
 | 它會不會被 closeout 當成「空 host」擋下？ | 不會。它產出一列合法的 `Tier = baseline` row，那就是它的記錄。 |
 | baseline 寫進 BC 層之後，closeout 還要再 sync 一次嗎？ | 不用。BC 在 capture 當下就寫好了，closeout 沒有東西要再推。 |
 | 為什麼不乾脆記在筆記本裡？ | 因為三個月後沒人找得到它，也沒人知道它是什麼時候看的、看的是哪個版本。 |
+| baseline 要開發者確認什麼？確認記在哪？ | Step 6.2 的 baseline 題目一題一題問；每一個確認在 host 的 Goals & Scope 記一行。 |
 
 ## 前情提要
 
@@ -155,6 +156,7 @@ Dflow:
 baseline capture 依 host 狀態分三路：
 
 (a) 有相關的 **active** feature  → 直接掛回去（walkthrough 03 走的就是這條）
+    ——只限 BC-bearing、phase-bearing 的；開著的最小 host 或 no-BC host 收不下盤點
 (b) 只有相關的 **completed** feature → follow-up 最小變體（Step 1.6），
     保留 follow-up-of 與原 feature 的 reverse-link
 (c) **沒有相關 feature**        → standalone 最小 host（Step 1.7）← 本案
@@ -188,7 +190,7 @@ Step 1.7：Open a Standalone Minimal Host（baseline 分支）。
    → **feature/SPEC-20260511-001-shipment-fee-baseline**
 ```
 
-## Step 2 — 只讀 immediate neighbors
+## Step 2 — 只讀要盤點的那一塊
 
 ```text
 Dflow:
@@ -331,7 +333,7 @@ Evidence: code - `OrderManager.Web/Pages/Cart/ShoppingCart.aspx.cs` `CalculateSh
 | Description 末尾的路徑 | `dflow/specs/domain/Shipment/behavior.md`、`dflow/specs/domain/Shipment/analysis.md` | 每一列都要宣告「碰到什麼」。baseline 宣告的是**它寫進去的文件**——它沒有原始碼變更。兩支都要列：closeout 會檢查 `spec-baseline` 那個 commit 帶的 BC 層文件都在這一列宣告過，漏列 `analysis.md`，它就成了不該出現的路徑，closeout 被擋下。 |
 | `Commit` | `4b17d92` | 就是 `spec-baseline` 那個 checkpoint 的 hash。 |
 
-## 產出 2 — 為什麼 checkpoint 叫 `spec-baseline`
+## 產出 2 — Step 6 逐題確認，與為什麼 checkpoint 叫 `spec-baseline`
 
 capture 記完之後不是馬上 commit。baseline 沒有實作，Step 5 跳過，但它照樣走 Step 5 → Step 6 的
 step gate、跑完 Step 6，commit 才在 Step 6 結尾問：
@@ -350,7 +352,67 @@ Step 6 完成檢查表：
 - spec 那幾項：N/A（baseline 沒有 spec 檔）
 - behavior.md、analysis.md：Step 2 寫的，重新核對一次
 - Tier = baseline 那一列：在，宣告的兩支文件都對得上
+- 6.2 需要你確認的：baseline 有自己的一組題目，下面一題一題問
+```
 
+6.2 原本五題裡，第 1 題（Delta 的意圖）與第 5 題（收掉 Implementation Tasks）對 baseline
+是 N/A——沒有 Delta，也沒有 spec。其餘照 `modify-existing-baseline.md` 排好的順序問：
+
+```text
+Dflow:
+6.2 逐題確認（baseline）：
+
+1. Step 3 有沒有漏記的技術債？
+   這次記了一列：Shipment 免運門檻判斷基準三處不一致。
+Bob: 沒有漏。
+
+2. Step 4 記下的抽離機會寫得夠清楚嗎？
+   那一列寫的是「拍板後需在 Domain 建立單一的免運門檻判定 contract」。
+Bob: 夠清楚。
+
+3. analysis.md 這次寫的條目裡，有沒有 inferred / assumed 的？
+   RM-01、HS-01 的 Evidence 都是 code——這題沒有要問的。
+
+4. 這次寫進或改了的 BR？
+   沒有。三處的差異是待決的業務問題，這次刻意不寫成 BR。
+
+5. behavior.md 這次寫的每一段——有沒有 BR-ID 都算：
+   「運費計算的三個產生點」、Scenario 1～3、「未捕捉的範圍」、
+   「已知不一致（不在本文件裁定）」，照現況寫對了嗎？
+Bob: 對。「已知不一致」那段就是我們要的寫法：記三種結果，不裁定。
+
+6. 盤點時有沒有看到既有文件寫錯、名詞用法不一致？
+   沒有。
+
+7. 這次用到、glossary 還沒有的名詞：免運門檻。要定一個主名詞嗎？
+Bob: 先不要。免運門檻怎麼判定還沒拍板（HS-01），現在寫定義等於先寫了半條規則。
+     等營運拍板、那個 feature 寫 BR 時一起定。
+
+8. models.md、context-map.md 這次有沒有新增或改了的內容？
+   沒有。
+```
+
+第 5 題問的是 `behavior.md` 這次寫的**每一段**，不只有 BR-ID 的段落：本篇的三個情境與「已知不一致」
+都沒有 BR-ID，但它們一樣是這次寫進去的現況，一樣要開發者確認寫對了。
+
+每一個確認在 host 的 Goals & Scope 記一行：它定了什麼、落在哪。baseline 最小 host 記在開頭那一兩句
+（盤點的範圍）之後——本 fixture 的 Goals & Scope 還有幾段說明，確認行就接在 Goals & Scope 的最後：
+
+```markdown
+2026-05-11 baseline capture 的 6.2 確認（開發者 Bob）：
+- 技術債：Step 3 沒有漏記。
+- 抽離機會：「Shipment 免運門檻判斷基準三處不一致」那一列（拍板後建立單一判定 contract）寫得夠清楚。
+- `Shipment/behavior.md`：「運費計算的三個產生點」、Scenario 1～3、「未捕捉的範圍」、「已知不一致（不在本文件裁定）」都照現況寫對。
+- 名詞：「免運門檻」先不進 `glossary.md`，等免運門檻的判定拍板（`Shipment/analysis.md` HS-01）時一起定。
+```
+
+確認不寫進 Resume Pointer（Current Progress 維持一兩句的游標），也不另開段落。
+`analysis.md` 的條目若是經 6.2 確認的，Evidence 會寫成
+`confirmed by {role} - SPEC-20260511-001 Goals & Scope ({date})`——用 SPEC-ID 指 host，不寫路徑：
+這個 host 收尾時會被搬進 `completed/`。（本篇的 RM-01、HS-01 都是 `code`，沒有這樣的條目。）
+
+```text
+Dflow:
 ✓ 變更完成（Step 6 跑完）
    Commit here?
 ```
@@ -493,7 +555,7 @@ baseline host **走完整個生命週期然後歸檔**，不會以一個半開�
 
 | 狀態 | Path | 讀者看什麼 |
 |---|---|---|
-| 新建 | [`.../SPEC-20260511-001-shipment-fee-baseline/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260511-001-shipment-fee-baseline/_index.md) | baseline 最小 host：七個必要段落、`Tier = baseline` 列、`spec-baseline` checkpoint。（`BC: Shipment` 是 Integration Summary 的欄位，不在 fixture 裡；fixture 對 BC 的宣告在 Goals & Scope。） |
+| 新建 | [`.../SPEC-20260511-001-shipment-fee-baseline/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260511-001-shipment-fee-baseline/_index.md) | baseline 最小 host：七個必要段落、`Tier = baseline` 列、`spec-baseline` checkpoint、Goals & Scope 末尾的 6.2 確認行。（`BC: Shipment` 是 Integration Summary 的欄位，不在 fixture 裡；fixture 對 BC 的宣告在 Goals & Scope。） |
 | 新建 | [`outputs/dflow/specs/domain/Shipment/behavior.md`](outputs/dflow/specs/domain/Shipment/behavior.md) | 三處 confirmed behavior 的捕捉結果，含「未捕捉的範圍」與「已知不一致（不在本文件裁定）」。 |
 | 新建 | [`outputs/dflow/specs/domain/Shipment/analysis.md`](outputs/dflow/specs/domain/Shipment/analysis.md) | RM-01：運費的三個產出點、比門檻用哪個金額、通知信讀的快照；HS-01：免運門檻該拿哪個金額比（open，連回 tech-debt）。Step 2 第一次有東西要記時從範本建。 |
 | 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | 「三處免運門檻判斷基準不一致」記為 open，來源指回本 SPEC-ID。 |
@@ -524,7 +586,8 @@ baseline host **走完整個生命週期然後歸檔**，不會以一個半開�
 ## Key takeaways
 
 - **baseline capture 是 tier-exempt**：不在 T1/T2/T3 內，但也不是 below workflow（cascade 步驟 0）。
-- **依 host 狀態分三路**：(a) 有 active → 掛回去；(b) 只有 completed → follow-up 變體；(c) 都沒有 → standalone 最小 host。
+- **依 host 狀態分三路**：(a) 有 BC-bearing、phase-bearing 的 active → 掛回去；(b) 只有 completed → follow-up 變體；(c) 都沒有 → standalone 最小 host。
+- **Step 6.2 有 baseline 自己的一組題目**：沒有 BR-ID 的 `behavior.md` 段落也要確認；每一個確認在 Goals & Scope 記一行。
 - **第一個 checkpoint 叫 `spec-baseline`**，不是 `implementation`——沒有實作就不要在 ledger 裡宣稱有。
 - **產出一列合法的 `Tier = baseline` row**，那就是它的記錄；不產 spec 檔。
 - **BC 在 capture 當下就寫好**，closeout 沒有東西要再 sync；但 `BC:` 欄填真實的 context，不是 `none`。

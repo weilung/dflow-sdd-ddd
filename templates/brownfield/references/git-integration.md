@@ -408,8 +408,10 @@ hotfix, or one added later; a baseline capture uses the same shape):
       baseline commit that carries implementation source at all
 - [ ] Bounded Context is identified **only if this change has one**; a no-BC
       host records `none` and must not acquire a context to pass this gate.
-      **A baseline capture is never no-BC** — it sets `BC:` to the context it
-      captured, because capturing that context is the whole point of the host
+      **A baseline capture is never no-BC** — identify the context of the area
+      the developer asked it to capture; the `BC:` it reports at closeout,
+      which may name more than one, is derived in
+      `references/finish-feature-flow.md` Step 5
 
 If any are missing, guide the developer through creating them BEFORE the branch.
 On the minimal-host list that governs the `_index.md` items; the tier's artifact
@@ -529,6 +531,10 @@ Examples:
 [BUG-042] Fix rounding inconsistency, extract to Money.Round()
 ```
 
+A commit that belongs to no Dflow workflow has no SPEC-ID to cite: write it
+as the selected `Git-principles-{gitflow|trunk}.md` § 2 ("Commits outside a
+Dflow workflow") says.
+
 ## Daily Development Flow
 
 ```
@@ -562,7 +568,9 @@ These checks could eventually be automated in CI:
 - Verify no delivery-framework references in `src/Domain/` directory
 - Verify a spec file exists for any branch with feature/ or bugfix/ prefix — except a host whose entire record is inline in its `_index.md` and therefore has no spec file by design (a T3-only host or a baseline-only capture today, and any later shape with that same property); check for the row instead
 - Verify glossary.md and rules.md were updated when Domain/ files change
-- Lint commit messages for spec ID format
+- Lint commit messages for spec ID format, letting through the commits
+  outside a Dflow workflow that `Git-principles-{gitflow|trunk}.md` § 2
+  exempts
 
 For now, the AI handles these checks conversationally during development.
 

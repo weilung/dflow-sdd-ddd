@@ -398,6 +398,16 @@ spec locations, and SDD/DDD constraints.
     assert.equal(await readFile(filePath, 'utf8'), malformed, 'malformed-marker file left byte-untouched');
     assert.ok(count(run.stdout, 'malformed Dflow markers') >= 2, 'fallback warning visible in BOTH the preview and the final report');
 
+    // A re-run over the same file writes the snippet again although its content
+    // has not changed: the warning says the snippet is written this run, so it
+    // is an `update` and is reported as written, never an already-current skip.
+    const rerun = configure(root, '1');
+    assert.equal(rerun.code, 0, `malformed-marker re-run failed\nSTDOUT:\n${rerun.stdout}\nSTDERR:\n${rerun.stderr}`);
+    assert.match(rerun.stdout, /\| dflow\/specs\/shared\/AGENTS-md-snippet\.md \| update \|/, 're-run previews the unchanged fallback snippet as update');
+    assert.doesNotMatch(rerun.stdout, /AGENTS-md-snippet\.md \| skip \|/, 're-run never previews the fallback snippet as an already-current skip');
+    assert.match(rerun.stdout, /^Updated:\n(?:- .*\n)*- dflow\/specs\/shared\/AGENTS-md-snippet\.md$/m, 're-run reports the fallback snippet as written');
+    assert.equal(await readFile(filePath, 'utf8'), malformed, 'malformed-marker file still left byte-untouched on re-run');
+
     // 4b. init path (proves init now plumbs the agent-shim warning).
     const initRoot = join(tempRoot, `p${projectCounter += 1}`);
     await mkdir(initRoot, { recursive: true });

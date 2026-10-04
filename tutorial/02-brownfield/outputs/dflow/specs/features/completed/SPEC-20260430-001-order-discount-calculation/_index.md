@@ -18,6 +18,12 @@ Phase 1 `baseline-and-fix` 同時包含三件事：先 baseline capture `OrderEn
 
 本 feature 的邊界刻意限制在 `OrderEntry.aspx.cs` 的折扣計算路徑。`OrderList.aspx.cs`、`OrderDetail.aspx.cs` 或其他頁面若也有相同規則，先記為 tech debt，不在本 phase 擴張。
 
+2026-05-04 baseline capture（`OrderList` / `OrderDetail` 跨頁）的 6.2 確認（開發者 Bob）：
+- 技術債：Step 3 沒有漏記。
+- 抽離機會：「OrderList / OrderEntry / OrderDetail rounding 策略不一致」那一列記的統一 `Money` display contract 抽離方向寫得夠清楚。
+- BR-004：`OrderList.BindGrid()` 與 `OrderDetail.LoadDiscountSummary()` 讀出的折扣累積就是 BR-004。
+- `behavior.md`：「Confirmed across pages」兩段照現況寫對（補的是情境與出處頁面，不改 BR-004 的意思）。
+
 <!-- dflow:section phase-specs -->
 ## Phase Specs
 

@@ -57,26 +57,35 @@ the guide states them rather than continuing through the steps below.
 - **T2** → a lightweight-spec at the depth the change needs; run the
   behavior-capture / layer steps only where the change actually touches them.
 - **Observation-only (tier-exempt, step 0)** → record the capture where it belongs
-  (BC-layer `behavior.md` and `analysis.md`, `domain/analysis.md` for a
-  cross-context flow, for role reach and for whatever else no one context owns,
+  (BC-layer `rules.md`, `behavior.md`, `models.md` and `analysis.md`,
+  `glossary.md`, `context-map.md` for how two contexts integrate,
+  `domain/analysis.md` for a cross-context flow, for role reach and for
+  whatever else no one context owns,
   a hotspot in the copy that holds the knowledge it is stuck on,
   `tech-debt.md`, the host's Resume Pointer) and stop there; create either
   `analysis.md` from `templates/analysis.md` the first time there is something to
   record.
-  When the baseline capture needs its own host (no active feature to attach
-  it to), open a **baseline minimal host**: a related **completed** feature makes it
-  a follow-up (Step 1.6 minimal variant), otherwise it is standalone (Step 1.7) —
+  A baseline capture always has a host, even one that writes only
+  `analysis.md`: an active feature that is BC-bearing and phase-bearing (Part B
+  item 1), or with none a **baseline minimal host**: a related **completed**
+  feature makes it a follow-up (Step 1.6 minimal variant), otherwise it is
+  standalone (Step 1.7) —
   both are tier-exempt, cut `feature/{SPEC-ID}-{slug}`, and record a `Tier = baseline`
   row rather than a change. Do not invent a spec for it, and do not read the
   cascade's "below workflow" as permission to skip the record. A baseline
   minimal host does not stop at the capture: it goes on through Step 6 and
   offers its first checkpoint (`spec-baseline`) at § 6.5 (Step 1.7 says how).
+  The rules a capture adds are in `references/modify-existing-baseline.md`.
   A capture about no bounded context at all — the role reach of functions that
   belong to no context yet, say — is not a baseline capture and opens no host:
   with no active feature to attach it to, record it and offer to commit that
   record on its own.
 - **T1** → escalate to `/dflow:new-phase` (extending an active feature) or
   `/dflow:new-feature` (a truly new concern); full ceremony via that flow.
+
+**Open `references/modify-existing-baseline.md` and follow it there.** Do this
+as soon as Part A routes the change as a baseline capture, before Part B, and
+keep it open through Step 6.
 
 **Part B — Locate the Feature this Change Belongs To**
 
@@ -104,6 +113,11 @@ check below both run first, and the actual routing to Step 1.5 / 1.6 / 1.7 /
    *defined* by carrying no `phase-spec-*`, so it is not an eligible host for a
    **T1** at any point, before or after that checkpoint. Keep scanning, exactly
    as above.
+   **Exception — a baseline capture attaches only to an active feature that is
+   BC-bearing and phase-bearing.** A minimal host, open or sealed, and a no-BC
+   host are not eligible hosts for it (item 4 still surfaces one as an overlap;
+   that is information for the developer, not a host). See
+   `references/modify-existing-baseline.md`.
    **Exception — an already-merged T2 / T3 emergency fix** (the callout
    below): it is already on the mainline, so an in-flight host cannot hold
    it. It takes **Step 1.8** and gets a host of its own there, however well
@@ -120,7 +134,8 @@ check below both run first, and the actual routing to Step 1.5 / 1.6 / 1.7 /
    both — each needs to know whether a related completed feature exists in
    order to pick its own host (follow-up when one relates, standalone
    otherwise). (A **T1** post-hoc is not a Step 1.8 case at all and does reach
-   Step 1.5 normally.)
+   Step 1.5 normally.) What relates to a baseline capture is decided by
+   `references/modify-existing-baseline.md` § Follow-up or standalone.
 3. **Standalone**: if no related feature exists (active or completed) that can
    host this change — a host item 1 ruled **ineligible** does not count as one —
    this is a new concern. For T1, use `/dflow:new-feature`. A standalone
@@ -160,6 +175,8 @@ check below both run first, and the actual routing to Step 1.5 / 1.6 / 1.7 /
    post-hoc is unaffected and waits normally, and so does a **baseline
    capture** — an overlapping in-flight feature may well be the right place to
    attach the capture, which is precisely the decision this item asks for.
+   (An overlapping minimal or no-BC host is information for the developer, not
+   a host for the capture — item 1; see `references/modify-existing-baseline.md`.)
 
 > **Why scan completed too?** Completed features are frozen history
 > and **cannot accept** any T2 / T3 directly
@@ -267,7 +284,10 @@ observation-only and carries its own capture alone.
    linkage, Part A's observation-only routing for a baseline with no related
    feature, or a route added later — it belongs here exactly when that
    condition holds. If an **active** feature genuinely hosts this change, stop
-   and record it there instead — do not open a redundant host. If a
+   and record it there instead — do not open a redundant host. (A baseline
+   capture is hosted only by a BC-bearing, phase-bearing active feature; an
+   open minimal host is information for the developer, not a host — Part B
+   item 1; see `references/modify-existing-baseline.md`.) If a
    **completed** feature is the right home, that is a follow-up (Step 1.6),
    not a standalone. Do **not** re-run Step 1.5 to decide: an Option B arrival
    already answered there, and Part A (baseline) / Step 1.8 (post-hoc hotfix)
@@ -317,8 +337,11 @@ observation-only and carries its own capture alone.
      lightweight-spec frontmatter read their branch from it.
    - Goals & Scope: one or two sentences. A standalone change need not touch
      a bounded context; if it does not, say so plainly in Goals & Scope
-     rather than inventing one. (A baseline capture names the context it
-     captures — that is a real BC, not `none`.)
+     rather than inventing one. (A baseline capture names the context of the
+     area it captures — a real BC, not `none`; closeout derives its `BC:` in
+     `finish-feature-flow.md` Step 5. Its 6.2 confirmations follow these
+     sentences, one line each — see `references/modify-existing-baseline.md`
+     § Where confirmations are recorded.)
    - Phase Specs: **leave the table empty** — a minimal host has no
      phase-spec.
    - Current BR Snapshot: fill it only if the change carries a BR delta; a
@@ -473,6 +496,9 @@ Create a spec with status `in-progress` that includes:
 - Current business rules (extracted from delivery/entrypoint code)
 - The proposed change clearly marked — use the **Delta** format below
 
+A **baseline capture** creates no spec (Part A): the capture itself is the
+record — see `references/modify-existing-baseline.md` § Step 2.
+
 > **No-BC guard — never manufacture a bounded context to satisfy this step.**
 > The creations below apply only when the change actually touches one. A
 > **no-BC** change — a standalone appearance sweep, say, whose host Goals &
@@ -483,7 +509,7 @@ Create a spec with status `in-progress` that includes:
 > as Step 6.3's tier-conditional note: state the verdict, do not manufacture
 > the artifact an item names.
 
-If baseline domain docs are missing **for a change that does touch a bounded context**, create them from templates before filling content:
+If baseline domain docs are missing **for a change that does touch a bounded context**, create them from templates before filling content (a baseline capture creates only those it writes — see `references/modify-existing-baseline.md` § Step 2):
 - `dflow/specs/domain/glossary.md` → `templates/glossary.md`
 - `dflow/specs/domain/{context}/models.md` → `templates/models.md`
 - `dflow/specs/domain/{context}/rules.md` → `templates/rules.md`
@@ -533,12 +559,12 @@ Then {新的預期結果}
 
 When the feature being modified has no existing spec, take the opportunity to do a broader baseline capture — not just the single behavior being changed. Proactively:
 
-1. Read the related presentation-layer or entrypoint-layer code (the modified entrypoint plus nearby entrypoints that share logic)
+1. Read the related presentation-layer or entrypoint-layer code (the modified entrypoint plus nearby entrypoints that share logic; for a baseline capture, the entrypoints of the area it captures — see `references/modify-existing-baseline.md` § Step 2)
 2. Extract all business rules found (if/else conditions, calculations, validations)
 3. Identify domain concepts (potential Entities, Value Objects, Services)
 4. Check for duplicated logic across pages
 5. Identify the system-level knowledge no single context document holds — an ordered flow that crosses contexts (always the domain-root copy), the lifecycle a status field moves through, a figure computed rather than stored, a mechanism no single rule explains, which roles reach the function (always the domain-root copy), and any spot in those this system keeps working around pending a domain decision (in the copy that holds the knowledge it is stuck on)
-6. Record findings in the appropriate domain docs (`models.md`, `rules.md`, and `analysis.md` — the owning context's copy, or `dflow/specs/domain/analysis.md` when no one context owns what you found, created from `templates/analysis.md` the first time there is something to record) and `tech-debt.md`
+6. Record findings in the appropriate domain docs (`models.md`, `rules.md`, and `analysis.md` — the owning context's copy, or `dflow/specs/domain/analysis.md` when no one context owns what you found, created from `templates/analysis.md` the first time there is something to record) and `tech-debt.md`; a baseline capture also records how two contexts integrate in `context-map.md`, declared in its row — see `references/modify-existing-baseline.md` § Step 2
 
 This is an **opportunistic** strategy — "capture while we're already here." Do not force a full codebase scan; scope it to the modified feature and its immediate neighbors. Share what you find:
 
@@ -556,6 +582,10 @@ This gives us a better baseline before we make our change."
 
 Announce to developer:
 > "Baseline captured — current behavior is documented and the proposed change is marked. Ready to analyze the delivery/entrypoint layer to identify business logic and tech debt? `/dflow:next` or reply 'OK' to continue."
+
+A **baseline capture** marks no proposed change, so it announces instead (see
+`references/modify-existing-baseline.md`):
+> "Capture recorded — current behavior is documented. Ready to analyze the delivery/entrypoint layer to identify business logic and tech debt? `/dflow:next` or reply 'OK' to continue."
 
 Wait for confirmation before entering Step 3.
 
@@ -598,6 +628,10 @@ Record each finding in `dflow/specs/domain/{context}/analysis.md` when one conte
 **→ Transition (step-internal)**: Step 3 complete. Announce "Step 3 complete (delivery/entrypoint layer analyzed, tech debt recorded). Entering Step 4: Evaluate Extraction Opportunity." and continue.
 
 ## Step 4: Evaluate Extraction Opportunity
+
+A **baseline capture** changes nothing, so it makes no extract-now decision:
+it records what it finds in `tech-debt.md` — see
+`references/modify-existing-baseline.md` § Step 4.
 
 For the code being modified, ask:
 
@@ -677,6 +711,10 @@ If the lightweight checklist looks larger than a short-fix checklist, AI must pa
 
 Announce to developer:
 > "Extraction decision made — {extract now / defer and record}. Ready to start implementation? `/dflow:next` to proceed, or adjust the extraction scope first."
+
+A **baseline capture** made no extraction decision, so it announces instead
+(see `references/modify-existing-baseline.md`):
+> "Extraction opportunities recorded in tech-debt.md. Ready to go on to Step 5 (skipped for a baseline)? `/dflow:next` to proceed."
 
 > Branch gate (policy-aware): a feature branch is mandatory for every tier (T1 / T2 / T3) under both Git policies (`_conventions.md` § Git Policy). If you are already on this work's `feature/{SPEC-ID}-{slug}` (or `bugfix/{BUG-ID}-{slug}`) branch — e.g. the change belongs to the active feature you are already in — the gate is satisfied and nothing new is created. Otherwise (on the base branch the project cuts from, or an unrelated branch) the AI offers to create/switch to the correct branch, switch to an existing matching one, or override and record it in the `_index.md` Checkpoint Log. Dflow does not need to know which branch is your base. **Minimal-host exception (Step 1.6 follow-up variant / Step 1.7 standalone / Step 1.8 post-hoc): the override is not available.** Those hosts assert branch equality against the `_index.md` `branch:` value they cut by change class, so working them on an unrelated branch would falsify the host's own authoritative field — switch to the host's branch instead. See `references/git-integration.md` § Commit Checkpoints, Branch Gate & AI Commits.
 
@@ -771,6 +809,10 @@ If any item fails, report the gap and pause — don't proceed to 6.2.
 - [ ] Should the `Implementation Tasks` section in the spec be collapsed / removed now that it's complete? (team convention — developer decides; applies to both phase-spec and lightweight-spec)
 
 Ask these one-by-one.
+
+A **baseline capture** answers questions 1 and 5 as N/A, asks question 4 in a
+baseline form, and adds five questions — ask them in the order
+`references/modify-existing-baseline.md` § Step 6.2 gives.
 
 ### 6.3 Documentation updates
 

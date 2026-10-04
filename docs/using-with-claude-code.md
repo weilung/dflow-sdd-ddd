@@ -252,7 +252,8 @@ skill（依 Claude 官方文件），用 `/skills` 可檢查目前生效的是�
 **版控政策**：`.claude/skills/dflow/SKILL.md` 與 command adapter 一樣是**衍生物**，
 沿用相同預設——不版控、由 clone 後重跑 `dflow configure-agents --skills` 重生成
 （`.claude/skills/dflow/` 已列入建議的 gitignore 集合）；clone-ready 團隊也可選擇版控。
-重跑 `--skills` 是 idempotent 的：帶 marker 的既有 skill 會被乾淨重寫；若 `.claude/skills/dflow/SKILL.md`
+重跑 `--skills` 是 idempotent 的：帶 marker 的既有 skill 只在內容與這一版產生的不同時才重寫，
+相同就預覽成 skip（already current）、不動它；若 `.claude/skills/dflow/SKILL.md`
 **不是** Dflow 產生的（無 `<!-- dflow-generated: skill-adapter -->` marker），Dflow 不會覆蓋它，
 只會印出 warning 提示你移除或改名。
 

@@ -283,8 +283,8 @@ host may still touch a real BC, or none at all:
   the sync below **for the documents this host actually changed**: a BR delta
   updates `rules.md` / `behavior.md`; a no-BR family that touched a documented
   behaviour still updates `behavior.md`. Fill the Integration Summary's BC field
-  with the context, and its BR-IDs with whatever applies — a real set, the
-  per-family no-BR marker, or empty. Do **not** skip, and do **not** manufacture
+  as Step 5's `BC:` field says, and its BR-IDs with whatever applies — a real
+  set, the per-family no-BR marker, or empty. Do **not** skip, and do **not** manufacture
   a BR delta a no-BR host does not have. (A host whose **entire** payload is a
   baseline capture is **(iii)**, not this case.)
 - **(ii) no-BC** — the host touched **no** bounded context at all (a display
@@ -300,8 +300,9 @@ host may still touch a real BC, or none at all:
   row is the `Tier = baseline` one. That capture already wrote its
   documents when it ran (`modify-existing-flow.md` Step 1.7), so there is
   **nothing more to sync**; the Integration Summary's BC field names the
-  captured context (not `none`). A **phase-bearing** host carrying a baseline row
-  alongside other work takes **(i)** instead and syncs everything except the
+  contexts the capture recorded, as Step 5's `BC:` field derives them (never
+  `none`). A **phase-bearing** host carrying a baseline row alongside other
+  work takes **(i)** instead and syncs everything except the
   baseline. A *minimal* host cannot be in that position at all —
   `references/finish-feature-minimal-host.md`'s `baseline only` check blocks a
   `spec-baseline` host that carries anything beyond its capture.
@@ -406,10 +407,10 @@ have updated a **global** document (`glossary.md`, `domain/analysis.md`,
 `migration/tech-debt.md`); those belong to no bounded context and Step 4 must
 still stage them.
 
-For a **baseline host** (case iii) the BC was already captured at baseline —
-nothing further to sync. Say instead: "BC `{context}` was pre-captured at
+For a **baseline host** (case iii) the capture already wrote its documents —
+nothing further to sync. Say instead: "BC `{context-names}` pre-captured at
 baseline; nothing further to sync. Ready to archive the feature directory?
-`/dflow:next` to proceed."
+`/dflow:next` to proceed." — `{context-names}` is Step 5's `BC:` value.
 
 Wait for confirmation before entering Step 4.
 
@@ -797,7 +798,7 @@ Format:
 Feature Goal: {1-2 sentences from _index.md Goals & Scope}
 
 Change Scope:
-- BC: {context-name}
+- BC: {context-name}[, {context-name} ...]
 - Phase Count: {N} (phase-spec-{date1}-{slug1} ... phase-spec-{dateN}-{slugN})
 - Lightweight Changes: {n_t2} T2 lightweight specs + {n_t3} T3 inline rows + {n_baseline} baseline rows
 
@@ -817,6 +818,21 @@ Next Steps (developer) — Integration / PR gate (needs network):
 - Push to remote / open a PR — the AI can run `git push` / `gh pr create` for
   you, but only when you explicitly ask; it never pushes on its own
 ```
+
+**The `BC:` field** lists bounded contexts, comma-separated:
+- a no-BC host (Step 3 case ii): `none`;
+- a BC-bearing host (case i): its own context, plus — on a phase-bearing host —
+  the contexts each of its `Tier = baseline` rows derives, without
+  duplicates; a row that derives none adds none;
+- a baseline minimal host (case iii): the contexts its row derives; when none
+  derive (it changed only a term that belongs to no context, say), the context
+  of the capture's scope. It is never `none`.
+
+When this host's Lightweight Changes has a `Tier = baseline` row, what that row
+derives, and what the capture's scope is, are decided in a branch file:
+
+**Open `references/finish-feature-baseline.md` and follow it there.** A host
+with no `Tier = baseline` row does not open it.
 
 **Zero-phase minimal host — exact fields.** A zero-phase host does not fill the
 format above the way a phase-bearing one does. Its whole field set, and the

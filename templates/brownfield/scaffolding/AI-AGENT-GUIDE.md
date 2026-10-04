@@ -96,9 +96,21 @@ Machine-readable source for rendering tool-specific thin wrappers:
 
 ## Routing Non-Command Input
 
-Not every developer message maps to a `/dflow:*` workflow. Route non-command
-input like this (supporting files live in the workflow bundle at
-`dflow/specs/shared/dflow-workflows/`):
+Not every developer message maps to a `/dflow:*` workflow.
+
+While a workflow is running, knowledge you learn in passing goes only into a
+document that workflow's own steps write — for /dflow:modify-existing, what its
+Step 6.3 sweep covers (a T3 writes no Domain document; a no-BC host writes only
+glossary.md, domain/analysis.md and migration/tech-debt.md; analysis.md may be
+the owning context's copy, but rules.md and behavior.md only this change's own
+context), and for a baseline capture before its checkpoint 1, also any capture
+destination it declares in its Tier = baseline row. Anything else: do not write
+it; tell the developer, who can capture it afterwards with /dflow:modify-existing.
+While a workflow is running, the analysis.md bullet below and step 0's recording
+routes do not apply; the other routes in this section still do.
+
+Route non-command input like this (supporting files live in the workflow bundle
+at `dflow/specs/shared/dflow-workflows/`):
 
 - **"Quick question about..." / "How does X work?"** → check
   `dflow/specs/domain/` first and answer from the documented domain knowledge.
@@ -150,7 +162,15 @@ input like this (supporting files live in the workflow bundle at
   `/dflow:*` command and wait for confirmation (see § Workflow Transparency);
   only if it lands below workflow, help directly with no ceremony. If step 0
   takes it out of the cascade instead — observation-only work — it is neither:
-  say so and record it, do not treat "no tier" as "no ceremony". This applies
+  say so and record it, do not treat "no tier" as "no ceremony". With no
+  workflow running: a record that writes only analysis.md follows the
+  analysis.md bullet above. Any other record about a bounded context — one that
+  would write its rules.md, behavior.md or models.md, or glossary.md,
+  context-map.md or migration/tech-debt.md about it — is a baseline capture:
+  suggest /dflow:modify-existing, which gives it a host; if the developer
+  declines, do not write those documents, and say what stays unrecorded. A
+  record about no bounded context at all opens no host: record it and offer to
+  commit it on its own. This applies
   once you are already reading this guide — what makes a tool load it in the
   first place is that tool's own trigger configuration, which is narrower.
 

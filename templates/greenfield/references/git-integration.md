@@ -505,6 +505,10 @@ hotfix, or one added later):
 [BUG-042] Fix rounding in Money value object
 ```
 
+A commit that belongs to no Dflow workflow has no SPEC-ID to cite: write it
+as the selected `Git-principles-{gitflow|trunk}.md` § 2 ("Commits outside a
+Dflow workflow") says.
+
 ## Daily Development Flow
 
 ```
@@ -523,7 +527,9 @@ These checks could eventually be automated in CI:
 - Verify no ORM/serialization attributes on Domain entities
 - Verify a spec file exists for any branch with feature/ or bugfix/ prefix — except a host whose entire record is inline in its `_index.md` and therefore has no spec file by design (a T3-only host today, and any later shape with that same property); check for the row instead
 - Verify glossary.md / rules.md / events.md updated when Domain/ files change
-- Lint commit messages for spec ID format
+- Lint commit messages for spec ID format, letting through the commits
+  outside a Dflow workflow that `Git-principles-{gitflow|trunk}.md` § 2
+  exempts
 
 For now, the AI handles these checks conversationally during development.
 

@@ -11,7 +11,7 @@ production code，也不打算新增 business rule。他只是發現：如果只
 的折扣計算，`OrderList.aspx` 和 `OrderDetail.aspx` 可能還保留不同的顯示策略，導致同一筆訂單
 跨頁面看起來不一致。
 
-所以他要先做一件事：讀 immediate neighbor Code-Behind，把跨頁面現況分成：
+所以他要先做一件事：讀這次要盤點的那一塊的 Code-Behind，把跨頁面現況分成：
 
 - confirmed：已確認且符合目前 BR 的行為
 - buggy：看起來錯、但今天不修的行為
@@ -33,7 +33,7 @@ baseline-only 為什麼不順手修 code；若想看完整文件家族的讀法�
 | 沒有 BR Delta，算哪個 tier？ | 不硬塞 T1/T2/T3；cascade 步驟 0 的 observation-only 例外讓它 tier-exempt。 |
 | 讀到其他頁面有奇怪邏輯，要不要順手修？ | 不順手修。confirmed 進 behavior，buggy / unknown 進 tech debt。 |
 | 跨頁面看到相同規則，要不要複製多條 BR？ | 不複製。行為只有一條，source pages 可以列多個。 |
-| Brownfield 如何控制 scope？ | 本篇只讀 `OrderList` / `OrderDetail` immediate neighbors，不擴張成三頁同步改造。 |
+| Brownfield 如何控制 scope？ | 本篇只讀要盤點的那一塊（`OrderList` / `OrderDetail`），不擴張成三頁同步改造。 |
 
 ## 前情提要
 
@@ -127,7 +127,7 @@ baseline-only 不是 Tier 表內的 modification tier，但它是合法路徑。
 
 這條路徑的規則是：
 
-- 讀 related Code-Behind，不只看單頁，但只限 immediate neighbors。
+- 讀 related Code-Behind，不只看單頁，但只限這次要盤點的那一塊。
 - 只把 confirmed behavior 寫進 BC 層 behavior.md。
 - buggy implementation 與 unknown behavior 寫進 tech-debt.md，不要升格成 BR。
 - 讀到任何單一 context 文件都收不下的系統層知識（例如一個數字在哪裡算、從哪裡讀），
@@ -161,7 +161,7 @@ Step 1.6 Create Follow-up Feature：skip。
 `order-discount-calculation` feature。這樣下一個人打開 `_index.md` 時，會看到這次跨頁面
 baseline 的結果如何影響 phase 1。
 
-## Step 2 — 讀 immediate neighbors，不掃全系統
+## Step 2 — 只讀要盤點的那一塊，不掃全系統
 
 Dflow 限定閱讀範圍：
 
@@ -179,7 +179,7 @@ method LoadDiscountSummary()
 approximate lines 72-104
 ```
 
-這叫 immediate neighbors。Dflow 沒有掃全部 30 個 ASPX pages，也沒有把這一天變成
+這就是盤點的範圍：開發者要盤點的那一塊。Dflow 沒有掃全部 30 個 ASPX pages，也沒有把這一天變成
 全系統 audit。
 
 | 做法 | 為什麼 |
@@ -443,23 +443,26 @@ Dflow:
    Migration impact: 業務確認後決定保留、移除或建立獨立 BR
 ```
 
-## Step 4 — Evaluate Extraction Opportunity，但這次 defer
+## Step 4 — Evaluate Extraction Opportunity：baseline 沒有抽離決定
 
 這次 baseline capture 不進入實作。
 
 ```text
 Dflow:
-這次沒有 implementation，也沒有 extraction decision。
+這次什麼都不改，所以沒有「現在抽離」的決定。
 Phase 1 原本已經決定抽 OrderEntry 的 DiscountPolicy；
-今天新增的資訊只影響後續 scope planning：
+今天看到的抽離機會照規則記進 tech-debt.md，只影響後續 scope planning：
 
-- rounding consistency 可能在 Phase 1 內補 Money display contract，
-  也可能拆成獨立 lightweight。
+- rounding consistency：Domain 層應統一 Money display contract——
+  可能在 Phase 1 內補，也可能拆成獨立 lightweight。
 - isVip 必須先問業務，不進 Phase 1。
 
-Extraction decision：defer。
-Baseline-only 路徑不進入 Step 5 implementation。
+抽離機會已記進 tech-debt.md。
+要繼續到 Step 5（baseline 跳過）嗎？輸入 /dflow:next 繼續。
 ```
+
+這一道 gate 的台詞是 baseline 專用的：一般修改在這裡宣告「抽離決定已做——要開始實作了嗎？」，
+baseline 沒有抽離決定，也沒有實作，Step 5 直接跳過。
 
 Bob 確認：
 
@@ -490,13 +493,14 @@ Dflow:
 | 不改 code | Bob 明確要求 baseline-only。 |
 | 不跑 tests | 沒有 implementation。 |
 
-## Step 5 — Documentation update
+## 這次 capture 寫進的文件（Step 5 跳過）
 
-Baseline-only path 仍然會寫文件，但只寫該寫的文件。
+Baseline-only path 仍然會寫文件，但只寫該寫的文件。baseline 沒有實作，Step 5 跳過；
+下面四份是這次 capture 寫進的文件，Step 6 會重新核對、逐題請 Bob 確認（見下一節）。
 
 ### `behavior.md` 新增 confirmed-across-pages
 
-本步驟當下新增的重點片段：
+這次 capture 新增的重點片段：
 
 ```markdown
 ## Confirmed across pages (baseline-capture 2026-05-04)
@@ -528,7 +532,7 @@ And 兩個頁面預期都反映 BR-004 compound discount accumulation
 
 ### `tech-debt.md` 新增 buggy / unknown items
 
-本步驟當下新增的重點片段：
+這次 capture 新增的重點片段：
 
 ```markdown
 | Item | Location | Description | Severity | Migration impact | Status |
@@ -546,7 +550,7 @@ And 兩個頁面預期都反映 BR-004 compound discount accumulation
 
 ### `analysis.md` 新增 RM-02 與 HS-01
 
-本步驟當下新增的重點片段：
+這次 capture 新增的重點片段：
 
 ```markdown
 ### RM-02: `OrderDiscountSummary`（`usp_GetOrderDiscountSummary`）與 `OrderList` 的 Discounted Total 欄
@@ -619,6 +623,97 @@ host 可以合法持有 `Tier = baseline` 列……它不是 zero-phase，**永�
 Brownfield 的 [〈Walkthrough 07 — 沒有相關 feature 的 baseline capture〉](walkthrough-07-baseline-minimal-host.md)
 示範同一個值用在**沒有 host 可掛**的情況——那時它會住在自己的 baseline 最小 host 裡。）
 
+## Step 6 — 逐題確認，確認記在 host 的 Goals & Scope
+
+Step 5 跳過之後，Dflow 停在 Step 5 → Step 6 的 gate：
+
+```text
+Dflow:
+Baseline capture 已記錄。要更新文件了嗎？輸入 /dflow:next 繼續。
+```
+
+Bob 回 OK。Step 6 的完成檢查表對 baseline 只重新核對上面四份文件，不新建任何東西；
+spec 那幾項是 N/A（baseline 沒有 spec 檔）。
+
+不一樣的是 6.2「需要開發者確認」那一組。原本五題裡，第 1 題（Delta 的意圖）與第 5 題
+（收掉 Implementation Tasks）對 baseline 是 N/A——沒有 Delta，也沒有 spec。其餘照
+`modify-existing-baseline.md` 排好的順序，一題一題問：
+
+```text
+Dflow:
+6.2 逐題確認（baseline）：
+
+1. Step 3 有沒有漏記的技術債？
+   這次記了兩列：rounding 策略不一致、isVip 0.93 來源不明。
+Bob: 沒有漏。
+
+2. Step 4 記下的抽離機會寫得夠清楚嗎？
+   rounding 那一列寫的是「Domain 層應統一 Money rounding / display precision contract」。
+Bob: 夠清楚，之後撿的人看得懂。
+
+3. analysis.md 這次寫的條目裡，有沒有 inferred / assumed 的？
+   RM-02、HS-01 的 Evidence 都是 code，直接讀程式得到——這題沒有要問的。
+
+4. 這次寫進的 BR：
+   BR-004（多個折扣率以乘法累積），從 OrderList.BindGrid() 與
+   OrderDetail.LoadDiscountSummary() 讀出來。這就是規則嗎？
+Bob: 對，這就是 BR-004。
+
+5. behavior.md 這次寫的每一段：
+   「Confirmed across pages」底下 BR-004 的兩段情境，照現況寫對了嗎？
+Bob: 對。
+
+6. 盤點時有沒有看到既有文件寫錯、名詞用法不一致？
+   沒有。
+
+7. 這次用到、glossary 還沒有的名詞？
+   折扣後金額 glossary 的 Order 那一列已經有；DiscountedTotal、
+   usp_GetOrderDiscountSummary 是程式裡的名字，不另立名詞——這題沒有要問的。
+
+8. models.md、context-map.md 這次有沒有新增或改了的內容？
+   沒有。
+```
+
+**第 4 題有一個 baseline 才有的判斷：BR-004 在這個 host 的 Current BR Snapshot 上。**
+`SPEC-20260430-001` 的 Snapshot 帶著 BR-001～004——它們是這個 feature 自己的 phase-spec
+定下的規則。盤點碰到 Snapshot 帶著的 BR，要看它改不改那條規則的意思：
+
+- 這次替 BR-004 補的是兩段跨頁情境與出處頁面，規則文字與情境的結果都沒變——**不改意思**，
+  照常寫，`rules.md` 那一列維持 `active`、文字不動。
+- 如果 Bob 確認的是「BR-004 其實應該是另一個算法」，那就**要改意思**：這次盤點不改，
+  `rules.md` 那一列與它的情境都留著，把確認的內容記成 `Order/rules.md` 的
+  `## Open Questions` 一項（BR-ID、確認的規則、哪個 host 的 Snapshot 帶著它、誰在哪一天確認），
+  Goals & Scope 記一行並告訴 Bob，交給之後改這條 BR 的變更走 spec 流程。
+  盤點自己改掉它，收尾同步會拿 Snapshot 上的舊文字把 `rules.md` 寫回去。
+
+每一個確認在 host 的 Goals & Scope 記一行：它定了什麼、落在哪。這次的 host 是 phase-bearing 的
+`SPEC-20260430-001`，所以記在它的 Goals & Scope，接在原本那幾段之後：
+
+```markdown
+2026-05-04 baseline capture（`OrderList` / `OrderDetail` 跨頁）的 6.2 確認（開發者 Bob）：
+- 技術債：Step 3 沒有漏記。
+- 抽離機會：「OrderList / OrderEntry / OrderDetail rounding 策略不一致」那一列記的統一 `Money` display contract 抽離方向寫得夠清楚。
+- BR-004：`OrderList.BindGrid()` 與 `OrderDetail.LoadDiscountSummary()` 讀出的折扣累積就是 BR-004。
+- `behavior.md`：「Confirmed across pages」兩段照現況寫對（補的是情境與出處頁面，不改 BR-004 的意思）。
+```
+
+三個細節：
+
+- **沒有題目可問的，不記行。** 第 3、6、7、8 題這次沒有東西要確認，Goals & Scope 就不為它們寫一行。
+- **確認不寫進 Resume Pointer，也不另開段落。** Resume Pointer 的 Current Progress 維持一兩句的游標；
+  `_index.md` 沒有記決定的段落，也不為它新增一段。
+- **`rules.md` 與 `tech-debt.md` 不另外記誰確認的。** `rules.md` 的 `active` 本身就是確認；要查 BR-004
+  或那兩列技術債是誰確認的，看 Goals & Scope 裡寫了它的那一行。`analysis.md` 的條目若是經 6.2 確認的，
+  Evidence 寫成 `confirmed by {role} - SPEC-20260430-001 Goals & Scope ({date})`——用 SPEC-ID 指 host，
+  不寫路徑：收尾會把 host 搬進 `completed/`，capture 當下寫的路徑會失效。（這次 RM-02、HS-01 都是
+  `code`，沒有這樣的條目。）
+
+Step 6 跑完，checkpoint 才在 6.5 提出。這次的 commit 是 `c58d213`：Checkpoint Log 記一列
+`spec-baseline | committed (c58d213)`，baseline 那一列的 `Commit` 欄也填同一個 hash。
+
+完整文件範例：
+[`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md)
+
 ## 本步驟的文件地圖
 
 | 狀態 | Path | 讀者看什麼 |
@@ -626,7 +721,7 @@ Brownfield 的 [〈Walkthrough 07 — 沒有相關 feature 的 baseline capture�
 | 修改 | [`outputs/dflow/specs/domain/Order/behavior.md`](outputs/dflow/specs/domain/Order/behavior.md) | `Confirmed across pages` 區塊，記錄 OrderList / OrderDetail 對 BR-004 的確認。 |
 | 修改 | [`outputs/dflow/specs/domain/Order/analysis.md`](outputs/dflow/specs/domain/Order/analysis.md) | 新增 RM-02（兩頁折扣後金額的產出點）與 HS-01（`isVip * 0.93` 熱點，當時 open）；RM-01 補一句指向 RM-02。 |
 | 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | rounding inconsistency 與 `isVip` multiplier 來源不明。 |
-| 修改 | [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md) | baseline-capture row 與後續 resume context。 |
+| 修改 | [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md) | baseline-capture row、Goals & Scope 末尾的 6.2 確認行，與後續 resume context。 |
 | 故意不建 | `lightweight-*.md` | baseline capture（observation-only），不建立 lightweight spec。 |
 | 故意不建 | `phase-spec-*.md` | 沒有新的 implementation slice。 |
 | 故意不改 | `rules.md` | 沒有新增或修改 accepted BR。 |
@@ -636,7 +731,7 @@ Brownfield 的 [〈Walkthrough 07 — 沒有相關 feature 的 baseline capture�
 
 | Dflow 能力 | 本篇可看到的證據 |
 |---|---|
-| Brownfield track | 不重寫 WebForms；只讀 immediate neighbor Code-Behind 並更新 baseline docs。 |
+| Brownfield track | 不重寫 WebForms；只讀要盤點的那一塊的 Code-Behind 並更新 baseline docs。 |
 | Spec-first development | 即使不改 code，也先把 confirmed behavior 與 tech debt 放進 spec/doc surface。 |
 | Hybrid workflow control | Bob 明確宣告 baseline-only；Dflow 不自動升級成 bug fix 或 implementation。 |
 | DDD semantic backbone | `behavior.md` 只收 accepted behavior，未知 legacy 行為不進 rules。 |
