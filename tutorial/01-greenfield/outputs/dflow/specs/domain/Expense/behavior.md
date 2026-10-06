@@ -1,13 +1,15 @@
-<!-- dflow-shape: greenfield/behavior.md 1 — keep this line: dflow doctor reads it -->
+<!-- dflow-shape: greenfield/behavior.md 2 — keep this line: dflow doctor reads it -->
 # Expense — Behavior Specification
 
-> **Purpose**: Expense context current behavior 的 consolidated source of truth。
-> 不同於 `dflow/specs/features/completed/` 的 historical archive，本檔永遠反映
-> accepted specs 之後系統應該遵守的 current behavior。
+> **Purpose**: Expense context 現行規則的情境與觀察，彙整在本檔。
+> 帶 BR-ID 的情境寫業務規則；Known deviation 紀錄寫觀察到的實作差異。
+> 沒有確認 BR 的觀察仍是觀察，不是驗證過的規則。
 >
 > **Maintenance**: AI 在 completion flow（Step 8.3 / Step 5.3）更新本檔。
 > feature completed 時，將 Given/When/Then scenarios merge 到這裡。
 > behavior modified 時，用 Delta result 更新對應 section；不要保留 Delta markup。
+> 取代或刪除帶 `> Known deviation:` 行的 section 時，套用
+> `references/confirmed-rule-vs-code.md` § Preserve during merge。
 >
 > **Relationship to rules.md**: `rules.md` 是 declarative index（BR-ID ＋ 一行摘要），
 > 本檔是 scenario-level detail。`rules.md` 的每個 BR-ID 在這裡都應該有對應 section；
@@ -146,5 +148,5 @@ Maintenance notes:
 - BR-007 的門檻已是 2026-04-30 lightweight MODIFIED 之後的最終狀態。
   phase 2 的「至少 10 字元」是舊條文，仍散見於該 phase-spec 各節（Domain Concepts、
   兩個 gherkin 區塊、BR 表、EC-006、Implementation Plan、Test Strategy、任務清單）——
-  那是凍結的歷史紀錄，不是現況；現況一律以本檔與 rules.md 為準。
+  那是凍結的歷史紀錄，不是現行規則；現行規則一律以本檔與 rules.md 為準。
 -->

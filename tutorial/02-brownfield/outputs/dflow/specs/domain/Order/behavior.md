@@ -1,13 +1,15 @@
-<!-- dflow-shape: brownfield/behavior.md 1 — keep this line: dflow doctor reads it -->
+<!-- dflow-shape: brownfield/behavior.md 2 — keep this line: dflow doctor reads it -->
 # Order — Behavior Specification
 
-> **Purpose**: Order context current behavior 的 consolidated source of truth。
-> 不同於 `dflow/specs/features/completed/` 的 historical archive，本檔永遠反映
-> accepted specs 之後系統應該遵守的 current behavior。
+> **Purpose**: Order context 現行規則的情境與觀察，彙整在本檔。
+> 帶 BR-ID 的情境寫業務規則；Known deviation 紀錄寫觀察到的實作差異。
+> 沒有確認 BR 的觀察仍是觀察，不是驗證過的規則。
 >
 > **Maintenance**: AI 在 completion flow（Step 8.3 / Step 6.3）更新本檔。
 > feature completed 時，將 Given/When/Then scenarios merge 到這裡。
 > behavior modified 時，用 Delta result 更新對應 section；不要保留 Delta markup。
+> 取代或刪除帶 `> Known deviation:` 行的 section 時，套用
+> `references/confirmed-rule-vs-code.md` § Preserve during merge。
 
 ---
 
@@ -79,7 +81,7 @@ And 兩個頁面預期都反映 BR-004 compound discount accumulation
 > ⚠ **這一節目前只有骨架。** `SPEC-20260505-002-vip-discount-policy` 的 phase 1 仍在
 > implementation，尚未跑 `/dflow:finish-feature`。依 `new-feature-flow.md`，這一步只建
 > 「每條 `BR-*` 一個 section anchor」的骨架，Given/When/Then 要到 Step 8.3 / closeout
-> 才從 phase spec merge 進來。**本檔記錄的是系統「現在」的行為**，而 VIP 規則尚未
+> 才從 phase spec merge 進來。**本檔彙整的是現行規則的情境**，而 VIP 規則尚未
 > 落地，所以場景還不能寫在這裡——它們現在住在
 > `features/active/SPEC-20260505-002-vip-discount-policy/` 的 phase spec 裡。
 

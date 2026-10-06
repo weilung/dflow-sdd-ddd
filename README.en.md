@@ -274,7 +274,7 @@ In practice a feature branch usually goes through several propose → implement 
 |---|---|---|---|
 | **Phase Delta** | `phase-spec-{date}-{slug}.md` (or a lightweight spec) | Records what this cycle changes, why, and how it will be implemented and verified | A milestone slice inside a feature branch |
 | **Feature Snapshot** | `_index.md` (one per feature directory) | Feature-level dashboard: phase list, cumulative BR Snapshot, Resume Pointer | The feature branch's own "current state" |
-| **System State** | `rules.md` / `behavior.md` / `glossary.md` / `context-map.md` / `analysis.md` | Cross-feature long-term knowledge: glossary, business rules, models, flows and lifecycles, conventions, tech debt | The accumulated "what the system actually is right now" on main / trunk |
+| **System State** | `rules.md` / `behavior.md` / `glossary.md` / `context-map.md` / `analysis.md` | Cross-feature long-term knowledge: glossary, business rules, models, flows and lifecycles, conventions, tech debt | The current rules accumulated on main / trunk, plus the recorded observations of the code and its [deviations](docs/confirmed-rule-vs-code.en.md) |
 
 `_index.md` is the key middle layer. Many spec tools only ship phase + system, but feature branches that span multiple phases are the norm, and without a middle layer three problems show up:
 

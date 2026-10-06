@@ -479,7 +479,8 @@ Step 5 — Update Documentation。
    - BR-007 Last Updated 改成 lightweight-2026-04-30。
    - Resume Pointer 指向這份 lightweight spec 的實作。
 3. 更新 living docs 的 source-of-truth wording：
-   - rules.md
+   - rules.md（改 BR-007 那一列之前先看它有沒有偏離紀錄：
+     Known deviations 是 —，也沒有 > Known deviation: 行 → 照常改，不讀保留程序）
    - aggregate-design.md
    - glossary
 4. Step 5.4 T2 Archival：
@@ -572,6 +573,12 @@ ExpenseReport.Status 可進入 Rejected，
 ADDED / REMOVED / RENAMED 都是 none；UNCHANGED 明確列 BR-001..006。這讓 reviewer
 可以確認：只有 BR-007 被修改，phase 2 其他規則沒有被偷改。
 
+這裡寫 MODIFIED 是對的：BR-007 這條**規則本身**改了（從「至少 10 字元」改成雙語門檻），
+Before／After 寫的是新舊兩版規則要求的結果，不是錯的程式行為。lightweight-spec 範本
+§ Behavior Delta 的開頭就要你先分這一步：規則沒變、只是程式做錯了，用檔首沒有 BR 的
+family (e)（[walkthrough 05](walkthrough-05-bug-fix.md) 的 BUG-001 就是）；只有規則本身變了才寫
+BR Delta，而且照實際變更選 ADDED／MODIFIED／REMOVED／RENAMED，不因為「這是 bug fix」就寫 MODIFIED。
+
 ## 文件片段 3 — Fix Approach 把字元邊界寫進規格
 
 Fix Approach 是 implementation 的邊界：
@@ -634,7 +641,7 @@ Current BR Snapshot 中 BR-007 被 regenerate 成新 current state：
 | BR-007 <!-- phase-2 ADDED --> <!-- 2026-04-30 lightweight MODIFIED --> |
 Reject 必須附註原因；ApprovalReason 至少 5 個中文字或至少 10 個英數字，
 否則 raise DomainException；空白不計，半形 / 全形視覺等價，emoji 算字。 |
-ApprovalDecision | active | 2026-04-30 |
+ApprovalDecision | active | 2026-04-30 | — |
 ```
 
 完整文件範例：

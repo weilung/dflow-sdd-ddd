@@ -29,8 +29,12 @@
 // (PROPOSAL-100: template-row lock, every not-drawn note, containment of a
 // subsection that throws, placement, untouched cards and pages, unique ids
 // on a page with several pictures, stdout line, determinism, and the layout's
-// invariants — label overlap included — read back from the SVG), Windows
-// long-path output, and the dynamic import('marked') loading-path lock.
+// invariants — label overlap included — read back from the SVG), a recorded
+// deviation beside analysis.md entries (PROPOSAL-107: two transitions of one BR
+// told apart by Trigger with the deviation line after the table, a picture the
+// line does not change, Evidence: still closing RM and MX, and the three page
+// sentences that no longer promise current behavior), Windows long-path
+// output, and the dynamic import('marked') loading-path lock.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { link, mkdir, mkdtemp, readFile, rm, rmdir, stat, symlink, unlink, writeFile } from 'node:fs/promises';
@@ -838,6 +842,13 @@ Scenario: submit expense
     const guides = index.match(/<details class="ix-guide"[^>]*>[^]*?<\/details>/g);
     assert.equal(guides.length, 4, 'every group but the catch-all carries a guide');
     assert.ok(guides.every((guide) => guide.startsWith('<details class="ix-guide"><summary>') && !guide.includes('<a ')), 'guides are closed and hold no links');
+    // PROPOSAL-107: the guides promise the current rules and the recorded
+    // observations of the code, not what the system does now
+    assert.ok(group('domain').includes('<code>rules.md</code> 是業務規則與已記錄偏離的索引（BR-ID），<code>behavior.md</code> 用情境寫出規則，並在有已知偏離時另列程式觀察，'),
+      'the domain guide: rules.md indexes rules and recorded deviations; behavior.md states rules and lists observations');
+    assert.ok(group('features').includes('<code>completed/</code> 是已完成 feature 的歷史紀錄，依年份分頁；現行的業務規則與已記錄的程式觀察以 Domain 那一組的文件為準。'),
+      'the completed/ guide points to the current rules and recorded observations');
+    assert.doesNotMatch(index, /系統現在的行為|目前的行為/, 'the index promises no current behavior');
     const solo = render.groupedIndexHtml({ relFiles: ['shared/_conventions.md', 'shared/notes.md'], title: 't', completedGroups: null });
     assert.ok(solo.includes('<details class="ix-group" id="g-shared" open>'), 'an only group opens');
     assert.ok(!solo.includes('ix-jump'), 'no jump links for an only group');
@@ -883,6 +894,8 @@ Scenario: submit expense
     // newest-first directory order, nav, crumb and relative links unchanged
     const y2026 = await readOut(join(outDir, 'features/completed/index-2026.html'));
     assert.match(y2026, /<p class="yearnav"><strong>2026<\/strong> · <a href="index-2025\.html">2025<\/a> · <a href="index-other\.html">未分年<\/a><\/p><p class="ix-note">這一頁是已完成 feature 的歷史紀錄/);
+    assert.ok(y2026.includes('<p class="ix-note">這一頁是已完成 feature 的歷史紀錄，依目錄名 SPEC 編號裡的年份分頁，認不出年份的放在「未分年」；現行的業務規則與已記錄的程式觀察以 <code>domain/</code> 底下的文件為準。</p>'),
+      'the year-page note points to the current rules and recorded observations (PROPOSAL-107)');
     assert.match(styleOf(y2026), /\.ix-note \{/);
     assert.doesNotMatch(y2026, /<ul class="tree">/, 'no file tree on a recognised year page');
     assert.ok(y2026.includes('<a href="SPEC-20260612-001-p%2541/_index.html">_index.md</a>'), 'year-page links encode % too');
@@ -1751,6 +1764,109 @@ Scenario: submit expense
       }
     }
     assert.ok(drawn >= 150, `the random corpus mostly draws (${drawn} of 230) rather than refusing`);
+  }
+
+  // --- PROPOSAL-107: a recorded deviation beside analysis.md entries ---
+  // The records keep the analysis.md shapes render already reads: two
+  // transitions of one BR told apart by their Trigger, with the deviation line
+  // after the entry's last table; RM and MX keep their closing Evidence: line
+  // after the line. Render marks no transition as a violation, so the picture
+  // is the same with and without the line.
+  {
+    const { Marked } = await import('marked');
+    const lex = (md) => new Marked({ gfm: true }).lexer(md);
+    const debtLink = '[Qualification BR-007: release timing](../../migration/tech-debt.md#debt-items)';
+    const deviation = (at, observed, evidence) =>
+      `> Known deviation: BR-007 — at: ${at} — observed: ${observed} — evidence: ${evidence} — tech-debt: ${debtLink}`;
+    const lifecycle = [
+      '## Lifecycles', '',
+      '### LC-01: Qualification.Status（`Qualifications.Status`）', '',
+      '| State | Means |', '|---|---|', '| `held` | 資格保留中 |', '| `released` | 資格已釋出 |', '',
+      '| From | Trigger | To | Guard | Evidence |', '|---|---|---|---|---|',
+      '| `held` | Applicant submits (`QualificationService.Submit()`) | `released` | BR-007 | code - QualificationService.Submit() (2026-10-05) |',
+      '| `held` | Reviewer approves (`QualificationService.Approve()`) | `released` | BR-007 | code - QualificationService.Approve() (2026-10-05) |',
+      ''
+    ];
+    const lifecycleDeviation = [
+      deviation('LC-01 `held` → `released`, Trigger "Applicant submits"',
+        'submission releases the qualification while approval is pending, violating BR-007',
+        'code - QualificationService.Submit() (2026-10-05)'),
+      ''
+    ];
+    const others = [
+      '## Read Models and Derived Figures', '',
+      '### RM-01: 可釋出的資格數', '',
+      '計入已核准、尚未釋出的資格。', '',
+      deviation('RM-01', 'counts submitted qualifications as releasable, violating BR-007', 'code - QualificationQuery.Releasable() (2026-10-05)'), '',
+      'Evidence: code - QualificationQuery.Releasable() (2026-10-05)', '',
+      '## Mechanisms', '',
+      '### MX-01: 送出時先釋出', '',
+      '送出時先把資格標成釋出，核准時不再改它。', '',
+      'Affects: BR-007, LC-01', '',
+      deviation('MX-01', 'releases on submission, violating BR-007', 'code - QualificationService.Submit() (2026-10-05)'), '',
+      'Evidence: code - QualificationService.Submit() (2026-10-05)', '',
+      // the same entry without the blank line before Evidence:, so the
+      // assertion below is shown to tell the two apart
+      '### MX-02: 少了空行的對照', '',
+      '送出時先把資格標成釋出，核准時不再改它。', '',
+      'Affects: BR-007, LC-01', '',
+      deviation('MX-02', 'releases on submission, violating BR-007', 'code - QualificationService.Submit() (2026-10-05)'),
+      'Evidence: code - QualificationService.Submit() (2026-10-05)', '',
+      '## Open Questions and Hotspots', '',
+      '（目前沒有）', ''
+    ];
+    const withDeviation = ['# Domain Analysis', '', ...lifecycle, ...lifecycleDeviation, ...others].join('\n');
+    const withoutDeviation = ['# Domain Analysis', '', ...lifecycle, ...others].join('\n');
+
+    const proj = join(tempRoot, 'deviation');
+    const src = join(proj, 'dflow/specs');
+    await writeFixture(join(src, 'domain/Qualification/analysis.md'), withDeviation);
+    await writeFixture(join(src, 'domain/Plain/analysis.md'), withoutDeviation);
+    const run = runRenderCli(proj, []);
+    assert.equal(run.code, 0, `deviation render failed\nSTDERR:\n${run.stderr}`);
+    assert.match(run.stdout, /^diagrams: 2 drawn, 0 not drawn$/m, 'the lifecycle with a deviation line is still drawn');
+    const page = await readOut(join(proj, 'dflow-specs-html/domain/Qualification/analysis.html'));
+    const plain = await readOut(join(proj, 'dflow-specs-html/domain/Plain/analysis.html'));
+    const figureOf = (html) => (html.match(/<figure class="dflow-dg dg-lc" data-entry="LC-01">[\s\S]*?<\/figure>/) || [''])[0];
+    const figure = figureOf(page);
+    assert.ok(figure, 'LC-01 is drawn');
+
+    // each row's Trigger reaches the picture as written, one transition per row
+    const lc = diagrams.lifecycleModel(diagrams.findEntrySubsections(lex(withDeviation)).find((sub) => sub.entryId === 'LC-01'));
+    assert.deepEqual(lc.model.transitions.map((t) => [t.from, t.to, t.trigger, t.guard]), [
+      ['held', 'released', ['Applicant submits (QualificationService.Submit())'], ['BR-007']],
+      ['held', 'released', ['Reviewer approves (QualificationService.Approve())'], ['BR-007']]
+    ], 'two transitions of one BR, told apart by their Trigger');
+    const drawnText = [...figure.matchAll(/<text[^>]*>([^<]*)<\/text>/g)].map((m) => m[1]).join(' ');
+    for (const trigger of ['Applicant submits (QualificationService.Submit())', 'Reviewer approves (QualificationService.Approve())']) {
+      assert.ok(drawnText.includes(trigger), `the picture shows the Trigger "${trigger}"`);
+    }
+    for (const trigger of ['Applicant submits (<code>QualificationService.Submit()</code>)', 'Reviewer approves (<code>QualificationService.Approve()</code>)']) {
+      assert.ok(page.includes(`<span class="fld-k">Trigger</span><div class="fld-v">${trigger}</div>`), `the card shows the Trigger ${trigger}`);
+    }
+    // render marks no violation: the deviation line changes nothing in the picture
+    assert.equal(figure, figureOf(plain), 'the picture is the same with and without the deviation line');
+
+    // the deviation line stays a blockquote, after the entry's last table and before the next section
+    assert.match(page,
+      /<\/article><\/div>\n<blockquote>\n<p>Known deviation: BR-007 — at: LC-01 <code>held<\/code> → <code>released<\/code>, Trigger &quot;Applicant submits&quot; — observed: [^<]*<a href="\.\.\/\.\.\/migration\/tech-debt\.html#debt-items">Qualification BR-007: release timing<\/a><\/p>\n<\/blockquote>\n<h2 id="read-models-and-derived-figures">/,
+      'the LC deviation line follows the transition table as a blockquote');
+
+    // RM and MX: Evidence: is the subsection's last line, outside the blockquote;
+    // without the blank line it is read into the blockquote
+    const subsection = (id) => {
+      const start = page.indexOf(`>${id}: `);
+      assert.ok(start !== -1, `${id} is on the page`);
+      const ends = [page.indexOf('<h', start + 1), page.indexOf('<p class="foot">', start)].filter((at) => at !== -1);
+      return page.slice(start, Math.min(...ends));
+    };
+    const evidenceAfterQuote = (id) => /<\/blockquote>\n<p>Evidence: [^<]*<\/p>\s*$/.test(subsection(id));
+    assert.ok(evidenceAfterQuote('RM-01'), 'RM-01: Evidence: closes the entry, after the deviation line');
+    assert.ok(evidenceAfterQuote('MX-01'), 'MX-01: Evidence: closes the entry, after the deviation line');
+    assert.match(subsection('MX-01'), /<p>Affects: BR-007, LC-01<\/p>\n<blockquote>/, 'MX-01: the deviation line follows Affects:');
+    assert.ok(!evidenceAfterQuote('MX-02'), 'MX-02: without the blank line the check fails');
+    assert.match(subsection('MX-02'), /violating BR-007 — evidence: [^<]*<a [^>]*>[^<]*<\/a>\nEvidence: code - QualificationService\.Submit\(\) \(2026-10-05\)<\/p>\n<\/blockquote>/,
+      'MX-02: without the blank line Evidence: is read into the blockquote');
   }
 
   // --- mirror consistency: deleted / renamed sources -> stale cleanup ---

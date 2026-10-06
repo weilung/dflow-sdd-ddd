@@ -1,12 +1,22 @@
-<!-- dflow-shape: brownfield/tech-debt.md 1 — keep this line: dflow doctor reads it -->
+<!-- dflow-shape: brownfield/tech-debt.md 2 — keep this line: dflow doctor reads it -->
 <!-- Seeded by Dflow. -->
 <!-- Formatting convention: keep table cells concise. When one cell holds multiple short items (invariants, rules, steps), separate them with <br> so each renders on its own line - never chain them into one line with ；/; separators. Long narrative detail does not belong in a table cell: keep the cell to a concise summary and put extended detail in an existing section of this document when one fits, or give each item its own row. -->
 
 # Migration Tech Debt
 
-> WebForms migration debt backlog discovered during SDD/DDD work on OrderManager.
+> WebForms migration and implementation debt discovered during SDD/DDD work on OrderManager.
 
 ## Debt Items
+
+<!--
+Confirmed-rule deviations: for the record payload, read `references/confirmed-rule-vs-code.md` § Scope and recording.
+This project's debt file is `dflow/specs/migration/tech-debt.md`. A row that records a confirmed-rule deviation fills these columns:
+- Location: the implementation file and method.
+- Description: the payload, its items separated by <br>.
+- Severity: by the actual impact.
+- Migration impact: the actual impact on the target architecture; write none when there is none, and do not invent one.
+- Status: `open` while the fix is deferred; `planned` only when the fix is scheduled.
+-->
 
 | Item | Location | Description | Severity | Migration impact | Status |
 |---|---|---|---|---|---|
@@ -18,8 +28,8 @@
 | Order 折扣規則分散在多個頁面 | `OrderManager.Web/Pages/Order/OrderList.aspx.cs` / `OrderDetail.aspx.cs` | 初步檢查顯示 Order BC 其他頁面也可能使用相同折扣規則，但各自實作金額摘要或顯示邏輯。Closeout note: 2026-05-12 `SPEC-20260430-001` 已統一 `OrderEntry` / `OrderList` / `OrderDetail` rounding display contract；其他 Order 頁面尚未抽離。 | High | 部分風險已由 baseline capture + BUG-001 緩解；後續仍需逐步確認其他 Order 頁面是否直接實作折扣或金額顯示邏輯。 | open |
 | OrderEntry event handler 仍混合資料存取與流程控制 | `OrderManager.Web/Pages/Order/OrderEntry.aspx.cs` | 折扣計算抽離後，`btnSubmit_Click` 仍約有 50 行 EF query、UI parsing、狀態設定與 DB 寫回邏輯尚未抽離。 | Medium | WebForms adapter 仍偏厚；未來遷移到 ASP.NET Core 時需再拆 application-facing adapter / repository seam。 | open |
 | DiscountPolicy 結構可能需要演進 | `src/Domain/Order/DiscountPolicy` | 本 phase 只處理滿額折扣與 `Senior` 客戶折扣；若後續新增促銷、品項級折扣或通路折扣，單一 policy 可能過大。 | Low | 後續可評估是否拆成 PolicyChain 或 Strategy pattern；目前不為未確認需求過度設計。 | open |
-| OrderList / OrderEntry / OrderDetail rounding 策略不一致 | `OrderManager.Web/Pages/Order/OrderList.aspx.cs` / `OrderEntry.aspx.cs` / `OrderDetail.aspx.cs` | `OrderList.BindGrid()` 使用 `decimal.Round(value, 0)` 顯示整數元，`OrderEntry` / `OrderDetail` 使用 `Math.Round(value, 2)` 或 `ToString("N2")` 顯示到小數兩位，可能造成同一筆訂單跨頁視覺金額差異。Resolved note: 2026-05-08 由 SPEC-20260430-001 BUG-001 修正，Domain Money VO 提供統一 `ToDisplay()` contract，三頁面改 call 同一 contract。 | Medium | Domain 層應統一 `Money` rounding / display precision contract，避免 ASP.NET Core migration 時把頁面差異一起搬過去。 | resolved |
-| OrderList isVip multiplier 0.93 規則來源不明 | `OrderManager.Web/Pages/Order/OrderList.aspx.cs` method `BindGrid()` | `if (customer.IsVip) { discountedTotal *= 0.93m; }` 沒有註解或 ticket reference，且可能與 BR-003 Senior customer 5% off 互斥。Resolved note: 2026-05-05 業務確認為 dead code，由 SPEC-20260505-002 phase 1 implement task 移除。 | Medium | 不寫成 BR；移除作為 `SPEC-20260505-002` 的 implementation cleanup task，避免把 legacy promotion 殘留帶入 ASP.NET Core migration。 | resolved |
+| OrderList / OrderEntry / OrderDetail rounding 策略不一致 | `OrderManager.Web/Pages/Order/OrderList.aspx.cs` / `OrderEntry.aspx.cs` / `OrderDetail.aspx.cs` | `OrderList.BindGrid()` 使用 `decimal.Round(value, 0)` 顯示整數元，`OrderEntry` / `OrderDetail` 使用 `Math.Round(value, 2)` 或 `ToString("N2")` 顯示到小數兩位，可能造成同一筆訂單跨頁視覺金額差異。<br>Resolved by: SPEC-20260430-001 BUG-001 — regression TEST-1 通過：同一筆訂單在 `OrderList` / `OrderEntry` / `OrderDetail` 顯示一致，三頁都改呼叫 Domain `Money.ToDisplay()` (2026-05-12) | Medium | Domain 層應統一 `Money` rounding / display precision contract，避免 ASP.NET Core migration 時把頁面差異一起搬過去。 | done |
+| OrderList isVip multiplier 0.93 規則來源不明 | `OrderManager.Web/Pages/Order/OrderList.aspx.cs` method `BindGrid()` | `if (customer.IsVip) { discountedTotal *= 0.93m; }` 沒有註解或 ticket reference，且可能與 BR-003 Senior customer 5% off 互斥。<br>Disposition: 2026-05-05 業務確認為 dead code；移除排進 `SPEC-20260505-002` phase 1 的 cleanup task（DELIVERY-2），該 feature 收尾 Step 3 確認移除後才設 `done`。 | Medium | 不寫成 BR；移除作為 `SPEC-20260505-002` 的 implementation cleanup task，避免把 legacy promotion 殘留帶入 ASP.NET Core migration。 | planned |
 | Shipment 免運門檻判斷基準三處不一致 | `Pages/Cart/ShoppingCart.aspx.cs` `CalculateShippingFee()` / `Pages/Checkout/Checkout.aspx.cs` `BindShippingSummary()` / `Jobs/Notifications/ShipmentNoticeBuilder.cs` `BuildFeeLine()` | 同一張訂單三處顯示 0 / 150 / 0（免運 / 收 150 / 免運）。三處共用同一份級距表與同一條 2,000 免運門檻，分歧在**拿哪個金額去比**：購物車用**折扣前** 2,300（達標→免運），結帳頁用**折扣後** 1,850（未達標→依級距收 150），出貨通知信不判斷、直接讀下單當下寫入的 `ShippingFee` 快照。2026-05-11 由 `SPEC-20260511-001-shipment-fee-baseline` 的 baseline capture 記錄；三者皆為 confirmed behavior。 | High | **「以哪一個為準」是待決的業務決定**，未拍板前不寫成 BR。拍板後需在 Domain 建立單一的免運門檻判定 contract，避免把三套實作一起搬進 ASP.NET Core。 | open |
 
 ## Follow-up Notes
@@ -28,6 +38,6 @@
 - 每個 `/dflow:modify-existing` 完成時，若看見新的 migration risk，應更新本檔。
 - 優先處理能支援 `src/Domain/` 純 C# 抽離與 unit testing 的 debt。
 - `Order 折扣規則分散在多個頁面` disposition: 2026-05-12 `SPEC-20260430-001` closeout 時確認為 partially resolved；三個已知頁面的 rounding contract 已統一，但跨全部 Order 頁面的業務邏輯抽離仍 open。
-- `OrderList / OrderEntry / OrderDetail rounding 策略不一致` disposition: 2026-05-08 歸屬 `SPEC-20260430-001` 的 `BUG-001-rounding-inconsistency.md`；修正方向為 `Money.ToDisplay()` display contract + 三頁面 Presentation 層統一呼叫。
-- `OrderList isVip multiplier 0.93` 已由 Daniel 於 2026-05-05 確認為五年前促銷殘留；清理歸屬 `SPEC-20260505-002` phase 1 implementation task。
+- `OrderList / OrderEntry / OrderDetail rounding 策略不一致` disposition: 2026-05-08 歸屬 `SPEC-20260430-001` 的 `BUG-001-rounding-inconsistency.md`；修正方向為 `Money.ToDisplay()` display contract + 三頁面 Presentation 層統一呼叫；2026-05-12 `SPEC-20260430-001` 收尾 Step 3 對 regression 證據確認後設 `done`。
+- `OrderList isVip multiplier 0.93` 已由 Daniel 於 2026-05-05 確認為五年前促銷殘留；清理歸屬 `SPEC-20260505-002` phase 1 implementation task，status `planned`；移除之後由該 feature 收尾 Step 3 設 `done`。
 - `Shipment 免運門檻判斷基準三處不一致` disposition: 2026-05-11 由 `SPEC-20260511-001-shipment-fee-baseline` 記錄。該 host 是 **observation-only** 的 baseline 最小 host——它交付的是「現況是什麼」，**沒有**修正任何一處。三處行為本身已寫入 `dflow/specs/domain/Shipment/behavior.md`；此處記的是尚未有答案的那一題。待營運／財務拍板後另開 feature，不得追加到已凍結的 baseline host。

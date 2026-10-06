@@ -28,7 +28,7 @@ completed snapshot 的完整讀法，再讀
 | 你關心的問題 | 本篇會展示的部分 |
 |---|---|
 | `/dflow:bug-fix` 和 `/dflow:modify-existing` 有什麼差別？ | bug-fix 走同一套 modify-existing flow，tier 一樣由 cascade 判定（不由命令決定）；差別在它先找 expected-versus-actual boundary。 |
-| 已知 tech debt 被客戶撞上時怎麼處理？ | 從 `tech-debt.md` 反查來源，建立 `BUG-001`，再把 debt resolved。 |
+| 已知 tech debt 被客戶撞上時怎麼處理？ | 從 `tech-debt.md` 反查來源，建立 `BUG-001` 並連到那一列；修好之後，由 `/dflow:finish-feature` 收尾的 Step 3 對著證據把它設成 `done`。 |
 | bug 發生在 VIP 試用期間，為什麼不歸 VIP feature？ | host feature 依 defect source 判定；rounding debt 來自 SPEC-001 baseline capture。 |
 | `Money` VO 加 method 算不算 DDD 變更？ | 算 code-level implementation 收斂，但不新增 VO equality component、不新增 BR。 |
 | 沒有 BR Delta，要不要更新 BR Snapshot？ | 不 regenerate，但在 `_index.md` 寫清楚原因，避免 reviewer 誤判為漏更。 |
@@ -302,7 +302,7 @@ Dflow:
 - DiscountPolicy 已是折扣計算 owner；
   SPEC-002 只擴張 VIP path，沒有改掉 BR-001~004。
 - tech-debt.md 的 rounding inconsistency entry 仍是 open；
-  isVip multiplier entry 已由 Daniel 確認 dead code 並 resolved。
+  isVip multiplier entry 已由 Daniel 確認 dead code，移除排進 SPEC-002 phase 1（planned）。
 
 這次 BR-001~004 wording 不變。
 rounding inconsistency 是 Presentation-layer display rounding contract drift，
@@ -449,7 +449,7 @@ Dflow 把決議整理成 tasks：
 - [ ] DELIVERY-3: `OrderEntry` 顯示折扣後金額時確認 align 到同一 display contract。
 - [ ] TEST-1: 同一 Order 在 `OrderList` / `OrderEntry` / `OrderDetail` 顯示折扣後金額一致。
 - [ ] TEST-2: `Money.ToDisplay` edge cases：0、負數、大數、boundary precision。
-- [ ] DOC-1: 更新 `_index.md` Lightweight Changes、BR Snapshot note 與 `tech-debt.md` resolved note。
+- [ ] DOC-1: 更新 `_index.md` Lightweight Changes、BR Snapshot note，與 `tech-debt.md` 的 disposition note（連回本 BUG；設 `done` 留給收尾 Step 3）。
 ```
 
 完整文件範例：
@@ -515,9 +515,8 @@ Bob 上面說「我下午再讓工程師照 BUG-001 implement」，所以本篇�
  (spec, rules.md, models.md, glossary, tech-debt)?"
 ```
 
-也就是說，下一節那些文件更新——特別是把 `tech-debt.md` 的 rounding item 從 `open`
-翻成 `resolved`——**是在實作完成、過了這道 gate 之後才做的**，不是在還沒動 code 的
-星期五早上做的。
+也就是說，下一節那些文件更新——BUG-001 spec、`_index.md` 的那一列、`tech-debt.md` 連回 BUG-001 的
+disposition——**是在實作完成、過了這道 gate 之後才做的**，不是在還沒動 code 的星期五早上做的。
 
 ```text
 Bob（當天下午）:
@@ -529,10 +528,11 @@ Implementation appears complete.
 Ready to update artifacts (spec, rules.md, models.md, glossary, tech-debt)?
 ```
 
-⚠ **順序這件事有實際後果**：`tech-debt.md` 的 `resolved` note 寫的是「三頁面改 call
-同一 contract」——那是一句**對已完成事實的斷言**。如果在實作之前就寫下去，
-debt backlog 會出現一筆「已解決但其實還沒做」的紀錄，而那正是 backlog 失真的起點。
-flow 把 artifacts 更新放在 gate 後面，就是為了擋這個。
+⚠ **rounding 那一列在這裡還不翻成 `done`。** 「三頁面改 call 同一 contract、regression 通過」是一句
+**對已完成事實的斷言**。實作之前就寫下去，debt backlog 會出現一筆「已解決但其實還沒做」的紀錄，那正是
+backlog 失真的起點；flow 把 artifacts 更新放在 gate 後面，擋的就是這個。過了 gate 也還不到時候：
+spec 連到的技術債，由 `/dflow:finish-feature` 收尾的 Step 3 打開測試結果與實作位置核對之後才設 `done`，
+並在那一列記下是哪一份 spec 修好的（`Resolved by: …`）。這一步只把那一列連回 BUG-001。
 
 ## Step 6 — Update Artifacts
 
@@ -557,11 +557,9 @@ Step 6 - Update Artifacts。
 
 3. 更新 dflow/specs/migration/tech-debt.md：
 
-   - rounding inconsistency entry status 從 open 改為 resolved。
-   - resolved note 寫：
-     2026-05-08 由 SPEC-20260430-001 BUG-001 修正，
-     Domain Money VO 提供統一 ToDisplay() contract，
-     三頁面改 call 同一 contract。
+   - rounding inconsistency 那一列 status 維持 open。
+     BUG-001 的 frontmatter related_tech_debt 已經指名它；
+     SPEC-001 收尾 Step 3 會把它當成候選，對著 regression 結果確認後才設 done。
    - Follow-up Notes 補 disposition，方便 reviewer 從 tech-debt 反查 BUG-001。
 ```
 
@@ -670,15 +668,10 @@ BUG-001 沒有 BR wording 變更，因此 snapshot 保持 BR-001~004 當前狀�
 如果 spec 不需要 regenerate snapshot，文件要說明理由。這樣 reviewer 才能分辨
 「刻意不改」和「漏改」。
 
-### `tech-debt.md` resolved note
+### `tech-debt.md` 連回 BUG-001
 
-`tech-debt.md` 中的 rounding item 從 open 變 resolved：
-
-```markdown
-| Item | Location | Description | Severity | Migration impact | Status |
-|---|---|---|---|---|---|
-| OrderList / OrderEntry / OrderDetail rounding 策略不一致 | `OrderManager.Web/Pages/Order/OrderList.aspx.cs` / `OrderEntry.aspx.cs` / `OrderDetail.aspx.cs` | `OrderList.BindGrid()` 使用 `decimal.Round(value, 0)` 顯示整數元，`OrderEntry` / `OrderDetail` 使用 `Math.Round(value, 2)` 或 `ToString("N2")` 顯示到小數兩位，可能造成同一筆訂單跨頁視覺金額差異。Resolved note: 2026-05-08 由 SPEC-20260430-001 BUG-001 修正，Domain Money VO 提供統一 `ToDisplay()` contract，三頁面改 call 同一 contract。 | Medium | Domain 層應統一 `Money` rounding / display precision contract，避免 ASP.NET Core migration 時把頁面差異一起搬過去。 | resolved |
-```
+`tech-debt.md` 中的 rounding item 這一步**不改狀態**，仍是 `open`；連結靠 BUG-001 的 frontmatter
+`related_tech_debt` 與下面這一則 Follow-up note。
 
 Follow-up note：
 
@@ -690,6 +683,10 @@ Follow-up note：
 
 完整文件範例：
 [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md)
+
+補充：完整文件範例是 `SPEC-20260430-001` 收尾之後的狀態——那一列已是 `done`，Description 末尾多了一行
+`Resolved by: SPEC-20260430-001 BUG-001 — …`，Follow-up note 也補了收尾的那一句。那是
+[〈Walkthrough 06〉](walkthrough-06-finish-feature.md) 收尾 Step 3 寫的，不是本篇。
 
 ## Step 6 — 故意不改的文件
 
@@ -728,7 +725,7 @@ Dflow:
 |---|---|---|
 | 新建 | [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/BUG-001-rounding-inconsistency.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/BUG-001-rounding-inconsistency.md) | T2 bug spec：Problem、Behavior Delta、Root Cause、Fix Approach、Implementation Tasks。 |
 | 修改 | [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md) | Lightweight Changes row、BR Snapshot intentionally unchanged note、後續 closeout integration summary。 |
-| 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | rounding inconsistency 從 open 變 resolved，並連回 BUG-001。 |
+| 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | rounding inconsistency 那一列連回 BUG-001（status 仍是 `open`，收尾 Step 3 才設 `done`）。 |
 | 故意不改 | `SPEC-20260505-002-vip-discount-policy/` | rounding bug 不屬 VIP policy scope。 |
 | 故意不改 | `outputs/dflow/specs/domain/Order/rules.md` | 沒有 ADDED / MODIFIED / REMOVED / RENAMED BR。 |
 | 故意不改 | `outputs/dflow/specs/domain/Order/models.md` | `Money` equality components / invariant 不變；`ToDisplay()` 是 implementation contract。 |
@@ -755,7 +752,7 @@ Dflow:
 | 小 bug 變大重構 | 開始改全站 currency formatter、locale、invoice rounding。 | BUG-001 明確限制為三頁面 display precision contract。 |
 | BR index 污染 | 把「跨頁顯示一致」寫成新折扣 BR。 | Behavior Delta 走 no-BR 家族 (e)：`BR Delta: none — implementation defect` + `Governing BR-IDs: BR-001~004`，規則 wording 不動。 |
 | reviewer 誤判漏更 | BR Snapshot 沒更新但沒有說明。 | `_index.md` 加 intentionally not regenerated note。 |
-| tech debt 永遠 open | 客戶撞上後只修 code，不回寫 debt disposition。 | `tech-debt.md` resolved note 連回 BUG-001。 |
+| tech debt 永遠 open | 客戶撞上後只修 code，不回寫 debt disposition。 | BUG-001 連到那一列，`tech-debt.md` 的 disposition 連回 BUG-001；收尾 Step 3 對證據設 `done`。 |
 
 ## 對不熟 Brownfield bug-fix 的讀者的讀法
 
@@ -786,7 +783,7 @@ VIP feature，也不需要猜為什麼 BR Snapshot 沒變。
 - T2 bug 可用 `BUG-{NUMBER}-{slug}.md`，讓 bug queue、Slack thread 與 tests 對齊。
 - `Money.ToDisplay(precision = 2)` 是 implementation contract 收斂，不是新 BR。
 - 沒有 BR Delta 時 Current BR Snapshot 不 regenerate，但要在 `_index.md` 明示原因。
-- `tech-debt.md` 的 open item 被修掉後，要寫 resolved note 與 disposition，避免 debt backlog 失真。
+- 修 debt 的 spec 要連到那一列，disposition 連回 spec；設 `done` 留給 `/dflow:finish-feature` 收尾的 Step 3 對證據做，避免 debt backlog 失真。
 
 ## 下一個 walkthrough
 

@@ -201,7 +201,7 @@ tier 不是每次都 user 決定 — `/dflow:new-feature` 與 `/dflow:new-phase`
 |---|---|---|---|
 | **Phase Delta** | `phase-spec-{date}-{slug}.md`（或 lightweight spec） | 紀錄此次循環改了什麼、為什麼、怎麼實作與驗證 | feature branch 內的一次 milestone 區間 |
 | **Feature Snapshot** | `_index.md`（每個 feature 目錄內） | feature 級 dashboard：phase 列表、cumulative BR Snapshot、Resume Pointer | feature branch 自己的「目前進度」 |
-| **System State** | `rules.md` / `behavior.md` / `glossary.md` / `context-map.md` / `analysis.md` | 跨 feature 的長期知識：術語、業務規則、模型、流程與生命週期、慣例、技術債 | main / trunk 累積下來的「系統現在實際是什麼」 |
+| **System State** | `rules.md` / `behavior.md` / `glossary.md` / `context-map.md` / `analysis.md` | 跨 feature 的長期知識：術語、業務規則、模型、流程與生命週期、慣例、技術債 | main / trunk 累積下來的現行規則，以及已記錄的程式觀察與[偏離](docs/confirmed-rule-vs-code.md) |
 
 `_index.md` 是關鍵的中間層。很多 spec 工具只有 phase + system 兩層，但 feature branch 跨多次 phase 是常態，少了中間層就會遇到三個痛點：
 

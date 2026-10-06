@@ -118,8 +118,8 @@ phase spec 或 lightweight / BUG spec 的 Delta。
 |---|---|
 | `context.md` | BC 職責、in-scope / out-of-scope、upstream / downstream 關係。 |
 | `models.md` | Aggregate、Entity、Value Object、Domain Service、Repository interface。 |
-| `rules.md` | BR-ID、規則 wording、status、lifecycle note。 |
-| `behavior.md` | behavior scenarios，特別適合 Brownfield confirmed behavior。 |
+| `rules.md` | BR-ID、規則 wording、status、lifecycle note；最後一欄 `Known deviations` 連到延後修的偏離（沒有就是 `—`，不表示查過程式）。 |
+| `behavior.md` | behavior scenarios，特別適合 Brownfield confirmed behavior。帶 BR-ID 的情境寫規則；程式不照規則、這次延後修的，規則標題下另有一行 `> Known deviation:`。 |
 | `events.md` <br>（**Greenfield only**） | Domain Events 與 payload / consumer 註記。Brownfield 沒有這一份。 |
 | `analysis.md` | 這個 context 的狀態欄位怎麼流轉（生命週期）、算出來的數字怎麼算、單一規則解釋不了的機制，每一條帶出處。跨 context 的流程與角色索引記在 `domain/analysis.md`。第一次有東西要記時才建立，所以不一定每個 BC 都有。 |
 | `glossary.md` | Ubiquitous Language。 |
@@ -144,7 +144,7 @@ Greenfield 的主要讀法是從 feature phase 長出 domain model。Brownfield 
 | `behavior.md` 的 confirmed behavior | 目前已確認的 legacy 行為，可能跨多個頁面。 |
 | `migration/tech-debt.md` | 尚未修的 legacy risk、buggy behavior、unknown behavior、migration blocker。 |
 | baseline-capture row | 這次沒有改 code，但有新增系統知識。 |
-| resolved / deferred note | 這個 tech debt 是否已由某個 BUG / feature 處理，或仍需追蹤。 |
+| Status 與 `Resolved by:` / disposition note | 這個 tech debt 已經由哪一份 spec 還清（`done`，收尾 Step 3 對證據寫下 `Resolved by:`）、已排進哪個 feature（`planned`），或仍需追蹤（`open`）。 |
 
 Brownfield 最重要的紀律是：
 

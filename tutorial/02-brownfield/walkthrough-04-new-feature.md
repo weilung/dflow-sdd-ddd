@@ -16,7 +16,7 @@ code，而是要在既有 Order BC 上新增第二個 feature。
 - 為什麼 VIP status / 合約有效期是 Customer reference data，但 feature owner 仍是 Order BC
 - 如何在不建立 Customer BC 的前提下新增 `ContractValidUntil` Value Object
 - 如何讓 BR-005~008 接在既有 BR-001~004 後面，而不是回改已 ship 的 feature history
-- Brownfield 新 feature 如何同時產生 phase spec、domain docs、context-map、tech-debt resolved note
+- Brownfield 新 feature 如何同時產生 phase spec、domain docs、context-map、tech-debt disposition note
 
 閱讀提示：本篇會連到完整文件範例（目前存放在本 tutorial 的 `outputs/` 目錄）。這些範例代表 Brownfield 劇情跑完後的
 最終狀態；本篇內嵌 code block 則代表本步驟結束當下的重點片段。只讀本篇也能看懂
@@ -28,7 +28,7 @@ code，而是要在既有 Order BC 上新增第二個 feature。
 | 你關心的問題 | 本篇會展示的部分 |
 |---|---|
 | Brownfield 已有第一個 BC 後，下一個 feature 怎麼接？ | 不重建 Order BC，而是在 Order BC 的 cumulative rules 上新增 BR-005~008。 |
-| legacy code 裡剛好有 `0.93`，能不能拿來當需求？ | 不能。Daniel 確認它是 dead code；它只進 cleanup task 與 tech-debt resolved note。 |
+| legacy code 裡剛好有 `0.93`，能不能拿來當需求？ | 不能。Daniel 確認它是 dead code；它只進 cleanup task 與 tech-debt 的 disposition note。 |
 | VIP / 合約有效期看起來像 Customer，為什麼不建 Customer BC？ | 本 feature 改變的是 Order 折扣計算，Customer 只提供 reference data。 |
 | 新 feature 會不會污染已完成的 SPEC-001？ | 不會。`SPEC-20260430-001` 不回改；新需求由 `SPEC-20260505-002` 承接。 |
 | DDD 在 legacy WebForms 裡如何逐步演進？ | 擴張 `DiscountPolicy`、新增 `ContractValidUntil`，Code-Behind 只做 adapter。 |
@@ -150,13 +150,19 @@ walkthrough 03 的 isVip * 0.93 unknown 已解決，
 
 - isVip * 0.93 removal 標為 phase 1 implementation task 的 cleanup step。
 - 不把它寫成 BR，因為它是 dead code，不是 accepted behavior。
-- tech-debt.md 該 entry status 從 open 改成 resolved。
-- resolved note 引用本 feature：
-  2026-05-05 業務確認為 dead code，由 SPEC-20260505-002 phase 1 implement task 移除。
-- Order/analysis.md 的 HS-01（walkthrough 03 記下的熱點）也從 open 改成 resolved。
+- tech-debt.md 該 entry status 從 open 改成 planned——移除已經排進 phase 1，但還沒做。
+- disposition note 引用本 feature：
+  2026-05-05 業務確認為 dead code；移除排進 SPEC-20260505-002 phase 1 的 cleanup task，
+  本 feature 收尾 Step 3 確認移除後才設 done。
+- Order/analysis.md 的 HS-01（walkthrough 03 記下的熱點）從 open 改成 resolved。
   那一列不刪；Evidence 改寫成解掉它的決定：
-  confirmed by 業務經理 Daniel，複查入口指向 tech-debt.md 那一列的 resolved note。
+  confirmed by 業務經理 Daniel，複查入口指向 tech-debt.md 那一列的 disposition。
 ```
+
+⚠ **熱點 `resolved`、技術債卻只到 `planned`，這不是不一致。** HS-01 記的是一個待決的問題——那段 code
+是不是規則——Daniel 一回答就解了。技術債那一列記的是 `BindGrid()` 裡那段 dead code 本身，要等它真的被移除
+才算還清。`tech-debt.md` 的狀態只有 `open`／`planned`／`in-progress`／`done` 四種；`done` 由
+`/dflow:finish-feature` 收尾的 Step 3 對著證據設定，不在這裡提前寫。
 
 Bob 補一句，避免同事誤會：
 
@@ -173,8 +179,8 @@ Disposition 有三種常見結果：
 | 結果 | 寫法 |
 |---|---|
 | confirmed accepted behavior | 進 `rules.md` / `behavior.md`，必要時建立 BR。 |
-| confirmed bug | 進 bug-fix flow 或 tech debt，不能當 accepted behavior。 |
-| confirmed dead code | 進 cleanup task 與 resolved note，不寫成 BR。 |
+| confirmed bug | 進 bug-fix flow 或 tech debt，不能當 accepted behavior。它違反一條已確認的規則、這次又不修時，記成偏離（見 walkthrough 03 第 4 題）。 |
+| confirmed dead code | 進 cleanup task 與 disposition note（技術債狀態 `planned`），不寫成 BR。 |
 
 本篇是第三種。
 
@@ -522,8 +528,9 @@ Daniel 同時確認 `OrderList.aspx.cs` 舊有 `isVip * 0.93` 是五年前促銷
 本 phase 不把 legacy `isVip * 0.93` 寫成 BR。
 正式 BR 只描述新業務需求：VIP eligibility、合約有效期、折扣 stack order，
 以及 VIP 與 Senior 是否可同時享有折扣。
-Legacy dead code removal 只列為 implementation cleanup task，
-並回寫 `tech-debt.md` resolved note。
+Legacy dead code removal 只列為 implementation cleanup task；
+`tech-debt.md`「OrderList isVip multiplier 0.93 規則來源不明」那一列記 disposition、status `planned`，
+移除之後由本 feature 收尾 Step 3 設 `done`。
 ```
 
 完整文件範例：
@@ -662,12 +669,12 @@ Dflow 在 phase spec 裡寫：
 重點片段：
 
 ```markdown
-| BR-ID | Rule summary | Behavior anchor | Status | Last updated |
-|---|---|---|---|---|
-| BR-005 | 2026-05-05 SPEC-002 ADDED：VIP 客戶且 `ContractValidUntil >= OrderDate` 時，額外套用 VIP 7% off。 | [BR-005](./behavior.md#br-005-vip-contract-valid-discount) | active | 2026-05-05 |
-| BR-006 | 2026-05-05 SPEC-002 ADDED：VIP 合約過期時不套用 VIP 7% off，但仍依一般折扣規則計算。 | [BR-006](./behavior.md#br-006-expired-vip-contract-fallback) | active | 2026-05-05 |
-| BR-007 | 2026-05-05 SPEC-002 ADDED：多折扣 stack order 為 full-threshold -> VIP -> Senior，並以乘法累積。 | [BR-007](./behavior.md#br-007-vip-discount-stacking-order) | active | 2026-05-05 |
-| BR-008 | 2026-05-05 SPEC-002 ADDED：VIP eligibility 與 Senior customer-tier 可以同時存在，業務允許同時 stack。 | [BR-008](./behavior.md#br-008-vip-and-senior-can-stack) | active | 2026-05-05 |
+| BR-ID | Rule summary | Behavior anchor | Status | Last updated | Known deviations |
+|---|---|---|---|---|---|
+| BR-005 | 2026-05-05 SPEC-002 ADDED：VIP 客戶且 `ContractValidUntil >= OrderDate` 時，額外套用 VIP 7% off。 | [BR-005](./behavior.md#br-005-vip-contract-valid-discount) | active | 2026-05-05 | — |
+| BR-006 | 2026-05-05 SPEC-002 ADDED：VIP 合約過期時不套用 VIP 7% off，但仍依一般折扣規則計算。 | [BR-006](./behavior.md#br-006-expired-vip-contract-fallback) | active | 2026-05-05 | — |
+| BR-007 | 2026-05-05 SPEC-002 ADDED：多折扣 stack order 為 full-threshold -> VIP -> Senior，並以乘法累積。 | [BR-007](./behavior.md#br-007-vip-discount-stacking-order) | active | 2026-05-05 | — |
+| BR-008 | 2026-05-05 SPEC-002 ADDED：VIP eligibility 與 Senior customer-tier 可以同時存在，業務允許同時 stack。 | [BR-008](./behavior.md#br-008-vip-and-senior-can-stack) | active | 2026-05-05 | — |
 ```
 
 完整文件範例：
@@ -725,21 +732,22 @@ Customer reference data 透過 repository seam 表達：
 - Reference data：本 feature 只讀所需資料。
 - Not owned here：不在本 feature 建 Customer Aggregate 或合約維護流程。
 
-### `tech-debt.md` 把 `isVip` unknown 標成 resolved
+### `tech-debt.md` 把 `isVip` unknown 標成 planned
 
 `walkthrough-03` 留下的 debt 在本篇有了結論：
 
 ```markdown
 | Item | Location | Description | Severity | Migration impact | Status |
 |---|---|---|---|---|---|
-| OrderList isVip multiplier 0.93 規則來源不明 | `OrderManager.Web/Pages/Order/OrderList.aspx.cs` method `BindGrid()` | `if (customer.IsVip) { discountedTotal *= 0.93m; }` 沒有註解或 ticket reference，且可能與 BR-003 Senior customer 5% off 互斥。Resolved note: 2026-05-05 業務確認為 dead code，由 SPEC-20260505-002 phase 1 implement task 移除。 | Medium | 不寫成 BR；移除作為 `SPEC-20260505-002` 的 implementation cleanup task，避免把 legacy promotion 殘留帶入 ASP.NET Core migration。 | resolved |
+| OrderList isVip multiplier 0.93 規則來源不明 | `OrderManager.Web/Pages/Order/OrderList.aspx.cs` method `BindGrid()` | `if (customer.IsVip) { discountedTotal *= 0.93m; }` 沒有註解或 ticket reference，且可能與 BR-003 Senior customer 5% off 互斥。<br>Disposition: 2026-05-05 業務確認為 dead code；移除排進 `SPEC-20260505-002` phase 1 的 cleanup task（DELIVERY-2），該 feature 收尾 Step 3 確認移除後才設 `done`。 | Medium | 不寫成 BR；移除作為 `SPEC-20260505-002` 的 implementation cleanup task，避免把 legacy promotion 殘留帶入 ASP.NET Core migration。 | planned |
 ```
 
 完整文件範例：
 [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md)
 
 這段能讓未來 reviewer 看懂：dead code removal 不是突然刪 legacy 行為，而是有
-Daniel 的業務確認與 SPEC-002 task trace。
+Daniel 的業務確認與 SPEC-002 task trace。狀態停在 `planned`：那段 code 還在 `BindGrid()` 裡，
+要等 SPEC-002 做完 DELIVERY-2、它自己的收尾 Step 3 確認移除之後，才設 `done`。
 
 ### `analysis.md`：RM-01 加上 VIP 那一段，HS-01 標成 resolved
 
@@ -759,13 +767,13 @@ Evidence: document - `SPEC-20260430-001` 的 `phase-spec-2026-04-30-baseline-and
 
 | Item | ID | Affects | Why it matters | Status | Evidence |
 |---|---|---|---|---|---|
-| `OrderList.BindGrid()` 對 IsVip 客戶多乘 0.93、來源不明 | HS-01 | RM-02 | 沒有註解、ticket 或對應的 BR，可能與 BR-003 互斥：業務確認前既不能寫成 BR，也不能直接刪<br>已解：業務確認是五年前促銷殘留的 dead code、不是規則，移除列為 `SPEC-20260505-002` phase 1 的 cleanup task | resolved | confirmed by 業務經理 Daniel - [`tech-debt.md`](../../migration/tech-debt.md)「OrderList isVip multiplier 0.93 規則來源不明」那一列的 resolved note (2026-05-05) |
+| `OrderList.BindGrid()` 對 IsVip 客戶多乘 0.93、來源不明 | HS-01 | RM-02 | 沒有註解、ticket 或對應的 BR，可能與 BR-003 互斥：業務確認前既不能寫成 BR，也不能直接刪<br>已解：業務確認是五年前促銷殘留的 dead code、不是規則，移除列為 `SPEC-20260505-002` phase 1 的 cleanup task | resolved | confirmed by 業務經理 Daniel - [`tech-debt.md`](../../migration/tech-debt.md)「OrderList isVip multiplier 0.93 規則來源不明」那一列的 disposition (2026-05-05) |
 ```
 
 完整文件範例：
 [`outputs/dflow/specs/domain/Order/analysis.md`](outputs/dflow/specs/domain/Order/analysis.md)
 
-三個細節：
+四個細節：
 
 - **數字歸算它的 context，不歸它讀資料的 context。** VIP eligibility 與 `ContractValidUntil` 是 Customer
   的資料，但算折扣後金額的是 Order——範本頂端 `Placement` 那句
@@ -775,8 +783,11 @@ Evidence: document - `SPEC-20260430-001` 的 `phase-spec-2026-04-30-baseline-and
   SPEC-001 的；兩支都是 `document`，寫在同一行，日期寫較新的那一個。VIP 那一段是還沒做出來的設計，
   要等 SPEC-002 收尾時，由它自己 § 8.3 的複核項對照做出來的東西。
 - **解掉的熱點留成一列 `resolved`，不刪。** `Evidence` 改寫成解掉它的決定——Daniel 的確認，
-  複查入口指向 `tech-debt.md` 那一列的 resolved note。這一列留著，下一個讀到 `BindGrid()` 那個分支的人，
+  複查入口指向 `tech-debt.md` 那一列的 disposition。這一列留著，下一個讀到 `BindGrid()` 那個分支的人，
   不必再推一次它是不是 VIP 規則。
+- **RM-01 是改一個已經在的條目。** new-feature Step 3 改既有的 `analysis.md` 條目之前，先看它有沒有
+  `> Known deviation:` 行：有，就照 `confirmed-rule-vs-code.md` § Preserve during merge 先把那幾行收起來、
+  改完放回原位，免得一次改寫把還沒修的偏離洗掉。RM-01 沒有偏離行，直接改，不讀那一節。
 
 ## Step 5 — Implementation plan：擴張 `DiscountPolicy`，不是重寫
 
@@ -840,7 +851,7 @@ Dflow 寫入 task list：
 - [ ] DOMAIN-3: 擴張 `DiscountPolicy`，新增 VIP discount path，保留既有 BR-001~004 方法與行為。
 - [ ] DOMAIN-4: 實作 full-threshold -> VIP -> Senior stacking order，並覆蓋 VIP 與 Senior 同時符合的組合。
 - [ ] DELIVERY-1: 在 `OrderEntry.aspx.cs` 讀取 Customer reference data，將 VIP eligibility 與 `ContractValidUntil` map 成 Domain input。
-- [ ] DELIVERY-2: 移除 `OrderList.aspx.cs` 的 legacy `isVip * 0.93` dead code；此清理對應 `tech-debt.md` resolved item，不寫成 BR。
+- [ ] DELIVERY-2: 移除 `OrderList.aspx.cs` 的 legacy `isVip * 0.93` dead code；此清理對應 `tech-debt.md`「OrderList isVip multiplier 0.93 規則來源不明」那一列，不寫成 BR。
 - [ ] DATA-1: 在 Customer reference repository 增加 `GetVipContractInfo(customerId)` 或等價 query。
 - [ ] TEST-1: 新增 BR-005 到 BR-008 的 Domain unit tests。
 - [ ] TEST-2: 新增 `ContractValidUntil` 到期日當天、前一秒、後一秒與 invalid/far-future validation tests。
@@ -878,7 +889,7 @@ Step 7 implementation 尚未開始，所以 Step 8 completion checklist 不執�
 - 更新 Order BC 的 context.md、models.md、rules.md、behavior.md
 - 更新 Order BC 的 analysis.md：RM-01 加上 VIP 那一段，HS-01 標成 resolved
 - 更新 glossary.md、context-map.md
-- 更新 tech-debt.md，把 OrderList isVip multiplier 0.93 標成 resolved
+- 更新 tech-debt.md，把 OrderList isVip multiplier 0.93 標成 planned（移除排進 phase 1 的 cleanup task）
 
 下一步是 Bob 開 branch 並進入 implementation；
 完成後才觸發 Step 7 -> Step 8 completion checklist。
@@ -896,11 +907,11 @@ Step 7 implementation 尚未開始，所以 Step 8 completion checklist 不執�
 | 修改 | [`outputs/dflow/specs/domain/Order/context.md`](outputs/dflow/specs/domain/Order/context.md) | Order BC 新增 VIP 合約折扣責任，但 Customer BC 仍 out of scope。 |
 | 修改 | [`outputs/dflow/specs/domain/Order/models.md`](outputs/dflow/specs/domain/Order/models.md) | `ContractValidUntil`、擴張後的 `DiscountPolicy`、Customer reference repository。 |
 | 修改 | [`outputs/dflow/specs/domain/Order/rules.md`](outputs/dflow/specs/domain/Order/rules.md) | BR-005~008 加入 Order BC cumulative rule index。 |
-| 修改（只加骨架） | [`outputs/dflow/specs/domain/Order/behavior.md`](outputs/dflow/specs/domain/Order/behavior.md) | 為 BR-005~008 各加一個 section anchor。⚠ Given/When/Then **不在這一步寫入**——它們留在 phase spec，要到 Step 8.3 / `finish-feature` 才 merge 進來，因為本檔記錄的是系統「現在」的行為，而 VIP 尚未落地。 |
+| 修改（只加骨架） | [`outputs/dflow/specs/domain/Order/behavior.md`](outputs/dflow/specs/domain/Order/behavior.md) | 為 BR-005~008 各加一個 section anchor。⚠ Given/When/Then **不在這一步寫入**——它們留在 phase spec，要到 Step 8.3 / `finish-feature` 才 merge 進來，因為本檔彙整的是現行規則的情境，而 VIP 規則尚未落地。 |
 | 修改 | [`outputs/dflow/specs/domain/Order/analysis.md`](outputs/dflow/specs/domain/Order/analysis.md) | 進 Step 1 之前的 disposition 把 HS-01 標成 resolved；Step 3 在 RM-01 加上 VIP 合約折扣那一段（BR-005～BR-008、多讀的 Customer reference data 欄位）。 |
 | 修改 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) | `VIP`、`ContractValidUntil`、`VIP discount policy` 等 ubiquitous language。 |
 | 修改 | [`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md) | Customer 標為 candidate BC / reference data supplier。 |
-| 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | `isVip * 0.93` 從 unknown debt 變成 resolved dead code cleanup。 |
+| 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | `isVip * 0.93` 從 unknown debt 變成排進 phase 1 的 dead code cleanup（status `planned`）。 |
 | 故意不改 | `SPEC-20260430-001-order-discount-calculation/` | 已 ship 的 feature history 不因新 VIP program 回改。 |
 | 故意不建 | Customer BC directory | 本 feature 只用 Customer reference data，不建立 Customer Aggregate。 |
 | 故意不建 | `events.md` | 本 feature 不引入 Domain Events。 |

@@ -16,7 +16,7 @@ branch: feature/SPEC-20260505-002-vip-discount-policy
 
 業務經理 Daniel 提出新的 VIP loyalty program：VIP 客戶的訂單若落在 VIP 合約有效期內，需額外套用 7% off；合約過期則回到一般折扣規則。Daniel 同時確認 `OrderList.aspx.cs` 舊有 `isVip * 0.93` 是五年前促銷殘留，可以刪除。
 
-本 phase 不把 legacy `isVip * 0.93` 寫成 BR。正式 BR 只描述新業務需求：VIP eligibility、合約有效期、折扣 stack order，以及 VIP 與 Senior 是否可同時享有折扣。Legacy dead code removal 只列為 implementation cleanup task，並回寫 `tech-debt.md` resolved note。
+本 phase 不把 legacy `isVip * 0.93` 寫成 BR。正式 BR 只描述新業務需求：VIP eligibility、合約有效期、折扣 stack order，以及 VIP 與 Senior 是否可同時享有折扣。Legacy dead code removal 只列為 implementation cleanup task；`tech-debt.md`「OrderList isVip multiplier 0.93 規則來源不明」那一列記 disposition、status `planned`，移除之後由本 feature 收尾 Step 3 設 `done`。
 
 <!-- dflow:section domain-concepts -->
 ## Domain Concepts
@@ -206,7 +206,7 @@ public sealed class DiscountPolicy
 - [ ] DOMAIN-3: 擴張 `DiscountPolicy`，新增 VIP discount path，保留既有 BR-001~004 方法與行為。
 - [ ] DOMAIN-4: 實作 full-threshold -> VIP -> Senior stacking order，並覆蓋 VIP 與 Senior 同時符合的組合。
 - [ ] DELIVERY-1: 在 `OrderEntry.aspx.cs` 讀取 Customer reference data，將 VIP eligibility 與 `ContractValidUntil` map 成 Domain input。
-- [ ] DELIVERY-2: 移除 `OrderList.aspx.cs` 的 legacy `isVip * 0.93` dead code；此清理對應 `tech-debt.md` resolved item，不寫成 BR。
+- [ ] DELIVERY-2: 移除 `OrderList.aspx.cs` 的 legacy `isVip * 0.93` dead code；此清理對應 `tech-debt.md`「OrderList isVip multiplier 0.93 規則來源不明」那一列，不寫成 BR。
 - [ ] DATA-1: 在 Customer reference repository 增加 `GetVipContractInfo(customerId)` 或等價 query。
 - [ ] TEST-1: 新增 BR-005 到 BR-008 的 Domain unit tests。
 - [ ] TEST-2: 新增 `ContractValidUntil` 到期日當天、前一秒、後一秒與 invalid/far-future validation tests。

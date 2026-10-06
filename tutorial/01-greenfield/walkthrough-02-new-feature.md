@@ -438,7 +438,7 @@ resume 時該接哪裡，都靠它：
 | 類型 | Path | 用途 |
 |---|---|---|
 | 新建 model catalog | `dflow/specs/domain/Expense/models.md` | Aggregate、Entity、VO、Repository |
-| 新建 rules index | `dflow/specs/domain/Expense/rules.md` | BR-ID 索引 |
+| 新建 rules index | `dflow/specs/domain/Expense/rules.md` | BR-ID 索引；最後一欄 `Known deviations` 記延後修的偏離，新建的列都填 `—` |
 | 新建 behavior（骨架） | `dflow/specs/domain/Expense/behavior.md` | 每條 BR 一個 anchor，場景 Step 8.3 才 merge（見下一段） |
 | 新建 event catalog | `dflow/specs/domain/Expense/events.md` | Domain Event catalog |
 | 新建 context 層分析 | `dflow/specs/domain/Expense/analysis.md` | LC-01（ExpenseReport.Status：Draft → Submitted）、RM-01（送出總額）；見上面 Step 3 最後一組問題 |

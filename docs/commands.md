@@ -101,3 +101,6 @@ Markdown-based 的 workflow 材料加一個 scaffolding CLI，能與任何可讀
 `init`、`configure-agents`、`render` 的使用情境與版控建議見 [README「開始使用」](../README.md#開始使用)；
 `doctor` 報出來的東西怎麼處理，見[升級既有 Dflow 專案](upgrading.md)與[當 `dflow doctor` 說它沒有把握](doctor-uncertainty.md)；
 `check-closeout` 檢查什麼、hook 與 CI 的接法範本，見[收尾 commit 的機械檢查](closeout-check.md)。
+
+`render` 畫的狀態圖與流程圖照 `analysis.md` 的表格畫，不標出哪一條轉移違反規則；一條確認的規則程式還沒照著做時，
+偏離記在圖旁邊的文字裡，見[確認的規則與程式不一致時](confirmed-rule-vs-code.md)。

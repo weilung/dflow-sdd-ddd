@@ -425,8 +425,11 @@ Step 2 — 只翻 status: in-progress → completed。
   Awaiting: none (mid-step)。closeout 還沒跑完，終局值在 Step 4 寫。
 
 Step 3 — Sync BR Snapshot to BC Layer：
+  先收集 debt 訊號：這個 host 沒有 spec 檔（只有一列 T3）→ 沒有訊號。
+  Debt reconciliation: no signal
+
   這個 host 是 **no-BC**（Goals & Scope 明說不觸及任何 bounded context）
-  → **整段跳過**。
+  → **跳過 BC 範圍的同步**。
   不建 rules.md、不建 behavior.md、不建 events.md，
   也不為了讓某個項目「有東西可寫」而發明一個 bounded context。
 
@@ -441,6 +444,12 @@ Step 4 — Archive：
 
   這是 **checkpoint 2**。歸檔 rename 就在這個 commit 裡。
 ```
+
+⚠ **no-BC 跳過的是 BC 範圍的同步，不是整個 Step 3。** 技術債對帳仍然適用，只是限在這個 host 碰得到的範圍：
+假如這是一個帶 spec 的 no-BC T2，而它的 spec 連到一筆它確實還清的全域技術債——`architecture/tech-debt.md` 裡
+一列跟任何 bounded context 都無關的債——收尾 Step 3 一樣會對著證據把它設成 `done`。它不能做的是寫或清
+任何 bounded context 的偏離紀錄（`rules.md` 的 `Known deviations`、`> Known deviation:` 行）：發現需要動那些，
+代表 scope 宣告錯了，要先回去更正。本案只有一列 T3、沒有 spec，所以連訊號都沒有。
 
 ## 產出 2 — 收工後的 Checkpoint Log
 
@@ -569,7 +578,7 @@ T3-only 的 no-BC host 兩者皆無，所以留空。把它一起寫成 `none` �
 - **T3 的 row 必須在 checkpoint 1 之前寫好**，因為 closeout 讀的是 checkpoint 1 那個 commit 裡的 `_index.md`。
 - **最小 host 的每一列都要宣告實作路徑**；沒有宣告會**擋下** closeout，不會當成通過。這條**只管最小 host**——hosted row 從未被要求宣告，closeout 對它們不跑這項檢查（強行要求會擋掉每一個 hosted T3）。
 - **「T3 ＝ 單一 commit」講的是 hosted T3**；最小 host 上不分 tier 都是兩個 checkpoint。
-- **no-BC closeout 跳過 BC sync**，不建 `rules.md` / `behavior.md` / `events.md`。
+- **no-BC closeout 跳過 BC 範圍的 sync**，不建 `rules.md` / `behavior.md` / `events.md`；技術債對帳照常（本案沒有訊號），但不碰任何 bounded context 的偏離紀錄。
 
 ## 下一個 walkthrough
 

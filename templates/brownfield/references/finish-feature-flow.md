@@ -274,7 +274,18 @@ convention for this position.
 
 ## Step 3: Sync `_index.md` Current BR Snapshot to BC Layer
 
-**First, branch on what this host actually carries** — "zero-phase" (no
+Before the host-shape branch, collect this host's debt signals: each BR-ID
+named in its phase specs or hosted lightweight specs whose `rules.md` row has a
+`Known deviations` cell that is neither `—` nor empty, and each technical-debt
+item those specs link or name in a `Deferred deviation` line. A host with no
+spec file — T3 rows only, or a baseline capture only — has no signal. With no
+signal, skip the debt reconciliation and report
+"Debt reconciliation: no signal". With a signal, identify candidates now using
+`references/confirmed-rule-vs-code.md` § Closeout reconciliation, and complete
+that reconciliation after the applicable document sync, before Step 4 — also
+for a no-BR family with an empty Current BR Snapshot.
+
+**Then branch on what this host actually carries** — "zero-phase" (no
 phase-spec) is independent of whether a bounded context exists, so a minimal
 host may still touch a real BC, or none at all:
 
@@ -288,9 +299,10 @@ host may still touch a real BC, or none at all:
   a BR delta a no-BR host does not have. (A host whose **entire** payload is a
   baseline capture is **(iii)**, not this case.)
 - **(ii) no-BC** — the host touched **no** bounded context at all (a display
-  T3, an appearance sweep). **Skip this sync entirely** — do **not** create
-  `rules.md` / `behavior.md`, and do not invent a BC to sync into. Its
-  Integration Summary sets the field that **reports a sync** — `BC` — to
+  T3, an appearance sweep). **Skip the BC-scoped sync**; the debt
+  reconciliation above still applies within this host's permitted scope. Do
+  **not** create `rules.md` / `behavior.md`, and do not invent a BC to sync
+  into. Its Integration Summary sets the field that **reports a sync** — `BC` — to
   `none`. **`Related BR-IDs` is not one of those**: it reports what this
   change's own record carries, so it stays empty or keeps the per-family no-BR
   marker. Step 5's "exact fields" block is the authority on the shape; do not
@@ -345,6 +357,17 @@ guard refuses:
 - `dflow/specs/domain/{context}/behavior.md` → `templates/behavior.md`
 
 > **Table-cell formatting**: keep table cells concise — separate multiple short items with `<br>` (never chain them into one line with ；/; separators), and move long narrative detail out of the cell into a document section (full convention: the formatting comment at each spec doc's head).
+
+Before syncing, if this host's specs carry a `Deferred deviation` line whose
+debt Item does not exist yet or does not record that line's observation,
+complete that record using
+`references/confirmed-rule-vs-code.md` § Scope and recording. Then look at the
+`rules.md` rows, `behavior.md` sections and `analysis.md` entries this step
+will rewrite or delete. If one carries a deviation record — a
+`Known deviations` cell that is neither `—` nor empty, or a
+`> Known deviation:` line — apply
+`references/confirmed-rule-vs-code.md` § Preserve during merge before changing
+it; otherwise sync without it.
 
 For each row in Current BR Snapshot — **every** row, not only the `active` ones.
 The branch below is selected by the row's own Status, and a `removed` row is
@@ -526,8 +549,9 @@ Then, in this order:
    instruction, not from a list kept somewhere else:
    **(a)** whatever Step 3 wrote (`rules.md`, `behavior.md`, `models.md`,
    `analysis.md`, `glossary.md`, `domain/analysis.md`,
-   `migration/tech-debt.md`) — Step 3 is **skipped entirely for a no-BC host**
-   (and for a baseline host), so this half is empty there; **and**
+   `migration/tech-debt.md`) — a no-BC host skips the BC-scoped sync, so this
+   half holds only what Step 3's debt reconciliation wrote; a baseline host's
+   Step 3 writes nothing; **and**
    **(b)** the **documentation-sweep step of the flow that produced *this
    change*** — take the paths from that step, not from a list kept here. A
    commit may already have carried them — `modify-existing-flow.md`'s

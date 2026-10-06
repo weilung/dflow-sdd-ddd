@@ -273,7 +273,7 @@ Alice 確認後，Dflow 寫入 baseline。重要分組如下。
 |---|---|
 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) | Ubiquitous Language 起點，等第一個 feature 補核心術語。 |
 | [`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md) | Bounded Context 關係圖起點，contexts 先留 TODO。 |
-| [`outputs/dflow/specs/architecture/tech-debt.md`](outputs/dflow/specs/architecture/tech-debt.md) | Greenfield 架構債 backlog。 |
+| [`outputs/dflow/specs/architecture/tech-debt.md`](outputs/dflow/specs/architecture/tech-debt.md) | Greenfield 的架構債與實作債 backlog。 |
 | [`outputs/dflow/specs/architecture/decisions/README.md`](outputs/dflow/specs/architecture/decisions/README.md) | ADR home，說明何時建立 ADR。 |
 
 **shared governance**

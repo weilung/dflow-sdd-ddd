@@ -8,7 +8,7 @@ branch: bugfix/BUG-{NUMBER}-{slug}    # must equal the host _index.md `branch:` 
 # hotfix-branch: hotfix/{name}    # ADD (uncomment) only for a post-hoc T2 — references/modify-existing-flow.md Step 1.8. The already-merged emergency fix's own branch, kept even after that branch was deleted.
 # hotfix-identity: {PR / incident / tracker reference}    # ADD only for a post-hoc T2 — the source the asserted `reconciled ({merged-hotfix-hash})` identity rests on; an uncited hash blocks closeout. Keep it adjacent to hotfix-branch.
 ---
-<!-- dflow-shape: brownfield/lightweight-spec.md 1 — keep this line: dflow doctor reads it -->
+<!-- dflow-shape: brownfield/lightweight-spec.md 2 — keep this line: dflow doctor reads it -->
 
 <!--
 Template note (for AI):
@@ -167,15 +167,16 @@ Template note (for AI):
 
 ## Behavior Delta
 
-> 精簡 delta 格式：bug fix 多數只需 MODIFIED；若確實是新增規則可改用 ADDED、移除用 REMOVED、改名用 RENAMED。多項變更時照類別列。
+> 先判斷改的是規則還是實作。規則未改、只修錯的實作時，使用檔首 no-BR family (e)；保留 Governing BR-IDs、Root Cause 與 regression task。
+> 只有規則本身變更時才使用下面的 BR Delta；依實際變更選 ADDED / MODIFIED / REMOVED / RENAMED，不以「這是 bug fix」推定 MODIFIED。多項變更時照類別列。
 >
 > 完全沒有 BR delta 時改用 no-BR 家族形（見檔首 Template note 的 No-BR variants）：本段只留該家族的 BR 行（例如 `BR: none — presentation`；家族 (e) 是 `BR Delta:` + `Governing BR-IDs:` 兩行），不要為了填滿 delta 子段捏造 BR-NN。
 
 ### MODIFIED - behavior modified in this fix
 #### Rule: BR-NN {規則名稱}
-**Before**: Given {current state} When {action} Then {current (incorrect) result}
-**After**: Given {same state} When {same action} Then {correct result}
-**Reason**: {why this change — bug / requirement clarification / spec alignment}
+**Before**: Given {previous rule's state} When {previous rule's action} Then {previous required result}
+**After**: Given {revised rule's state} When {revised rule's action} Then {revised required result}
+**Reason**: {confirmed rule change and its decision reference}
 
 <!-- 若需要 ADDED / REMOVED / RENAMED / UNCHANGED 請比照 references/modify-existing-flow.md 的 Delta 格式 -->
 

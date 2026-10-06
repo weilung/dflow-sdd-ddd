@@ -391,6 +391,18 @@ for (const edition of EDITIONS) {
   // G9: the variant must not be written as copy/appearance-only.
   assert.ok(flat.includes('Do NOT invent a BR-NN'),
     `${edition} lightweight-spec must forbid inventing a BR-NN`);
+  // PROPOSAL-107 D7.4: the classic delta's own note decides rule vs implementation
+  // first. A fix of the implementation goes to family (e), and a bug fix is never
+  // presumed to be a MODIFIED rule — the old default ("bug fix 多數只需 MODIFIED")
+  // steered a rule-unchanged fix into a rule change.
+  const deltaNote = (sectionBody(templates[edition], 'Behavior Delta') ?? '')
+    .split('\n').filter((line) => line.startsWith('>')).join('\n');
+  assert.ok(deltaNote.includes('規則未改、只修錯的實作時，使用檔首 no-BR family (e)'),
+    `${edition} lightweight-spec: the Behavior Delta note must send a fix of the implementation to family (e)`);
+  assert.ok(deltaNote.includes('不以「這是 bug fix」推定 MODIFIED'),
+    `${edition} lightweight-spec: the Behavior Delta note must not presume MODIFIED for a bug fix`);
+  assert.ok(!deltaNote.includes('bug fix 多數只需 MODIFIED'),
+    `${edition} lightweight-spec: the MODIFIED-by-default wording must not come back`);
 }
 
 // The block itself is dual-track verbatim — the families must not diverge by

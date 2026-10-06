@@ -44,9 +44,12 @@ first checkpoint keeps the `implementation` name but carries Result
   in-scope for this follow-up. Mark each inherited row with First Seen
   = `inherited from rules.md` and Last Updated = (empty until the new
   feature's first phase Delta — or, for a minimal follow-up, its
-  lightweight-spec's delta — touches it). For a **no-BC follow-up** (the
-  minimal variant on a completed no-BC host), leave the Current BR Snapshot
-  **empty** — do not read or fabricate a BC's `rules.md`.
+  lightweight-spec's delta — touches it). When a `rules.md` row you inherit
+  has a `Known deviations` cell that is neither `—` nor empty, apply
+  `references/confirmed-rule-vs-code.md` § Preserve during merge. For a
+  **no-BC follow-up** (the minimal variant on a completed no-BC host), leave
+  the Current BR Snapshot **empty** — do not read or fabricate a BC's
+  `rules.md`.
   **A baseline capture is the other exception**, and it names at least one
   real bounded context, so state it rather than leaving it to the BC-bearing
   rule: a completed-only baseline host is tier-exempt and observation-only — it carries

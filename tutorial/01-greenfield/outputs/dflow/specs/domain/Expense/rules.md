@@ -1,4 +1,4 @@
-<!-- dflow-shape: greenfield/rules.md 1 — keep this line: dflow doctor reads it -->
+<!-- dflow-shape: greenfield/rules.md 2 — keep this line: dflow doctor reads it -->
 <!-- Seeded by Dflow. -->
 <!-- Formatting convention: keep table cells concise. When one cell holds multiple short items (invariants, rules, steps), separate them with <br> so each renders on its own line - never chain them into one line with ；/; separators. Long narrative detail does not belong in a table cell: keep the cell to a concise summary and put extended detail in an existing section of this document when one fits, or give each item its own row. -->
 
@@ -9,15 +9,18 @@
 <!-- dflow:section business-rules -->
 ## Rule Index
 
-| BR-ID | Rule summary | Behavior anchor | Aggregate | Status | Last updated |
-|---|---|---|---|---|---|
-| BR-001 | 提交 ExpenseReport 時必須至少含 1 個 ExpenseItem，否則拒絕。 | [BR-001](./behavior.md#br-001-submit-requires-at-least-one-item) | ExpenseReport | active | 2026-04-28 |
-| BR-002 <!-- phase-2 MODIFIED --> | ExpenseReport 提交成功後狀態變為 Submitted，不可再被編輯；唯一例外是被 Reject 後可重新編輯並再次 Submit（會建立新的 ApprovalDecision）。 | [BR-002](./behavior.md#br-002-submitted-report-is-immutable-except-rejected-rework) | ExpenseReport | active | 2026-04-29 |
-| BR-003 | ExpenseItem 的 Money.Amount 必須 > 0。 | [BR-003](./behavior.md#br-003-item-amount-must-be-positive) | ExpenseReport | active | 2026-04-28 |
-| BR-004 | 同一 ExpenseReport 內，相同 ReceiptReference 不允許重複加入。 | [BR-004](./behavior.md#br-004-duplicate-receipt-rejected) | ExpenseReport | active | 2026-04-28 |
-| BR-005 <!-- phase-2 ADDED --> | 主管不可審核自己提交的 ExpenseReport；`SubmitterId != ApproverId` 必須由 Domain 層強制。 | [BR-005](./behavior.md#br-005-approver-cannot-approve-own-report) | ApprovalDecision | active | 2026-04-29 |
-| BR-006 <!-- phase-2 ADDED --> | 只有 Status = Submitted 的 ExpenseReport 能被 Approve / Reject；其他狀態一律 raise DomainException。 | [BR-006](./behavior.md#br-006-only-submitted-report-can-be-approved-or-rejected) | ExpenseReport | active | 2026-04-29 |
-| BR-007 <!-- phase-2 ADDED --> <!-- 2026-04-30 lightweight MODIFIED --> | Reject 必須附註原因；ApprovalReason 至少 5 個中文字或至少 10 個英數字，否則 raise DomainException；空白不計，半形 / 全形視覺等價，emoji 算字。 | [BR-007](./behavior.md#br-007-reject-requires-reason) | ApprovalDecision | active | 2026-04-30 |
+<!-- Known deviations column: `—` means no deviation is recorded in this format; it never means the code was checked.
+Fill this column using `references/confirmed-rule-vs-code.md` § Scope and recording. -->
+
+| BR-ID | Rule summary | Behavior anchor | Aggregate | Status | Last updated | Known deviations |
+|---|---|---|---|---|---|---|
+| BR-001 | 提交 ExpenseReport 時必須至少含 1 個 ExpenseItem，否則拒絕。 | [BR-001](./behavior.md#br-001-submit-requires-at-least-one-item) | ExpenseReport | active | 2026-04-28 | — |
+| BR-002 <!-- phase-2 MODIFIED --> | ExpenseReport 提交成功後狀態變為 Submitted，不可再被編輯；唯一例外是被 Reject 後可重新編輯並再次 Submit（會建立新的 ApprovalDecision）。 | [BR-002](./behavior.md#br-002-submitted-report-is-immutable-except-rejected-rework) | ExpenseReport | active | 2026-04-29 | — |
+| BR-003 | ExpenseItem 的 Money.Amount 必須 > 0。 | [BR-003](./behavior.md#br-003-item-amount-must-be-positive) | ExpenseReport | active | 2026-04-28 | — |
+| BR-004 | 同一 ExpenseReport 內，相同 ReceiptReference 不允許重複加入。 | [BR-004](./behavior.md#br-004-duplicate-receipt-rejected) | ExpenseReport | active | 2026-04-28 | — |
+| BR-005 <!-- phase-2 ADDED --> | 主管不可審核自己提交的 ExpenseReport；`SubmitterId != ApproverId` 必須由 Domain 層強制。 | [BR-005](./behavior.md#br-005-approver-cannot-approve-own-report) | ApprovalDecision | active | 2026-04-29 | — |
+| BR-006 <!-- phase-2 ADDED --> | 只有 Status = Submitted 的 ExpenseReport 能被 Approve / Reject；其他狀態一律 raise DomainException。 | [BR-006](./behavior.md#br-006-only-submitted-report-can-be-approved-or-rejected) | ExpenseReport | active | 2026-04-29 | — |
+| BR-007 <!-- phase-2 ADDED --> <!-- 2026-04-30 lightweight MODIFIED --> | Reject 必須附註原因；ApprovalReason 至少 5 個中文字或至少 10 個英數字，否則 raise DomainException；空白不計，半形 / 全形視覺等價，emoji 算字。 | [BR-007](./behavior.md#br-007-reject-requires-reason) | ApprovalDecision | active | 2026-04-30 | — |
 
 <!-- phase 2 Delta:
 - MODIFIED BR-002：phase 1 原文「ExpenseReport 提交成功後狀態變為 Submitted，且不可再被編輯。」更新為 Rejected 可重編並再次 Submit。

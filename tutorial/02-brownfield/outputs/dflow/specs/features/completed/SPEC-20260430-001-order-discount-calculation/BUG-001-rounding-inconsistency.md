@@ -56,7 +56,7 @@ Presentation 層改成：
 - [x] DELIVERY-3: `OrderEntry` 顯示折扣後金額時確認 align 到同一 display contract。
 - [x] TEST-1: Regression — 同一 Order 在 `OrderList` / `OrderEntry` / `OrderDetail` 顯示折扣後金額一致。
 - [x] TEST-2: `Money.ToDisplay` edge cases：0、負數、大數、boundary precision。
-- [x] DOC-1: 更新 `_index.md` Lightweight Changes、BR Snapshot note 與 `tech-debt.md` resolved note。
+- [x] DOC-1: 更新 `_index.md` Lightweight Changes、BR Snapshot note，與 `tech-debt.md` 的 disposition note（連回本 BUG；設 `done` 留給收尾 Step 3）。
 
 <!-- dflow:section open-questions -->
 ## Open Questions

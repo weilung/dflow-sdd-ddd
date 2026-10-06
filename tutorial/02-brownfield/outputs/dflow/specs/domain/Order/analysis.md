@@ -88,4 +88,4 @@ Evidence: {code | data | confirmed by {role} | document | inferred | assumed} - 
 
 | Item | ID | Affects | Why it matters | Status | Evidence |
 |---|---|---|---|---|---|
-| `OrderList.BindGrid()` 對 IsVip 客戶多乘 0.93、來源不明 | HS-01 | RM-02 | 沒有註解、ticket 或對應的 BR，可能與 BR-003 互斥：業務確認前既不能寫成 BR，也不能直接刪<br>已解：業務確認是五年前促銷殘留的 dead code、不是規則，移除列為 `SPEC-20260505-002` phase 1 的 cleanup task | resolved | confirmed by 業務經理 Daniel - [`tech-debt.md`](../../migration/tech-debt.md)「OrderList isVip multiplier 0.93 規則來源不明」那一列的 resolved note (2026-05-05) |
+| `OrderList.BindGrid()` 對 IsVip 客戶多乘 0.93、來源不明 | HS-01 | RM-02 | 沒有註解、ticket 或對應的 BR，可能與 BR-003 互斥：業務確認前既不能寫成 BR，也不能直接刪<br>已解：業務確認是五年前促銷殘留的 dead code、不是規則，移除列為 `SPEC-20260505-002` phase 1 的 cleanup task | resolved | confirmed by 業務經理 Daniel - [`tech-debt.md`](../../migration/tech-debt.md)「OrderList isVip multiplier 0.93 規則來源不明」那一列的 disposition (2026-05-05) |

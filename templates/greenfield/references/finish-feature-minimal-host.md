@@ -203,6 +203,11 @@ A `✗` here stops closeout there, on the same terms.
       documents (`glossary.md`, `domain/analysis.md`,
       `architecture/tech-debt.md`) belong to no bounded context, stay in its
       sweep, and therefore still qualify under (iii).
+      (iv) the document edits that `finish-feature-flow.md` Step 3 produced for
+      this host from its debt reconciliation, as
+      `references/confirmed-rule-vs-code.md` § Closeout reconciliation defines
+      them, and from completing this host's `Deferred deviation` lines. This
+      admits no implementation source, new capture, or unrelated cleanup.
       Read each delta with `git diff HEAD -- {path}` — plain `git diff` hides
       what is already staged — and do not infer it from the filename.
       **The list is closed** — if a later change adds another

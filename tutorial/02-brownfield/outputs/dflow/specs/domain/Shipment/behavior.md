@@ -1,8 +1,12 @@
-<!-- dflow-shape: brownfield/behavior.md 1 — keep this line: dflow doctor reads it -->
+<!-- dflow-shape: brownfield/behavior.md 2 — keep this line: dflow doctor reads it -->
 # Shipment — Behavior
 
 <!-- Formatting convention: keep table cells concise. Separate multiple short items with <br> - never chain them into one line with ；/; separators. Long narrative detail belongs in a document section, not in a table cell. -->
 
+> **Purpose**: Shipment context 現行規則的情境與觀察，彙整在本檔。
+> 帶 BR-ID 的情境寫業務規則；Known deviation 紀錄寫觀察到的實作差異。
+> 沒有確認 BR 的觀察仍是觀察，不是驗證過的規則。
+>
 > 本文件的初始內容來自 `SPEC-20260511-001-shipment-fee-baseline` 的 baseline capture
 > （2026-05-11，observation-only）。它記錄的是**當時實際的行為**，不是應然的規則。
 >

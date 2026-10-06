@@ -36,6 +36,8 @@ The rest of `/dflow:finish-feature`'s post-commit verification needs the closeou
 
 It does not re-read hosts archived before the change, with one exception: `--staged` checks once more a host the `HEAD` commit itself archived (see "Running it" below). An archive made before this gate existed may be inconsistent, or written in an older shape; checking every old archive would block commits and merge requests that have nothing to do with it.
 
+Nor does it judge closeout Step 3's debt reconciliation: whether a deviation between a confirmed rule and the code was fixed, whether its records should go, and which debt rows to set `done` are decided by the AI from the evidence and your confirmation — the CLI guarantees none of it. Passing does not mean a deviation was fixed, or that every record that should have gone is gone. How that step works, and what it does not cover: [When a confirmed rule and the code disagree](confirmed-rule-vs-code.en.md).
+
 **Passing does not mean the closeout is clean.** It means the parts a machine can judge are consistent.
 
 ## Running it

@@ -327,6 +327,30 @@ Baseline capture 不是照抄 legacy code。它要分辨：
 如果把「Senior 沒套 5%」寫成 active business rule，未來 AI 會誤以為錯誤行為是需求。
 Dflow 在這裡的價值，就是把 legacy observation 和 business truth 分開。
 
+這次的 bug 在同一個 feature 裡就修，所以 phase spec 的 Baseline Contrast Scenario 就夠了。
+**如果 Bob 決定這次不修**——規則確認了，程式先照舊——差異要記成**偏離**，四份文件各記一部分：
+
+| 文件 | 記什麼 |
+|---|---|
+| `rules.md` | BR-004 那一列照樣寫確認的規則；最後一欄 `Known deviations` 連到記這個偏離的那一列技術債（沒有偏離的列是 `—`）。 |
+| `behavior.md` | BR-004 的 Given/When/Then 只寫規則；標題底下另起一行 `> Known deviation:`，寫觀察到程式怎麼算、證據、技術債連結。 |
+| `migration/tech-debt.md` | 一列，名稱像 `Order BR-004: Senior 折扣沒有累積`：哪條規則、確認的規則摘要、程式現況、規則與程式各自的證據、為什麼延後。 |
+| 這次的 spec | 標題底下記一行 `> Deferred deviation:`，驗證時把這一個偏離當成已知例外。 |
+
+`behavior.md` 那一行長這樣（假設的寫法，本篇實際上沒有延後）：
+
+```markdown
+### BR-004: Compound discount accumulation
+
+> Known deviation: BR-004 — observed: `btnSubmit_Click` 算出 Senior 折扣卻沒有累積進 `discount`，NT$60,000 的 Senior 訂單算成 NT$54,000 — evidence: code - `OrderEntry.aspx.cs` `btnSubmit_Click` (2026-04-30) — tech-debt: [Order BR-004: Senior 折扣沒有累積](../../migration/tech-debt.md#debt-items)
+
+Given order 同時符合 full-threshold discount 與 Senior customer discount
+...
+```
+
+修好之後，由 `/dflow:finish-feature` 收尾的 Step 3 對著測試結果與實作位置確認，再把那一格改回 `—`、拿掉偏離行、
+技術債設成 `done`。各份文件的分工見[〈確認的規則與程式不一致時〉](../../docs/confirmed-rule-vs-code.md)。
+
 ## Step 3 — Domain concepts
 
 Dflow 建議初始 domain concepts：
@@ -683,13 +707,16 @@ Order BC 負責接單流程中的訂單主體、訂單明細、金額計算與�
 ```markdown
 # Business Rules
 
-| BR-ID | Rule summary | Behavior anchor | Status | Last updated |
-|---|---|---|---|---|
-| BR-001 | 訂單折扣前總金額等於所有 OrderLine.UnitPrice * Quantity 的加總。 | [BR-001](./behavior.md#br-001-pre-discount-total) | active | 2026-04-30 |
-| BR-002 | 訂單折扣前總金額大於或等於 NT$50,000 時，套用滿額折扣率 10% off。 | [BR-002](./behavior.md#br-002-full-threshold-discount) | active | 2026-04-30 |
-| BR-003 | CustomerTier = 'Senior' 的老客戶可額外套用客戶等級折扣率 5% off。 | [BR-003](./behavior.md#br-003-senior-customer-discount) | active | 2026-04-30 |
-| BR-004 | 多個折扣率以乘法累積，順序為先套滿額折扣、再套客戶等級折扣。 | [BR-004](./behavior.md#br-004-compound-discount-accumulation) | active | 2026-04-30 |
+| BR-ID | Rule summary | Behavior anchor | Status | Last updated | Known deviations |
+|---|---|---|---|---|---|
+| BR-001 | 訂單折扣前總金額等於所有 OrderLine.UnitPrice * Quantity 的加總。 | [BR-001](./behavior.md#br-001-pre-discount-total) | active | 2026-04-30 | — |
+| BR-002 | 訂單折扣前總金額大於或等於 NT$50,000 時，套用滿額折扣率 10% off。 | [BR-002](./behavior.md#br-002-full-threshold-discount) | active | 2026-04-30 | — |
+| BR-003 | CustomerTier = 'Senior' 的老客戶可額外套用客戶等級折扣率 5% off。 | [BR-003](./behavior.md#br-003-senior-customer-discount) | active | 2026-04-30 | — |
+| BR-004 | 多個折扣率以乘法累積，順序為先套滿額折扣、再套客戶等級折扣。 | [BR-004](./behavior.md#br-004-compound-discount-accumulation) | active | 2026-04-30 | — |
 ```
+
+最後一欄 `Known deviations` 四列都是 `—`：累積公式這次就修，沒有延後的偏離。`—` 只表示沒有用這個格式記下偏離，
+不表示有人查過程式。
 
 完整文件範例：
 [`outputs/dflow/specs/domain/Order/rules.md`](outputs/dflow/specs/domain/Order/rules.md)
@@ -828,6 +855,8 @@ Evidence: document - `SPEC-20260430-001` 的 `phase-spec-2026-04-30-baseline-and
 - `/dflow:modify-existing` 不是只做小修改；它會先判斷 tier 與 host feature。
 - Brownfield 第一次碰到核心業務規則時，可能需要升級成 `/dflow:new-feature` 建立第一個 BC。
 - Baseline capture 要分清楚「buggy code result」和「business source of truth」。
+- 規則確認了、但這次不修的差異，記成偏離（`rules.md` 的 `Known deviations`、`behavior.md` 的 `> Known deviation:` 行、
+  一列技術債），修好之後由 `/dflow:finish-feature` 收尾的 Step 3 收掉。
 - Dflow 可以讓 WebForms Code-Behind 逐步變薄，不需要一次大重寫。
 - Tech debt 是 scope control 工具：把這次不做的東西記下來，避免悄悄擴張。
 

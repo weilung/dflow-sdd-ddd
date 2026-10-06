@@ -63,8 +63,13 @@ the guide states them rather than continuing through the steps below.
   and for whatever else no one context owns, a hotspot in the copy that holds
   the knowledge it is stuck on, and in the owning context's copy otherwise,
   created from `templates/analysis.md` the first time there is
-  something to record) and stop — do not read the cascade's "below
-  workflow" as permission to skip the record. Greenfield has no
+  something to record), and any debt it records in
+  `dflow/specs/architecture/tech-debt.md` (created from `templates/tech-debt.md`
+  only when there is debt to record), and stop — do not read the cascade's
+  "below workflow" as permission to skip the record. A confirmed rule that the
+  code does not follow yet is an observation or decision to record here too;
+  record it with `references/confirmed-rule-vs-code.md` § Scope and recording.
+  Greenfield has no
   baseline-capture host of its own (that hosted baseline flow is a Brownfield
   concern); a greenfield observation lands in the Domain docs the project keeps,
   creating one only where the list above says to.
@@ -558,6 +563,8 @@ Look for what this change depends on and no single context document holds:
 
 Record each finding in `dflow/specs/domain/{context}/analysis.md` when one context owns what it describes and in `dflow/specs/domain/analysis.md` when no one context does, creating the file from `templates/analysis.md` the first time there is something to record. That template's sections carry the notation.
 
+Before changing an `analysis.md` entry that holds a `> Known deviation:` line, apply `references/confirmed-rule-vs-code.md` § Preserve during merge.
+
 ### Generate Implementation Tasks List
 
 For a phase-spec modification, AI generates a concrete task list and writes it into the spec's `Implementation Tasks` section using `[LAYER]-[NUMBER]：description` (DOMAIN / APP / INFRA / API / TEST).
@@ -589,6 +596,8 @@ Wait for confirmation before entering Step 4.
 
 Follow the layer order: Domain → Application → Infrastructure → Presentation.
 
+When this work's spec carries a `Deferred deviation` line, apply `references/confirmed-rule-vs-code.md` § Scope and recording to the items here that require a BR, its scenarios or its invariants to be implemented.
+
 Even for bug fixes, verify:
 - [ ] Fix is in the correct layer
 - [ ] Aggregate invariants still hold
@@ -610,6 +619,8 @@ Triggered by the Step 4 → Step 5 Step Gate. AI runs the completion checklist i
 > **Tier-conditional (matches the Part A routing — the checklist must not undo it).** A **T3** produces no spec file and no Domain-document updates: for a T3, 5.1's spec and Domain items and all of 5.3 are **N/A** except the `_index.md` row — which is **already written** (Step 1.7 for a minimal host, at record time otherwise), so this checklist **re-verifies** it and never creates it — record them as N/A, and do not create a spec or a Domain file to make an item pass. A **no-BR family T2** has a spec but no BR delta: its **BR-derived** items are N/A (5.1 says the same). "No BR delta" is **not** "no Domain delta" — decide each Domain document from the actual change, not from the BR line. A family (b) contract change that adds an event field still updates `events.md`; a family (e) defect in an Aggregate still updates `models.md` if the shape moved. "Do not skip a section" means work through every section and state each verdict — including N/A — not manufacture the artifact an item names.
 
 ### 5.1 Verification — AI runs independently
+
+When this work's spec carries a `Deferred deviation` line, apply `references/confirmed-rule-vs-code.md` § Scope and recording to the items here that require a BR, its scenarios or its invariants to be implemented.
 
 Items marked *(post-5.3)* are re-verified after the documentation merge in 5.3 lands:
 
@@ -643,7 +654,8 @@ Ask these one-by-one.
 
 - [ ] Update or create the feature / bug spec; set `status: completed` — **T3: N/A** (no spec file exists; the `_index.md` inline row is the record, and the host's own status is not touched)
 - [ ] **BC-bearing T2, on every host** — refresh the host `_index.md` Current BR Snapshot from this spec's final delta (`templates/_index.md` regenerates it when a T2 lightweight-spec is finalized; on a minimal host this is the refresh Step 1.7 places before checkpoint 1). A spec with no BR delta leaves the Snapshot as it is. N/A for a no-BC T2 and a T3
-- [ ] The items below are the Domain sweep — **N/A for a T3**. For a **no-BC change** (one whose host Goals & Scope says it touches no bounded context) the **BC-scoped** items are N/A — everything under `dflow/specs/domain/{context}/` plus `context-map.md`: there is no `{context}` to sweep, and inventing one plants the fiction Step 2's no-BC guard refuses. The **global** documents are *not* covered by that: `glossary.md`, `domain/analysis.md` and `architecture/tech-debt.md` belong to no bounded context, and a no-BC operational T2 can genuinely rename a term, change which roles reach a function, or discover architecture debt — judge those three from the actual change, as always. For a no-BR family T2 only the *BR-derived* items are N/A; run each remaining item where this change actually touches that document (an added event field still lands in `events.md`)
+- [ ] The items below are the Domain sweep — **N/A for a T3**. For a **no-BC change** (one whose host Goals & Scope says it touches no bounded context) the **BC-scoped** items are N/A — everything under `dflow/specs/domain/{context}/` plus `context-map.md`: there is no `{context}` to sweep, and inventing one plants the fiction Step 2's no-BC guard refuses. The **global** documents are *not* covered by that: `glossary.md`, `domain/analysis.md` and `architecture/tech-debt.md` belong to no bounded context, and a no-BC operational T2 can genuinely rename a term, change which roles reach a function, or discover architecture debt — judge those three from the actual change, as always. For a no-BR family T2 only the *BR-derived* items are N/A; run each remaining item where this change actually touches that document (an added event field still lands in `events.md`).
+      Before you change or delete a `rules.md` row, `behavior.md` section or `analysis.md` entry below that carries a deviation record — a `Known deviations` cell that is neither `—` nor empty, or a `> Known deviation:` line — apply `references/confirmed-rule-vs-code.md` § Preserve during merge.
 - [ ] `dflow/specs/domain/{context}/models.md` — Aggregate structure updates
 - [ ] `dflow/specs/domain/{context}/analysis.md` — lifecycles, derived figures or mechanisms no single rule explains this change found or altered, in the owning context's copy, which may not be this host's; any spot this change worked around pending a domain decision, in those or in a rule or unrecorded knowledge that belongs there; and any open row there this change settled (created from `templates/analysis.md` the first time there is something to record; N/A when there is none)
 - [ ] `dflow/specs/domain/{context}/rules.md` — business rule updates

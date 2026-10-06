@@ -40,10 +40,12 @@ touches and read them all.
 If the PR records its change in neither a spec nor an `_index.md` row (a T3
 inline row is such a record, and a host that carries one needs no spec), first
 check whether it only records existing behaviour or a decision in Domain
-documents, without changing output. That PR is observation-only and wants no
-host: answer it with the reply under "If the spec is missing or incomplete" at
-the end of Spec Compliance, not with the one below. For any other PR with no
-such record:
+documents — with any debt that record carries in
+`dflow/specs/architecture/tech-debt.md`, as `modify-existing-flow.md` Part A's
+observation-only routing allows — without changing output. That PR is
+observation-only and wants no host: answer it with the reply under
+"If the spec is missing or incomplete" at the end of Spec Compliance, not with
+the one below. For any other PR with no such record:
 ```
 "I don't see a feature directory or _index.md for this PR. Before I
 review the code, can you point me to the host feature? SDD relies on
@@ -83,6 +85,11 @@ Per-feature checks:
       Follow-up Tracking row references this feature. **`follow-up-of` may
       be a YAML array** — when it names several originals, *each* of them
       must carry the row; checking the first one is not checking the field.
+
+When a spec this PR touches carries a `Deferred deviation` line, apply
+`references/confirmed-rule-vs-code.md` § Scope and recording to every check in
+this checklist that requires a BR, its scenarios or its invariants to be
+implemented.
 
 Per-phase-spec / lightweight-spec checks (run for **each** spec file the
 PR touches, not just one):
@@ -129,6 +136,10 @@ If the closeout commit is in this PR (`/dflow:finish-feature` was run):
       Record the N/A rather than ticking it against an empty comparison — but
       note `glossary.md` and the tech-debt file belong to no bounded context
       and stay in a no-BC host's sweep, so this N/A does not reach them.
+- [ ] **Debt reconciliation** — for a closeout that resolves debt or changes
+      `Known deviation` records, verify it against
+      `references/confirmed-rule-vs-code.md` § Closeout reconciliation and this
+      feature's evidence, including retained deviations and debt disposition.
 - [ ] **Whole feature directory `git mv`'d** to `completed/` — git
       shows `renamed:` (not `deleted:` + `new file:`)
 - [ ] **Integration Summary** was emitted to the conversation (not
@@ -305,9 +316,10 @@ If the spec is missing or incomplete:
 Can you describe what this change does? If it only records existing
 behaviour or a decision without changing output, it is observation-only
 and wants no host at all — it is captured in the relevant Domain
-document (models.md / rules.md / behavior.md / events.md / analysis.md)
-and stops
-there. Otherwise: if it belongs to a feature we already have, we can
+document (models.md / rules.md / behavior.md / events.md / analysis.md),
+with any debt it records in architecture/tech-debt.md, as
+modify-existing's Part A routes it, and stops there. Otherwise: if it
+belongs to a feature we already have, we can
 record it there retroactively — the tier decides what gets written
 (T2: a lightweight spec; T3: one inline _index.md row). If it's
 genuinely new work, it wants /dflow:new-feature. If
@@ -382,6 +394,11 @@ rationale, a re-evaluation condition, or "future refactor" alone is not
 closure. The reviewer defines the evidence needed to unblock, not the author's
 implementation. Use the existing PR comment / conversation surface; do not
 create a separate review report.
+
+When the deferred guarantee is a business rule catalogued in `rules.md`, record
+the deferral with `references/confirmed-rule-vs-code.md` § Scope and recording
+instead, writing the owner, known risk and exit criteria in the debt row's
+`Deferred:` line. Other deferrals keep this route.
 
 ## Domain Layer Quality
 

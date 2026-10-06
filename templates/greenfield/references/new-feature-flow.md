@@ -179,6 +179,8 @@ valid outcome; extending silently is not.
 
 Record each answer in `dflow/specs/domain/{context}/analysis.md` when one context owns what it describes and in `dflow/specs/domain/analysis.md` when no one context does, creating the file from `templates/analysis.md` the first time there is something to record. That template's sections carry the notation.
 
+Before changing an `analysis.md` entry that holds a `> Known deviation:` line, apply `references/confirmed-rule-vs-code.md` § Preserve during merge.
+
 Domain events keep their definitions and payloads in `events.md`; name them in the flow here instead of restating them.
 
 If foundational domain docs are missing, create them from templates before writing content:
@@ -420,6 +422,8 @@ Wait for confirmation before entering Step 7.
 
 ## Step 7: Implementation Checklist
 
+When this work's spec carries a `Deferred deviation` line, apply `references/confirmed-rule-vs-code.md` § Scope and recording to the items here that require a BR, its scenarios or its invariants to be implemented.
+
 During implementation, continuously verify:
 
 **Domain Layer**
@@ -461,6 +465,8 @@ Triggered by the Step 7 → Step 8 Step Gate. AI runs the completion checklist i
 
 ### 8.1 Verification — AI runs independently
 
+When this work's spec carries a `Deferred deviation` line, apply `references/confirmed-rule-vs-code.md` § Scope and recording to the items here that require a BR, its scenarios or its invariants to be implemented.
+
 AI reports `✓` / `✗` for every item before touching docs. Items marked *(post-8.3)* are re-verified after the documentation merge in 8.3 lands:
 
 - [ ] `Implementation Tasks` section: all tasks checked, or unchecked items explicitly labelled as follow-up (linked to spec / tech-debt entry)
@@ -492,6 +498,8 @@ Ask these one-by-one; do not dump all six at once.
 ### 8.3 Documentation updates
 
 > **Table-cell formatting**: keep table cells concise — separate multiple short items with `<br>` (never chain them into one line with ；/; separators), and move long narrative detail out of the cell into a document section (full convention: the formatting comment at each spec doc's head).
+
+Before you change or delete a `rules.md` row, `behavior.md` section or `analysis.md` entry below that carries a deviation record — a `Known deviations` cell that is neither `—` nor empty, or a `> Known deviation:` line — apply `references/confirmed-rule-vs-code.md` § Preserve during merge.
 
 - [ ] `dflow/specs/domain/glossary.md` — new terms added
 - [ ] `dflow/specs/domain/analysis.md` — ordered cross-context flows, role reach, or anything else no one context owns, that this feature introduced, found or altered; any spot this feature worked around pending a domain decision, in those or in unrecorded knowledge that belongs here; and any open row there this feature settled (created from `templates/analysis.md` the first time there is something to record)

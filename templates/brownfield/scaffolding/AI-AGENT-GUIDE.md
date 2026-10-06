@@ -109,6 +109,9 @@ it; tell the developer, who can capture it afterwards with /dflow:modify-existin
 While a workflow is running, the analysis.md bullet below and step 0's recording
 routes do not apply; the other routes in this section still do.
 
+For a confirmed rule/code mismatch, apply § Behavior Source of Truth before
+recording it; an active workflow's permitted scope still applies.
+
 Route non-command input like this (supporting files live in the workflow bundle
 at `dflow/specs/shared/dflow-workflows/`):
 
@@ -463,21 +466,28 @@ instantiated file is placed inside the feature directory (see
 
 ## Behavior Source of Truth (rules.md + behavior.md)
 
-Each Bounded Context has two complementary files that together describe the
-system's current behavior:
+Each Bounded Context records its current business rules, the implementation
+deviations recorded against them, and observations without a confirmed BR, in
+two complementary files:
 
-- **`rules.md`** — declarative index: lists each BR-ID with a one-line summary.
-  Quick lookup, easy to scan.
+- **`rules.md`** — declarative index: lists each BR-ID with a one-line rule
+  summary and its `Known deviations` cell. Quick lookup, easy to scan.
 - **`behavior.md`** — scenario-level detail: the full Given/When/Then scenarios
-  for each BR-ID. This is the consolidated source of truth for "what does the
-  system actually do right now?"
+  for each BR-ID, and the observations without a confirmed BR. Adjacent
+  `> Known deviation:` records describe observed implementation differences.
+
+When a developer confirms a rule the code violates and defers the fix, read
+`references/confirmed-rule-vs-code.md` § Scope and recording before writing it.
 
 `dflow/specs/features/completed/` is a historical archive (individual change
-records). `behavior.md` is the **merged current state** — when a feature is
-completed, the AI merges its scenarios into `behavior.md`; when behavior is
-modified, the AI updates the corresponding section to reflect the new behavior
-(git preserves history). See the `behavior.md` template in the workflow bundle
-at `dflow/specs/shared/dflow-workflows/templates/behavior.md`.
+records). `behavior.md` holds the **merged current rule scenarios and
+observations** — when a feature is completed, the AI merges its scenarios into
+`behavior.md`; when behavior is modified, the AI updates the corresponding
+section to reflect the new behavior (git preserves history). When a merge
+rewrites or deletes a section that holds a `> Known deviation:` line, apply
+`references/confirmed-rule-vs-code.md` § Preserve during merge. See the
+`behavior.md` template in the workflow bundle at
+`dflow/specs/shared/dflow-workflows/templates/behavior.md`.
 
 ## Guiding Questions by Activity
 

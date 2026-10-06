@@ -370,6 +370,13 @@ Step 2 — status → completed。
   Current Step: Step 3 — sync BR Snapshot to BC layer、
   Awaiting: none (mid-step)。closeout 還沒跑完，終局值在 Step 4 寫。
 
+Step 3 — 先收集 debt 訊號：BUG-002 指名 BR-002、BR-006（Governing BR-IDs），
+  兩列在 rules.md 的 Known deviations 都是 —；BUG-002 沒有連到任何技術債，
+  也沒有 Deferred deviation 行 → 沒有訊號。Debt reconciliation: no signal
+  接著是 BC-bearing 的 sync：只同步這個 host 實際改過的文件。
+  BUG-002 只修實作（family (e)），BR-002／BR-006 的規則文字沒變，
+  rules.md／behavior.md 沒有東西要寫。
+
 Step 4 — git mv 歸檔，**緊接著寫 Resume Pointer 終局值**
   （Active Workflow: none、Current Step / Gates Passed: n/a、Awaiting: none），
   中間不插任何等待點；再寫 closeout 列、git add、commit（checkpoint 2）。
@@ -378,6 +385,33 @@ Step 5 — Integration Summary。
 
 Step 6 — **Reverse-Update Follow-up Tracking**（本案不 skip）。
 ```
+
+## 假如 BR-006 帶著一筆延後的偏離——收尾 Step 3 怎麼清
+
+本篇的 BR-006 沒有偏離紀錄，所以收尾什麼都不用清。但 BUG-002 的形狀——family (e)、`Governing BR-IDs`
+指名被修好的那條規則——正是收尾清掉偏離最典型的入口，借它說明一次（**假設的情境，outputs 裡沒有**）：
+
+假設 phase 2 時就確認過「Reject 之後 ExpenseReport 的狀態沒有落地」違反 BR-006，當時決定先不修。那麼
+`rules.md` BR-006 那一格會是 `Known deviation — tech-debt: [Expense BR-006: reject 狀態未落地](../../architecture/tech-debt.md#debt-items)`，
+`behavior.md` 的 BR-006 段落標題底下有一行 `> Known deviation:`，`architecture/tech-debt.md` 有那一列（`open`）。
+收尾的 Step 3 會這樣走：
+
+1. **有訊號**：BUG-002 的 `Governing BR-IDs` 指名 BR-006，而 BR-006 那一格不是 `—`。
+2. **認候選、讀輸入**：BR-006 與它連到的那一列技術債；讀 BUG-002 的 Root Cause、Fix Approach 與 Implementation Tasks。
+3. **對證據**：TEST-1／TEST-3 從 repository 重新讀回之後斷言狀態（綠燈）；實作位置是 `RejectExpenseReportHandler`
+   改走 Unit of Work。證據不夠、或同一條規則有好幾個入口時，Dflow 會問 Alice：「這個 feature 修好了哪幾個入口、
+   還留下哪幾個偏離？」
+4. **清掉**：BR-006 的已記錄偏離全部消除了 → 那一格改回 `—`，拿掉每一行指向它的 `> Known deviation:`
+   （包括其他 context 的 `analysis.md`），技術債那一列設成 `done`，`Follow-up` 欄寫修好它的 `SPEC-20260512-001`。
+   只修好其中一部分時，保留紀錄、更新剩下的範圍。
+5. **印出**：`Resolved deviations: domain/Expense/rules.md BR-006; debt done: Expense BR-006: reject 狀態未落地; retained: none`。
+
+這些文件修改跟著 closeout commit（checkpoint 2）一起進去。最小 host 的收尾只准許一張封閉清單上的變動：
+`finish-feature-minimal-host.md` Step 1 那張清單有一項 (iv)，收的就是 Step 3 技術債對帳寫出的文件修改——
+收尾中途要重跑 Step 1 時，它們不會被當成不該出現的髒檔擋下；程式碼、新的盤點、無關的清理照樣擋。
+
+情境改寫了、spec 標成 `completed`，都不算「修好了」的證據；清掉偏離只在收尾 Step 3、而且要先過證據這一關。
+完整的分工與這套做法管不到的地方，見[〈確認的規則與程式不一致時〉](../../docs/confirmed-rule-vs-code.md)。
 
 ## Step 5 — Integration Summary（zero-phase，而且是 **BC-bearing** 的那一種）
 

@@ -13,6 +13,7 @@ bug，而是把 `SPEC-20260430-001-order-discount-calculation` 這個第一個 O
 - closeout 前要驗證 phase spec、baseline-capture row、BUG row、BR Snapshot 與 tech-debt disposition
 - 多個 feature 並存於同一個 Order BC 時，BR sync 只同步本 feature owned BR
 - 為什麼 SPEC-001 closeout 不會收掉仍 active 的 SPEC-002 VIP feature
+- 收尾 Step 3 的技術債對帳：BUG-001 連到的 rounding 那一列，在這裡對證據設成 `done`；沒有 spec 連到的債不碰
 - completed feature directory 應使用 `git mv` archive
 - Integration Summary 如何把 phase、BUG-001、Domain extraction、tech debt 與 future work 收束在一起
 
@@ -201,9 +202,10 @@ Driftcheck result:
   沒有在 BUG-001 closeout 時刪掉歷史
 - Order Aggregate Root、OrderLine Entity、Money / Quantity / DiscountRate VO、
   DiscountPolicy Domain Service all exist in models.md
-- tech-debt.md rounding inconsistency entry is resolved by SPEC-20260430-001 BUG-001
-- tech-debt.md isVip multiplier 0.93 entry is already resolved by SPEC-002 disposition；
-  不是 SPEC-001 closeout scope
+- tech-debt.md rounding inconsistency entry 仍是 open；BUG-001 的 related_tech_debt 指名它，
+  Step 3 的技術債對帳會對證據判它
+- tech-debt.md isVip multiplier 0.93 entry 是 planned：清理排在 SPEC-002 phase 1，
+  SPEC-001 的 spec 沒有連到它，不是 SPEC-001 closeout scope
 - rules.md also contains BR-005~008。
   這些屬於 in-progress SPEC-20260505-002，不是本次 finish target
 ```
@@ -308,6 +310,35 @@ Lightweight Changes：
 它要等 Step 4 歸檔那一刻才寫（見下面 Step 4）。
 
 ## Step 3 — Sync BR Snapshot to BC layer
+
+Step 3 一開始、還沒判斷 host 形狀之前，Dflow 先收集這個 host 的技術債訊號：
+
+```text
+Dflow:
+Step 3 — 先收集 debt 訊號：
+
+- phase spec 與 BUG-001 指名的 BR：BR-001～004。
+  四列在 rules.md 的 Known deviations 都是 —，沒有訊號。
+- 這些 spec 連到的技術債：BUG-001 的 related_tech_debt 指名
+  「OrderList / OrderEntry / OrderDetail rounding 策略不一致」→ 有訊號。
+- 沒有 Deferred deviation 行。
+
+有訊號，所以照 confirmed-rule-vs-code.md § Closeout reconciliation 先認出候選：
+rounding 那一列。BC sync 做完、進 Step 4 之前，再對證據判它。
+
+同步前的檢查：這次要改寫的 BR-002～004 那幾列，Known deviations 都是 —；
+behavior.md 要動的段落也沒有 > Known deviation: 行 → 直接同步，不讀保留程序。
+```
+
+⚠ **訊號只看這個 host 的 spec。** isVip 那一列與「Order 折扣規則分散在多個頁面」那一列，
+SPEC-001 的 phase spec 與 BUG-001 都沒有連到，所以不是候選——本次收尾的對帳不判它們的狀態。
+一個 host 的 spec 什麼都沒指名、也沒連到任何技術債時
+（[walkthrough 07](walkthrough-07-baseline-minimal-host.md) 的 baseline host 就是這樣），這一段只印一行
+`Debt reconciliation: no signal`，不讀 § Closeout reconciliation。
+同步前另外兩個檢查各有自己的條件，不看這個訊號：spec 帶 `Deferred deviation` 行、
+它指名的技術債列還不存在或沒記這個觀察時，先照 § Scope and recording 補記；
+這次要改寫或刪除的列、段落或 `analysis.md` 條目帶著偏離紀錄時
+（例如同一個條目裡另一條 BR 的偏離行），先讀 § Preserve during merge。
 
 Dflow 說明本段最重要的 cross-feature rule：
 
@@ -434,38 +465,61 @@ Dflow:
 Baseline-capture row 沒有獨立 spec file，但它的 confirmed behavior 已經被 system-level
 `behavior.md` 接住，closeout 時要確認它還在。
 
-### Tech-debt sweep
+### 技術債對帳（BC sync 之後、Step 4 之前）
 
-Dflow 也做 tech-debt sweep：
+BC sync 做完，Dflow 回到 Step 3 一開始認出的候選：
 
 ```text
 Dflow:
-Step 3 tech-debt sweep：
+技術債對帳（confirmed-rule-vs-code.md § Closeout reconciliation）：
 
-- OrderList / OrderEntry / OrderDetail rounding 策略不一致 remains resolved by BUG-001。
-- OrderList isVip multiplier 0.93 remains resolved by SPEC-002 disposition。
-- Order 折扣規則分散在多個頁面 標註 partially resolved：
-  三個已知頁面的 rounding contract 已統一，
-  但其他 Order 頁面尚未抽離，所以 status stays open。
+候選：OrderList / OrderEntry / OrderDetail rounding 策略不一致（BUG-001 連到它）。
+這一列沒有 BR: 行，不是確認規則的偏離，是一般技術債。
+
+證據：
+- BUG-001 的 TEST-1 regression：同一筆訂單在 OrderList / OrderEntry / OrderDetail
+  顯示一致——綠燈；Carol 也確認了 #ORD-2026-0512 類型案例。
+- 實作位置：三頁都改呼叫 Money.ToDisplay()（BUG-001 的 DELIVERY-1～3）。
+- 這一列記的問題是這三頁各自決定 display precision；三頁都收斂了 → 整列還清。
+
+→ status 設 done，Description 末尾加一行：
+  Resolved by: SPEC-20260430-001 BUG-001 — regression TEST-1 通過：同一筆訂單在
+  OrderList / OrderEntry / OrderDetail 顯示一致，三頁都改呼叫 Domain Money.ToDisplay() (2026-05-12)
+
+Resolved deviations: none; debt done: OrderList / OrderEntry / OrderDetail rounding 策略不一致; retained: none
+```
+
+這一列在 BUG-001 那天（05-08）就修好了，`done` 卻是今天才寫：bug-fix 的文件更新只把它連回 BUG-001，
+由收尾對著測試結果與實作位置確認之後才設——見
+[walkthrough 05](walkthrough-05-bug-fix.md) 的 Step 5。
+
+closeout sweep 的 tech-debt 項另外照實記下這次對其他列看到的事：
+
+```text
+Dflow:
+- Order 折扣規則分散在多個頁面：沒有 spec 連到它，對帳不判它。
+  它的範圍確實縮小了——三個已知頁面的 rounding contract 已統一——
+  但其他 Order 頁面仍未抽離，status 維持 open，只補一句 Closeout note。
+- isVip multiplier 0.93：planned，留給 SPEC-002 自己的收尾。
 - OrderEntry event handler 仍混合資料存取與流程控制 stays open。
 - DiscountPolicy 結構可能需要演進 stays open。
 - 其他 brownfield baseline tech-debt stays open。
 ```
 
-`tech-debt.md` 完整文件範例的 closeout note：
+`tech-debt.md` 完整文件範例的 Follow-up Notes：
 
 ```markdown
 - `Order 折扣規則分散在多個頁面` disposition: 2026-05-12 `SPEC-20260430-001` closeout 時確認為 partially resolved；三個已知頁面的 rounding contract 已統一，但跨全部 Order 頁面的業務邏輯抽離仍 open。
-- `OrderList / OrderEntry / OrderDetail rounding 策略不一致` disposition: 2026-05-08 歸屬 `SPEC-20260430-001` 的 `BUG-001-rounding-inconsistency.md`；修正方向為 `Money.ToDisplay()` display contract + 三頁面 Presentation 層統一呼叫。
-- `OrderList isVip multiplier 0.93` 已由 Daniel 於 2026-05-05 確認為五年前促銷殘留；清理歸屬 `SPEC-20260505-002` phase 1 implementation task。
+- `OrderList / OrderEntry / OrderDetail rounding 策略不一致` disposition: 2026-05-08 歸屬 `SPEC-20260430-001` 的 `BUG-001-rounding-inconsistency.md`；修正方向為 `Money.ToDisplay()` display contract + 三頁面 Presentation 層統一呼叫；2026-05-12 `SPEC-20260430-001` 收尾 Step 3 對 regression 證據確認後設 `done`。
+- `OrderList isVip multiplier 0.93` 已由 Daniel 於 2026-05-05 確認為五年前促銷殘留；清理歸屬 `SPEC-20260505-002` phase 1 implementation task，status `planned`；移除之後由該 feature 收尾 Step 3 設 `done`。
 ```
 
 完整文件範例：
 [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md)
 
-這裡有一個細節：rounding inconsistency resolved，不代表「Order 折扣規則分散在多頁面」
-整體 debt resolved。三個已知頁面 display contract 統一了，但其他 Order 頁面仍可能
-還有未抽離的邏輯，所以該 broader item 保持 open。
+這裡有一個細節：rounding 那一列設成 `done`，不代表「Order 折扣規則分散在多頁面」整體 debt 還清了。
+三個已知頁面 display contract 統一了，但其他 Order 頁面仍可能還有未抽離的邏輯，所以那一列保持 open
+——收尾只把有證據證明已經還清的那一列設成 `done`。
 
 ### `analysis.md`：收尾 sweep 與落地複核
 
@@ -750,11 +804,11 @@ brownfield 的 `Format:` 沒有 `Aggregates affected:`，而 `Feature Goal:` 的
 Tech Debt Outstanding（同樣是走查補充，`Format:` 沒有這一段）：
 
 ```markdown
-- OrderList / OrderEntry / OrderDetail rounding 策略不一致: resolved by BUG-001，
-  三頁面改用 Money.ToDisplay() display contract。
-- OrderList isVip multiplier 0.93 規則來源不明: resolved by SPEC-20260505-002 disposition，
-  業務確認為 dead code。
-- Order 折扣規則分散在多個頁面: partially resolved。OrderEntry / OrderList / OrderDetail
+- OrderList / OrderEntry / OrderDetail rounding 策略不一致: done（Step 3 技術債對帳），
+  BUG-001 讓三頁面改用 Money.ToDisplay() display contract。
+- OrderList isVip multiplier 0.93 規則來源不明: planned。業務確認為 dead code，
+  移除排在 SPEC-20260505-002 phase 1，等那個 feature 收尾。
+- Order 折扣規則分散在多個頁面: open。OrderEntry / OrderList / OrderDetail
   rounding contract 已統一，但其他 Order 頁面尚未抽離。
 - OrderEntry event handler 仍混合資料存取與流程控制: open。
 - DiscountPolicy 結構可能需要演進: open。
@@ -847,7 +901,7 @@ Order BC 整體 modernization 還有很長的路，
 | 保留 | [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/BUG-001-rounding-inconsistency.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/BUG-001-rounding-inconsistency.md) | BUG-001 frozen history；closeout 只在 `_index.md` 彙整。 |
 | 修改 | [`outputs/dflow/specs/domain/Order/rules.md`](outputs/dflow/specs/domain/Order/rules.md) | BR-001~004 finalized lifecycle note；BR-005~008 preserved for active SPEC-002。 |
 | 修改 | [`outputs/dflow/specs/domain/Order/behavior.md`](outputs/dflow/specs/domain/Order/behavior.md) | baseline-capture behavior 保留；BR-005~008 behavior 保留但未由 SPEC-001 finalized。 |
-| 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | rounding debt resolved、multi-page discount debt partially resolved、remaining brownfield debt retained。 |
+| 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | 技術債對帳把 rounding debt 設成 `done`（附 `Resolved by:`）；multi-page discount debt 仍 open、補一句進度；isVip 仍 `planned`；其餘 brownfield debt 照舊。 |
 | 故意不改 | [`outputs/dflow/specs/features/active/SPEC-20260505-002-vip-discount-policy/_index.md`](outputs/dflow/specs/features/active/SPEC-20260505-002-vip-discount-policy/_index.md) | SPEC-002 仍 active，不在本 closeout scope。 |
 | 故意不改 | `outputs/dflow/specs/domain/Order/context.md` / `models.md` | closeout 沒有新增 Domain model 或 context boundary。 |
 | 故意不改 | `outputs/dflow/specs/domain/glossary.md` / `context-map.md` | closeout 沒有新增 ubiquitous language 或 BC relationship。 |
@@ -898,6 +952,7 @@ Finish-feature 的價值不是多寫一份 summary，而是替下一輪變更建
 
 - `/dflow:finish-feature` 是 lifecycle closeout，不是 Git merge / push automation。
 - Closeout 要驗證 phase specs、baseline-capture rows、BUG rows、BR Snapshot、domain docs 與 tech-debt disposition。
+- 收尾 Step 3 先看這個 host 的 spec 有沒有技術債訊號；有才對帳。spec 連到、而且有證據證明已還清的技術債，在這裡才設成 `done`。
 - 多 feature 並存於同一 BC 時，只 sync completed feature owned BR；其他 active feature BR 保留。
 - `rules.md` / `behavior.md` 是 BC-level cumulative truth，不能被單一 feature snapshot 覆寫。
 - Completed feature 是 frozen history；後續變更必須走 follow-up feature 或新的 active feature。

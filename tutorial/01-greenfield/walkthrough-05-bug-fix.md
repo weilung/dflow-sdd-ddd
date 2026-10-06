@@ -612,6 +612,15 @@ Governing BR-IDs: BR-007
 兩欄分開是刻意的：**沒有 BR delta 不等於沒有治理規則**。
 只寫一句「沒有 BR」會把 BR-007 的追溯線一起抹掉。
 
+這也是 lightweight-spec 範本 § Behavior Delta 開頭要你先分的那一步：規則沒變、只修錯的實作，
+用 family (e)；只有規則本身變了才寫 BR Delta（[walkthrough 04](walkthrough-04-modify-existing.md)
+的 BR-007 MODIFIED 是那一種）。不要因為「這是 bug fix」就推定 MODIFIED。
+
+BR-007 是一條確認的規則，程式這次沒照它做——正是「確認的規則、程式沒照做」的情況。但這次就修，
+所以不用另外記偏離。如果 Alice 決定先不修，才要照[〈確認的規則與程式不一致時〉](../../docs/confirmed-rule-vs-code.md)
+記下來：`rules.md` 那一列的 `Known deviations` 連到一列技術債、`behavior.md` 的 BR-007 段落加一行
+`> Known deviation:`，spec 記一行 `> Deferred deviation:`，修好之後由收尾 Step 3 收掉。
+
 接著的 before / after 描述的是實作行為，不是 BR delta：
 
 ```markdown

@@ -1,4 +1,4 @@
-<!-- dflow-shape: brownfield/rules.md 1 — keep this line: dflow doctor reads it -->
+<!-- dflow-shape: brownfield/rules.md 2 — keep this line: dflow doctor reads it -->
 <!-- Seeded by Dflow. -->
 <!-- Formatting convention: keep table cells concise. When one cell holds multiple short items (invariants, rules, steps), separate them with <br> so each renders on its own line - never chain them into one line with ；/; separators. Long narrative detail does not belong in a table cell: keep the cell to a concise summary and put extended detail in an existing section of this document when one fits, or give each item its own row. -->
 
@@ -9,16 +9,19 @@
 <!-- dflow:section business-rules -->
 ## Rule Index
 
-| BR-ID | Rule summary | Behavior anchor | Status | Last updated |
-|---|---|---|---|---|
-| BR-001 | 訂單折扣前總金額等於所有 `OrderLine.UnitPrice * Quantity` 的加總。 | [BR-001](./behavior.md#br-001-pre-discount-total) | active | 2026-04-30 |
-| BR-002 | 訂單折扣前總金額大於或等於 NT$50,000 時，套用滿額折扣率 10% off（price multiplier 0.9）。 | [BR-002](./behavior.md#br-002-full-threshold-discount) | active | 2026-04-30 |
-| BR-003 | `CustomerTier = 'Senior'` 的老客戶可額外套用客戶等級折扣率 5% off（price multiplier 0.95）。 | [BR-003](./behavior.md#br-003-senior-customer-discount) | active | 2026-04-30 |
-| BR-004 | 多個折扣率以乘法累積，順序為先套滿額折扣、再套客戶等級折扣；總折扣率 = `1 - (1 - 滿額折扣率) * (1 - 客戶等級折扣率)`。 | [BR-004](./behavior.md#br-004-compound-discount-accumulation) | active | 2026-04-30 |
-| BR-005 | 2026-05-05 SPEC-002 ADDED：VIP 客戶且 `ContractValidUntil >= OrderDate` 時，額外套用 VIP 7% off。 | [BR-005](./behavior.md#br-005-vip-contract-valid-discount) | active | 2026-05-05 |
-| BR-006 | 2026-05-05 SPEC-002 ADDED：VIP 合約過期時不套用 VIP 7% off，但仍依一般折扣規則計算。 | [BR-006](./behavior.md#br-006-expired-vip-contract-fallback) | active | 2026-05-05 |
-| BR-007 | 2026-05-05 SPEC-002 ADDED：多折扣 stack order 為 full-threshold -> VIP -> Senior，並以乘法累積。 | [BR-007](./behavior.md#br-007-vip-discount-stacking-order) | active | 2026-05-05 |
-| BR-008 | 2026-05-05 SPEC-002 ADDED：VIP eligibility 與 Senior customer-tier 可以同時存在，業務允許同時 stack。 | [BR-008](./behavior.md#br-008-vip-and-senior-can-stack) | active | 2026-05-05 |
+<!-- Known deviations column: `—` means no deviation is recorded in this format; it never means the code was checked.
+Fill this column using `references/confirmed-rule-vs-code.md` § Scope and recording. -->
+
+| BR-ID | Rule summary | Behavior anchor | Status | Last updated | Known deviations |
+|---|---|---|---|---|---|
+| BR-001 | 訂單折扣前總金額等於所有 `OrderLine.UnitPrice * Quantity` 的加總。 | [BR-001](./behavior.md#br-001-pre-discount-total) | active | 2026-04-30 | — |
+| BR-002 | 訂單折扣前總金額大於或等於 NT$50,000 時，套用滿額折扣率 10% off（price multiplier 0.9）。 | [BR-002](./behavior.md#br-002-full-threshold-discount) | active | 2026-04-30 | — |
+| BR-003 | `CustomerTier = 'Senior'` 的老客戶可額外套用客戶等級折扣率 5% off（price multiplier 0.95）。 | [BR-003](./behavior.md#br-003-senior-customer-discount) | active | 2026-04-30 | — |
+| BR-004 | 多個折扣率以乘法累積，順序為先套滿額折扣、再套客戶等級折扣；總折扣率 = `1 - (1 - 滿額折扣率) * (1 - 客戶等級折扣率)`。 | [BR-004](./behavior.md#br-004-compound-discount-accumulation) | active | 2026-04-30 | — |
+| BR-005 | 2026-05-05 SPEC-002 ADDED：VIP 客戶且 `ContractValidUntil >= OrderDate` 時，額外套用 VIP 7% off。 | [BR-005](./behavior.md#br-005-vip-contract-valid-discount) | active | 2026-05-05 | — |
+| BR-006 | 2026-05-05 SPEC-002 ADDED：VIP 合約過期時不套用 VIP 7% off，但仍依一般折扣規則計算。 | [BR-006](./behavior.md#br-006-expired-vip-contract-fallback) | active | 2026-05-05 | — |
+| BR-007 | 2026-05-05 SPEC-002 ADDED：多折扣 stack order 為 full-threshold -> VIP -> Senior，並以乘法累積。 | [BR-007](./behavior.md#br-007-vip-discount-stacking-order) | active | 2026-05-05 | — |
+| BR-008 | 2026-05-05 SPEC-002 ADDED：VIP eligibility 與 Senior customer-tier 可以同時存在，業務允許同時 stack。 | [BR-008](./behavior.md#br-008-vip-and-senior-can-stack) | active | 2026-05-05 | — |
 
 ## Lifecycle
 

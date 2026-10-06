@@ -545,8 +545,10 @@ And 兩個頁面預期都反映 BR-004 compound discount accumulation
 [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md)
 
 補充：完整文件範例中這兩項後來被後續劇情處理：rounding inconsistency 由 BUG-001 修正，
-`isVip` multiplier 後來確認為 dead code。這不改變本篇 baseline capture 的教學重點：
-當下它們都不能被直接寫成 accepted BR。
+在 `SPEC-20260430-001` 收尾的 Step 3 設成 `done`；`isVip` multiplier 後來確認為 dead code，
+移除排進 `SPEC-20260505-002` 的 task（`planned`）。這不改變本篇 baseline capture 的教學重點：
+當下它們都不能被直接寫成 accepted BR。它們也都不是「確認的規則、程式沒照做」：rounding 的顯示精度沒有對應的 BR，
+`isVip` 根本不是規則——所以記成一般技術債，不用偏離的記法。
 
 ### `analysis.md` 新增 RM-02 與 HS-01
 
@@ -657,10 +659,13 @@ Bob: 夠清楚，之後撿的人看得懂。
 4. 這次寫進的 BR：
    BR-004（多個折扣率以乘法累積），從 OrderList.BindGrid() 與
    OrderDetail.LoadDiscountSummary() 讀出來。這就是規則嗎？
+   （三種答法：這就是規則／程式做錯了，規則是……／我也確認不了）
 Bob: 對，這就是 BR-004。
 
 5. behavior.md 這次寫的每一段：
-   「Confirmed across pages」底下 BR-004 的兩段情境，照現況寫對了嗎？
+   「Confirmed across pages」底下 BR-004 的兩段情境——寫的是第 4 題確認的 BR-004，
+   出處頁面列的是讀到它的兩個方法。寫對了嗎？
+   （這次沒有偏離行，也沒有不帶 BR-ID 的段落。）
 Bob: 對。
 
 6. 盤點時有沒有看到既有文件寫錯、名詞用法不一致？
@@ -686,6 +691,16 @@ Bob: 對。
   Goals & Scope 記一行並告訴 Bob，交給之後改這條 BR 的變更走 spec 流程。
   盤點自己改掉它，收尾同步會拿 Snapshot 上的舊文字把 `rules.md` 寫回去。
 
+第 4 題的第二種答法這次沒有發生：「**程式做錯了，規則就是 BR-004 寫的那樣；這次不修**」。盤點不改任何程式，
+所以這種確認的修正一定是延後的，照[〈確認的規則與程式不一致時〉](../../docs/confirmed-rule-vs-code.md)的記法記：
+`rules.md` 那一列最後一欄 `Known deviations` 連到一列技術債，`behavior.md` 在 BR-004 標題下記一行
+`> Known deviation:`（觀察到程式怎麼做、證據、技術債連結），受影響的 `analysis.md` 條目旁也記一行；
+Goals & Scope 那一行寫這條 BR（含 context）、確認了什麼與技術債的 Item 名稱。
+這幾處偏離紀錄都是 **metadata**：不進 Current BR Snapshot，也不改規則文字。所以 BR-004 雖然在 Snapshot 上，
+只要確認的規則就是那一列寫的，它們照常寫——不改 BR-004 的意思。確認的規則會改掉 BR-004 的意思時，
+照上面第二點進 `## Open Questions`；技術債那一列照樣現在就寫，`Known deviations` 那一格與就地的偏離行，
+等之後改這條 BR 的變更改了規則再補——在那之前，它們只能指向還沒改的舊文字。
+
 每一個確認在 host 的 Goals & Scope 記一行：它定了什麼、落在哪。這次的 host 是 phase-bearing 的
 `SPEC-20260430-001`，所以記在它的 Goals & Scope，接在原本那幾段之後：
 
@@ -694,7 +709,7 @@ Bob: 對。
 - 技術債：Step 3 沒有漏記。
 - 抽離機會：「OrderList / OrderEntry / OrderDetail rounding 策略不一致」那一列記的統一 `Money` display contract 抽離方向寫得夠清楚。
 - BR-004：`OrderList.BindGrid()` 與 `OrderDetail.LoadDiscountSummary()` 讀出的折扣累積就是 BR-004。
-- `behavior.md`：「Confirmed across pages」兩段照現況寫對（補的是情境與出處頁面，不改 BR-004 的意思）。
+- `behavior.md`：「Confirmed across pages」兩段情境寫的是 BR-004 這條規則，出處頁面也寫對（補的是情境與出處頁面，不改 BR-004 的意思）。
 ```
 
 三個細節：
@@ -703,7 +718,9 @@ Bob: 對。
 - **確認不寫進 Resume Pointer，也不另開段落。** Resume Pointer 的 Current Progress 維持一兩句的游標；
   `_index.md` 沒有記決定的段落，也不為它新增一段。
 - **`rules.md` 與 `tech-debt.md` 不另外記誰確認的。** `rules.md` 的 `active` 本身就是確認；要查 BR-004
-  或那兩列技術債是誰確認的，看 Goals & Scope 裡寫了它的那一行。`analysis.md` 的條目若是經 6.2 確認的，
+  或那兩列技術債是誰確認的，看 Goals & Scope 裡寫了它的那一行。唯一的例外是記確認規則偏離的那種技術債列
+  （上面第 4 題第二種答法）：它的 `Rule evidence` 寫 `confirmed by {role} - SPEC-20260430-001 Goals & Scope ({date})`
+  指回那一行，不重抄確認了什麼。`analysis.md` 的條目若是經 6.2 確認的，
   Evidence 寫成 `confirmed by {role} - SPEC-20260430-001 Goals & Scope ({date})`——用 SPEC-ID 指 host，
   不寫路徑：收尾會把 host 搬進 `completed/`，capture 當下寫的路徑會失效。（這次 RM-02、HS-01 都是
   `code`，沒有這樣的條目。）

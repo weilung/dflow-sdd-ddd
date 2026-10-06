@@ -1,14 +1,17 @@
-<!-- dflow-shape: brownfield/behavior.md 1 — keep this line: dflow doctor reads it -->
+<!-- dflow-shape: brownfield/behavior.md 2 — keep this line: dflow doctor reads it -->
 # {Bounded Context} — Behavior Specification
 
-> **Purpose**: Consolidated source of truth for this context's current behavior.
-> Unlike `dflow/specs/features/completed/` (historical archive), this file always reflects
-> the **current** system behavior — what the system does right now.
+> **Purpose**: Consolidated current rule scenarios and observations for this context.
+> BR-ID scenarios state the business rules; Known deviation records state observed
+> implementation differences.
+> Observations without a confirmed BR remain observations, not validated rules.
 >
 > **Maintenance**: AI updates this file during the completion flow (Step 8.3 / Step 6.3).
 > When a feature is completed, merge its Given/When/Then scenarios here.
 > When behavior is modified, update the corresponding section using the Delta result
 > (not the Delta markup — merge the final state).
+> When replacing or deleting a section that holds a `> Known deviation:` line, apply
+> `references/confirmed-rule-vs-code.md` § Preserve during merge.
 >
 > **Relationship to rules.md**: `rules.md` is the declarative index (BR-ID + one-line summary).
 > This file is the scenario-level detail. Each BR-ID in `rules.md` should have a

@@ -169,6 +169,7 @@ Driftcheck result：
   → Step 3 的 BC sync 要補建 BR-005~007 的 anchor，並把 Given/When/Then
     場景補進全部七個
 - Unicode character counting strategy under i18n tech debt 仍是 open
+  （BUG-001 連到它；Step 3 的技術債對帳會判它）
 - Minor drift：phase 2 spec 裡的 Open Question「要不要支援批次 Approve」沒有明示移到哪裡
 ```
 
@@ -274,7 +275,33 @@ Step 4 都還在前面，而 gate 3 → 4 是真的 step gate。在這裡就把 
 
 ## Step 3 — Sync Current BR Snapshot 到 BC layer
 
-Dflow 進入 Step 3：
+Step 3 一開始、還沒判斷 host 形狀之前，Dflow 先收集這個 host 的技術債訊號：
+
+```text
+Dflow:
+Step 3 — 先收集 debt 訊號：
+
+- 兩份 phase spec、approval-reason lightweight 與 BUG-001 指名的 BR：BR-001～007。
+  七列在 rules.md 的 Known deviations 都是 —，沒有訊號。
+- 這些 spec 連到的技術債：BUG-001 的 Tech Debt Discovered 連到
+  architecture/tech-debt.md 的 Unicode 字元計數策略那一列 → 有訊號。
+- 沒有 Deferred deviation 行。
+
+有訊號：照 confirmed-rule-vs-code.md § Closeout reconciliation 先認出候選，
+BC sync 做完、進 Step 4 之前再對證據判它。
+
+同步前的檢查：這次要改寫的列與段落（BR-003、BR-004 收斂 wording；behavior.md 補七條情境）
+都沒有偏離紀錄——Known deviations 是 —，也沒有 > Known deviation: 行 → 直接同步，不讀保留程序。
+```
+
+一個 host 的 spec 什麼都沒指名、也沒連到任何技術債時，這一段只印一行
+`Debt reconciliation: no signal`，不讀 § Closeout reconciliation。
+同步前另外兩個檢查各有自己的條件，不看這個訊號：spec 帶 `Deferred deviation` 行、
+它指名的技術債列還不存在或沒記這個觀察時，先照 § Scope and recording 補記；
+這次要改寫或刪除的列、段落或 `analysis.md` 條目帶著偏離紀錄時
+（例如同一個條目裡另一條 BR 的偏離行），先讀 § Preserve during merge。
+
+Dflow 進入 Step 3 的 BC sync：
 
 ```text
 Dflow:
@@ -345,16 +372,19 @@ phase-spec history 或 implementation tests 裡。
 Rule Index 的 final state：
 
 ```markdown
-| BR-ID | Rule summary | Behavior anchor | Aggregate | Status | Last updated |
-|---|---|---|---|---|---|
-| BR-001 | 提交 ExpenseReport 時必須至少含 1 個 ExpenseItem，否則拒絕。 | [BR-001](./behavior.md#br-001-submit-requires-at-least-one-item) | ExpenseReport | active | 2026-04-28 |
-| BR-002 | ExpenseReport 提交成功後狀態變為 Submitted，不可再被編輯；唯一例外是被 Reject 後可重新編輯並再次 Submit（會建立新的 ApprovalDecision）。 | [BR-002](./behavior.md#br-002-submitted-report-is-immutable-except-rejected-rework) | ExpenseReport | active | 2026-04-29 |
-| BR-003 | ExpenseItem 的 Money.Amount 必須 > 0。 | [BR-003](./behavior.md#br-003-item-amount-must-be-positive) | ExpenseReport | active | 2026-04-28 |
-| BR-004 | 同一 ExpenseReport 內，相同 ReceiptReference 不允許重複加入。 | [BR-004](./behavior.md#br-004-duplicate-receipt-rejected) | ExpenseReport | active | 2026-04-28 |
-| BR-005 | 主管不可審核自己提交的 ExpenseReport；SubmitterId != ApproverId 必須由 Domain 層強制。 | [BR-005](./behavior.md#br-005-approver-cannot-approve-own-report) | ApprovalDecision | active | 2026-04-29 |
-| BR-006 | 只有 Status = Submitted 的 ExpenseReport 能被 Approve / Reject；其他狀態一律 raise DomainException。 | [BR-006](./behavior.md#br-006-only-submitted-report-can-be-approved-or-rejected) | ExpenseReport | active | 2026-04-29 |
-| BR-007 | Reject 必須附註原因；ApprovalReason 至少 5 個中文字或至少 10 個英數字，否則 raise DomainException；空白不計，半形 / 全形視覺等價，emoji 算字。 | [BR-007](./behavior.md#br-007-reject-requires-reason) | ApprovalDecision | active | 2026-04-30 |
+| BR-ID | Rule summary | Behavior anchor | Aggregate | Status | Last updated | Known deviations |
+|---|---|---|---|---|---|---|
+| BR-001 | 提交 ExpenseReport 時必須至少含 1 個 ExpenseItem，否則拒絕。 | [BR-001](./behavior.md#br-001-submit-requires-at-least-one-item) | ExpenseReport | active | 2026-04-28 | — |
+| BR-002 | ExpenseReport 提交成功後狀態變為 Submitted，不可再被編輯；唯一例外是被 Reject 後可重新編輯並再次 Submit（會建立新的 ApprovalDecision）。 | [BR-002](./behavior.md#br-002-submitted-report-is-immutable-except-rejected-rework) | ExpenseReport | active | 2026-04-29 | — |
+| BR-003 | ExpenseItem 的 Money.Amount 必須 > 0。 | [BR-003](./behavior.md#br-003-item-amount-must-be-positive) | ExpenseReport | active | 2026-04-28 | — |
+| BR-004 | 同一 ExpenseReport 內，相同 ReceiptReference 不允許重複加入。 | [BR-004](./behavior.md#br-004-duplicate-receipt-rejected) | ExpenseReport | active | 2026-04-28 | — |
+| BR-005 | 主管不可審核自己提交的 ExpenseReport；SubmitterId != ApproverId 必須由 Domain 層強制。 | [BR-005](./behavior.md#br-005-approver-cannot-approve-own-report) | ApprovalDecision | active | 2026-04-29 | — |
+| BR-006 | 只有 Status = Submitted 的 ExpenseReport 能被 Approve / Reject；其他狀態一律 raise DomainException。 | [BR-006](./behavior.md#br-006-only-submitted-report-can-be-approved-or-rejected) | ExpenseReport | active | 2026-04-29 | — |
+| BR-007 | Reject 必須附註原因；ApprovalReason 至少 5 個中文字或至少 10 個英數字，否則 raise DomainException；空白不計，半形 / 全形視覺等價，emoji 算字。 | [BR-007](./behavior.md#br-007-reject-requires-reason) | ApprovalDecision | active | 2026-04-30 | — |
 ```
+
+最後一欄 `Known deviations` 七列都是 `—`：sync 只改規則欄，這一欄不是 Snapshot 的一部分，
+同步不會清空它、也不會從 Snapshot 帶值進來。
 
 ## Step 3 — Lifecycle section（Alice 團隊自訂，**不是 Dflow 產生的**）
 
@@ -406,8 +436,8 @@ Step 3 其他 BC layer checks：
   萬一檔案不存在，從 `templates/behavior.md` 建立
 - context-map.md：Identity external relationship 已存在；Reimbursement 仍是 future context，不更新
 - glossary.md：ApprovalReason 已包含 2026-04-30 bilingual length wording，不更新
-- architecture/tech-debt.md：Unicode character counting strategy under i18n remains open，
-  補 related-feature：SPEC-20260428-001 (completed 2026-05-07)
+- architecture/tech-debt.md：Unicode 字元計數策略那一列見下面的技術債對帳；
+  Follow-up Notes 補 related-feature：SPEC-20260428-001 (completed 2026-05-07)
 - analysis.md（兩支；closeout sweep 帶的是 new-feature Step 8.3 的同一組項目）：
   - domain/Expense/analysis.md：new-feature Step 3 記下、還沒對照過程式的
     LC-01 Draft → Submitted 與 RM-01，對照 ExpenseReport.Submit() 都一致，
@@ -430,6 +460,20 @@ not in a diff: a checkpoint may already have committed them」——LC-01、RM-0
 完整 tech debt 範例：
 [`outputs/dflow/specs/architecture/tech-debt.md`](outputs/dflow/specs/architecture/tech-debt.md)
 
+BC sync 做完、進 Step 4 之前，Dflow 回到 Step 3 一開始認出的候選：
+
+```text
+Dflow:
+技術債對帳（confirmed-rule-vs-code.md § Closeout reconciliation）：
+
+候選：Unicode i18n 下的字元計數策略（BUG-001 連到它）。一般技術債，沒有 BR: 行。
+BUG-001 修的是 reject reason 的截斷與 Domain 對 malformed input 的防衛；
+這一列記的是整個系統的字元計數策略，BUG-001 把它記下來、刻意不做。
+這個 feature 沒有還它 → 維持 open。
+
+Resolved deviations: none; debt done: none; retained: Unicode i18n 下的字元計數策略（BUG-001 記下、刻意延後，這個 feature 沒有還它）
+```
+
 關鍵是它仍然 open：
 
 ```markdown
@@ -437,7 +481,7 @@ not in a diff: a checkpoint may already have committed them」——LC-01、RM-0
 ```
 
 BUG-001 修了 reject reason truncation，但更廣泛的 Unicode counting policy 不因 feature closeout
-而自動消失。
+而自動消失。收尾只把**有證據證明這個 feature 還清**的技術債設成 `done`；連到它、但沒有還它，就照原樣留著。
 
 ### `behavior.md` lifecycle note
 
@@ -819,7 +863,7 @@ new-phase 和 modify-existing 是「繼續這個 active feature」。finish-feat
 | 修改 | [`outputs/dflow/specs/domain/Expense/rules.md`](outputs/dflow/specs/domain/Expense/rules.md) | BC-level Rule Index 與 Lifecycle section，從 feature snapshot finalize。 |
 | 修改 | [`outputs/dflow/specs/domain/Expense/analysis.md`](outputs/dflow/specs/domain/Expense/analysis.md) | closeout sweep：LC-01 的 Draft → Submitted 與 RM-01 對照程式複核，Evidence 換成 `code`。 |
 | 修改 | [`outputs/dflow/specs/domain/analysis.md`](outputs/dflow/specs/domain/analysis.md) | closeout sweep：FN-01、FN-02 補上 Entry point，FN-01 照實際做法改名。 |
-| 修改 | [`outputs/dflow/specs/architecture/tech-debt.md`](outputs/dflow/specs/architecture/tech-debt.md) | Unicode counting debt 保持 open，補 related completed feature context。 |
+| 修改 | [`outputs/dflow/specs/architecture/tech-debt.md`](outputs/dflow/specs/architecture/tech-debt.md) | 技術債對帳判 Unicode counting debt 沒有還清，保持 open；補 related completed feature context。 |
 | 故意不改 | `outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/phase-spec-*.md` | phase specs 保留 frozen history，不在 closeout 重寫。 |
 | 故意不改 | `outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/lightweight-*.md` | T2 modify spec 保留 frozen history。 |
 | 故意不改 | `outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/BUG-001-*.md` | BUG-001 spec 保留 frozen history。 |
@@ -873,6 +917,8 @@ Finish-feature 的價值，是把「做完了」從口頭狀態轉成 repo 內�
 - `/dflow:finish-feature` 是 feature lifecycle endpoint，不是 next phase 入口。
 - Closeout 先 validate phase / lightweight / bug specs，再 status flip。
 - Feature-level Current BR Snapshot 必須 reconcile 到 BC-level `rules.md`。
+- Step 3 先看這個 host 的 spec 有沒有技術債訊號；有才對帳。連到、但這個 feature 沒有還清的技術債照原樣留著，
+  有證據證明還清的才設成 `done`。
 - 真實專案 archive feature directory 應使用 `git mv`。
 - Integration Summary 應保持 git-strategy-neutral，服務 reviewer 與 stakeholder。
 - Completed feature 是 frozen history；後續改動要走 follow-up feature。

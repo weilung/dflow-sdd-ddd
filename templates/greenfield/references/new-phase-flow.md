@@ -148,7 +148,9 @@ Walk the developer through what the new phase covers:
    `dflow/specs/domain/{context}/analysis.md` when one context owns what it
    describes and in `dflow/specs/domain/analysis.md` when no one context does,
    creating the file from `templates/analysis.md` the first time there is
-   something to record.
+   something to record. Before changing an `analysis.md` entry that holds a
+   `> Known deviation:` line, apply `references/confirmed-rule-vs-code.md`
+   § Preserve during merge.
 6. **Data structure impact?** New tables, columns, indices, EF
    configuration changes?
 7. **Why now?** Priority — informs sequencing relative to other phases.
@@ -282,6 +284,10 @@ Follow the phase-spec's `Implementation Tasks` in the recommended layer order:
 DOMAIN → APP → INFRA → API, with TEST tasks interleaved where they prove the
 layer behavior.
 
+When this work's spec carries a `Deferred deviation` line, apply
+`references/confirmed-rule-vs-code.md` § Scope and recording to the items here
+that require a BR, its scenarios or its invariants to be implemented.
+
 During implementation, continuously verify:
 
 - [ ] `Implementation Tasks` are checked off as they complete, or unchecked
@@ -303,7 +309,9 @@ During implementation, continuously verify:
       uncovered in the existing system matches the system as it now stands —
       corrected where this phase changed it, never removed because this
       phase built nothing for it. Read the entries in the file, not in a
-      diff: a checkpoint may already have committed them.
+      diff: a checkpoint may already have committed them. Before changing an
+      `analysis.md` entry that holds a `> Known deviation:` line, apply
+      `references/confirmed-rule-vs-code.md` § Preserve during merge.
 
 If implementation changes the agreed Delta, update the phase-spec before
 continuing. Do not let code and spec diverge silently.

@@ -107,20 +107,21 @@ other three and the five this file adds, one by one, in this order:
    `rules.md` row and its `behavior.md` scenarios — give the BR-ID, a summary
    and the code it was read from, and let the developer judge it:
    - "This is the rule" → the `rules.md` row is `active`.
-   - "The code is wrong; the rule is …" → write the confirmed rule and the
-     code's current behavior into a `migration/tech-debt.md` row that names the
-     BR-ID. How `rules.md`, `behavior.md` and `analysis.md` record such a rule,
-     Dflow does not settle: follow the way this project has already decided.
-     Where it has not decided, ask the developer, and record the decision in a
-     Goals & Scope line. Do not choose a way yourself.
+   - "The code is wrong; the rule is …" → a capture fixes no code, so the fix
+     is deferred: record the rule, what the code does, the deviation and its
+     debt row as `references/confirmed-rule-vs-code.md` § Scope and recording
+     and § Analysis records say. Its Goals & Scope line names the BR's context
+     and ID, what was confirmed and the debt Item.
    - "I cannot confirm it either" → the `rules.md` row is `draft`. Record the
      question where `templates/analysis.md` § Open Questions and Hotspots
      routes it.
 5. **6.2's question 4, baseline form.** For every passage of `behavior.md`
    this capture wrote or changed, with a BR-ID or without one, ask the
-   developer to confirm it is right. A passage recording current behavior
-   states what the system does now; a passage under a BR-ID is written as the
-   **Business rules** answer decided.
+   developer to confirm it is right, each for what it states: a BR-ID's
+   scenarios state the rule the **Business rules** answer confirmed, a
+   `Known deviation` line states what the code was observed to do and its
+   evidence, and a passage without a BR-ID states the observed behavior
+   itself. Do not ask every passage as "this is what the system does now".
 6. **Differences that change an existing document's meaning** — a document
    that is wrong, a term used two ways. Ask, one by one, whether to change it:
    - in a capture destination → change it now, in the capture's own commit
@@ -162,7 +163,10 @@ Record every answer as § Where confirmations are recorded says, and fill the
 - **`rules.md` and `migration/tech-debt.md`** take no confirmation note — not
   in a Description, not in § Follow-up Notes. A `rules.md` row's `active` is
   its confirmation; who confirmed a rule or a debt item is in the Goals & Scope
-  line that names its BR-ID or item.
+  line that names its BR-ID or item. The one exception is the `Rule evidence`
+  line of a debt row that records a confirmed-rule deviation: write
+  `confirmed by {role} - {SPEC-ID} Goals & Scope ({date})` there, pointing to
+  that line, and do not repeat what was confirmed.
 - **Resume Pointer.** Current Progress stays a one- or two-sentence cursor and
   carries no confirmation. Add no section to `_index.md`.
 
@@ -184,10 +188,16 @@ its text, or the outcome of one of its scenarios.
   developer. The change that later alters that BR — this feature's next phase
   included — goes through the ordinary spec flow and removes the item.
 - 6.2's answers about such a BR land by these two bullets. "This is the rule"
-  with different text, "the code is wrong" where this project's way of
-  recording it changes the rule's meaning, and a difference that changes its
-  meaning are each a change of meaning. The tech-debt row that "the code is
-  wrong" calls for is still written: it does not change the `rules.md` row.
+  with different text, "the code is wrong" with a rule whose meaning differs
+  from the row's, and a difference that changes its meaning are each a change
+  of meaning. "The code is wrong" with the rule the row already states keeps
+  the meaning: its deviation records change no rule, so write them as usual.
+- When "the code is wrong" changes the meaning, still write its debt row now:
+  it does not change the `rules.md` row. Leave the `Known deviations` cell and
+  the `behavior.md` and `analysis.md` deviation lines to the change that later
+  alters that BR; until then they could only point at the old text. Do not
+  refresh the Snapshot to get around the spec, and do not write the new rule
+  into the `Known deviations` cell.
 - A BR the Snapshot does not carry changes as usual.
 
 ## `Last updated` in `rules.md`

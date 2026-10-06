@@ -777,6 +777,59 @@ assert.equal(
   assert.ok(comments >= 26 && tables >= 26 && notes >= 26, `vacuity guard: the templates' comments, tables and notes were compared (${comments} comments, ${tables} tables, ${notes} notes)`);
 }
 
+// --- (1k) changes that carry their own migration (PROPOSAL-107 D7.5) ---------
+// Taken by the default for its kind, two changes leave a doc wrong: `rules.md`'s
+// `Known deviations` column (the default fills existing rows with `{TBD}`) and
+// `behavior.md`'s Purpose note (the default says keeping yours is fine). Each
+// carries the sentence doctor prints instead. The sentences are spelled out
+// here, not read from the registry, so a migration dropped from the registry —
+// or added to a change that does not need one — fails.
+const RULES_MIGRATION = 'rules.md, column Known deviations: when you add this column, give existing rows `—`, which records no deviation in this format; do not use `{TBD}`.';
+const BEHAVIOR_MIGRATION = "behavior.md, Purpose note: replace the old Purpose with the template's; the old one says this file records what the system does now.";
+{
+  const expected = ['greenfield', 'brownfield'].flatMap((t) => [
+    [`${t}/rules.md`, 2, (c) => c.kind === 'added' && c.item[0] === 'column' && c.item[5] === 'Known deviations', RULES_MIGRATION],
+    [`${t}/behavior.md`, 2, (c) => c.kind === 'reworded' && c.from[0] === 'note' && c.from[1] === '' && c.from[2] === '', BEHAVIOR_MIGRATION]
+  ]);
+  const registered = [];
+  for (const [key, e] of Object.entries(registry.templates)) {
+    for (const shape of e.shapes) {
+      for (const c of shape.changes) {
+        if (!Object.prototype.hasOwnProperty.call(c, 'migration')) continue;
+        assert.ok(typeof c.migration === 'string' && c.migration.trim() !== '', `${key} shape ${shape.number}: a change's migration must be a sentence (got ${j(c.migration)})`);
+        registered.push(`${key} ${shape.number}`);
+      }
+    }
+  }
+  assert.deepEqual(registered.sort(), expected.map(([key, number]) => `${key} ${number}`).sort(), 'exactly these changes carry a migration');
+  for (const [key, number, match, sentence] of expected) {
+    const change = registry.templates[key].shapes[number - 1].changes.find(match);
+    assert.ok(change, `${key} shape ${number}: the change that needs a migration is registered`);
+    assert.equal(change.migration, sentence, `${key} shape ${number}: the migration is the approved sentence`);
+  }
+  // Only for a doc that is adding the column: a doc that already has it keeps its values.
+  assert.ok(RULES_MIGRATION.includes('when you add this column'), 'the rules.md migration governs adding the column, never values already in it');
+}
+// behavior.md's maintenance call sits in its top note because that is the only
+// place it reaches an existing doc as a change: the maintenance notes at the
+// bottom sit under the example's `{…}` placeholder headings, whose sections the
+// shape skips, so a pointer added there would leave the number — and doctor —
+// unmoved.
+for (const track of ['greenfield', 'brownfield']) {
+  const entry = registry.templates[`${track}/behavior.md`];
+  const text = await readFile(join(repoRoot, `templates/${track}/${entry.source}`), 'utf8');
+  const at = text.lastIndexOf('Maintenance notes:');
+  const headingAbove = text.slice(0, at).split('\n').filter((l) => /^#{2,3} /.test(l)).pop();
+  assert.ok(at > 0 && /\{[^}\n]*\}/.test(headingAbove), `${track}/behavior.md: fixture — the maintenance notes sit under a placeholder heading (${j(headingAbove)})`);
+  const edited = `${text.slice(0, at)}Maintenance notes (reworded, with a new pointer):${text.slice(at + 'Maintenance notes:'.length)}`;
+  const digestOf = (t) => doctorChecks.shapeDigest(doctorChecks.extractShapeSkeleton(t, { variable: entry.variable }));
+  assert.equal(digestOf(edited), digestOf(text), `${track}/behavior.md: rewording the bottom maintenance notes must not change the shape`);
+  const top = text.indexOf('> **Maintenance**:');
+  assert.ok(top > 0, `${track}/behavior.md: fixture — the top note carries the Maintenance paragraph`);
+  const editedTop = `${text.slice(0, top)}> **Maintenance** (reworded):${text.slice(top + '> **Maintenance**:'.length)}`;
+  assert.notEqual(digestOf(editedTop), digestOf(text), `${track}/behavior.md: control — rewording the top note does change the shape`);
+}
+
 // --- (2) doctor ------------------------------------------------------------------
 let projectCounter = 0;
 
@@ -994,7 +1047,7 @@ for (const [edition, track] of [['1', 'greenfield'], ['2', 'brownfield']]) {
   // Unreadable → uncertain, under its own id, and the report is not clean (PROPOSAL-084).
   const p = await newProject('1');
   const rules = await projectedTemplate(p, 'rules.md');
-  await put(p, 'domain/a/rules.md', rules.replace(/greenfield\/rules\.md 1 —/, 'greenfield/rules.md one —'));
+  await put(p, 'domain/a/rules.md', rules.replace(/greenfield\/rules\.md \d+ —/, 'greenfield/rules.md one —'));
   await put(p, 'domain/b/rules.md', `${rules}\n${markerOf(rules)}\n`);
   await put(p, 'domain/c/rules.md', rules.replace('greenfield/rules.md', 'greenfield/nope.md'));
   await put(p, 'domain/d/rules.md', rules.replace('greenfield/rules.md', 'brownfield/events.md'));
@@ -1142,7 +1195,140 @@ for (const [edition, track] of [['1', 'greenfield'], ['2', 'brownfield']]) {
   assert.match(out, /copy only the one-line `<!-- Formatting convention/, out);
 }
 
-// An OLDER number: a package copy whose greenfield rules.md has a shape 2.
+// --- (2b) migrations in doctor's findings (PROPOSAL-107 D7.5) ------------------
+// The older-shape finding prints a change's migration right after the change and
+// leads its action with one sentence; the no-marker and unreadable-marker
+// findings print, for the docs they match to a template by path, each migration
+// that template registers. A doc doctor cannot match — renamed, moved — gets none.
+const MIGRATION_LEAD = 'A change listed with its own migration follows it instead of the default for its kind below.';
+const MIGRATION_NOTE = 'A template change with its own migration follows it instead of the default for its kind.';
+// The detail and the action of the one finding whose title matches.
+function findingOf(out, title) {
+  const lines = out.split('\n');
+  const at = lines.findIndex((l) => title.test(l));
+  assert.ok(at >= 0, `no finding titled ${title}\n${out}`);
+  const body = [];
+  for (let i = at + 1; i < lines.length && lines[i].startsWith('        '); i += 1) body.push(lines[i].slice(8));
+  return { detail: body[0], action: body[body.length - 1] };
+}
+// One `{key} {from} → {to}` group of the older-shape finding's detail.
+function olderGroup(detail, label) {
+  const start = detail.indexOf(`\`${label}\``);
+  assert.ok(start >= 0, `no group ${label} in: ${detail}`);
+  const rest = detail.slice(start + 1);
+  const next = rest.search(/ `(greenfield|brownfield)\/[A-Za-z0-9_.-]+\.md \d+ → \d+`/);
+  return next < 0 ? detail.slice(start) : detail.slice(start, start + 1 + next);
+}
+const withShapeNumber = (text, n) => text.replace(/^(<!-- dflow-shape: [a-z]+\/[A-Za-z0-9_.-]+\.md) \d+/m, `$1 ${n}`);
+
+for (const [edition, track] of [['1', 'greenfield'], ['2', 'brownfield']]) {
+  const debtPath = track === 'greenfield' ? 'architecture/tech-debt.md' : 'migration/tech-debt.md';
+  const knownDeviationsAt = registry.templates[`${track}/rules.md`].shapes[1].skeleton
+    .filter((item) => item[0] === 'column' && item[1] === 'Rule Index').length;
+
+  // Older docs: rules.md and behavior.md each get their sentence after the
+  // change; tech-debt.md, whose changes carry none, keeps the defaults.
+  const p = await newProject(edition);
+  const older = async (dir, name) => withShapeNumber(await projectedTemplate(dir, name), 1);
+  await put(p, 'domain/ordering/rules.md', await older(p, 'rules.md'));
+  await put(p, 'domain/ordering/behavior.md', await older(p, 'behavior.md'));
+  await put(p, debtPath, await older(p, 'tech-debt.md'));
+  const out = await doctorAt(p);
+  const mixed = findingOf(out, /^\[info\] 3 spec doc\(s\) were written against an older template shape$/);
+  assert.ok(
+    olderGroup(mixed.detail, `${track}/rules.md 1 → 2`).includes(`added — column \`Known deviations\` (position ${knownDeviationsAt}) in table 1 under \`## Rule Index\` (migration: ${RULES_MIGRATION})`),
+    `${track}: the rules.md column is followed by its migration\n${mixed.detail}`
+  );
+  assert.ok(
+    olderGroup(mixed.detail, `${track}/behavior.md 1 → 2`).includes(`the \`>\` notes at the top of the document changed (migration: ${BEHAVIOR_MIGRATION})`),
+    `${track}: the behavior.md Purpose note is followed by its migration\n${mixed.detail}`
+  );
+  const debtGroup = olderGroup(mixed.detail, `${track}/tech-debt.md 1 → 2`);
+  assert.ok(debtGroup.includes('the HTML comments under `## Debt Items` added'), `${track}: fixture — the tech-debt.md group lists its changes\n${debtGroup}`);
+  assert.ok(!debtGroup.includes('(migration:'), `${track}: a change without a migration prints none\n${debtGroup}`);
+  assert.ok(mixed.action.includes(`${MIGRATION_LEAD} For each ADDED item, add it to the doc`), `${track}: the action opens its defaults with the lead\n${mixed.action}`);
+
+  // Only changes without a migration: the action is the one above without its lead.
+  const q = await newProject(edition);
+  await put(q, debtPath, await older(q, 'tech-debt.md'));
+  const plain = findingOf(await doctorAt(q), /^\[info\] 1 spec doc\(s\) were written against an older template shape$/);
+  assert.ok(!plain.detail.includes('(migration:') && !plain.action.includes(MIGRATION_LEAD), `${track}: nothing about migrations when no listed change has one\n${plain.action}`);
+  assert.equal(plain.action, mixed.action.replace(`${MIGRATION_LEAD} `, ''), `${track}: without a migration the action reads word for word as the defaults`);
+
+  // No marker: each migration is printed after the docs it is for. A doc that
+  // already has the column gets the same sentence, which only governs adding it.
+  const r = await newProject(edition);
+  const withValues = withoutMarker(await projectedTemplate(r, 'rules.md')).replace(/\| — \|\n/, `| Known deviation — tech-debt: [Ordering BR-001: rounding](../../${debtPath}#debt-items) |\n`);
+  assert.ok(withValues.includes('Known deviation — tech-debt:'), `${track}: fixture — the doc's Known deviations cell holds a value`);
+  await put(r, 'domain/ordering/rules.md', withValues);
+  await put(r, 'domain/ordering/behavior.md', withoutMarker(await projectedTemplate(r, 'behavior.md')));
+  await writeFile(specs(r, debtPath), withoutMarker(await readFile(specs(r, debtPath), 'utf8')));
+  const unmarked = findingOf(await doctorAt(r), /^\[info\] 3 spec doc\(s\) have no shape marker/);
+  const note = unmarked.action.slice(unmarked.action.indexOf(MIGRATION_NOTE));
+  assert.ok(note.startsWith(MIGRATION_NOTE), `${track}: the no-marker finding prints the migrations\n${unmarked.action}`);
+  assert.ok(note.includes(`For dflow/specs/domain/ordering/rules.md: ${RULES_MIGRATION}`), `${track}: the rules.md migration, for the rules.md doc\n${note}`);
+  assert.ok(note.includes(`For dflow/specs/domain/ordering/behavior.md: ${BEHAVIOR_MIGRATION}`), `${track}: the behavior.md migration, for the behavior.md doc\n${note}`);
+  assert.ok(!note.includes('tech-debt.md'), `${track}: a doc whose template registers no migration gets none\n${note}`);
+
+  // An unreadable marker: matched by path. A renamed doc in the same finding
+  // matches no template, so no migration is printed for it.
+  const u = await newProject(edition);
+  const damaged = (await projectedTemplate(u, 'rules.md')).replace(/(\/rules\.md) \d+ —/, '$1 one —');
+  await put(u, 'domain/a/rules.md', damaged);
+  await put(u, 'domain/a/rules-old.md', damaged);
+  const unread = findingOf(await doctorAt(u), /^\[uncertain\] 2 spec doc\(s\) have a shape marker doctor cannot read/);
+  assert.ok(unread.detail.includes('dflow/specs/domain/a/rules-old.md ('), `${track}: fixture — the renamed doc is in the same finding\n${unread.detail}`);
+  const unreadNote = unread.action.slice(unread.action.indexOf(MIGRATION_NOTE));
+  assert.ok(unreadNote.startsWith(MIGRATION_NOTE) && unreadNote.includes(`For dflow/specs/domain/a/rules.md: ${RULES_MIGRATION}`), `${track}: the unreadable-marker finding prints the migration for the doc at a flow path\n${unread.action}`);
+  assert.ok(!unreadNote.includes('rules-old.md'), `${track}: a doc doctor cannot match to a template gets no migration\n${unreadNote}`);
+  const v = await newProject(edition);
+  await put(v, 'domain/a/rules-old.md', damaged);
+  const alone = findingOf(await doctorAt(v), /^\[uncertain\] 1 spec doc\(s\) have a shape marker doctor cannot read/);
+  assert.ok(!alone.action.includes(MIGRATION_NOTE), `${track}: with only a doc doctor cannot match, no migration is printed\n${alone.action}`);
+}
+{
+  // A project that does not say which track it uses: both tracks' templates
+  // match, and their one sentence is printed once.
+  const p = await newProject('1');
+  await unlink(join(p, 'dflow/specs/shared/dflow-workflows/.dflow-bundle-manifest.json'));
+  for (const dir of ['architecture', 'migration', 'domain']) await rm(specs(p, dir), { recursive: true, force: true });
+  assert.equal(await init.inferProjectBundleEdition(p), null, 'fixture: the edition must be uninferable');
+  await put(p, 'domain/ordering/rules.md', withoutMarker(await projectedTemplate(p, 'rules.md')));
+  const unmarked = findingOf(await doctorAt(p), /^\[info\] 1 spec doc\(s\) have no shape marker/);
+  assert.equal(unmarked.action.split(RULES_MIGRATION).length - 1, 1, `the sentence both tracks register is printed once\n${unmarked.action}`);
+  assert.match(unmarked.detail, /does not say which track it uses/, 'and the track is still to be confirmed before a marker is written');
+}
+{
+  // Mutation: the same docs against a registry without its migrations print
+  // none of the above — so the assertions above stand on the registry's entries.
+  const fsp = createRequire(import.meta.url)('node:fs/promises');
+  const { readFile: realReadFile } = fsp;
+  const stripped = JSON.parse(await readFile(join(repoRoot, REGISTRY_REL), 'utf8'));
+  for (const e of Object.values(stripped.templates)) for (const s of e.shapes) for (const c of s.changes) delete c.migration;
+  const p = await newProject('1');
+  await put(p, 'domain/ordering/rules.md', withShapeNumber(await projectedTemplate(p, 'rules.md'), 1));
+  await put(p, 'domain/plain/rules.md', withoutMarker(await projectedTemplate(p, 'rules.md')));
+  fsp.readFile = function (file, ...rest) {
+    if (String(file).replace(/\\/g, '/').endsWith(REGISTRY_REL)) return Promise.resolve(JSON.stringify(stripped));
+    return realReadFile.call(this, file, ...rest);
+  };
+  let out;
+  try {
+    out = await doctorAt(p);
+  } finally {
+    fsp.readFile = realReadFile;
+  }
+  assert.match(out, /were written against an older template shape/, `mutation fixture: the older doc is still reported\n${out}`);
+  assert.match(out, /have no shape marker/, 'mutation fixture: the unmarked doc is still reported');
+  for (const text of ['(migration:', MIGRATION_LEAD, MIGRATION_NOTE, RULES_MIGRATION]) {
+    assert.ok(!out.includes(text), `mutation: without the registry's migrations, doctor prints no ${j(text)}`);
+  }
+}
+
+// An OLDER number: a package copy whose greenfield rules.md has one shape more
+// than the real one. The synthetic number and the new column's position are
+// derived from the registry's last shape, so the fixture keeps working when the
+// real template gains a shape or a column of its own.
 {
   const pkg = join(tempRoot, 'package-shape-2');
   for (const dir of ['bin', 'lib', 'templates', 'node_modules']) {
@@ -1151,31 +1337,35 @@ for (const [edition, track] of [['1', 'greenfield'], ['2', 'brownfield']]) {
   await cp(join(repoRoot, 'package.json'), join(pkg, 'package.json'));
   const templatePath = join(pkg, 'templates/greenfield/templates/rules.md');
   const original = await readFile(templatePath, 'utf8');
+  const reg = JSON.parse(await readFile(join(pkg, REGISTRY_REL), 'utf8'));
+  const entry = reg.templates['greenfield/rules.md'];
+  const cur = entry.shapes[entry.shapes.length - 1];
+  const next = cur.number + 1;
+  const ownerAt = cur.skeleton.filter((item) => item[0] === 'column' && item[1] === 'Rule Index').length + 1;
   // The note is reworded by position — the first `>` line, the one at the top —
   // not by its wording, so a harmless edit to that note does not break this.
   let shape2 = original
-    .replace('greenfield/rules.md 1 —', 'greenfield/rules.md 2 —')
-    .replace(/(\| BR-ID \| Rule summary \|[^\n]*\| Last updated \|)\n(\|[-:| ]+\|)/, '$1 Owner |\n$2---|')
+    .replace(`greenfield/rules.md ${cur.number} —`, `greenfield/rules.md ${next} —`)
+    .replace(/(\| BR-ID \| Rule summary \|[^\n]*\|)\n(\|[-:| ]+\|)/, '$1 Owner |\n$2---|')
     .replace('## Open Questions', '## Questions')
     .replace(/^> .*$/m, (line) => `${line} One row per rule.`);
   const legend = shape2.slice(shape2.indexOf('## Status Legend'), shape2.indexOf('## Questions'));
   shape2 = shape2.replace(legend, '').replace('## Rule Index', `${legend}## Rule Index`);
   const shape2Items = doctorChecks.extractShapeSkeleton(shape2);
-  assert.ok(shape2Items.some((item) => j(item) === j(['column', 'Rule Index', '', 1, 7, 'Owner'])), 'fixture: the Owner column was added at position 7 of the Rule Index table');
+  assert.ok(shape2.includes(`greenfield/rules.md ${next} —`), `fixture: the marker went to ${next}`);
+  assert.ok(shape2Items.some((item) => j(item) === j(['column', 'Rule Index', '', 1, ownerAt, 'Owner'])), `fixture: the Owner column was added last, at position ${ownerAt} of the Rule Index table`);
   assert.ok(shape2.indexOf('## Status Legend') < shape2.indexOf('## Rule Index') && shape2.indexOf(' One row per rule.') < shape2.indexOf('\n## '), 'fixture: the top note was reworded and Status Legend moved first');
   await writeFile(templatePath, shape2);
-  const reg = JSON.parse(await readFile(join(pkg, REGISTRY_REL), 'utf8'));
-  const entry = reg.templates['greenfield/rules.md'];
   const skeleton = doctorChecks.extractShapeSkeleton(shape2, { variable: entry.variable });
   const noteOf = (sk) => sk.find((item) => item[0] === 'note' && item[1] === '' && item[2] === '');
   const changes = [
-    { kind: 'added', item: ['column', 'Rule Index', '', 1, 7, 'Owner'] },
+    { kind: 'added', item: ['column', 'Rule Index', '', 1, ownerAt, 'Owner'] },
     { kind: 'renamed', from: ['h2', 'Open Questions'], to: ['h2', 'Questions'] },
-    { kind: 'reworded', from: noteOf(entry.shapes[0].skeleton), to: noteOf(skeleton) },
+    { kind: 'reworded', from: noteOf(cur.skeleton), to: noteOf(skeleton) },
     { kind: 'reordered', parent: null }
   ];
-  assert.equal(changeListMismatch(entry.shapes[0].skeleton, skeleton, changes), null, 'fixture: the synthetic shape 2 must itself pass the registry guard');
-  entry.shapes.push({ number: 2, digest: doctorChecks.shapeDigest(skeleton), changes, skeleton });
+  assert.equal(changeListMismatch(cur.skeleton, skeleton, changes), null, `fixture: the synthetic shape ${next} must itself pass the registry guard`);
+  entry.shapes.push({ number: next, digest: doctorChecks.shapeDigest(skeleton), changes, skeleton });
   await writeFile(join(pkg, REGISTRY_REL), JSON.stringify(reg, null, 2));
   const pkgDoctor = (cwd) => {
     const r = spawnSync(process.execPath, [join(pkg, 'bin', 'dflow.js'), 'doctor'], { cwd, encoding: 'utf8', timeout: 120000, maxBuffer: 8 * 1024 * 1024 });
@@ -1187,8 +1377,8 @@ for (const [edition, track] of [['1', 'greenfield'], ['2', 'brownfield']]) {
   await put(p, 'domain/ordering/rules.md', await projectedTemplate(p, 'rules.md'));
   const out = await pkgDoctor(p);
   assert.match(out, /\[info\] 1 spec doc\(s\) were written against an older template shape/, out);
-  assert.match(out, /`greenfield\/rules\.md 1 → 2` \(dflow\/specs\/domain\/ordering\/rules\.md\)/);
-  assert.match(out, /added — column `Owner` \(position 7\) in table 1 under `## Rule Index`/, 'additions are listed as something the adopter can add');
+  assert.match(out, new RegExp(`\`greenfield/rules\\.md ${cur.number} → ${next}\` \\(dflow/specs/domain/ordering/rules\\.md\\)`));
+  assert.match(out, new RegExp(`added — column \`Owner\` \\(position ${ownerAt}\\) in table 1 under \`## Rule Index\``), 'additions are listed as something the adopter can add');
   assert.match(out, /renamed, split, moved or removed — `## Open Questions` renamed to `## Questions`/, 'a rename is reported, never listed as an addition');
   assert.match(out, /notes, comments and section order, which do not change the doc's structure — the `>` notes at the top of the document changed; the order of the `##` sections changed/, 'notes and order are their own class');
   assert.match(out, /compare them with the current template and decide, with your AI assistant, whether to bring the doc in line/, 'with a way to handle them');
@@ -1249,7 +1439,11 @@ for (const [edition, track] of [['1', 'greenfield'], ['2', 'brownfield']]) {
   for (const [label, damage, expect] of [
     ['empty paths', (r) => { r.templates['greenfield/glossary.md'].paths = []; }, /entry `greenfield\/glossary\.md` has no usable paths/],
     ['paths deleted', (r) => { delete r.templates['greenfield/glossary.md'].paths; }, /entry `greenfield\/glossary\.md` has no usable paths/],
-    ['entry deleted', (r) => { delete r.templates['greenfield/glossary.md']; }, /greenfield\/templates\/glossary\.md` is a template the shape check covers, but `lib\/doc-shapes\.json` has no entry for it/]
+    ['entry deleted', (r) => { delete r.templates['greenfield/glossary.md']; }, /greenfield\/templates\/glossary\.md` is a template the shape check covers, but `lib\/doc-shapes\.json` has no entry for it/],
+    // A migration is printed as the instruction for its change, in place of the
+    // default: one that is not a sentence would print as nothing, or as `undefined`.
+    ['blank migration', (r) => { r.templates['greenfield/rules.md'].shapes[1].changes.find((c) => 'migration' in c).migration = ' '; }, /entry `greenfield\/rules\.md` has a change whose migration is not a sentence/],
+    ['migration not text', (r) => { r.templates['greenfield/rules.md'].shapes[1].changes.find((c) => 'migration' in c).migration = 5; }, /entry `greenfield\/rules\.md` has a change whose migration is not a sentence/]
   ]) {
     const r = JSON.parse(intact);
     damage(r);

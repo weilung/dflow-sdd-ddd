@@ -84,6 +84,11 @@ Per-feature checks:
       be a YAML array** — when it names several originals, *each* of them
       must carry the row; checking the first one is not checking the field.
 
+When a spec this PR touches carries a `Deferred deviation` line, apply
+`references/confirmed-rule-vs-code.md` § Scope and recording to every check in
+this checklist that requires a BR, its scenarios or its invariants to be
+implemented.
+
 Per-phase-spec / lightweight-spec checks (run for **each** spec file the
 PR touches, not just one):
 - [ ] **Spec matches code** — implementation matches Given/When/Then
@@ -131,6 +136,10 @@ If the closeout commit is in this PR (`/dflow:finish-feature` was run):
       `migration/tech-debt.md` belong to no bounded context, stay in a no-BC
       host's sweep, and are a baseline capture's own capture destinations, so
       this N/A does not reach them.
+- [ ] **Debt reconciliation** — for a closeout that resolves debt or changes
+      `Known deviation` records, verify it against
+      `references/confirmed-rule-vs-code.md` § Closeout reconciliation and this
+      feature's evidence, including retained deviations and debt disposition.
 - [ ] **Whole feature directory `git mv`'d** to `completed/` — git
       shows `renamed:` (not `deleted:` + `new file:`)
 - [ ] **Integration Summary** was emitted to the conversation (not
@@ -400,6 +409,11 @@ closure. The reviewer defines the evidence needed to unblock, not the author's
 implementation. Use the existing PR comment / conversation surface; do not
 create a separate review report.
 
+When the deferred guarantee is a business rule catalogued in `rules.md`, record
+the deferral with `references/confirmed-rule-vs-code.md` § Scope and recording
+instead, writing the owner, known risk and exit criteria in the debt row's
+`Deferred:` line. Other deferrals keep this route.
+
 ## Domain Layer Quality
 
 - [ ] **No delivery-framework references in Domain** — `src/Domain/` must have zero dependencies on HTTP request/response objects, session/cookie context, job-runner context, CLI flag parsers, or ViewState equivalents
@@ -482,7 +496,7 @@ uses '報銷 (Expense Claim)'. Should we align the naming?"
 
 - [ ] **New debt recorded** — Any shortcuts or compromises documented in tech-debt.md?
 - [ ] **Existing debt not worsened** — Did this change make existing tech debt worse?
-- [ ] **Debt reduced** — Did this change fix any existing tech-debt.md items? If so, check them off.
+- [ ] **Debt reduced** — Did this change fix any existing tech-debt.md items? For debt this feature's specs link, and debt that records a confirmed-rule deviation (it has a `BR:` line), leave the check-off to `/dflow:finish-feature` Step 3 and verify its disposition with the closeout item above; check off only other debt this change repaid.
 
 ## Migration Readiness Score
 

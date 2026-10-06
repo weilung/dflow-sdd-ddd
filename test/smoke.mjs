@@ -594,6 +594,7 @@ try {
     'templates/events.md',           // greenfield-only
     'references/ddd-modeling-guide.md', // PROPOSAL-064: common, projected to both editions
     'references/flow-rationale-registry.md', // PROPOSAL-085: common, projected to both editions
+    'references/confirmed-rule-vs-code.md', // PROPOSAL-107: common, projected to both editions
   ];
   for (const bundleFile of expectedBundleFiles) {
     assert.equal(

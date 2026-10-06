@@ -8,8 +8,62 @@
 
 ## Unreleased
 
-> **目前投影版號：`0.16.2`**（**未發布到 npm**；npm latest 仍是 `0.16.0`）。
-> 以下三段都在這一版裡；每段標題標出它第一次投影的版號。
+> **目前投影版號：`0.16.3`**（**未發布到 npm**；npm latest 仍是 `0.16.0`）。
+> 以下四段都在這一版裡；每段標題標出它第一次投影的版號。
+
+### 確認的規則與程式不一致時怎麼記、修好後誰收掉（PROPOSAL-107，dist issue #17 第 16 條）——`0.16.3`
+
+**來源**：dist issue #17 第 16 條——開發者確認了一條規則、程式卻沒照著做、這次先不修時，各份文件該記什麼。
+兩軌都受影響。
+
+- **規則與程式現況分開記**：規則照確認的寫，程式實際怎麼做記成「偏離」，連到一列技術債。只在開發者確認了規則、
+  也決定延後修的時候才記；AI 不會因為讀了程式就宣稱規則已確認。只在當下的工作本來就能改那個 context 的文件時記
+  （宣告了那個 bounded context 的變更，或 flow 允許的觀察紀錄）；T3 與沒有宣告 bounded context 的變更只告訴你。
+  - `rules.md` 多一欄 `Known deviations`（brownfield 第 6 欄、greenfield 第 7 欄）：有延後修的偏離時連到那一列技術債，
+    沒有就是 `—`。`—` 只表示沒有用這個格式記下偏離，不表示查過程式。
+  - `behavior.md`：情境只寫確認的規則；程式實際怎麼做，寫在規則標題下一行 `> Known deviation:`（觀察、證據、技術債連結）。
+  - `analysis.md`：表格照實記程式怎麼做，Guard 寫決定它的規則；違反規則的條目旁邊加一行 `> Known deviation:`，
+    末尾的 `Evidence:` 仍是最後一行。
+  - 技術債：一個偏離一列，名稱建立後不改（規則改名時只改那一列的 `BR:`），記規則、確認的規則摘要、程式現況、
+    規則與程式各自的證據、為什麼延後。
+  - spec：flow 進行中確認並延後的偏離，在 spec 標題下記一行 `> Deferred deviation:`；刪掉帶偏離的規則時，REMOVED
+    條目下記一行 `**Recorded deviation**:`。
+- **新的共通 reference `confirmed-rule-vs-code.md`**（workflow bundle 的 `references/` 底下，兩軌同一份）：上面的記法、
+  `analysis.md` 怎麼記、merge 時怎麼保留、收尾怎麼收。只在有偏離紀錄、延後紀錄或收尾訊號時才讀，平常的 flow 不讀它。
+- **驗證與 PR review**：spec 帶延後紀錄時，要求規則、情境（greenfield 加 invariant）已實作的檢查，把那一個偏離當成
+  已知例外並引用技術債；這份 spec 自己要加、要改或要修那個行為的（Delta、新加的規則、family (e) 要修的缺陷、
+  修它的任務）不算例外，其他沒做到的也照樣不過。pr-review 延後一條 `rules.md` 已編目的規則的 modeling blocker 時，
+  改照這個記法記；brownfield 的 **Debt reduced** 不再自己勾掉 spec 連到的、或記確認規則偏離的技術債，留給收尾。
+- **merge 與繼承**：follow-up 繼承、各 flow 的文件更新與收尾同步，改寫或刪除帶偏離紀錄的列、段落或條目之前，
+  先照保留規則做——偏離欄與偏離行不進 BR Snapshot，改寫之後放回去。
+- **`/dflow:finish-feature` Step 3 收掉修好的偏離**：host 的 spec 指名帶偏離的規則、連到一列技術債、或帶延後紀錄時，
+  才跑技術債對帳——開測試與程式證據判斷修好了沒有（不清楚就問你）；修好的把 `rules.md` 那一格改回 `—`、拿掉偏離行、
+  技術債設成 `done`；沒修好的保留，同步之後補齊缺的那一格與偏離行；規則刪掉或改掉的記成 `Closed by rule change`。
+  這次還清、spec 有連到的一般技術債也在這一步設成 `done`。沒有訊號就只印一行 `Debt reconciliation: no signal`。
+  沒有宣告 bounded context 的 host 只跳過 BC 範圍的同步，對帳照做；最小 host 的收尾清單准許這些文件修改。
+- **`lightweight-spec.md` 的 bug fix**：Behavior Delta 先判斷改的是規則還是實作；只修實作就用檔首沒有 BR 的
+  family (e)，不再預設寫 MODIFIED。
+- **brownfield baseline 盤點**：Step 6.2 第 2 題「程式做錯了，規則是…；這次不修」改照這個記法記，技術債列的
+  `Rule evidence` 指向 Goals & Scope 那一行確認；不改規則意思的照寫，要改意思的照舊進 `## Open Questions`、技術債照寫。
+  greenfield 的觀察紀錄可以帶技術債。
+- **`AI-AGENT-GUIDE.md`**：§ Behavior Source of Truth 改寫成規則、偏離與觀察的分工，加兩個呼叫（記偏離、merge 帶偏離
+  的段落）；§ Routing Non-Command Input 加一句：確認的規則與程式不一致時，先照那一節做。這兩節在 guide 的
+  `guide-canonical` marker 之內：帶著 marker 的 guide 再跑一次 `dflow configure-agents` 即取得；marker 之前的 guide
+  要先在互動模式採用 marker（見 `docs/upgrading.md`）。
+- **`dflow render`**：索引頁與年份頁的說明不再說 Domain 文件就是「系統現在的行為」，改說現行的規則與已記錄的程式觀察。
+  圖照 `analysis.md` 的表格畫，不標出違反規則的轉移。
+- **`dflow doctor`**：舊形狀、沒有標記、標記看不準三種 finding，對帶遷移句的變更印出那一句（見下一項）。
+- **既有文件要不要跟著改**：兩軌 `rules.md`、`behavior.md`、`tech-debt.md`、`lightweight-spec.md` 範本各升 shape 2，
+  doctor 會對既有文件報舊形狀。`rules.md` 的新欄與 `behavior.md` 的 Purpose 兩項照 doctor 印的遷移句做：既有的列填
+  `—`（不是 `{TBD}`），Purpose 換成範本的新句；另兩支只改了說明與註解，要不要跟上由你判斷。改過名或搬過位置、又沒有
+  讀得到的形狀標記的文件，拿不到遷移句。用舊方式記的偏離（例如寫成 edge case）不必現在改：之後的工作碰到那條規則、你也確認它是延後修的
+  缺陷時再轉換。workflow bundle（含新的 reference）再跑一次 `dflow configure-agents` 即取得。
+- **新公開頁 `docs/confirmed-rule-vs-code.md`（＋ `.en.md`）**：各份文件的分工、收尾怎麼收，以及做了之後仍然存在的
+  風險；`docs/commands`、`docs/upgrading`、`docs/closeout-check` 兩語與 README 都連過去。
+- **tutorial**：兩軌範例的 `rules.md`、`behavior.md`、`tech-debt.md` 照 doctor 印的遷移句升到 shape 2（既有的列填 `—`、
+  Purpose 換成新句）。brownfield 的 rounding 技術債改在 `SPEC-20260430-001` 收尾的 Step 3 對證據設成 `done`；`isVip`
+  那一列的移除排進還在進行的 `SPEC-20260505-002`，狀態是 `planned`。兩軌 walkthrough 補上偏離的記法、baseline 盤點
+  第 4 題「程式做錯了」那種答法、收尾 Step 3 的訊號與技術債對帳，greenfield 另有一段清掉偏離的假設示例。
 
 ### baseline 盤點這條路（PROPOSAL-106，dist issue #18）——`0.16.2`
 

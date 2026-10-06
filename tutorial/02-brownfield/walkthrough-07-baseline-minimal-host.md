@@ -260,6 +260,12 @@ Dflow:
 它是一個待決的業務問題，不是一條已成立的規則。
 ```
 
+⚠ **三處不一致不是「確認的規則、程式沒照做」。** 那種情況有自己的記法——`rules.md` 的 `Known deviations` 欄、
+`behavior.md` 的 `> Known deviation:` 行，連到一列技術債（見 [walkthrough 03](walkthrough-03-baseline-capture.md)
+的第 4 題）——前提是規則已經確認。這裡「以哪一個金額為準」還沒有人拍板，沒有規則可以被違反，
+所以不用偏離的記法，也不建 BR：三處照實記成觀察，待決的那一題記在 tech-debt 與 HS-01。
+等營運拍板、寫成 BR 之後，若還有一兩處程式不照新規則、而那一次又決定先不修，那時才是偏離。
+
 第三條在這次也有東西要記：
 
 ```text
@@ -393,7 +399,9 @@ Bob: 先不要。免運門檻怎麼判定還沒拍板（HS-01），現在寫定�
 ```
 
 第 5 題問的是 `behavior.md` 這次寫的**每一段**，不只有 BR-ID 的段落：本篇的三個情境與「已知不一致」
-都沒有 BR-ID，但它們一樣是這次寫進去的現況，一樣要開發者確認寫對了。
+都沒有 BR-ID，但它們一樣是這次寫進去的現況，一樣要開發者確認寫對了。每一段照它寫的是什麼來問：
+沒有 BR-ID 的段落寫的是觀察本身，所以本篇整題問「照現況寫對了嗎」；帶 BR-ID 的情境問的是
+「寫的是不是確認的規則」，偏離行問的是觀察與證據（見 [walkthrough 03](walkthrough-03-baseline-capture.md) 的第 5 題）。
 
 每一個確認在 host 的 Goals & Scope 記一行：它定了什麼、落在哪。baseline 最小 host 記在開頭那一兩句
 （盤點的範圍）之後——本 fixture 的 Goals & Scope 還有幾段說明，確認行就接在 Goals & Scope 的最後：
@@ -480,11 +488,14 @@ Step 2 — status → completed，branch: 保持不變。
   Awaiting: none (mid-step)。closeout 還沒跑完，終局值在 Step 4 寫。
 
 Step 3 — Sync BR Snapshot to BC Layer：
-  這是 **(iii) baseline-precaptured** 的情況——
+  先收集 debt 訊號：這個 host 沒有任何 spec 檔（只有一次 baseline capture）
+  → 沒有訊號。Debt reconciliation: no signal
+
+  接著看 host 形狀：這是 **(iii) baseline-precaptured** 的情況——
   BC 層在 capture 當下就已經寫好了（隨 checkpoint 1 進版控），
   closeout **沒有東西要再 sync**。
 
-  注意這和 no-BC 的「整段跳過」不一樣：
+  注意這和 no-BC 的「跳過 BC 範圍的同步」不一樣：
   本 host **有** bounded context（Shipment），
   只是它的內容早就寫進去了。
   Integration Summary 的 BC: 欄填 **Shipment**，不是 none。
@@ -592,6 +603,7 @@ baseline host **走完整個生命週期然後歸檔**，不會以一個半開�
 - **產出一列合法的 `Tier = baseline` row**，那就是它的記錄；不產 spec 檔。
 - **BC 在 capture 當下就寫好**，closeout 沒有東西要再 sync；但 `BC:` 欄填真實的 context，不是 `none`。
 - **confirmed 進 `behavior.md`，unknown / buggy 進 `tech-debt.md`**，不硬升成 BR。
+- **還沒有確認的規則，就沒有偏離**：三處不一致記成觀察與待決題，不用 `Known deviations` 欄與 `> Known deviation:` 行。
 - **一個數字在哪幾處、怎麼算，以及卡在它上面的待決決定，進 `analysis.md`**；它指回 `behavior.md` 的情境與 `tech-debt.md` 的待決那一列，不重抄。
 - **不留空的 active feature**——baseline host 走完生命週期並歸檔。
 

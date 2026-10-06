@@ -110,3 +110,8 @@ in [README "Get Started"](../README.en.md#get-started); what to do about what `d
 is in [Upgrading an Existing Dflow Project](upgrading.en.md) and
 [When `dflow doctor` is not sure](doctor-uncertainty.en.md); what `check-closeout` checks, and the hook and CI
 templates, are in [Checking the closeout commit](closeout-check.en.md).
+
+`render` draws its state and flow diagrams from the tables in `analysis.md` and marks no
+transition as breaking a rule; when the code does not follow a confirmed rule yet, the deviation
+is recorded in the text beside the diagram — see
+[When a confirmed rule and the code disagree](confirmed-rule-vs-code.en.md).
