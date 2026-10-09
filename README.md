@@ -23,7 +23,7 @@
 | **DDD 的模型與規則裝不下的那一塊（`analysis.md`）** | `models.md` 收「存下來的是什麼」、`rules.md` 收「一條規則」、`behavior.md` 收「一個情境」——**沒有一支收「它怎麼動的」**。`analysis.md` 就是那一支，六節：跨 context 的交手順序（`FL-nn`）、一個狀態欄位的生命週期（`LC-nn`）、算出來而不是存下來的數字（`RM-nn`）、單一規則解釋不了的機制（`MX-nn`）、誰碰得到哪個功能的索引，以及一直被繞過的熱點。每一條標明出處（程式碼、資料、誰確認的、推論或假設）。不再只留在對話裡、或跟著 feature 收尾一起凍結；中途採用 Dflow 的既有專案，也靠它把系統現況一塊塊補齊。 |
 | **依改動深淺的 Tier 制（T1/T2/T3）** | AI 依改動深淺自動決定規格與驗證量級：改顏色／typo 這類小修（掛在所屬 feature 下）只需 `_index.md` 一行、功能性 bug fix 用 lightweight spec（T3 顯示層 defect 仍是 `_index.md` 一行）、新 feature 或動到 bounded context 級的變更才走完整 phase-spec。小修改不會被流程拖累。 |
 | **漂移驗證** | `/dflow:verify` 交叉比對規格、領域文件、實作、測試與債務紀錄，抓出「文件還在描述舊行為」這種 PR review 人眼看不出的漂移。 |
-| **Specs 給 AI 讀、也給人讀（md → HTML）** | `dflow render` 把 AI 取向的密集 Markdown specs 轉成可瀏覽的靜態 HTML。`analysis.md` 裡的狀態生命週期與跨 context 流程畫成圖：哪個狀態會繞回去、哪裡是終點，交手在哪幾個 context 之間移動，一眼看出來；其餘表格變卡片、標記變 badge（下方有對照截圖）。Markdown 仍是 AI 讀的 source of truth。 |
+| **Specs 給 AI 讀、也給人讀（md → HTML）** | `dflow render` 把 AI 取向的密集 Markdown specs 轉成可瀏覽的靜態 HTML。`analysis.md` 裡的狀態生命週期與跨 context 流程畫成圖：哪個狀態會繞回去、哪裡是終點，交手在哪幾個 context 之間移動，一眼看出來；其餘的表可以在卡片與表格之間逐張切換、標記變 badge（下方有對照截圖）。Markdown 仍是 AI 讀的 source of truth。 |
 | **多 AI 工具共用一份規則** | Canonical 專案指南＋各工具薄 shim（`CLAUDE.md` / `AGENTS.md` / Copilot instructions），在 Claude / Codex / Copilot 間切換不必維護多份規則；三家共用依 agentskills.io 開放標準的 project-level skill，可自然語言自動觸發（Copilot CLI 需先打 `/dflow` 喚起）。 |
 
 ## 你不用先學指令
@@ -116,7 +116,7 @@ Dflow 的 specs 是給 AI 讀的 Markdown（表格緊湊、標記密集）。要
 dflow render
 ```
 
-它把 `dflow/specs/` 鏡像成一棵靜態 HTML 樹（預設輸出 `dflow-specs-html/`，可用 `--src` / `--out` / `--title` 調整）：記錄型表格逐列轉成卡片、AI 專用註解標記變成 badge、gherkin 關鍵字高亮、樹內連結自動改連對應 HTML 頁；`analysis.md` 裡填好的生命週期與流程，另外在卡片上方畫成圖（畫不成圖的，頁面上改留一行說明，命令列也逐張列出檔案、編號與原因；畫得出圖的條件見 `dflow render --help`）。開啟輸出目錄的 `index.html` 即可瀏覽（`file://` 直開、免 server）：首頁是分組目錄——Features、Domain、架構與遷移、共用文件、其他——各組先收起、點開才展開（只有一組時直接展開），附一句用途說明與「怎麼讀這些文件」；Domain 一個 context 一列，feature 一個目錄一列。塞進單一儲存格的超長敘述會自動改善呈現：該卡片撐滿整列、特別長的欄位先摺疊、點「展開全文」再看（純 CSS、列印一律全展開）。`features/completed/` 封存區不會攤平在首頁——首頁只放年度連結、一年一頁，封存再多年首頁也不會變長。`--src` 指到的不是 Dflow 的 specs 根目錄（沒有 `shared/_conventions.md`）時，首頁是照路徑排列的目錄樹。
+它把 `dflow/specs/` 鏡像成一棵靜態 HTML 樹（預設輸出 `dflow-specs-html/`，可用 `--src` / `--out` / `--title` 調整）：記錄型表格逐列轉成卡片，每張表上方的「卡片｜表格」開關可以把這一張換成表格看（要跨列比較時好讀；`--table-view table` 讓整份輸出的表一開始就是表格，頁面不記住切換）、AI 專用註解標記變成 badge、gherkin 關鍵字高亮、樹內連結自動改連對應 HTML 頁；`analysis.md` 裡填好的生命週期與流程，另外在那張表的上方畫成圖（畫不成圖的，頁面上改留一行說明，命令列也逐張列出檔案、編號與原因；畫得出圖的條件見 `dflow render --help`）。開啟輸出目錄的 `index.html` 即可瀏覽（`file://` 直開、免 server）：首頁是分組目錄——Features、Domain、架構與遷移、共用文件、其他——各組先收起、點開才展開（只有一組時直接展開），附一句用途說明與「怎麼讀這些文件」；Domain 一個 context 一列，feature 一個目錄一列。塞進單一儲存格的超長敘述會自動改善呈現：該卡片撐滿整列、特別長的欄位先摺疊、點「展開全文」再看（純 CSS、列印一律全展開）。`features/completed/` 封存區不會攤平在首頁——首頁只放年度連結、一年一頁，封存再多年首頁也不會變長。`--src` 指到的不是 Dflow 的 specs 根目錄（沒有 `shared/_conventions.md`）時，首頁是照路徑排列的目錄樹。
 
 同一份 spec 的兩種讀法——左：AI 讀的 Markdown 源（密集表格 + `<!-- phase-2 ADDED -->` 這類 AI 專用標記）；右：`dflow render` 產出的 HTML（逐列變卡片、標記變 badge）：
 

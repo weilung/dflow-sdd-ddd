@@ -33,13 +33,16 @@
 // deviation beside analysis.md entries (PROPOSAL-107: two transitions of one BR
 // told apart by Trigger with the deviation line after the table, a picture the
 // line does not change, Evidence: still closing RM and MX, and the three page
-// sentences that no longer promise current behavior), Windows long-path
-// output, and the dynamic import('marked') loading-path lock.
+// sentences that no longer promise current behavior), the card/table switch
+// (PROPOSAL-108: cards byte-identical to the pre-change renderer, every cell
+// in the table view, the --table-view flag and its refusals, author-written
+// ids, threshold edges, print CSS, out-of-range numeric references), Windows
+// long-path output, and the dynamic import('marked') loading-path lock.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { link, mkdir, mkdtemp, readFile, rm, rmdir, stat, symlink, unlink, writeFile } from 'node:fs/promises';
+import { link, mkdir, mkdtemp, readdir, readFile, rm, rmdir, stat, symlink, unlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve, toNamespacedPath } from 'node:path';
+import { dirname, join, relative, resolve, sep, toNamespacedPath } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import render from '../lib/render.js';
@@ -109,8 +112,10 @@ try {
   {
     const help = runRenderCli(tempRoot, ['--help']);
     assert.equal(help.code, 0, 'render --help exits 0');
-    assert.match(help.stdout, /dflow render \[--src <dir>\] \[--out <dir>\] \[--title <text>\]/);
+    assert.match(help.stdout, /dflow render \[--src <dir>\] \[--out <dir>\] \[--title <text>\] \[--table-view <cards\|table>\]/);
     assert.match(help.stdout, /full rebuild/, 'help states the full-rebuild model');
+    assert.match(help.stdout, /\n {2}--table-view <cards\|table>\n {18}Which form every table of two or more columns with rows\n {18}starts in \(default: cards\)\./,
+      'help names the --table-view values and the default (PROPOSAL-108)');
     // The diagram limits the help states are the ones the renderer enforces:
     // a limit changed in lib/render-diagrams.js without the help fails here.
     const L = diagrams.DIAGRAM_LIMITS;
@@ -494,7 +499,9 @@ Scenario: submit expense
     );
     assert.match(page, /<label class="fxl" for="fldx-0"><span class="fxm">展開全文 ▾<\/span><span class="fxs">收合 ▴<\/span><\/label>/);
     assert.ok(page.includes('id="fldx-1"') && page.includes('for="fldx-1"'), 'second wall field gets the next document-unique id');
-    assert.equal((page.match(/class="fxt"/g) || []).length, 2, 'only wall-length fields get toggles');
+    // (PROPOSAL-108: counted in the card form; the table view clamps on its own threshold)
+    const cardForm = page.match(/<div class="tv-cards">([\s\S]*?)<\/div><div class="tv-table/)[1];
+    assert.equal((cardForm.match(/class="fxt"/g) || []).length, 2, 'only wall-length fields get toggles');
 
     // verbatim content: the ； run-on chain and the authored <br> survive
     // unmodified inside the clamp (no layout-driven splitting), and code-
@@ -512,6 +519,343 @@ Scenario: submit expense
     assert.match(page, /\.card\.wide \{ grid-column: 1 \/ -1; \}/);
     assert.match(page, /\.fxc \{ max-height: calc\(6 \* 1\.85em\); overflow: hidden;/);
     assert.match(page, /@media print \{\s*\.fxc \{ max-height: none; \}\s*\.fxc::after, \.fxl, \.fxt \{ display: none; \}\s*\}/);
+  }
+
+  // --- PROPOSAL-108: every record table reads as cards or as a table ---
+  // Both forms behind a pure-CSS switch that starts on --table-view (default
+  // cards). The cards are byte-identical to the pre-change renderer (the
+  // golden strings below are its output for this fixture); the table view
+  // carries every cell's HTML, empty cells included; a cell with an
+  // author-written id or name gets its starting form only; the thresholds
+  // are locked; a numeric reference that names no character no longer fails
+  // the run (G), which is the one way a card's HTML can differ.
+  {
+    const {
+      SHORT_COLUMN_WIDTH, TABLE_CLAMP_CHARS, WIDE_COLUMN_CAP, TABLE_CELL_PADDING, WIDE_TABLE_WIDTH,
+      PRINT_MIN_SHARE, printShares, displayWidth, hasAuthorId
+    } = render;
+    assert.equal(SHORT_COLUMN_WIDTH, 24, 'short-column width locked as set in the visual iteration');
+    assert.equal(TABLE_CLAMP_CHARS, 200, 'table-view clamp threshold locked');
+    assert.equal(WIDE_COLUMN_CAP, 40, 'natural-width column cap locked');
+    assert.equal(TABLE_CELL_PADDING, 3, 'natural-width cell padding locked');
+    assert.equal(WIDE_TABLE_WIDTH, 120, 'wide-table threshold locked');
+    assert.equal(PRINT_MIN_SHARE, 3.6, 'print floor locked: 1.8em of a 50em A4 portrait page');
+    assert.equal(displayWidth('BR-001'), 6);
+    assert.equal(displayWidth('中文ab'), 6, 'a CJK character counts 2');
+    assert.equal(displayWidth('Ａ１'), 4, 'a fullwidth character counts 2');
+
+    // heading ids against the pre-change renderer: every id on the left is what
+    // the base commit's headingSlug() returned for that heading HTML (run on
+    // 2026-10-09), so a reference that names no character — written directly
+    // or formed while decoding — must not change an id it could already make;
+    // an out-of-range one, which made the base renderer throw, adds nothing
+    for (const [html, baseId] of [
+      ['Zero &#0;', 'zero-'], ['Surrogate &#xD800;', 'surrogate-'], ['A &#38;#xD800; B', 'a-b'],
+      ['C &#38;#x0000; D', 'c-d'], ['Lead &#0000065;', 'lead-a'], ['Hex &#x41;&#X42;', 'hex-ab'],
+      ['Amp &amp;#65;', 'amp-65'], ['Lt &lt;b&gt;', 'lt-b'], ['Mixed &#x1F600; smile', 'mixed-smile'],
+      ['標題 &#20013;', '標題-中'], ['Dec &#38;#48;', 'dec-48'],
+      // two surrogate references still form one character, however written
+      ['CJK &#xD840;&#xDC00;', 'cjk-𠀀'], ['Pair &#xD801;&#xDC00;', 'pair-𐐨'], ['Mixed &#55297;&#xDC00;', 'mixed-𐐨'],
+      ['Formed &#55297;&#38;#xDC00;', 'formed-𐐨'], ['Math &#xD835;&#xDC00;', 'math-𝐀'],
+      ['Big &#1114112;', 'big-'], ['Big hex &#x110000;', 'big-hex-'], ['Nested &#38;#x110000;', 'nested-']
+    ]) {
+      assert.equal(render.headingSlug(html, new Map()), baseId, `heading id of ${JSON.stringify(html)}`);
+    }
+
+    // author-written id / name: any element in the cell, quoted values may hold
+    // a `>`; escaped text and attributes that merely end in id do not count
+    for (const html of ['<a id="x"></a>', '<a ID=x>k</a>', '<a title="a>b" id="x">k</a>', '<a name=\'old\'>k</a>', 'k<br><span\nid="y">v</span>']) {
+      assert.equal(hasAuthorId(html), true, `author id detected in ${JSON.stringify(html)}`);
+    }
+    for (const html of ['<span data-id="x">k</span>', '<code>&lt;a id="x"&gt;</code>', 'id="x" in text', '<a href="#x" aria-describedby="y">k</a>', '<!-- id="x" -->']) {
+      assert.equal(hasAuthorId(html), false, `no author id in ${JSON.stringify(html)}`);
+    }
+
+    const proj = join(tempRoot, 'tableview');
+    const src = join(proj, 'dflow/specs');
+    const gWall = '甲'.repeat(410);
+    const gWall2 = '乙'.repeat(400);
+    await writeFixture(join(src, 'golden.md'), [
+      '# Golden', '',
+      '| ID | Summary | Status | Bounded Context | Notes |', '|---|---|---|---|---|',
+      '| G-1 | 一<br>二 | active | Billing |  |',
+      `| G-2 | \`code\` and [link](other.md#a) | draft | ${'界'.repeat(41)} | ${'長'.repeat(210)} |`,
+      `| G-3 | ${gWall} | deprecated |  | 短 |`,
+      '|  | untitled row | unknown-status | Sales | x |', '',
+      '| Key | Value |', '|---|---|', `| k | ${gWall2} |`, ''
+    ].join('\n'));
+    await writeFixture(join(src, 'other.md'), '# Other\n\n## A\n');
+    const longSummary = '長'.repeat(TABLE_CLAMP_CHARS);
+    await writeFixture(join(src, 'tables.md'), [
+      '# Tables', '', '## 卡片', '',
+      '| BR-ID | Rule summary | Status | Last updated | Notes |', '|---|---|---|---|---|',
+      '| BR-001 | 規則一 [連結](other.md#a) | completed | 2026-10-09 | a<br>b |',
+      '| BR-002 | `code` 規則二 | in-progress | 2026-10-09 |  |',
+      `| BR-003 | ${longSummary} | draft | 2026-10-09 | 見 \`other.md\` |`, '',
+      '## 表格', '', '| Only |', '|---|', '| one |', '', '| A | B |', '|---|---|', '',
+      '- 清單裡的表：', '', '  | K | V |', '  |---|---|', '  | k1 | v1 |', '',
+      '> 引言裡的表：', '>', '> | P | Q |', '> |---|---|', '> | p1 | q1 |', '',
+      '## tvx', '', '| X | Y |', '|---|---|', '| x1 | y1 |', ''
+    ].join('\n'));
+    await writeFixture(join(src, 'bounds.md'), [
+      '# Bounds', '',
+      '| Short | Over | Clamp | Under |', '|---|---|---|---|',
+      `| ${'中'.repeat(12)} | ${'中'.repeat(12)}a | ${'丙'.repeat(TABLE_CLAMP_CHARS)} | ${'丁'.repeat(TABLE_CLAMP_CHARS - 1)} |`, '',
+      '| A | B | C |', '|---|---|---|', `| ${'a'.repeat(40)} | ${'b'.repeat(40)} | ${'c'.repeat(31)} |`, '',
+      '| A | B | C |', '|---|---|---|', `| ${'a'.repeat(40)} | ${'b'.repeat(40)} | ${'c'.repeat(32)} |`, '',
+      // forty short columns: wider than the paper unless print lays it out fixed
+      `| ${Array.from({ length: 40 }, (_, i) => `C${String(i).padStart(2, '0')}`).join(' | ')} |`,
+      `|${'---|'.repeat(40)}`,
+      `| ${Array.from({ length: 40 }, (_, i) => `V${String(i).padStart(2, '0')}`).join(' | ')} |`, '',
+      // six long columns and two one-letter ones: at their natural shares the
+      // short ones would be narrower in print than their padding and one letter
+      '| A | B | C | D | E | F | X | Y |', '|---|---|---|---|---|---|---|---|',
+      `| ${Array.from({ length: 6 }, () => 'long narrative '.repeat(8).trim()).join(' | ')} | W | W |`, ''
+    ].join('\n'));
+    await writeFixture(join(src, 'ids.md'), [
+      '# Ids', '', '[跳過去](#anchor-1)', '',
+      '| Key | Value | Note |', '|---|---|---|',
+      '| <a id="anchor-1"></a>k1 | v1 | n1 |',
+      '| k2 | <a title="a>b" name="old-anchor">v2</a> | <a id="empty-cell"></a> |',
+      '| <a id="empty-title"></a> | v3 | n3 |', '',
+      '| <span id="in-header">Key</span> | Value |', '|---|---|', '| h1 | w1 |', ''
+    ].join('\n'));
+    // an author-id table ahead of a switchable one, both with a clamped field
+    await writeFixture(join(src, 'seq.md'), [
+      '# Seq', '',
+      '| Key | Value |', '|---|---|', `| <a id="seq-a"></a>a1 | ${'甲'.repeat(410)} |`, '',
+      '| Key | Value |', '|---|---|', `| b1 | ${'乙'.repeat(410)} |`, ''
+    ].join('\n'));
+    const refWall = `${'界'.repeat(CLAMP_FIELD_CHARS - 4)}&#0;`;
+    await writeFixture(join(src, 'refs.md'), [
+      '# Refs', '', '[到 Zero](#zero-)', '', '## 標題 &#1114112;', '', '## Zero &#0;', '', '## Surrogate &#xD800;', '',
+      '| Key | Value |', '|---|---|',
+      '| r1 | 範圍外 &#x110000; |',
+      `| r2 | ${refWall} |`, ''
+    ].join('\n'));
+
+    const cardForms = (html) => [...html.matchAll(/<div class="tv-cards">([\s\S]*?)<\/div><div class="tv-table/g)].map((m) => m[1]);
+    const tableForms = (html) => [...html.matchAll(/<div class="tv-table( wide)?">(<div class="tblwrap"><table>[\s\S]*?<\/table><\/div>\n)<\/div>/g)]
+      .map((m) => ({ wide: Boolean(m[1]), html: m[2] }));
+    const cellsOf = (tableHtml) => tableHtml.split('<tbody>')[1].split('</tr>').slice(0, -1)
+      .map((row) => [...row.matchAll(/<td class="([^"]*)">([\s\S]*?)<\/td>/g)].map((m) => ({ cls: m[1], html: m[2] })));
+    const clampOf = (cellHtml) => /^<input type="checkbox" class="fxt" id="(tfx-\d+)"><div class="fxc">([\s\S]*)<\/div><label class="fxl" for="\1"><span class="fxm">展開全文 ▾<\/span><span class="fxs">收合 ▴<\/span><\/label>$/.exec(cellHtml);
+    const unstamp = (html) => html.replace(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/g, 'STAMP');
+    const pages = ['golden.html', 'other.html', 'tables.html', 'bounds.html', 'ids.html', 'seq.html', 'refs.html'];
+    const readAll = async (outDir) => Object.fromEntries(await Promise.all(pages.map(async (p) => [p, await readOut(join(outDir, p))])));
+    // every file under an output directory, dot files (the manifest) included,
+    // by relative path — what a refused run must leave and a run may write
+    const outputFiles = async (outDir) => (await readdir(outDir, { recursive: true, withFileTypes: true }))
+      .filter((e) => e.isFile())
+      .map((e) => relative(outDir, join(e.parentPath, e.name)).split(sep).join('/'))
+      .sort();
+
+    const run = runRenderCli(proj, ['--out', 'html-default']);
+    assert.equal(run.code, 0, `table-view render failed\nSTDERR:\n${run.stderr}`);
+    const def = await readAll(join(proj, 'html-default'));
+
+    // the cards are the pre-change renderer's, byte for byte (golden)
+    const goldenCards = [
+      '<div class="cards"><article class="card"><div class="card-title">G-1</div><div class="card-chips"><span class="badge neutral">active</span><span class="chip cat">Bounded Context: Billing</span></div><div class="card-fields"><div class="fld"><span class="fld-k">Summary</span><div class="fld-v">一<br>二</div></div></div></article>' +
+      '<article class="card wide"><div class="card-title">G-2</div><div class="card-chips"><span class="badge neutral">draft</span></div><div class="card-fields"><div class="fld"><span class="fld-k">Summary</span><div class="fld-v"><code>code</code> and <a href="other.html#a">link</a></div></div>' +
+      `<div class="fld"><span class="fld-k">Bounded Context</span><div class="fld-v">${'界'.repeat(41)}</div></div><div class="fld"><span class="fld-k">Notes</span><div class="fld-v prose">${'長'.repeat(210)}</div></div></div></article>` +
+      `<article class="card wide"><div class="card-title">G-3</div><div class="card-chips"><span class="badge neutral">deprecated</span></div><div class="card-fields"><div class="fld"><span class="fld-k">Summary</span><div class="fld-v prose"><input type="checkbox" class="fxt" id="fldx-0"><div class="fxc">${gWall}</div><label class="fxl" for="fldx-0"><span class="fxm">展開全文 ▾</span><span class="fxs">收合 ▴</span></label></div></div><div class="fld"><span class="fld-k">Notes</span><div class="fld-v">短</div></div></div></article>` +
+      '<article class="card"><div class="card-title">（未命名）</div><div class="card-chips"><span class="badge neutral">unknown-status</span><span class="chip cat">Bounded Context: Sales</span></div><div class="card-fields"><div class="fld"><span class="fld-k">Summary</span><div class="fld-v">untitled row</div></div><div class="fld"><span class="fld-k">Notes</span><div class="fld-v">x</div></div></div></article></div>\n',
+      `<div class="cards"><article class="card wide"><div class="card-title">k</div><div class="card-fields"><div class="fld"><span class="fld-k">Value</span><div class="fld-v prose"><input type="checkbox" class="fxt" id="fldx-1"><div class="fxc">${gWall2}</div><label class="fxl" for="fldx-1"><span class="fxm">展開全文 ▾</span><span class="fxs">收合 ▴</span></label></div></div></div></article></div>\n`
+    ];
+    assert.deepEqual(cardForms(def['golden.html']), goldenCards, 'cards are byte-identical to the pre-change renderer, card ids included');
+
+    // the switch: one per multi-column table, two radios before both forms,
+    // cards checked by default; one-column and header-only tables keep the
+    // plain table, without a switch
+    const tables = def['tables.html'];
+    const switches = [...tables.matchAll(/<div class="tv"><input type="radio" class="tvr tvc" name="(tvx-\d+)" id="\1-c" checked><input type="radio" class="tvr tvt" name="\1" id="\1-t"><div class="tvs"><label class="tvl-c" for="\1-c">卡片<\/label><label class="tvl-t" for="\1-t">表格<\/label><\/div><div class="tv-cards"><div class="cards">/g)].map((m) => m[1]);
+    assert.deepEqual(switches, ['tvx-0', 'tvx-1', 'tvx-2', 'tvx-3'], 'four multi-column tables, four independent switches, cards checked');
+    assert.equal((tables.match(/<div class="tv">/g) || []).length, 4);
+    assert.match(tables, /<h2 id="表格">表格<\/h2>\n<div class="tblwrap"><table>\n<thead>\n<tr><th>Only<\/th><\/tr>/, 'a one-column table stays a plain table');
+    assert.match(tables, /<\/table><\/div>\n<div class="tblwrap"><table>\n<thead>\n<tr><th>A<\/th><th>B<\/th><\/tr>\n<\/thead>\n<tbody>\n\n<\/tbody>/, 'a header-only table stays a plain table');
+    assert.match(tables, /<li>[^<]*<p>清單裡的表：<\/p>\n<div class="tv">/, 'a table in a list item gets its own switch');
+    assert.match(tables, /<blockquote>\n<p>引言裡的表：<\/p>\n<div class="tv">/, 'a table in a block quote gets its own switch');
+    const ids = [...tables.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
+    assert.equal(new Set(ids).size, ids.length, 'every id on the page is unique, headings named 卡片, 表格 and tvx included');
+    assert.ok(ids.includes('tvx') && ids.includes('卡片') && ids.includes('tvx-0-c'));
+
+    // the table view carries every cell of the Markdown table, after
+    // autolinking: links, <br>, code, the empty cell, and the long cell
+    // inside its clamp; short columns never wrap, the status cell gets its dot
+    const [ruleIndex] = tableForms(tables);
+    assert.match(ruleIndex.html, /<thead>\n<tr><th class="nw">BR-ID<\/th><th class="wc">Rule summary<\/th><th class="nw">Status<\/th><th class="nw">Last updated<\/th><th class="nw">Notes<\/th><\/tr>/);
+    const cells = cellsOf(ruleIndex.html);
+    assert.deepEqual(cells.map((row) => row.map((c) => c.cls)), [
+      ['nw', 'wc', 'nw st ok', 'nw', 'nw'],
+      ['nw', 'wc', 'nw st warn', 'nw', 'nw'],
+      ['nw', 'wc lc', 'nw st neutral', 'nw', 'nw']
+    ]);
+    const clamped = clampOf(cells[2][1].html);
+    assert.ok(clamped, 'a cell of TABLE_CLAMP_CHARS characters is clamped');
+    assert.deepEqual(cells.map((row) => row.map((c, i) => (row === cells[2] && i === 1 ? clampOf(c.html)[2] : c.html))), [
+      ['BR-001', '規則一 <a href="other.html#a">連結</a>', 'completed', '2026-10-09', 'a<br>b'],
+      ['BR-002', '<code>code</code> 規則二', 'in-progress', '2026-10-09', ''],
+      ['BR-003', longSummary, 'draft', '2026-10-09', '見 <a href="other.html"><code>other.md</code></a>']
+    ], 'every cell of the table view is the Markdown cell as rendered, empty cell included');
+    assert.doesNotMatch(cardForms(tables)[0], /<span class="fld-k">Notes<\/span><div class="fld-v"><\/div>/, 'the cards still omit the empty cell');
+    assert.equal(clamped[1], 'tfx-0', 'table-view clamps count on their own sequence');
+    assert.equal(ruleIndex.wide, false);
+
+    // thresholds at their edges: 24 wide never wraps, 25 does; 200 characters
+    // clamp, 199 do not; a natural width of 120 stays in the column, 121 leaves it
+    const [edges, fits, overflows, forty, thin] = tableForms(def['bounds.html']);
+    // print widths: one <col> per column at its share of the natural width
+    // (widest cell or header, capped, plus padding), never under
+    // PRINT_MIN_SHARE while the columns leave room for it, summing to 100%
+    const shares = (tableHtml) => {
+      const colgroup = tableHtml.match(/^<div class="tblwrap"><table>\n<colgroup>(.*?)<\/colgroup>\n<thead>/);
+      assert.ok(colgroup, 'the table view carries its print widths in a colgroup');
+      return [...colgroup[1].matchAll(/<col style="--w:(\d+\.\d\d)%">/g)].map((m) => Number(m[1]));
+    };
+    assert.equal(shares(forty.html).length, 40, 'forty columns, forty print widths');
+    assert.ok(shares(forty.html).every((w) => w === 2.5), 'forty columns, too many to floor, share the paper equally');
+    assert.deepEqual(shares(fits.html), [35.83, 35.83, 28.33], 'shares follow the capped natural widths (43, 43, 34 of 120)');
+    assert.deepEqual(shares(thin.html), [...Array(6).fill(15.47), 3.6, 3.6],
+      'a one-letter column gets PRINT_MIN_SHARE, taken from the wide columns (not 1.50% of the paper)');
+    const tableSet = [edges, fits, overflows, forty, thin, ...tableForms(def['tables.html'])];
+    for (const t of tableSet) {
+      const s = shares(t.html);
+      assert.ok(Math.abs(s.reduce((a, b) => a + b, 0) - 100) < 0.05, 'the print widths add up to the paper');
+      if (s.length * PRINT_MIN_SHARE <= 100) {
+        assert.ok(s.every((w) => w >= PRINT_MIN_SHARE), 'no print width under PRINT_MIN_SHARE when the columns leave room');
+      }
+    }
+    // a column the floor of another pushes under it is floored in turn; too
+    // many columns for the floor share the paper equally
+    const cascade = printShares([43, 43, 43, 43, 43, 43, 10, 3]);
+    assert.deepEqual(cascade.slice(6), [PRINT_MIN_SHARE, PRINT_MIN_SHARE], '10 of 271 is 3.69% until the 3 is floored, then under');
+    assert.ok(Math.abs(cascade[0] - (100 - 2 * PRINT_MIN_SHARE) / 6) < 1e-9);
+    assert.deepEqual(printShares([43, ...Array(28).fill(4)]), Array(29).fill(100 / 29), 'twenty-nine columns cannot all get the floor');
+    const edgeCells = cellsOf(edges.html)[0];
+    assert.deepEqual(edgeCells.map((c) => c.cls), ['nw', 'wc', 'wc lc', 'wc']);
+    assert.equal(clampOf(edgeCells[2].html)[2], '丙'.repeat(TABLE_CLAMP_CHARS), 'the clamped cell keeps its content');
+    assert.equal(edgeCells[3].html, '丁'.repeat(TABLE_CLAMP_CHARS - 1), 'one character under the threshold stays unclamped');
+    assert.equal(fits.wide, false, 'a natural width of exactly WIDE_TABLE_WIDTH stays in the text column');
+    assert.equal(overflows.wide, true, 'one column wider leaves it');
+    assert.equal(edges.wide, true);
+
+    // the stylesheet: hidden until checked, scoped to the block, table view
+    // only on pages that need it, and print shows every column of the form on screen
+    assert.match(tables, /\.tv > \.tv-cards, \.tv > \.tv-table \{ display: none; \}\n\.tvc:checked ~ \.tv-cards, \.tvt:checked ~ \.tv-table \{ display: block; \}/);
+    assert.match(tables, /\.tvc:focus-visible ~ \.tvs \.tvl-c, \.tvt:focus-visible ~ \.tvs \.tvl-t \{ outline: 2px solid var\(--accent\);/, 'the focused radio outlines its label');
+    // (a long word, a header's included, may break in print, and print lays every
+    // table out fixed at its columns' shares with a small side padding: the table
+    // always fits the paper, and a floored column holds its padding and a letter)
+    assert.match(tables, /@media print \{\n {2}\.tvs \{ display: none; \}\n {2}\.tv-table \.fxc \{ max-height: none; \}\n {2}\.tv-table th, \.tv-table td\.nw \{ white-space: normal; overflow-wrap: anywhere; \}\n {2}\.tv-table table \{ table-layout: fixed; \}\n {2}\.tv-table col \{ width: var\(--w\); \}\n {2}\.tv-table th, \.tv-table td \{ padding-left: 0\.4em; padding-right: 0\.4em; \}\n {2}\.tv-table td \*, \.tv-table th \* \{ max-width: 100%; \}\n {2}\.tv-table \.badge \{ white-space: normal; overflow-wrap: anywhere; \}\n {2}\.tv-table img \{ height: auto; \}\n {2}\.tv-table \.wc, \.tv-table td\.lc \{ min-width: 0; \}\n {2}\.tv-table \.tblwrap \{ overflow: visible; \}\n {2}main > \.tv > \.tv-table\.wide, main > \.tv-table\.wide \{ width: auto; margin-left: 0; \}\n\}/);
+    // a wide table leaves the text column only at the page's top level (the
+    // breakout's 50% is the text column there, not a list item's or a quote's)
+    assert.match(tables, /\nmain > \.tv > \.tv-table\.wide, main > \.tv-table\.wide \{\n {2}width: min\(calc\(100vw - 4rem\), 90rem\);\n {2}margin-left: calc\(50% - min\(calc\(50vw - 2rem\), 45rem\)\);\n\}/);
+    assert.doesNotMatch(tables, /\n\.tv-table\.wide \{/, 'no breakout rule that would also reach a nested table');
+    assert.doesNotMatch(def['other.html'], /\.tv-table|class="tv/, 'a page without a multi-column table carries none of it');
+
+    // an author-written id or name: the starting form only, no switch, the id once
+    const idsCards = def['ids.html'];
+    assert.doesNotMatch(idsCards, /class="tv|\.tv-table/, 'no switch and no table-view CSS when the cards are the only form');
+    assert.equal((idsCards.match(/id="anchor-1"/g) || []).length, 1);
+    assert.equal((idsCards.match(/name="old-anchor"/g) || []).length, 1);
+    assert.match(idsCards, /<a href="#anchor-1">跳過去<\/a>/);
+    assert.match(idsCards, /<div class="card-title"><a id="anchor-1"><\/a>k1<\/div>/, 'the id is in the visible cards');
+    // a cell with no text but an id is kept (cards omit other empty cells), title included
+    assert.ok(idsCards.includes('<div class="fld"><span class="fld-k">Note</span><div class="fld-v"><a id="empty-cell"></a></div></div>'), 'an id-only cell is kept in the cards');
+    assert.ok(idsCards.includes('<div class="card-title"><a id="empty-title"></a>（未命名）</div>'), 'an id-only title is kept in the cards');
+    for (const id of ['empty-cell', 'empty-title']) {
+      assert.equal((idsCards.match(new RegExp(`id="${id}"`, 'g')) || []).length, 1, `${id} once in the cards`);
+    }
+
+    // an author-id table ahead of a switchable one: the later table's cards keep
+    // the pre-change ids (fldx-1), and its block is the same in both starting forms
+    const seqBlock = (html) => html.slice(html.indexOf('<div class="tv">'), html.indexOf('</div>\n<p class="foot">'));
+    assert.ok(def['seq.html'].includes(`<div class="tv-cards"><div class="cards"><article class="card wide"><div class="card-title">b1</div><div class="card-fields"><div class="fld"><span class="fld-k">Value</span><div class="fld-v prose"><input type="checkbox" class="fxt" id="fldx-1"><div class="fxc">${'乙'.repeat(410)}</div><label class="fxl" for="fldx-1">`),
+      'the switchable table after an author-id table keeps its pre-change card id');
+    assert.match(seqBlock(def['seq.html']), /<input type="checkbox" class="fxt" id="tfx-1">/, 'and its table view counts past the author-id table');
+
+    // --table-view: same page with the other radio checked; cards = no flag
+    const asTable = runRenderCli(proj, ['--out', 'html-table', '--table-view', 'table']);
+    assert.equal(asTable.code, 0, asTable.stderr);
+    const tab = await readAll(join(proj, 'html-table'));
+    const asCards = runRenderCli(proj, ['--out', 'html-cards', '--table-view=cards']);
+    assert.equal(asCards.code, 0, asCards.stderr);
+    const crd = await readAll(join(proj, 'html-cards'));
+    const unchecked = (html) => unstamp(html).replace(/(<input type="radio" [^>]*?) checked>/g, '$1>');
+    for (const p of pages) {
+      assert.equal(unstamp(crd[p]), unstamp(def[p]), `${p}: --table-view cards is the default`);
+    }
+    for (const p of pages.filter((name) => name !== 'ids.html' && name !== 'seq.html')) {
+      assert.equal(unchecked(tab[p]), unchecked(def[p]), `${p}: --table-view table changes only which radio is checked`);
+    }
+    assert.equal(unchecked(seqBlock(tab['seq.html'])), unchecked(seqBlock(def['seq.html'])),
+      'after an author-id table, a switchable table is the same block in both starting forms, card and clamp ids included');
+    assert.equal((tab['tables.html'].match(/class="tvr tvt" name="tvx-\d+" id="tvx-\d+-t" checked>/g) || []).length, 4);
+    assert.doesNotMatch(tab['tables.html'], /class="tvr tvc"[^>]* checked>/);
+    const idsTable = tab['ids.html'];
+    assert.doesNotMatch(idsTable, /class="tv"|<div class="cards">/, 'no switch and no cards when the table is the only form');
+    assert.match(idsTable, /<p><a href="#anchor-1">跳過去<\/a><\/p>\n<div class="tv-table"><div class="tblwrap"><table>/, 'the table view stands alone, outside any switch block');
+    assert.match(idsTable, /\.tv > \.tv-cards, \.tv > \.tv-table \{ display: none; \}/, 'the hiding rule only reaches a table view inside a switch block');
+    assert.equal((idsTable.match(/id="anchor-1"/g) || []).length, 1);
+    assert.equal((idsTable.match(/name="old-anchor"/g) || []).length, 1);
+    for (const id of ['empty-cell', 'empty-title', 'in-header']) {
+      assert.equal((idsTable.match(new RegExp(`id="${id}"`, 'g')) || []).length, 1, `${id} once in the table view, a header's id included`);
+    }
+    const lastWins = runRenderCli(proj, ['--out', 'html-last', '--table-view', 'table', '--table-view', 'cards']);
+    assert.equal(lastWins.code, 0, lastWins.stderr);
+    assert.equal(unstamp(await readOut(join(proj, 'html-last', 'tables.html'))), unstamp(def['tables.html']), 'the last --table-view wins');
+
+    // refused values: exit 1 before anything is written or deleted — every file
+    // in the existing output, byte for byte, none added and none removed
+    const snapshot = async (dir) => JSON.stringify(await Promise.all((await outputFiles(dir))
+      .map(async (rel) => [rel, (await readFile(join(dir, rel))).toString('base64')])));
+    const before = await snapshot(join(proj, 'html-default'));
+    for (const [args, message] of [
+      [['--table-view', 'grid'], /Invalid value for --table-view: grid \(expected cards or table\)/],
+      [['--table-view', 'Table'], /Invalid value for --table-view: Table/],
+      [['--table-view='], /Missing value for render option: --table-view/],
+      [['--table-view'], /Missing value for render option: --table-view/],
+      [['--table-view', 'bogus', '--table-view', 'table'], /Invalid value for --table-view: bogus/]
+    ]) {
+      const refused = runRenderCli(proj, ['--out', 'html-default', ...args]);
+      assert.equal(refused.code, 1, `${args.join(' ')} exits 1`);
+      assert.match(refused.stderr, message);
+      const fresh = runRenderCli(proj, ['--out', 'html-never', ...args]);
+      assert.equal(fresh.code, 1);
+      assert.equal(await exists(join(proj, 'html-never')), false, `${args.join(' ')} creates no output directory`);
+    }
+    assert.equal(await snapshot(join(proj, 'html-default')), before, 'a refused run leaves the existing output untouched');
+
+    // (G) a numeric reference that names no character is left as written
+    // instead of failing the run; the plain-text length counts it as written,
+    // so 396 characters plus &#0; reach the 400-character clamp (they used to
+    // count 397) — the documented exception to "cards unchanged"
+    const refs = def['refs.html'];
+    // a heading's id ignores a reference that names no character: the ids the
+    // pre-change renderer gave &#0; and a lone surrogate stay (it decoded them to
+    // a code point the slug filter dropped), and links to them still land
+    assert.match(refs, /<h2 id="標題-">標題 &#1114112;<\/h2>/, 'a heading with an out-of-range reference still gets its id');
+    assert.match(refs, /<h2 id="zero-">Zero &#0;<\/h2>/, 'the pre-change id of a heading with &#0;');
+    assert.match(refs, /<h2 id="surrogate-">Surrogate &#xD800;<\/h2>/, 'the pre-change id of a heading with a lone surrogate');
+    assert.match(refs, /<a href="#zero-">到 Zero<\/a>/);
+    assert.ok(refs.includes('<div class="fld"><span class="fld-k">Value</span><div class="fld-v">範圍外 &#x110000;</div></div>'), 'the card keeps the reference');
+    assert.ok(cardForms(refs)[0].includes(`<div class="fld-v prose"><input type="checkbox" class="fxt" id="fldx-0"><div class="fxc">${refWall}</div>`), '396 characters plus &#0; are clamped in the cards');
+    const refCells = cellsOf(tableForms(refs)[0].html);
+    assert.equal(refCells[0][1].html, '範圍外 &#x110000;');
+    assert.equal(clampOf(refCells[1][1].html)[2], refWall);
+
+    // the output contract: no script, no event handler, no new file
+    for (const p of pages) {
+      assert.doesNotMatch(def[p], /<script/i, `${p} carries no script`);
+      assert.doesNotMatch(tab[p], /\son[a-z]+\s*=/i, `${p} carries no event handler`);
+    }
+    assert.deepEqual((await readManifest(join(proj, 'html-default'))).files.slice().sort(), [...pages, 'index.html'].sort(),
+      'the output holds the mirrored pages and the index, nothing else');
+    for (const dir of ['html-default', 'html-table']) {
+      assert.deepEqual(await outputFiles(join(proj, dir)), [...pages, 'index.html', MANIFEST_NAME].sort(),
+        `${dir}: the files actually written are the mirrored pages, the index and the manifest — nothing unlisted`);
+    }
   }
 
   // --- PROPOSAL-079: completed/ year pagination ---
@@ -1274,8 +1618,9 @@ Scenario: submit expense
     }
 
     // placement: after the heading and its prose, right before the first recognised table
-    assert.match(page, /<p>交手順序如下。<\/p>\n<figure class="dflow-dg dg-fl"[\s\S]*?<\/figure>\n<div class="cards">/);
-    assert.match(page, /LC-06: 只有狀態表<\/h3>\n<p class="dflow-dg-notice">LC-06 [^<]*<\/p>\n<div class="cards">/);
+    // (PROPOSAL-108: the table that follows is the card/table switch block)
+    assert.match(page, /<p>交手順序如下。<\/p>\n<figure class="dflow-dg dg-fl"[\s\S]*?<\/figure>\n<div class="tv">/);
+    assert.match(page, /LC-06: 只有狀態表<\/h3>\n<p class="dflow-dg-notice">LC-06 [^<]*<\/p>\n<div class="tv">/);
     assert.match(page, /LC-01: Report\.Status（<code>Reports\.Status<\/code>）<\/h3>\n<figure class="dflow-dg dg-lc"/);
 
     // nothing for: template rows only (FL-03, LC-02), no table (LC-09), a table marked cannot read (LC-11)
@@ -1575,7 +1920,7 @@ Scenario: submit expense
     const expenseSub = diagrams.findEntrySubsections(lex(expenseMd)).find((sub) => sub.entryId === 'LC-01');
     const expense = checkInvariants(diagrams.drawDiagram(diagrams.lifecycleModel(expenseSub).model, 0).html, 'lc', 'Expense');
     assert.deepEqual([expense.width, expense.height], [716, 464]);
-    assert.equal(expense.label, 'LC-01：4 個狀態、4 條轉移；細節見下方卡片');
+    assert.equal(expense.label, 'LC-01：4 個狀態、4 條轉移；細節見下方的卡片或表格');
     assert.equal(expense.marker, 'dflow.dg.0.arrow');
     assert.deepEqual(expense.boxes.map((b) => [b.name, b.x, b.y, b.w, b.h]), [
       ['Draft', 72, 24, 160, 48], ['Submitted', 72, 112, 160, 48], ['Approved', 72, 294, 160, 48], ['Rejected', 72, 382, 160, 48]
@@ -1645,7 +1990,7 @@ Scenario: submit expense
     const flowModel = diagrams.flowModel(diagrams.findEntrySubsections(lex(flowMd))[0]).model;
     const flow = checkInvariants(diagrams.drawDiagram(flowModel, 1).html, 'fl', 'flow');
     assert.deepEqual([flow.width, flow.height], [560, 584]);
-    assert.equal(flow.label, 'FL-01：3 個參與者、5 個步驟；細節見下方卡片');
+    assert.equal(flow.label, 'FL-01：3 個參與者、5 個步驟；細節見下方的卡片或表格');
     assert.equal(flow.marker, 'dflow.dg.1.arrow');
     assert.deepEqual(flow.boxes.map((b) => [b.name, b.x, b.y, b.w, b.h]), [
       ['Expense', 24, 24, 144, 48], ['Approval', 208, 24, 144, 48], ['Finance', 392, 24, 144, 48]
@@ -1691,7 +2036,7 @@ Scenario: submit expense
     assert.doesNotMatch(four, /dg-wide|dg-print-note/, 'four participants print as drawn');
     const six = diagrams.drawDiagram(participants(6), 0).html;
     checkInvariants(six, 'fl', 'six participants');
-    assert.match(six, /^<figure class="dflow-dg dg-fl dg-wide" data-entry="FL-09">\n<p class="dg-print-note">FL-09 有 6 個參與者，列印版只印 4 個以內的流程圖；內容見下方卡片。<\/p>/);
+    assert.match(six, /^<figure class="dflow-dg dg-fl dg-wide" data-entry="FL-09">\n<p class="dg-print-note">FL-09 有 6 個參與者，列印版只印 4 個以內的流程圖；內容見下方的卡片或表格。<\/p>/);
     assert.match(diagrams.DIAGRAM_CSS, /\.dflow-dg \.dg-print-note \{ display: none; \}/);
     assert.match(diagrams.DIAGRAM_CSS, /@media print \{[\s\S]*\.dflow-dg\.dg-wide \.dg-scroll, \.dflow-dg\.dg-wide \.dg-legend \{ display: none; \}[\s\S]*\.dflow-dg\.dg-wide \.dg-print-note \{ display: block;/);
     assert.equal(diagrams.drawDiagram(participants(8), 0).html.includes('dg-wide'), true, 'eight participants still draw');
@@ -1706,7 +2051,7 @@ Scenario: submit expense
     const cutLines = textsOf(cut).filter((t) => t.cls === 'dg-primary');
     assert.equal(cutLines.length, 3);
     assert.match(cutLines[2].text, /…$/);
-    assert.match(parse(cut).legend, /…：文字已節略，完整內容見下方卡片。/);
+    assert.match(parse(cut).legend, /…：文字已節略，完整內容見下方的卡片或表格。/);
     assert.equal(diagrams.drawDiagram(lcModel(['A', 'B'], [['A', 'B', long], ['B', 'A', long], ['A', 'A', long]]), 0).issue,
       '有 3 格文字要節略才放得下，上限 2 格');
 
@@ -1848,8 +2193,9 @@ Scenario: submit expense
     assert.equal(figure, figureOf(plain), 'the picture is the same with and without the deviation line');
 
     // the deviation line stays a blockquote, after the entry's last table and before the next section
+    // (PROPOSAL-108: that table ends with its table view, closing the switch block)
     assert.match(page,
-      /<\/article><\/div>\n<blockquote>\n<p>Known deviation: BR-007 — at: LC-01 <code>held<\/code> → <code>released<\/code>, Trigger &quot;Applicant submits&quot; — observed: [^<]*<a href="\.\.\/\.\.\/migration\/tech-debt\.html#debt-items">Qualification BR-007: release timing<\/a><\/p>\n<\/blockquote>\n<h2 id="read-models-and-derived-figures">/,
+      /<\/table><\/div>\n<\/div><\/div>\n<blockquote>\n<p>Known deviation: BR-007 — at: LC-01 <code>held<\/code> → <code>released<\/code>, Trigger &quot;Applicant submits&quot; — observed: [^<]*<a href="\.\.\/\.\.\/migration\/tech-debt\.html#debt-items">Qualification BR-007: release timing<\/a><\/p>\n<\/blockquote>\n<h2 id="read-models-and-derived-figures">/,
       'the LC deviation line follows the transition table as a blockquote');
 
     // RM and MX: Evidence: is the subsection's last line, outside the blockquote;

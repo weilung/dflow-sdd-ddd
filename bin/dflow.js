@@ -65,16 +65,16 @@ unedited Dflow shim is still regenerated in place, as before.)
 
 function printRenderHelp() {
   process.stdout.write(`Usage:
-  dflow render [--src <dir>] [--out <dir>] [--title <text>]
+  dflow render [--src <dir>] [--out <dir>] [--title <text>] [--table-view <cards|table>]
 
 Renders the Markdown specs tree into a mirrored static HTML tree for human
-reading (record tables become cards, AI markers become badges; the filled
-lifecycle and flow tables in analysis.md are also drawn as diagrams), plus
-an index.html at the output root: a grouped directory of the specs (each
-group collapsed until you open it; a lone group starts open) when --src is
-a Dflow specs root (it holds shared/_conventions.md), or a plain file tree
-otherwise. Open index.html directly in a browser; file:// works, no server
-needed.
+reading (record tables read as cards or as a table, with a switch on each
+table; AI markers become badges; the filled lifecycle and flow tables in
+analysis.md are also drawn as diagrams), plus an index.html at the output
+root: a grouped directory of the specs (each group collapsed until you open
+it; a lone group starts open) when --src is a Dflow specs root (it holds
+shared/_conventions.md), or a plain file tree otherwise. Open index.html
+directly in a browser; file:// works, no server needed.
 
 Markdown stays the AI-facing source of truth. Re-run this command whenever
 the sources change; every run is a full rebuild.
@@ -83,6 +83,13 @@ Options:
   --src <dir>     Specs root to render (default: dflow/specs)
   --out <dir>     Output directory (default: dflow-specs-html)
   --title <text>  index.html page title (default: "dflow specs")
+  --table-view <cards|table>
+                  Which form every table of two or more columns with rows
+                  starts in (default: cards). Each such table has its own
+                  cards/table switch either way, and the page does not
+                  remember a reader's choice. A table with an id or name
+                  attribute written inside a cell is rendered in the
+                  starting form only, without a switch.
 
 Diagrams: a ### LC-nn subsection in an analysis.md is drawn from its one
 state table (a State column) and one transition table (From, Trigger, To);
