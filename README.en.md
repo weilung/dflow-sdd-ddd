@@ -164,7 +164,12 @@ the matching HTML pages; the filled lifecycle and flow tables in
 `analysis.md` are also drawn as diagrams above their tables (one that cannot
 be drawn gets a one-line note on its page instead, and the command lists each
 such diagram with its file, entry id and reason; what can be drawn is in
-`dflow render --help`). Open the output
+`dflow render --help`). When a table is cut by a blank line or a comment, or
+a row has more cells than the header and the extra cells hold text (usually a
+`|` in a cell not written as `\|`), the page carries a one-line notice there,
+and the command lists each one with its file, line and how to fix it; what is
+and is not checked is in
+[`docs/render-table-checks.en.md`](docs/render-table-checks.en.md). Open the output
 directory's `index.html` in a browser (`file://` works; no server needed):
 the front page is a grouped directory — Features, Domain, architecture and
 migration, shared documents, and the rest — each group collapsed until you

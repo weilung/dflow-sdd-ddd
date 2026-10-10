@@ -91,6 +91,33 @@ Options:
                   attribute written inside a cell is rendered in the
                   starting form only, without a switch.
 
+Tables: render checks each table at the top level of a page for two ways a
+Markdown table goes wrong without an error, and lists what it finds;
+rendering still completes and the exit code is unchanged.
+  cut short  a blank line or an HTML comment between rows ends the table,
+             and the rows after it show as a paragraph of text. Reported
+             when the paragraph right after a table (only blank lines or
+             comments between) starts with a line written like the table's
+             rows: a | followed by a space or tab (at most three spaces
+             before it), a space or tab before the last |, and as many
+             cells as the header.
+  extra      a row with more cells than the header, where the extra cells
+             hold text: that text is dropped, and the cells before it may
+             be in the wrong columns. The usual cause is a | inside a cell,
+             also inside backticks, not written as \\|. Cells are counted the
+             way the Markdown parser splits them. A row with fewer cells,
+             or with extra cells that are all empty, is not reported: the
+             page shows it the same as a row with those cells written empty.
+Each one gets a one-line notice on its page, above the table or the lines,
+and a line on stdout under a tables line with its file, its line in the
+source file and how to fix it. A lifecycle or flow whose table has either
+problem is not drawn. Not checked: a table inside a list item or a block
+quote, a table that never forms (a missing or malformed |---| row), rows cut
+off whose first line is not written like the table's rows (a diagram may
+then still be drawn from the rows before the cut), and the other cases
+listed at
+https://github.com/weilung/dflow-sdd-ddd/blob/main/docs/render-table-checks.en.md
+
 Diagrams: a ### LC-nn subsection in an analysis.md is drawn from its one
 state table (a State column) and one transition table (From, Trigger, To);
 a ### FL-nn subsection from its one flow table (From, To, Handed over), one

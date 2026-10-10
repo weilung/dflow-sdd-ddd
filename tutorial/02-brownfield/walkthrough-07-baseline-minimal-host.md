@@ -21,7 +21,7 @@ Dflow 的答案是 **baseline 最小 host**：一個 **tier-exempt** 的 zero-ph
 |---|---|
 | 沒有 feature 可掛的 baseline capture 怎麼辦？ | Part A 判 observation-only（tier-exempt）→ Part B 三項落空 → Step 1.7 的 baseline 分支。 |
 | tier-exempt 是什麼意思？和 T3 差在哪？ | 它**不在** T1/T2/T3 表內。T3 是「有改動輸出的最小修改」；baseline **完全不改輸出**。 |
-| 為什麼第一個 checkpoint 不叫 implementation？ | 因為根本沒有 implementation。記成 `implementation | committed` 會留下一筆假紀錄。 |
+| 為什麼第一個 checkpoint 不叫 implementation？ | 因為根本沒有 implementation。記成 `implementation \| committed` 會留下一筆假紀錄。 |
 | 它會不會被 closeout 當成「空 host」擋下？ | 不會。它產出一列合法的 `Tier = baseline` row，那就是它的記錄。 |
 | baseline 寫進 BC 層之後，closeout 還要再 sync 一次嗎？ | 不用。BC 在 capture 當下就寫好了，closeout 沒有東西要再推。 |
 | 為什麼不乾脆記在筆記本裡？ | 因為三個月後沒人找得到它，也沒人知道它是什麼時候看的、看的是哪個版本。 |

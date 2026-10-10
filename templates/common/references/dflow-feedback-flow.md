@@ -59,6 +59,11 @@ form (see "Upstream Issue Forms" below):
 | Documentation feedback | Documentation feedback | `[Docs]: ` |
 | Question / unclear usage | Question | `[Question]: ` |
 | Maintainer release/process feedback | Workflow change request (closest form; the upstream repo disables blank issues) | `[Workflow]: ` |
+| Usage report (several observations from one stretch of real use) | Usage report | `[Usage]: ` |
+
+Choose **Usage report** when the developer asks for one, wants to send several
+observations together, or wants to continue a usage report already started.
+Otherwise a single problem goes to one of the other forms.
 
 Capture:
 
@@ -119,6 +124,47 @@ avoids any network dependency at draft time):
    Forms" below. It is a snapshot of the upstream forms shipped with Dflow.
 3. **Generic fallback** — only if the feedback matches none of the forms, use
    Step 6.
+
+## Usage Reports: Parts and Numbering
+
+A usage report is sent in parts. Part 1 opens a new issue through the Usage
+report form. Each later part is a comment on that same issue.
+
+**Draft file.** Each part has its own draft,
+`dflow/feedback/dflow-feedback-YYYY-MM-DD-usage-report-{R}-part-{N}.md`, dated
+the day the part was started. `{R}` numbers the project's usage reports (1 for
+the first report, 2 for the next) and is used only locally. The draft starts
+with two lines that are local notes and are never pasted:
+
+    Part {N} — open
+    Next observation number: {n}
+
+`{N}` is the part number. `{n}` is the number the next new observation takes;
+it counts across all parts of the report. When the developer confirms that the
+part was posted, replace the first line with
+`Part {N} — submitted: {issue URL}`. Change it only on the developer's word;
+never post anything yourself (Hard Boundaries).
+
+**Continue or start.** Before drafting, look in `dflow/feedback/` for
+usage-report drafts. Take the report with the highest `{R}`, and in it the
+draft with the highest part number. The dates in the file names play no part
+in this choice.
+
+- If it is `open`, add the new observations to it.
+- If it is `submitted`, start part {N+1}. Copy the issue URL and the
+  `Next observation number` line into the new draft.
+- If the developer says this is a new usage report, start report `{R}+1` at
+  part 1 with observation 1. Leave the older drafts as they are.
+- If there is no usage-report draft, ask the developer whether a usage report
+  was already posted. If it was, ask for three things: the issue URL, the
+  number of the last part posted, and the number of the last observation.
+  Start the next part of report 1 from them. If it was not, start report 1 at
+  part 1 with observation 1.
+
+**Numbering.** Give each new observation the `Next observation number`, then
+add one to it. An addition to an observation from an earlier part is headed
+`Addendum to item {n}`. It takes no number and leaves `Next observation number`
+unchanged.
 
 ## Step 5: Render the Draft Field by Field
 
@@ -182,6 +228,21 @@ auto-prefixed with `{prefix}`.)
 - [ ] Is opening a public issue within what your organization allows?
 ````
 
+**Usage report parts.** Part 1 is rendered field by field, like any other
+form. A later part is a comment, not a form, so it is rendered this way
+instead:
+
+- Write no Title block.
+- Under "Where to submit", give the issue URL from the draft and tell the
+  developer to add a new comment there.
+- Write one block headed `## Comment` that holds the whole comment, wrapped in
+  one dynamic fence (the fence rule above applies to the whole comment). Its
+  first line is `# Usage report — part {N} ({date})`. Then write each form
+  field in form order as a `## {Field label}` heading followed by its content
+  as plain Markdown; for a dropdown, write the chosen option. Do not fence the
+  fields one by one.
+- Put the submitter self-check after the block, outside it.
+
 Keep the draft **submitter-facing only**: no maintainer tracking notes, no
 internal references, no "for your friend / for yourself" audience switches.
 
@@ -233,6 +294,19 @@ internal references, no "for your friend / for yourself" audience switches.
 | What are you trying to do? | textarea | yes | the workflow or decision you need help with |
 | Project context | textarea | no | framework, team workflow, AI agent, constraints |
 
+### Usage report — title `[Usage]: `
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| Dflow version | input | yes | placeholder `0.16.6` |
+| Project track | dropdown | yes | Greenfield / Brownfield / Not sure |
+| What you used Dflow for | textarea | yes | flows and commands, about how many sessions, kind of work |
+| Observations | textarea | yes | numbered from 1; each: doing / Dflow file or command / expected / actual / quoted Dflow text / cost |
+| What worked well | textarea | no | |
+| Anything else | textarea | no | AI agent, environment |
+
+Part 1 only; later parts are comments (see "Usage Reports: Parts and Numbering").
+
 ## Step 6: Generic Fallback
 
 Use this only when the feedback matches none of the forms above. The upstream
@@ -247,6 +321,8 @@ After writing the draft, name the draft file path and whether any submitter
 self-check items remain unchecked, then summarize the options:
 
 - Open the chosen issue form and paste each field block.
+- For a later usage-report part: open the issue and paste the inner content of
+  the Comment block as a new comment.
 - Discard the draft if it was only a local observation.
 
 Do not submit anything automatically.

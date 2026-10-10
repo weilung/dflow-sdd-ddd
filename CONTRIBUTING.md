@@ -35,6 +35,10 @@ hard to follow.
 Open a question when you need help deciding how Dflow applies to your project.
 Questions are welcome, but this project does not promise a general support SLA.
 
+Open a usage report when a stretch of real use has left you with several
+observations. The form is for part 1; post each later part as a comment on the
+same issue and continue the numbering.
+
 If an AI assistant notices a possible Dflow issue while helping in your project,
 you can ask it to run `/dflow:report-dflow-feedback`. That flow should produce a
 sanitized local draft that you review before opening a GitHub issue or PR. It

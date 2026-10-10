@@ -116,7 +116,7 @@ Dflow 的 specs 是給 AI 讀的 Markdown（表格緊湊、標記密集）。要
 dflow render
 ```
 
-它把 `dflow/specs/` 鏡像成一棵靜態 HTML 樹（預設輸出 `dflow-specs-html/`，可用 `--src` / `--out` / `--title` 調整）：記錄型表格逐列轉成卡片，每張表上方的「卡片｜表格」開關可以把這一張換成表格看（要跨列比較時好讀；`--table-view table` 讓整份輸出的表一開始就是表格，頁面不記住切換）、AI 專用註解標記變成 badge、gherkin 關鍵字高亮、樹內連結自動改連對應 HTML 頁；`analysis.md` 裡填好的生命週期與流程，另外在那張表的上方畫成圖（畫不成圖的，頁面上改留一行說明，命令列也逐張列出檔案、編號與原因；畫得出圖的條件見 `dflow render --help`）。開啟輸出目錄的 `index.html` 即可瀏覽（`file://` 直開、免 server）：首頁是分組目錄——Features、Domain、架構與遷移、共用文件、其他——各組先收起、點開才展開（只有一組時直接展開），附一句用途說明與「怎麼讀這些文件」；Domain 一個 context 一列，feature 一個目錄一列。塞進單一儲存格的超長敘述會自動改善呈現：該卡片撐滿整列、特別長的欄位先摺疊、點「展開全文」再看（純 CSS、列印一律全展開）。`features/completed/` 封存區不會攤平在首頁——首頁只放年度連結、一年一頁，封存再多年首頁也不會變長。`--src` 指到的不是 Dflow 的 specs 根目錄（沒有 `shared/_conventions.md`）時，首頁是照路徑排列的目錄樹。
+它把 `dflow/specs/` 鏡像成一棵靜態 HTML 樹（預設輸出 `dflow-specs-html/`，可用 `--src` / `--out` / `--title` 調整）：記錄型表格逐列轉成卡片，每張表上方的「卡片｜表格」開關可以把這一張換成表格看（要跨列比較時好讀；`--table-view table` 讓整份輸出的表一開始就是表格，頁面不記住切換）、AI 專用註解標記變成 badge、gherkin 關鍵字高亮、樹內連結自動改連對應 HTML 頁；`analysis.md` 裡填好的生命週期與流程，另外在那張表的上方畫成圖（畫不成圖的，頁面上改留一行說明，命令列也逐張列出檔案、編號與原因；畫得出圖的條件見 `dflow render --help`）。表格中間被空行或註解切斷、或某一列比表頭多出格子而多出來的格子裡有字（多半是格子裡的 `|` 沒寫成 `\|`）時，頁面上那裡留一行提醒，命令列也逐處列出檔名、行號與修法；查什麼、不查什麼見 [`docs/render-table-checks.md`](docs/render-table-checks.md)。開啟輸出目錄的 `index.html` 即可瀏覽（`file://` 直開、免 server）：首頁是分組目錄——Features、Domain、架構與遷移、共用文件、其他——各組先收起、點開才展開（只有一組時直接展開），附一句用途說明與「怎麼讀這些文件」；Domain 一個 context 一列，feature 一個目錄一列。塞進單一儲存格的超長敘述會自動改善呈現：該卡片撐滿整列、特別長的欄位先摺疊、點「展開全文」再看（純 CSS、列印一律全展開）。`features/completed/` 封存區不會攤平在首頁——首頁只放年度連結、一年一頁，封存再多年首頁也不會變長。`--src` 指到的不是 Dflow 的 specs 根目錄（沒有 `shared/_conventions.md`）時，首頁是照路徑排列的目錄樹。
 
 同一份 spec 的兩種讀法——左：AI 讀的 Markdown 源（密集表格 + `<!-- phase-2 ADDED -->` 這類 AI 專用標記）；右：`dflow render` 產出的 HTML（逐列變卡片、標記變 badge）：
 

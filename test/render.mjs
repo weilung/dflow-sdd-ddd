@@ -37,7 +37,8 @@
 // (PROPOSAL-108: cards byte-identical to the pre-change renderer, every cell
 // in the table view, the --table-view flag and its refusals, author-written
 // ids, threshold edges, print CSS, out-of-range numeric references), Windows
-// long-path output, and the dynamic import('marked') loading-path lock.
+// long-path output, and the dynamic import('marked') loading-path lock. The
+// table checks (PROPOSAL-112) are in test/render-table-checks.mjs.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { link, mkdir, mkdtemp, readdir, readFile, rm, rmdir, stat, symlink, unlink, writeFile } from 'node:fs/promises';

@@ -1,0 +1,50 @@
+name: Usage report
+description: Several observations from a stretch of real use, numbered. Later parts go in comments on the same issue.
+title: "[Usage]: "
+labels:
+  - usage-report
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for **part 1** of a usage report. Post each later part as a **comment on this issue** and continue the numbering. An addition to an observation from an earlier part is headed `Addendum to item N` and takes no new number. `/dflow:report-dflow-feedback` drafts each part for you.
+  - type: input
+    id: dflow-version
+    attributes:
+      label: Dflow version
+      placeholder: 0.16.6
+    validations:
+      required: true
+  - type: dropdown
+    id: track
+    attributes:
+      label: Project track
+      options:
+        - Greenfield
+        - Brownfield
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: What you used Dflow for
+      description: The flows and commands you ran in this stretch, roughly how many sessions it took, and the kind of work. Leave out project details.
+    validations:
+      required: true
+  - type: textarea
+    id: observations
+    attributes:
+      label: Observations
+      description: "Number them from 1. For each: what you were doing; the Dflow file or command you followed; what you expected; what happened; the Dflow text you followed, quoted; and how much it cost you (blocked / confused / slowed down / minor)."
+    validations:
+      required: true
+  - type: textarea
+    id: worked-well
+    attributes:
+      label: What worked well
+  - type: textarea
+    id: other
+    attributes:
+      label: Anything else
+      description: The AI agent you used, your environment, or anything that does not fit above.

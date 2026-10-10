@@ -53,7 +53,42 @@ is rejected.
 |---|---|---|
 | `/dflow:verify` | You need to confirm docs, code, tests and debt records still agree | A drift report across specs, domain docs, implementation, tests and debt |
 | `/dflow:pr-review` | A change is ready for review | An SDD/DDD compliance review list with risks, gaps and follow-ups |
-| `/dflow:report-dflow-feedback` | You or the AI hit a problem in Dflow itself | A sanitized local draft, field-by-field aligned with the upstream issue form and ready to paste; nothing is sent automatically |
+| `/dflow:report-dflow-feedback` | You or the AI hit a problem in Dflow itself | A sanitized local draft, field-by-field aligned with the upstream issue form and ready to paste; nothing is sent automatically. Several observations can go in a usage report sent in parts (part 1 is a form, later parts are paste-ready comments; see "Usage reports" below) |
+
+#### Usage reports
+
+When a stretch of real use has left you with several observations (where you got stuck, what you could not
+follow, what worked well), `/dflow:report-dflow-feedback` can write them up as a **usage report** sent in parts:
+
+- Part 1 opens an issue through the upstream **Usage report** form; each later part is a comment on that issue,
+  and the flow drafts it as a paste-ready comment.
+- Observations are numbered across all parts; an addition to an earlier one is headed `Addendum to item N` and
+  takes no new number.
+- Each part's draft is a file in `dflow/feedback/` that starts with two lines kept local: whether this part was
+  posted (`open` / `submitted`), and the number the next observation takes. The next session continues from these
+  two lines; tell the AI once a part is posted, so it changes the status to `submitted`.
+
+Known limitations:
+
+1. **Numbering continues from the local drafts.** If the drafts are deleted, or you move to another machine, the
+   flow asks three things: the issue URL, the number of the last part posted, and the number of the last
+   observation. A wrong answer repeats or skips a part or an observation number.
+   - Why it is not prevented: preventing it would mean the flow reads the issue online, and the flow stays off
+     the network on purpose. A repeated number can be pointed out in the maintainer's reply.
+   - Who bears it: the person sending the report, and the maintainer. Revisit when someone reports numbering
+     that went wrong.
+2. **The status depends on you telling the AI a part was posted.** If you do not, the next time adds new
+   observations to the part that was already posted.
+   - Why it is not prevented: the flow neither posts nor reads GitHub, so it cannot tell whether a part was
+     posted. The status is on the draft's first line, where you can see it.
+   - Who bears it: the person sending the report. Revisit when someone reports it.
+3. **One usage report is followed at a time.** The flow continues the report with the highest report number in
+   the draft file names; starting a new report before the old one is finished means the old one is no longer
+   picked up on its own (to go back to it, say which one); two machines each writing a report count report
+   numbers from their own drafts and can repeat one.
+   - Why it is not prevented: telling them apart would mean naming every report and asking one more question
+     when choosing; reports so far are written one at a time, so that cost has no one to serve.
+   - Who bears it: someone writing two reports at once. Revisit when someone reports needing two at once.
 
 ## What should I run? (rule of thumb)
 
