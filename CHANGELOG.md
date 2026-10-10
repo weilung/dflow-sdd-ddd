@@ -8,8 +8,31 @@
 
 ## Unreleased
 
-> **目前投影版號：`0.16.5`**（**未發布到 npm**；npm latest 仍是 `0.16.0`）。
-> 下面九段都在這一版裡，每段標題標出它第一次投影的版號。
+> **目前投影版號：`0.16.6`**（**未發布到 npm**；npm latest 仍是 `0.16.0`）。
+> 下面十段都在這一版裡，每段標題標出它第一次投影的版號。
+
+### 「確認的規則與程式不一致」那份說明的補充（dist issue #17 第 4 次回報第 8 部分；②⑦ 是 PROPOSAL-111）——`0.16.6`
+
+- **舊記法的偏離怎麼轉**（①⑤）：`confirmed-rule-vs-code.md` 的 § Scope and recording 新增一小節「A deviation recorded the old way」。
+  原本就記著這個偏離的那一列技術債，直接改成記它，名稱沿用原來的——技術債名稱的格式只用在新建的列（名稱建立之後就不改，
+  之前寫下的紀錄靠它找到那一列）。開發者若說那個情況其實沒有確認過的規則，它就不是偏離：程式現況改記成 `behavior.md` 裡
+  不帶 BR-ID 的段落（放在那條規則的段落外面），還沒定的照既有的 `draft` 與待決問題處理，技術債那一列不加 `BR:` 行。
+- **`analysis.md` 表格外的引用也要偏離行**（③）：條目引用了某條規則、程式卻沒照做時，不論引用寫在表格的一列、還是表格外的
+  一句說明（例如生命週期表後面說明副作用的那一句），條目旁邊都要加偏離行；`at:` 寫那一句講的轉移或步驟，都不是就只寫條目編號。
+- **baseline 盤點在 Step 2 就知道的偏離，先寫成草稿**（④，只有 brownfield）：盤點發現程式沒照 `active` 的規則做——包括要轉換的
+  舊記法——在 Step 2 就寫偏離紀錄，到 6.2 的 Business rules 那一題確認；開發者答「程式做錯了」才留下，其他答法就撤掉、照那個答法記。
+- **開發者確認過程式現況的偏離紀錄，證據後面接上誰確認的**（②，PROPOSAL-111）：開發者確認了「程式確實這樣做」、而且那個確認
+  記在打得開的地方時，偏離行（`behavior.md`、`analysis.md`）與技術債 `Code evidence` 的證據保留原本那段，後面接上
+  `; confirmed by {role} - {記在哪} ({date})`；brownfield 的 baseline 盤點寫成 `{SPEC-ID} Goals & Scope`。確認的是規則、或決定延後，
+  都不接——那不是關於程式的證據。baseline 的技術債列因此有兩處指回 Goals & Scope：`Rule evidence` 與 `Code evidence`。
+- **baseline 盤點的 `Last updated`**（⑦，PROPOSAL-111，只有 brownfield）：只有一列的 BR-ID、Rule summary、Behavior anchor、Status
+  改了才更新；只改 `Known deviations`、專案自己加的欄，或兩者任意組合，都不動。專案在自己加的欄放規則內容時會跟一般 flow 不一致，
+  寫在公開頁的「做了之後仍然存在的風險」。
+- **既有專案**：改的都是 workflow bundle 裡的說明（`references/confirmed-rule-vs-code.md`、`references/flow-rationale-registry.md`、
+  brownfield 的 `references/modify-existing-baseline.md`），跑 `dflow configure-agents` 就會更新；範本與形狀號碼都沒變，已經寫好的文件不必改。
+  公開頁 [`docs/confirmed-rule-vs-code.md`](docs/confirmed-rule-vs-code.md)（英文版 `confirmed-rule-vs-code.en.md`）的
+  `behavior.md`、`analysis.md` 兩列與舊記法那一條跟著改，「做了之後仍然存在的風險」多了上面 ②⑦ 的兩項。brownfield tutorial 的
+  baseline 盤點篇（walkthrough 03）講「技術債列不另記誰確認的」那一段，例外改成兩處。
 
 ### `analysis.md` 生命週期的新建與刪除、沒有轉移的值、寫不出原樣的值；`dflow render` 畫不出圖時點名是哪幾格（PROPOSAL-110）——`0.16.5`
 

@@ -63,10 +63,8 @@ recorded deviation holds `—`; a blank cell means the same as `—`. Put no
 deviation text in the Rule summary, BR-ID, Status or Behavior anchor. Changing
 only this column is not a BR Delta and does not change `Last updated`.
 
-Rows that predate this column hold `—`. A deviation recorded the old way — for
-example as an edge case — does not appear in this column. Convert it to these
-records when later work touches that BR and the developer confirms that it is a
-deferred defect.
+Rows that predate this column hold `—`. A deviation recorded before this column
+existed is converted as § A deviation recorded the old way says.
 
 **`behavior.md`** — after the `### BR-NNN: ...` heading and before the first
 Given/When/Then, one line per deviation, as its own paragraph with a blank line
@@ -79,14 +77,19 @@ before and after it:
 The scenarios and the legitimate Edge cases state only the confirmed rule. Do
 not give a deviation an EC-ID, and do not put it inside a scenario block.
 `{evidence}` has the shape `{code | data | document | inferred | assumed} -
-{where to re-check} ({date})`. The evidence that confirmed the rule is not
-evidence about the code. A reader who takes only the Given/When/Then reads the
-rule; what the code does now needs the adjacent deviation records and their
-dates.
+{where to re-check} ({date})`. When the developer has confirmed what the record
+says the code does, and that confirmation is recorded where a reader can open
+it, keep the evidence and append
+`; confirmed by {role} - {where it is recorded} ({date})`. The evidence that
+confirmed the rule is not evidence about the code: neither the rule's
+confirmation nor the decision to defer is appended. A reader who takes only the
+Given/When/Then reads the rule; what the code does now needs the adjacent
+deviation records and their dates.
 
 **`analysis.md`** — see § Analysis records.
 
-**The debt row** — name the Item `{context} {BR-ID}: {difference}`, for example
+**The debt row** — when you create the row, name the Item
+`{context} {BR-ID}: {difference}`, for example
 `Qualification BR-007: release timing`. The name is fixed once the row exists.
 When the BR is renamed later, update the row's `BR:` line and the live
 references to the BR, and keep the name: the `BR:` line, not the name, says
@@ -109,6 +112,22 @@ file. `Confirmed rule` is a short summary that identifies the difference, not a
 second copy of the rule to edit. With no re-checkable confirmation, write
 `assumed` and hand the confirmation back to the developer; a chat is not
 evidence anyone can open.
+
+### A deviation recorded the old way
+
+A deviation recorded before these records existed — for example as an edge
+case — does not appear in the `Known deviations` column. Convert it when later
+work touches that BR and the developer confirms that it is a deferred defect:
+write the records above in place of the old form. When a debt row already
+records it, that row becomes its Item: keep the row's name and write the
+payload into it.
+
+When the developer instead says that no confirmed rule covers what the old
+record describes, it is not a deviation. In place of the old form, write what
+the code does in `behavior.md` as a passage without a BR-ID, outside that BR's
+section. Record what is still undecided with the existing `draft` and
+open-question handling (§ When this applies). Do not give its debt row a `BR:`
+line.
 
 ### A deferral recorded in the spec
 
@@ -194,9 +213,10 @@ scenario, and any gap without such a line still fail the check.
 - Record in the entry what the code actually does. A cell that refers to a rule
   still holds only the BR reference. Do not copy the confirmed rule's text into
   `analysis.md`.
-- In a row with a deviation, the rule reference says which rule should govern
-  the row; it does not say that the observed behavior complies. Put a
-  `Known deviation` line next to the entry that names the BR the row violates.
+- A rule reference says which rule should govern what the entry records there;
+  it does not say that the observed behavior complies. When the code violates a
+  rule the entry refers to — in a row, or in a sentence outside the entry's
+  tables — put a `Known deviation` line next to the entry that names that BR.
   Do not write "the code does not enforce it" as "no rule decides it". Do not
   add a wrong condition, a warning or evidence to the Guard.
 - `LC`: From, Trigger and To record the observed states - or `[*]` - and
@@ -215,7 +235,9 @@ scenario, and any gap without such a line still fail the check.
   no analysis knowledge is affected, write nothing here.
 - `at:` names the place: for `LC`, the entry ID, From → To and the Trigger; for
   `FL`, the entry ID and the step `#`; for `FN` and `HS`, the row's entry ID;
-  for `RM` and `MX`, the entry ID.
+  for `RM` and `MX`, the entry ID. For a sentence outside the tables of an `LC`
+  or `FL` entry, name the transition or step that sentence is about in the same
+  way, or the entry ID alone when it is about none of them.
 - `Evidence:` stays the subsection's last line, and a table row keeps its own
   Evidence cell. The line cites evidence about the code; the evidence that
   confirmed the rule stays in the debt row's `Rule evidence`.

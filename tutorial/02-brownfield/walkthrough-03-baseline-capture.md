@@ -718,9 +718,12 @@ Goals & Scope 那一行寫這條 BR（含 context）、確認了什麼與技術�
 - **確認不寫進 Resume Pointer，也不另開段落。** Resume Pointer 的 Current Progress 維持一兩句的游標；
   `_index.md` 沒有記決定的段落，也不為它新增一段。
 - **`rules.md` 與 `tech-debt.md` 不另外記誰確認的。** `rules.md` 的 `active` 本身就是確認；要查 BR-004
-  或那兩列技術債是誰確認的，看 Goals & Scope 裡寫了它的那一行。唯一的例外是記確認規則偏離的那種技術債列
-  （上面第 4 題第二種答法）：它的 `Rule evidence` 寫 `confirmed by {role} - SPEC-20260430-001 Goals & Scope ({date})`
-  指回那一行，不重抄確認了什麼。`analysis.md` 的條目若是經 6.2 確認的，
+  或那兩列技術債是誰確認的，看 Goals & Scope 裡寫了它的那一行。例外是記確認規則偏離的那種技術債列
+  （上面第 4 題第二種答法），有兩處各自指回 Goals & Scope 裡對應的那一行、不重抄確認了什麼：`Rule evidence`
+  寫 `confirmed by {role} - SPEC-20260430-001 Goals & Scope ({date})`，指的是確認規則的那一行；6.2 若也確認了
+  偏離行記的程式現況，`Code evidence` 保留原本的證據，後面接上
+  `; confirmed by {role} - SPEC-20260430-001 Goals & Scope ({date})`，指的是確認程式現況的那一行——
+  `behavior.md` 與 `analysis.md` 那兩行偏離行的證據也一樣接。`analysis.md` 的條目若是經 6.2 確認的，
   Evidence 寫成 `confirmed by {role} - SPEC-20260430-001 Goals & Scope ({date})`——用 SPEC-ID 指 host，
   不寫路徑：收尾會把 host 搬進 `completed/`，capture 當下寫的路徑會失效。（這次 RM-02、HS-01 都是
   `code`，沒有這樣的條目。）

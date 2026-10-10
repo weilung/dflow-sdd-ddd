@@ -73,6 +73,13 @@ developer (Step 1.5 does not run for a capture).
     (`Git-principles-*.md` § 2);
   - the original is in a completed feature's record → never move it; add the
     entry only.
+- **A deviation from a confirmed rule.** When the code does not follow a BR
+  that `rules.md` holds as `active` — a deviation recorded the old way
+  included — write the deviation's records now, as
+  `references/confirmed-rule-vs-code.md` § Scope and recording and § Analysis
+  records say. These records are a draft until 6.2's **Business rules**
+  question: keep them when the developer answers "The code is wrong"; on any
+  other answer, undo them and record what that answer settles.
 
 ## Step 3
 
@@ -159,14 +166,22 @@ Record every answer as § Where confirmations are recorded says, and fill the
   `confirmed by {role} - {SPEC-ID} Goals & Scope ({date})`. Cite the host by
   SPEC-ID, never by path. An `assumed` entry's question row becomes a resolved
   row, as the template says.
+- **`Known deviation` records.** When 6.2 confirms what a `Known deviation`
+  line says the code does, append
+  `; confirmed by {role} - {SPEC-ID} Goals & Scope ({date})` to that
+  observation's evidence in every record that carries it: the `behavior.md`
+  and `analysis.md` lines and the debt row's `Code evidence`. Keep the
+  evidence before it (`references/confirmed-rule-vs-code.md` § Scope and
+  recording).
 - **`glossary.md`.** The confirmed term's Notes cell carries the same SPEC-ID.
 - **`rules.md` and `migration/tech-debt.md`** take no confirmation note — not
   in a Description, not in § Follow-up Notes. A `rules.md` row's `active` is
   its confirmation; who confirmed a rule or a debt item is in the Goals & Scope
-  line that names its BR-ID or item. The one exception is the `Rule evidence`
+  line that names its BR-ID or item. One exception is the `Rule evidence`
   line of a debt row that records a confirmed-rule deviation: write
   `confirmed by {role} - {SPEC-ID} Goals & Scope ({date})` there, pointing to
-  that line, and do not repeat what was confirmed.
+  that line, and do not repeat what was confirmed. The other is what
+  **`Known deviation` records** appends to its `Code evidence`.
 - **Resume Pointer.** Current Progress stays a one- or two-sentence cursor and
   carries no confirmation. Add no section to `_index.md`.
 
@@ -202,5 +217,8 @@ its text, or the outcome of one of its scenarios.
 
 ## `Last updated` in `rules.md`
 
-When this capture adds a `rules.md` row or changes a row's text, set that row's
-`Last updated` to the date the capture wrote it.
+When this capture adds a `rules.md` row or changes the rule a row states — its
+BR-ID, Rule summary, Behavior anchor or Status — set that row's `Last updated`
+to the date the capture wrote it. Otherwise, leave `Last updated` as it is,
+including when the capture changes only the `Known deviations` column, columns
+the project added, or any combination of them.
