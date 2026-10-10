@@ -181,7 +181,7 @@ Brownfield 最重要的紀律是：
 ### 檢查整個 BC
 
 1. 先讀 `domain/{BC}/context.md`，確認 boundary。
-2. 讀 `rules.md`，看 BR active / deprecated / lifecycle。
+2. 讀 `rules.md`，看每條 BR 的狀態（active / draft）與 Last updated。
 3. 讀 `behavior.md`，看 scenario 和 confirmed behavior。
 4. 讀 `models.md`（Greenfield 另讀 `events.md`），確認 tactical model 和 integration signals。
 5. 回到 feature directories 追溯某條 BR 是哪個 feature / phase 引入的。

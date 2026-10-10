@@ -175,7 +175,7 @@ valid outcome; extending silently is not.
 - What crosses a bounded context, and what does each step hand to the next? (always the domain-root copy)
 - Which status fields does this feature introduce, and what transitions do they move through?
 - Which figures are derived rather than stored?
-- Who reaches this feature, and what data scope does each role see? (always the domain-root copy)
+- Who reaches this feature, what data scope does each role see, and can some of them do things there that others cannot? (always the domain-root copy)
 
 Record each answer in `dflow/specs/domain/{context}/analysis.md` when one context owns what it describes and in `dflow/specs/domain/analysis.md` when no one context does, creating the file from `templates/analysis.md` the first time there is something to record. That template's sections carry the notation.
 

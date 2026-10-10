@@ -23,7 +23,7 @@ Concretely, it is a spec-first workflow kit for AI-assisted software development
 | **The part DDD’s models and rules have no place for (`analysis.md`)** | `models.md` holds what is stored, `rules.md` holds one rule, `behavior.md` holds one scenario — **nothing holds how it moves**. `analysis.md` is that file, in six sections: the ordered handoffs between contexts (`FL-nn`), the lifecycle of one status field (`LC-nn`), a figure that is computed rather than stored (`RM-nn`), a mechanism no single rule explains (`MX-nn`), an index of who can reach which function, and the hotspots that keep being worked around. Every entry names its provenance (code, data, who confirmed it, inference or assumption). This knowledge no longer lives only in a conversation or freezes when a feature closes out; a project adopting Dflow midway uses it to rebuild the picture of the system piece by piece. |
 | **Change-depth-based tiers (T1/T2/T3)** | AI scales specification and verification by change depth: a color/typo tweak hosted under a feature takes one inline `_index.md` row, functional bug fixes take a lightweight spec (a T3 display-copy defect is still one inline row), and new features or bounded-context-level changes go through a full phase-spec. Small changes aren't dragged down by process. |
 | **Drift verification** | `/dflow:verify` cross-checks specs, domain documents, implementation, tests, and debt records to surface the "documentation still describes the old behavior" drift that PR review by eye usually misses. |
-| **Specs humans can read, not just AI (md → HTML)** | `dflow render` mirrors the AI-facing dense Markdown specs into browsable static HTML. Status lifecycles and cross-context flows in `analysis.md` are drawn as diagrams: which state loops back, where a lifecycle ends, and how a handover moves between contexts show at a glance; other tables switch between cards and a table, one table at a time, and markers become badges (side-by-side screenshots below). Markdown stays the AI-facing source of truth. |
+| **Specs humans can read, not just AI (md → HTML)** | `dflow render` mirrors the AI-facing dense Markdown specs into browsable static HTML. Status lifecycles and cross-context flows in `analysis.md` are drawn as diagrams: which state loops back, which state it stops in, and how a handover moves between contexts show at a glance; other tables switch between cards and a table, one table at a time, and markers become badges (side-by-side screenshots below). Markdown stays the AI-facing source of truth. |
 | **Multi-AI-tool rule sharing** | A canonical project guide plus thin per-tool shims (`CLAUDE.md` / `AGENTS.md` / Copilot instructions) — no duplicate rule copies when switching between Claude, Codex, and Copilot; all three share one agentskills.io project-level skill with natural-language auto-trigger (Copilot CLI summons it via `/dflow`). |
 
 ## You Don't Need to Learn the Commands First
@@ -187,8 +187,8 @@ tables plus AI-only markers like `<!-- phase-2 ADDED -->`); right: the HTML
 
 A lifecycle in `analysis.md`, read the same two ways — left: its state table
 and transition table; right: the diagram render draws above the cards (the
-`Rejected` → `Draft` rework loop and the `Approved` end state show at a
-glance):
+`Rejected` → `Draft` rework loop, and `Approved` with no transition out of
+it, show at a glance):
 
 ![The same lifecycle, LC-01: the state and transition tables of analysis.md on the left, the state diagram dflow render draws on the right](media/render-lifecycle-diagram.png)
 

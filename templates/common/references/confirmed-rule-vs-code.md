@@ -199,12 +199,12 @@ scenario, and any gap without such a line still fail the check.
   `Known deviation` line next to the entry that names the BR the row violates.
   Do not write "the code does not enforce it" as "no rule decides it". Do not
   add a wrong condition, a warning or evidence to the Guard.
-- `LC`: From, Trigger and To record the observed state and trigger. Write the
-  Trigger as the template's placeholder asks: the actual actor and action. Put
-  the BR-ID that decides the transition in Guard. Give each entry point of the
-  same BR its own row, told apart by its Trigger. A transition the rule expects
-  but the code does not implement stays in `behavior.md`; do not draw it as an
-  observed edge.
+- `LC`: From, Trigger and To record the observed states - or `[*]` - and
+  trigger. Write the Trigger as the template's placeholder asks: the actual
+  actor and action. Put the BR-ID that decides the transition in Guard. Give
+  each entry point of the same BR its own row, told apart by its Trigger. A
+  transition the rule expects but the code does not implement stays in
+  `behavior.md`; do not draw it as an observed edge.
 - Place the line:
   - `LC` and `FL`: after the entry's last table.
   - `FN` and `HS`: after the section's table.

@@ -103,24 +103,32 @@ A subsection with no table, or left exactly as the template has it, is
 skipped without a note. What can be drawn:
   lifecycle  at most 12 states and 20 transitions, 864 wide and 960 tall;
              each State cell holds one value, and no two rows hold the
-             same one; each From and To cell holds one value, and that
-             value is a row of the state table; Trigger is not empty;
-             states are placed in state-table order, and the arrows must
-             fit: at most 4 routing lanes on either side, 6 arrow ends on
-             one side of a state, 4 crossings in all and 2 on one arrow
+             same one; each From and To cell holds one value: a row of the
+             state table, or [*] for the entity not existing yet (From) or
+             any more (To), drawn as a start and an end point that count
+             toward the height but not as states; Trigger is not empty; a
+             state that no transition has in From or To is listed under
+             the diagram instead of drawn, and does not count toward the
+             state or height limits; the other states are placed in
+             state-table order, and the arrows must fit: at most 4 routing
+             lanes on either side, 6 arrow ends on one side of a state or
+             point, 4 crossings in all and 2 on one arrow
   flow       at most 8 participants and 10 steps, 960 tall (no width
              limit: a wide flow scrolls sideways on screen, and the print
              version draws a flow of at most 4 participants); each From and
              To cell holds one value; Handed over is not empty; a # column,
              when there is one, counts 1, 2, 3 in row order
-  both       a state or participant name at most 64 characters on 2 lines;
-             Trigger, Guard, Handed over and State change each at most 8
-             values and 256 characters, and one that takes more than 3
-             lines is cut short, which at most 2 of them may be; no
-             right-to-left text in any of these. Means and Evidence have no
-             limit, and Means is not drawn; an Evidence whose first word is
-             inferred or assumed makes the arrow dashed and adds a one-row
-             tag with that word, which counts toward the height
+  both       a name drawn in the diagram (a state or a participant) at
+             most 64 characters on 2 lines; Trigger, Guard, Handed over and
+             State change each at most 8 values and 256 characters, and one
+             that takes more than 3 lines is cut short, which at most 2 of
+             them may be (when more would be, the note names each one and
+             the lines it takes); no right-to-left text in any of these. A
+             state listed under the diagram has none of these limits. Means
+             and Evidence have no limit, and Means is not drawn; an
+             Evidence whose first word is inferred or assumed makes the
+             arrow dashed and adds a one-row tag with that word, which
+             counts toward the height
 
 The output directory is owned by dflow render: every rendered file embeds a
 generated-by marker, and a .dflow-render-manifest.json ledger tracks the

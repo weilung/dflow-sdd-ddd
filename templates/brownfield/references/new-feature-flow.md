@@ -122,7 +122,7 @@ Walk through these questions:
 - **What external data is needed?** → Interfaces to define
 - **What crosses a bounded context, and what does each step hand to the next?** → An ordered cross-context flow (always the domain-root copy)
 - **Which figures are derived rather than stored?** → A read model definition
-- **Who reaches this feature, and what data scope does each role see?** → A role × function entry (always the domain-root copy)
+- **Who reaches this feature, what data scope does each role see, and can some of them do things there that others cannot?** → A role × function entry (always the domain-root copy)
 
 If one concept gathers rules / invariants that must hold together — **a state
 machine over its lifecycle, or invariants spanning several of its fields /

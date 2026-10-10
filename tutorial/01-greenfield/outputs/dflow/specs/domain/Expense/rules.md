@@ -52,7 +52,6 @@ behavior.md 仍由 finish-feature / Step 8.3 從 phase-spec 場景 merge；ancho
 |---|---|
 | draft | Rule is identified but not fully validated. |
 | active | Rule is validated and expected to be enforced. |
-| deprecated | Rule is retained for history but no longer active. |
 
 ## Deferred / Monitoring Questions
 

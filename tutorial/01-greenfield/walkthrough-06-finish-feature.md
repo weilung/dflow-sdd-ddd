@@ -320,7 +320,7 @@ Dflow 也說明 cross-feature reconciliation 原則：
 
 - 新 feature 的 BR-ID 若不存在於 rules.md，新增
 - 已存在但 wording 不同，確認是本 feature 的 MODIFIED net result 後更新
-- Snapshot 標成 removed 的 BR，要從 system-level active rules 移除或標 deprecated
+- Snapshot 標成 removed 的 BR，要從 rules.md 移除，behavior.md 裡對應的 scenario 也一起刪
 - RENAMED BR-ID 要同步 glossary / behavior anchors
 - 若兩個 feature 對同一 BR 有衝突，以 rules.md 的 system-level truth 做 final reconciliation
 ```
@@ -443,7 +443,7 @@ Step 3 其他 BC layer checks：
     LC-01 Draft → Submitted 與 RM-01，對照 ExpenseReport.Submit() 都一致，
     Evidence 改成 code（2026-05-07）。
     aggregate-design.md 會隨 feature 目錄凍結；它的 State Transition Methods 上
-    每一個會改 Status 的方法，LC-01 都有對應的一列（Create() 給的初始值 Draft 寫在狀態表）。
+    每一個會改 Status 的方法，LC-01 都有對應的一列（Create() 建立、給初始值 Draft 的那一步是 [*] → Draft 那一列）。
     phase 2 的三條轉移與 MX-01 在 new-phase Step 6 對照過，
     之後的 T2 與 BUG-001 都沒有改到它們，照舊。
   - domain/analysis.md：FN-01、FN-02 的 Entry point 補上實際做出來的 endpoint；

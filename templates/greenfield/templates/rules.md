@@ -22,7 +22,6 @@ Fill this column using `references/confirmed-rule-vs-code.md` § Scope and recor
 |---|---|
 | draft | Rule is identified but not fully validated. |
 | active | Rule is validated and expected to be enforced. |
-| deprecated | Rule is retained for history but no longer active. |
 
 ## Open Questions
 

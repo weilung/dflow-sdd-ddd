@@ -246,7 +246,7 @@ Merge feature/{SPEC-ID}-{slug} into develop
 Change Scope:
 - BC: {context-name}[, {context-name} ...]
 - Phase Count: {N}
-- Lightweight Changes: {n_t2} T2 + {n_t3} T3
+- Lightweight Changes: {n_t2} T2 + {n_t3} T3 + {n_baseline} baseline
 
 Related BR-IDs:
 - ADDED: BR-NN, BR-NN
@@ -264,7 +264,7 @@ actually true rather than padded ones:
 Change Scope:
 - BC: none                          # or the real contexts, when the change has any
 - Phase Count: 0
-- Lightweight Changes: 1 T2 + 0 T3  # at least one row, always
+- Lightweight Changes: 1 T2 + 0 T3 + 0 baseline  # at least one row, always
 
 Related BR-IDs: {empty, or the per-family no-BR marker this change carries}
 ```

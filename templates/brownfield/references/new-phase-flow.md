@@ -139,10 +139,10 @@ Walk the developer through what the new phase covers:
 4. **System-level knowledge?** Does this phase add, change, or uncover an
    ordered cross-context flow (always the domain-root copy), the lifecycle a
    status field moves through, a figure computed rather than stored, a
-   mechanism no single rule explains, or which roles reach a function (always
-   the domain-root copy) — or work around a spot in one of them that only a
-   domain decision will settle (in the copy that holds the knowledge it is
-   stuck on)? If yes, record it in
+   mechanism no single rule explains, or which roles reach a function or what
+   one of them can do there (always the domain-root copy) — or work around a
+   spot in one of them that only a domain decision will settle (in the copy
+   that holds the knowledge it is stuck on)? If yes, record it in
    `dflow/specs/domain/{context}/analysis.md` when one context owns what it
    describes and in `dflow/specs/domain/analysis.md` when no one context does,
    creating the file from `templates/analysis.md` the first time there is

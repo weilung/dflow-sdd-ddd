@@ -558,7 +558,7 @@ Look for what this change depends on and no single context document holds:
 - **Lifecycles** — a status field and the transitions it moves through
 - **Read models and derived figures** — a number computed rather than stored
 - **Mechanisms** — behavior no single rule explains
-- **Function / role index** — which roles reach this function, and what data each one sees (always the domain-root copy)
+- **Function / role index** — which roles reach this function, what data each one sees, and what some of them can do there that others cannot (always the domain-root copy)
 - **Hotspots** in any of the above — what this change worked around, pending a domain decision (in the copy that holds the knowledge it is stuck on)
 
 Record each finding in `dflow/specs/domain/{context}/analysis.md` when one context owns what it describes and in `dflow/specs/domain/analysis.md` when no one context does, creating the file from `templates/analysis.md` the first time there is something to record. That template's sections carry the notation.

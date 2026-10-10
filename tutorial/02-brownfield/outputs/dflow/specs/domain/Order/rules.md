@@ -35,7 +35,6 @@ Fill this column using `references/confirmed-rule-vs-code.md` § Scope and recor
 |---|---|
 | draft | 規則已識別，但尚未完整驗證。 |
 | active | 規則已驗證，預期由系統執行。 |
-| deprecated | 規則保留作為歷史紀錄，但不再 active。 |
 
 ## Open Questions
 

@@ -563,7 +563,7 @@ When the feature being modified has no existing spec, take the opportunity to do
 2. Extract all business rules found (if/else conditions, calculations, validations)
 3. Identify domain concepts (potential Entities, Value Objects, Services)
 4. Check for duplicated logic across pages
-5. Identify the system-level knowledge no single context document holds — an ordered flow that crosses contexts (always the domain-root copy), the lifecycle a status field moves through, a figure computed rather than stored, a mechanism no single rule explains, which roles reach the function (always the domain-root copy), and any spot in those this system keeps working around pending a domain decision (in the copy that holds the knowledge it is stuck on)
+5. Identify the system-level knowledge no single context document holds — an ordered flow that crosses contexts (always the domain-root copy), the lifecycle a status field moves through, a figure computed rather than stored, a mechanism no single rule explains, which roles reach the function and what some of them can do there that others cannot (always the domain-root copy), and any spot in those this system keeps working around pending a domain decision (in the copy that holds the knowledge it is stuck on)
 6. Record findings in the appropriate domain docs (`models.md`, `rules.md`, and `analysis.md` — the owning context's copy, or `dflow/specs/domain/analysis.md` when no one context owns what you found, created from `templates/analysis.md` the first time there is something to record) and `tech-debt.md`; a baseline capture also records how two contexts integrate in `context-map.md`, declared in its row — see `references/modify-existing-baseline.md` § Step 2
 
 This is an **opportunistic** strategy — "capture while we're already here." Do not force a full codebase scan; scope it to the modified feature and its immediate neighbors. Share what you find:
@@ -620,7 +620,7 @@ Look for what this change depends on and no single context document holds:
 - **Lifecycles** — a status field and the transitions it moves through
 - **Read models and derived figures** — a number computed rather than stored
 - **Mechanisms** — behavior no single rule explains
-- **Function / role index** — which roles reach this function, and what data each one sees (always the domain-root copy)
+- **Function / role index** — which roles reach this function, what data each one sees, and what some of them can do there that others cannot (always the domain-root copy)
 - **Hotspots** in any of the above — what this change worked around, pending a domain decision (in the copy that holds the knowledge it is stuck on)
 
 Record each finding in `dflow/specs/domain/{context}/analysis.md` when one context owns what it describes and in `dflow/specs/domain/analysis.md` when no one context does, creating the file from `templates/analysis.md` the first time there is something to record. That template's sections carry the notation.

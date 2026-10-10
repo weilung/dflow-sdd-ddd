@@ -8,8 +8,82 @@
 
 ## Unreleased
 
-> **目前投影版號：`0.16.4`**（**未發布到 npm**；npm latest 仍是 `0.16.0`）。
-> 下面五段都在這一版裡，每段標題標出它第一次投影的版號。
+> **目前投影版號：`0.16.5`**（**未發布到 npm**；npm latest 仍是 `0.16.0`）。
+> 下面九段都在這一版裡，每段標題標出它第一次投影的版號。
+
+### `analysis.md` 生命週期的新建與刪除、沒有轉移的值、寫不出原樣的值；`dflow render` 畫不出圖時點名是哪幾格（PROPOSAL-110）——`0.16.5`
+
+**來源**：落地專案的使用回報（dist issue #17 第 8、9 條，與第 3 次回報的補充）：建立一筆資料的那一步在轉移表沒有寫法；
+為了讓 `dflow render` 畫得出圖，只出現在舊資料裡的值被拿出狀態表；空字串這類值怎麼寫沒有說法；圖畫不出來時，說明只寫「有 N 格要節略」，不說是哪幾格。
+
+- **新建與刪除寫成 `[*]`**：轉移表的 From 寫 `[*]`，表示這一步建立了這筆資料、帶著初始狀態出現；To 寫 `[*]`，表示這一步把它刪掉。
+  `[*]` 跟其他值一樣放在反引號裡，不列進狀態表。停在某個值不再變的、軟刪除（留著資料、改一個狀態）都是普通狀態，不是轉移到 `[*]`。
+  `dflow render` 把它們畫成圖上的起點（實心圓）與終點（圈中點），圖例說明各是什麼。
+- **沒有轉移的值不畫成方框**：狀態表照舊列出每一個值；沒有任何一列 From、To 寫到的值，`dflow render` 列在圖下，不算進 12 個狀態的上限與圖高。
+- **值清單的出處**：兩張表後面一行 `Evidence:`，寫這張值清單從哪裡來（例如列出不重複值的查詢、程式的列舉），以及哪些值沒有轉移、為什麼。
+  出處要涵蓋整個值域：只看程式的列舉，會漏掉只在舊資料裡的值；只查資料，會漏掉還沒有任何一筆資料用過的值。
+- **寫不出原樣的值取名字**：空字串、全是空白、沒有值，以及真的存了 `[*]` 這幾個字的值，在 State 取一個名字（例如「（未設定）」「（空字串）」），
+  `Evidence:` 那一行寫每個名字代表實際存的什麼。
+- **`dflow render` 的說明**：要節略的格子超過 2 格、畫不出圖時，說明逐格點名——哪張表、第幾列、哪一欄、不節略要排幾行。
+  `[*]` 寫進狀態表、同一列 From 與 To 都是 `[*]`、From 或 To 是顯示 `*` 或 `[*]` 的連結（沒加反引號的 `[*]` 被文件另外定義的 `[*]:` 讀成連結）、
+  或 State、From、To 格寫了 `<br>` 以外的 HTML、圖片或反引號以外的字元參照（例如 `&amp;`）、在沒關上的 `<pre>`、`<code>`、`<kbd>`、`<script>` 後面時，
+  各印一行說明怎麼改。`render --help` 跟著改。
+- **既有專案**：`analysis.md` 的範本形狀 2 還沒發布，這一項併在上面 PROPOSAL-109 那一段的同一個形狀 2 裡。
+  `dflow doctor` 提示的「the HTML comments under `## Lifecycles` changed」後面附一句遷移說明：換成範本的註解；
+  **為了讓圖畫得出來而從狀態表拿掉的值要放回去**，連同表後的 `Evidence:` 那一行；不知道拿掉了哪些，就照值清單的來源（程式或資料查詢）重建，不要猜；
+  狀態表裡寫成 `[*]`、真的存了這幾個字的值，改取一個名字。其餘生命週期照舊有效，下次改到時，再把寫在表下的新建、刪除步驟改成 `[*]` 的列。
+- **舊版 CLI**（`0.16.4` 以前）讀到 From 或 To 的 `[*]`，會說它不在狀態表裡、不畫那張圖。
+- **已知限制**（10 項：每一項會出什麼錯、為什麼不防、誰承擔、什麼時候重看）寫在新頁
+  [`docs/analysis-limitations.md`](docs/analysis-limitations.md)（英文版 `analysis-limitations.en.md`）。
+
+### `analysis.md` 的 Function / Role Index 寫得出各角色能做的事（PROPOSAL-109）——`0.16.5`
+
+**來源**：落地專案做完整選單盤點時（dist issue #17 第 4 次回報補充第 19 條、第 21 條後半），同一個功能有多個角色、各角色能做的事不同，
+`analysis.md` 的 Function / Role Index 沒有寫法，讀者會以為列出的角色都能做同樣的事；找不到負責的 context 時，Bounded Context 欄也沒說怎麼寫。
+
+- **新欄 `Role-specific actions`**（在 Data scope 與 Evidence 之間）：一行一個角色與一個動作，寫成「角色：不是每個列出的角色都能做的一個動作」，
+  或寫決定它的業務規則的引用（一個引用可以代表它決定的幾個動作）。同一個角色可以有幾行；兩個角色都能做、第三個不能的動作，兩個角色各一行；
+  唯讀與可編輯的差別也算。
+- **空格與 `—`**：多個角色進得去的功能，查過、各角色能做的事都一樣就寫 `—`；**空格表示還沒有人查過**。只有一個角色進得去的功能留空。
+- **Data scope**：各角色看到的資料不同時，一行一個角色（「角色：範圍」）。
+- **規則的引用以行為單位**：檔頭 `Referring to a rule` 補一句——一行一個角色的格子裡，「只放引用」與「引用或值」都看每一行冒號後面的文字。
+- **Bounded Context 找不到合適的 context**：寫 `—`，並把「這個功能該歸哪個 context」照 Open Questions and Hotspots 對 context 邊界問題的分流記下來
+  （這個 feature 收尾前必須回答的留在 feature 的 spec，其餘記在 `context-map.md`），寫出功能的 ID；不留空。brownfield 收尾推導 `BC:` 時，`—` 不算 context。
+- **flow 會問**：new-feature、modify-existing、new-phase 與 PR 檢查清單裡問「誰碰得到這個功能」的地方，加問各角色在那裡能做的事有沒有不同；
+  brownfield 的 baseline 盤點也問。
+- **既有專案**：`analysis.md` 的範本形狀 1 → 2，升級後 `dflow doctor` 會對每一份 `analysis.md` 提示，並附一句遷移說明：
+  兩段註解（`Function / Role Index` 的說明與檔頭的 `Referring to a rule`）換成範本的，不論是新補這一欄、還是文件本來就有這一欄；
+  新補這一欄時放在 Evidence 前，佔位列照範本，其餘列照專案已經確立的事填——別處記過的差異（例如寫在 Roles 格角色後面）搬進來，
+  查過、各角色都一樣的寫 `—`，其餘留空（＝還沒查，不寫 `{TBD}`）；文件本來就有這一欄，就保留它的值、只整理成一行一個角色與動作。
+  處理完把那一份的形狀標記改成 2。既有的 Bounded Context 空格不要求回補，下次碰到那一列時照新規則寫。
+- **接受的限制**（6 項：關鍵字命中的是文字不是權限、沒有機器檢查、這一欄是授權分析的輸入而不是授權政策、Bounded Context 的 `—` 的意思、
+  `dflow doctor` 不看格子內容、升級前寫的多角色列是「還沒查」）：每一項會出什麼錯、為什麼不防、誰承擔、什麼時候重看，寫在
+  [`docs/analysis-limitations.md`](docs/analysis-limitations.md)（英文版 `analysis-limitations.en.md`）。
+
+### 落地專案第 4 次回報的小修（dist issue #17）——`0.16.5`
+
+- **brownfield 的合併訊息範本補上 baseline 計數**（#17 第 23 條）：`Git-principles-gitflow.md`、`Git-principles-trunk.md`
+  § 4 的 `Lightweight Changes:` 改成 `{n_t2} T2 + {n_t3} T3 + {n_baseline} baseline`，與收尾 Integration Summary 的欄位一致。
+  只有 baseline 列的 host 照範本寫，看得出這次合進的是一筆 baseline 盤點。greenfield 沒有 baseline，不變。
+  既有專案：§ 4 在 Git-principles 的 canonical 區裡，跑 `dflow configure-agents` 就會更新；在那之前 `dflow doctor`
+  會提示 canonical 區與套件不同。
+
+### `analysis.md` 的說明一次讀得懂、`rules.md` 的狀態說明與 flow 一致（dist issue #17 第 2、17、18 條）——`0.16.5`
+
+- **狀態欄位歸哪個 context**（`analysis.md` 檔頭的 `Placement`）：看哪個 context 的領域模型有這個欄位——那個 context 的 `models.md`
+  定義、或將來會定義的 entity 的屬性——**不看值存在哪一張資料表**。原本寫「whose entity stores it」，「stores」可以讀成資料表（#17 第 17 條）。
+  `Lifecycles` 段說明裡同樣的「The entity that stores the field」也改成「holds」。意思沒變，只是一次讀得懂。
+- **Handed over 格不是引用**（`analysis.md` 檔頭的 `Entry ids`）：流程表的 Handed over 格寫的是兩個 context 之間交出去的東西，
+  條目建好之後也不必換成「路徑＋編號」；想讓讀者連到描述它的條目，在表下引用那個條目（#17 第 18 條）。
+- **`rules.md` 的 Status Legend 拿掉 `deprecated`**（兩軌）：沒有任何 flow 會寫它——規則被移除時，收尾一律把那一列與 `behavior.md`
+  的段落刪掉，歷史留在 git（#17 第 2 條）。`draft` 保留：brownfield 的 baseline 盤點會把開發者也無法確認的規則記成 `draft`。
+  `/dflow:verify` 範例訊息裡的「if deprecated」改成「if the rule no longer applies」。
+- **既有專案**：`analysis.md` 這幾處與上面 PROPOSAL-109、PROPOSAL-110 是同一個形狀 2。檔頭註解那一項
+  （`dflow doctor` 提示裡的「the HTML comments at the top of the document changed」）只是措辭，意思沒變，換成範本的或保留原本的都可以；
+  `Lifecycles` 的註解另外有 PROPOSAL-110 的新寫法，照那一項後面附的遷移說明做（見上面 PROPOSAL-110 那一段）。
+  `rules.md` 是你自己的文件，升級不會改它，Legend 的列也不算形狀、`dflow doctor` 不會提示：
+  Legend 還有 `deprecated` 的可以刪掉那一列；有規則標成 `deprecated` 的，可以照收尾的做法刪掉那一列與 `behavior.md` 的段落（歷史在 git），
+  或保留專案自己的寫法。
 
 ### `dflow render` 的多欄表可以在卡片與表格之間切換（PROPOSAL-108）——`0.16.4`
 

@@ -740,12 +740,15 @@ Step 3 從 `templates/analysis.md` 建出來。本步驟結束時填了兩節，
 
 | State | Means |
 |---|---|
-| `Draft` | 新建的單從這裡開始；員工還在填、還沒送出 |
+| `Draft` | 員工還在填、還沒送出 |
 | `Submitted` | 已送出、等主管審核 |
 
 | From | Trigger | To | Guard | Evidence |
 |---|---|---|---|---|
+| `[*]` | 員工建立費用單（`ExpenseReport.Create()`） | `Draft` |  | confirmed by PO - SPEC-20260428-001 的 phase-spec-2026-04-28-mvp.md Problem Description (2026-04-28) |
 | `Draft` | 員工送出（`ExpenseReport.Submit()`） | `Submitted` | BR-001 | confirmed by PO - SPEC-20260428-001 的 phase-spec-2026-04-28-mvp.md Behavior Scenarios (2026-04-28) |
+
+Evidence: confirmed by PO - SPEC-20260428-001 的 phase-spec-2026-04-28-mvp.md Behavior Scenarios（MVP 只有 Draft、Submitted） (2026-04-28)
 
 ## Read Models and Derived Figures
 
@@ -755,6 +758,11 @@ Step 3 從 `templates/analysis.md` 建出來。本步驟結束時填了兩節，
 
 Evidence: confirmed by PO - SPEC-20260428-001 的 phase-spec-2026-04-28-mvp.md Behavior Scenarios (2026-04-28)
 ```
+
+第一列的 From 寫 `[*]`：這一步建立費用單，建好就是 Draft。建立之前沒有任何值可以列，
+所以 `[*]` 不是狀態、不列進狀態表（範本 Lifecycles 的註解）；`dflow render` 把它畫成圖上的起點。
+兩張表後面那一行 `Evidence:` 寫這張值清單從哪裡來——狀態表本身不帶出處，
+「就只有這兩個值」要照這一行複查。
 
 Guard 格只寫 `BR-001`，不抄「至少一個 ExpenseItem」這句規則本身：規則的正本在
 `rules.md`，這裡只放引用（範本頂端的 `Referring to a rule`）。這樣做的好處，到
@@ -773,10 +781,10 @@ Guard 格只寫 `BR-001`，不抄「至少一個 ExpenseItem」這句規則本�
 ```markdown
 ## Function / Role Index
 
-| Function | ID | Entry point | Bounded Context | Roles | Data scope | Evidence |
-|---|---|---|---|---|---|---|
-| 建立費用單 | FN-01 |  | Expense | 員工 |  | confirmed by PO - SPEC-20260428-001 的 _index.md Goals & Scope (2026-04-28) |
-| 送出費用單 | FN-02 |  | Expense | 員工 |  | confirmed by PO - SPEC-20260428-001 的 _index.md Goals & Scope (2026-04-28) |
+| Function | ID | Entry point | Bounded Context | Roles | Data scope | Role-specific actions | Evidence |
+|---|---|---|---|---|---|---|---|
+| 建立費用單 | FN-01 |  | Expense | 員工 |  |  | confirmed by PO - SPEC-20260428-001 的 _index.md Goals & Scope (2026-04-28) |
+| 送出費用單 | FN-02 |  | Expense | 員工 |  |  | confirmed by PO - SPEC-20260428-001 的 _index.md Goals & Scope (2026-04-28) |
 
 ## Open Questions and Hotspots
 

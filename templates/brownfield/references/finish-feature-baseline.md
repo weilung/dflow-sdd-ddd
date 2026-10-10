@@ -14,7 +14,7 @@ that flow's `BC:` field rules. Take what this file derives back to Step 5.
 
 A `Tier = baseline` row derives, entry by entry, every context it recorded: the
 context of each BC-layer document it wrote; each context a domain-root entry it
-wrote names (a role-index row's Bounded Context, a flow's From / To, the paths
+wrote names (a role-index row's Bounded Context unless it is `—`, a flow's From / To, the paths
 an Affects line cites); the Bounded Context of each `glossary.md` row it wrote;
 the contexts each `context-map.md` row it wrote names (a Context List row's
 Bounded Context, a Relationships row's Source and Target Context); and the

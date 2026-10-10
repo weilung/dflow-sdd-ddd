@@ -122,12 +122,16 @@ try {
     const helpText = help.stdout.replace(/\s+/g, ' ');
     for (const phrase of [
       `at most ${L.LC_MAX_STATES} states and ${L.LC_MAX_TRANSITIONS} transitions, ${L.DIAGRAM_MAX_WIDTH} wide and ${L.DIAGRAM_MAX_HEIGHT} tall`,
-      `at most ${L.LC_MAX_SIDE_LANES} routing lanes on either side, ${L.LC_MAX_SIDE_PORTS} arrow ends on one side of a state, ${L.LC_MAX_CROSSINGS} crossings in all and ${L.LC_MAX_CROSSINGS_PER_EDGE} on one arrow`,
+      `at most ${L.LC_MAX_SIDE_LANES} routing lanes on either side, ${L.LC_MAX_SIDE_PORTS} arrow ends on one side of a state or point, ${L.LC_MAX_CROSSINGS} crossings in all and ${L.LC_MAX_CROSSINGS_PER_EDGE} on one arrow`,
       `at most ${L.FL_MAX_PARTICIPANTS} participants and ${L.FL_MAX_STEPS} steps, ${L.DIAGRAM_MAX_HEIGHT} tall (no width limit`,
       `a flow of at most ${L.FL_PRINT_MAX_PARTICIPANTS} participants`,
-      `at most ${L.IDENTITY_MAX_CODEPOINTS} characters on ${L.IDENTITY_MAX_LINES} lines`,
+      `a name drawn in the diagram (a state or a participant) at most ${L.IDENTITY_MAX_CODEPOINTS} characters on ${L.IDENTITY_MAX_LINES} lines`,
       `Trigger, Guard, Handed over and State change each at most ${L.FIELD_MAX_ITEMS} values and ${L.FIELD_MAX_CODEPOINTS} characters`,
-      `more than ${L.PRIMARY_MAX_LINES} lines is cut short, which at most ${L.MAX_TRUNCATED_FIELDS} of them may be`,
+      `more than ${L.PRIMARY_MAX_LINES} lines is cut short, which at most ${L.MAX_TRUNCATED_FIELDS} of them may be (when more would be, the note names each one and the lines it takes)`,
+      // PROPOSAL-110: `[*]`, the states listed under the picture, and the limits those escape
+      'each From and To cell holds one value: a row of the state table, or [*] for the entity not existing yet (From) or any more (To), drawn as a start and an end point that count toward the height but not as states',
+      'a state that no transition has in From or To is listed under the diagram instead of drawn, and does not count toward the state or height limits',
+      'A state listed under the diagram has none of these limits.',
       'Means and Evidence have no limit, and Means is not drawn',
       'an Evidence whose first word is inferred or assumed makes the arrow dashed and adds a one-row tag with that word, which counts toward the height'
     ]) {
@@ -1559,6 +1563,18 @@ Scenario: submit expense
       '| From | Trigger | To |',
       '|---|---|---|',
       '| `A` | 送出 &#88888888; | B &#99999999; |',
+      '',
+      // PROPOSAL-110: only the states a transition has count toward the limit,
+      // so LC-10 above draws; thirteen states in a chain still do not
+      '### LC-17: 太多畫得出來的狀態',
+      '',
+      '| State | Means |',
+      '|---|---|',
+      ...Array.from({ length: 13 }, (_, i) => `| \`T${i + 1}\` | t |`),
+      '',
+      '| From | Trigger | To |',
+      '|---|---|---|',
+      ...Array.from({ length: 12 }, (_, i) => `| \`T${i + 1}\` | 下一步 | \`T${i + 2}\` |`),
       ''
     ].join('\n');
 
@@ -1569,7 +1585,7 @@ Scenario: submit expense
 
     const run = runRenderCli(proj, []);
     assert.equal(run.code, 0, `diagram render failed\nSTDERR:\n${run.stderr}`);
-    assert.match(run.stdout, /^rendered 2 md files -> .*\ndiagrams: 3 drawn, 15 not drawn\n(?: {2}not drawn: .*\n){15}open: /m,
+    assert.match(run.stdout, /^rendered 2 md files -> .*\ndiagrams: 4 drawn, 15 not drawn\n(?: {2}not drawn: .*\n){15}open: /m,
       'stdout carries the diagram line, then one line per note, between the two existing lines');
 
     const outDir = join(proj, 'dflow-specs-html');
@@ -1588,11 +1604,11 @@ Scenario: submit expense
       'LC-06 沒有畫成圖：找不到轉移表（要有 From、Trigger、To 欄）。',
       'LC-07 沒有畫成圖：轉移表第 1 列的 From 還是佔位文字（{原狀態}）。',
       'LC-08 沒有畫成圖：轉移表第 1 列的 From 有 2 個值，圖上一格只能畫一個。',
-      'LC-10 沒有畫成圖：狀態 17 個，超過上限 12。',
       'LC-12 沒有畫成圖：轉移表第 1 列的 To（A&lt;B&amp;&quot;C&quot;）不在狀態表裡。',
       'LC-13 沒有畫成圖：找不到轉移表（要有 From、Trigger、To 欄）。',
       'LC-14 沒有畫成圖：找不到狀態表（要有 State 欄）。',
-      'LC-15 沒有畫成圖：有 2 張狀態表，只能有一張。'
+      'LC-15 沒有畫成圖：有 2 張狀態表，只能有一張。',
+      'LC-17 沒有畫成圖：狀態 13 個，超過上限 12。'
     ], 'one note per undrawable subsection, in page order, values escaped');
     // stdout names the same notes, in the same order, with the file each is
     // in and the reason unescaped — the copy not named analysis.md has none.
@@ -1603,7 +1619,14 @@ Scenario: submit expense
       return `domain/analysis.md ${id} — ${unescape(reason)}`;
     }), 'one stdout line per page note: file, entry id and reason');
     const figures = [...page.matchAll(/<figure class="dflow-dg dg-(lc|fl)" data-entry="([^"]+)">/g)].map((m) => m[2]);
-    assert.deepEqual(figures, ['FL-01', 'LC-01', 'LC-16'], 'only the filled, well-formed subsections are drawn');
+    assert.deepEqual(figures, ['FL-01', 'LC-01', 'LC-10', 'LC-16'], 'only the filled, well-formed subsections are drawn');
+    // LC-10: seventeen states, one transition — two boxes, fifteen listed under
+    // the picture in state-table order, none counted toward the limit (x1 Q8)
+    const lc10 = /<figure class="dflow-dg dg-lc" data-entry="LC-10">[\s\S]*?<\/figure>\n/.exec(page)[0];
+    assert.deepEqual([...lc10.matchAll(/<g class="dg-state" data-state="([^"]+)"/g)].map((m) => m[1]), ['S1', 'S2']);
+    assert.match(lc10, /aria-label="LC-10：2 個狀態、1 條轉移，另有 15 個狀態沒有轉移、列在圖下；細節見下方的卡片或表格"/);
+    assert.ok(lc10.includes(`<span>轉移表沒有寫到的狀態：${Array.from({ length: 15 }, (_, i) => `<code dir="auto">S${i + 3}</code>`).join('、')}。</span>`),
+      'LC-10 lists the fifteen states no transition has, in state-table order');
     assert.ok(page.includes('>B &amp;#99999999;</text>') && page.includes('>送出 &amp;#88888888;</text>'),
       'a reference that names no character reaches the picture as written');
 
@@ -1667,7 +1690,8 @@ Scenario: submit expense
       transitions: [
         { n: 1, from: 'Draft', to: 'Submitted', trigger: ['送出（Submit()）'], guard: ['BR-001'], evidenceType: 'code' },
         { n: 2, from: 'Submitted', to: 'Approved', trigger: ['核准'], guard: ['BR-002', 'BR-003'], evidenceType: 'assumed' }
-      ]
+      ],
+      unlisted: []
     }, 'a value written as one code span is the span; <br> splits items');
     const fl01 = diagrams.flowModel(subs.find((sub) => sub.entryId === 'FL-01'));
     assert.deepEqual(fl01.model.participants, ['Expense', 'Approval'], 'participants in first-appearance order');
@@ -1807,6 +1831,13 @@ Scenario: submit expense
         marker: /<marker id="([^"]+)"/.exec(html)[1],
         boxes: [...html.matchAll(/<g class="dg-(?:state|participant)" data-(?:state|participant)="([^"]*)"><rect class="dg-box" x="(\d+)" y="(\d+)" width="(\d+)" height="(\d+)"/g)]
           .map((m) => ({ name: m[1], x: Number(m[2]), y: Number(m[3]), w: Number(m[4]), h: Number(m[5]) })),
+        // PROPOSAL-110: the start and end points, each its own node
+        points: [...html.matchAll(/<g class="dg-marker dg-(start|end)" data-marker="(start|end)"><rect class="dg-(start-dot|end-ring)" x="(\d+)" y="(\d+)" width="(\d+)" height="(\d+)" rx="(\d+)"\/>(?:<rect class="dg-end-dot" x="(\d+)" y="(\d+)" width="(\d+)" height="(\d+)" rx="(\d+)"\/>)?<\/g>/g)]
+          .map((m) => ({
+            name: `[*] ${m[1]}`, kind: m[1], data: m[2], shape: m[3],
+            x: Number(m[4]), y: Number(m[5]), w: Number(m[6]), h: Number(m[7]), rx: Number(m[8]),
+            dot: m[9] === undefined ? null : { x: Number(m[9]), y: Number(m[10]), w: Number(m[11]), h: Number(m[12]), rx: Number(m[13]) }
+          })),
         edges: [...html.matchAll(/<g class="dg-(?:edge|step)" data-n="(\d+)" data-from="([^"]*)" data-to="([^"]*)"(?: data-evidence="([^"]*)")?>([\s\S]*?)<\/g>/g)]
           .map((m) => ({
             n: Number(m[1]),
@@ -1851,17 +1882,44 @@ Scenario: submit expense
       return x1 < box.x + box.w && x2 > box.x && y1 < box.y + box.h && y2 > box.y &&
         !(x1 === x2 && (x1 <= box.x || x1 >= box.x + box.w)) && !(y1 === y2 && (y1 <= box.y || y1 >= box.y + box.h));
     };
+    // A point's outline: a circle of diameter 24, or a capsule whose straight
+    // sides run between its two round ends. An arrow meets it at the top or
+    // bottom centre, or on a straight side (a circle's widest point is one).
+    const onPointOutline = ([x, y], m) => {
+      const cx = m.x + m.w / 2;
+      return (x === cx && (y === m.y || y === m.y + m.h)) ||
+        ((x === m.x || x === m.x + m.w) && y >= m.y + m.w / 2 && y <= m.y + m.h - m.w / 2);
+    };
     // What the layout promises, read back from the SVG a reader's browser gets.
     const checkInvariants = (html, kind, why) => {
       const p = parse(html);
       assert.equal(p.viewBox, `0 0 ${p.width} ${p.height}`, `${why}: viewBox matches the natural size`);
-      for (let i = 0; i < p.boxes.length; i++) {
-        for (let j = i + 1; j < p.boxes.length; j++) {
-          const [a, b] = [p.boxes[i], p.boxes[j]];
+      const nodes = [...p.boxes, ...p.points];
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const [a, b] = [nodes[i], nodes[j]];
           assert.ok(a.x >= b.x + b.w || b.x >= a.x + a.w || a.y >= b.y + b.h || b.y >= a.y + a.h, `${why}: boxes ${a.name} and ${b.name} overlap`);
         }
       }
+      // Each point at most once, the start above every box and the end below,
+      // both on the boxes' centre line: round-ended, 24 wide, 24 a port tall.
+      const start = p.points.find((m) => m.kind === 'start');
+      const end = p.points.find((m) => m.kind === 'end');
+      assert.equal(p.points.length, Number(Boolean(start)) + Number(Boolean(end)), `${why}: at most one start and one end point`);
+      for (const m of p.points) {
+        assert.equal(m.data, m.kind, `${why}: the ${m.kind} point names itself`);
+        assert.equal(m.shape, m.kind === 'start' ? 'start-dot' : 'end-ring', `${why}: the ${m.kind} point's shape`);
+        assert.ok(m.w === 24 && m.rx === 12 && m.h >= 24 && m.h % 24 === 0, `${why}: the ${m.kind} point is a circle or a capsule 24 wide`);
+        assert.deepEqual(m.dot, m.kind === 'end' ? { x: m.x + 5, y: m.y + 5, w: 14, h: m.h - 10, rx: 7 } : null, `${why}: only the end point has a dot inside its ring`);
+        for (const b of p.boxes) {
+          assert.equal(m.x + m.w / 2, b.x + b.w / 2, `${why}: the ${m.kind} point sits on the boxes' centre line`);
+          assert.ok(m.kind === 'start' ? m.y + m.h <= b.y : m.y >= b.y + b.h, `${why}: the ${m.kind} point is ${m.kind === 'start' ? 'above' : 'below'} ${b.name}`);
+        }
+      }
       const box = new Map(p.boxes.map((b) => [b.name, b]));
+      // `[*]` in From is the start point and in To the end point: two nodes.
+      const source = (e) => (e.from === '[*]' ? start : box.get(e.from));
+      const target = (e) => (e.to === '[*]' ? end : box.get(e.to));
       for (const e of p.edges) {
         const all = e.paths.flatMap((path) => path.points);
         assert.ok(all.every(([x, y]) => x >= 0 && y >= 0 && x <= p.width && y <= p.height), `${why}: edge ${e.n} leaves the viewBox`);
@@ -1871,14 +1929,17 @@ Scenario: submit expense
         const lastPath = e.paths[e.paths.length - 1].points;
         const [prev, tip] = lastPath.slice(-2);
         if (kind === 'lc') {
-          assert.ok(onBorder(first, box.get(e.from)), `${why}: edge ${e.n} starts on ${e.from}'s border`);
-          assert.ok(onBorder(tip, box.get(e.to)), `${why}: edge ${e.n} ends on ${e.to}'s border`);
-          const target = box.get(e.to);
-          const inward = tip[0] === target.x ? [1, 0] : tip[0] === target.x + target.w ? [-1, 0] : tip[1] === target.y ? [0, 1] : [0, -1];
-          assert.deepEqual([Math.sign(tip[0] - prev[0]), Math.sign(tip[1] - prev[1])], inward, `${why}: edge ${e.n}'s head points into ${e.to}`);
+          assert.ok(!(e.from === '[*]' && e.to === '[*]'), `${why}: edge ${e.n} cannot run from the start point to the end point`);
+          const from = source(e);
+          const to = target(e);
+          assert.ok(from && to, `${why}: edge ${e.n} has both of its nodes drawn`);
+          assert.ok(e.from === '[*]' ? onPointOutline(first, from) : onBorder(first, from), `${why}: edge ${e.n} starts on ${from.name}'s border`);
+          assert.ok(e.to === '[*]' ? onPointOutline(tip, to) : onBorder(tip, to), `${why}: edge ${e.n} ends on ${to.name}'s border`);
+          const inward = tip[0] === to.x ? [1, 0] : tip[0] === to.x + to.w ? [-1, 0] : tip[1] === to.y ? [0, 1] : [0, -1];
+          assert.deepEqual([Math.sign(tip[0] - prev[0]), Math.sign(tip[1] - prev[1])], inward, `${why}: edge ${e.n}'s head points into ${to.name}`);
           for (const path of e.paths) {
             for (let k = 1; k < path.points.length; k++) {
-              for (const b of p.boxes) {
+              for (const b of nodes) {
                 assert.ok(!entersBox([path.points[k - 1], path.points[k]], b), `${why}: edge ${e.n} crosses box ${b.name}`);
               }
             }
@@ -1915,40 +1976,48 @@ Scenario: submit expense
       transitions: rows.map(([from, to, trigger, guard = [], evidenceType = 'code'], i) => ({ n: i + 1, from, to, trigger: [trigger], guard, evidenceType }))
     });
 
-    // (a) Expense LC-01, read from the shipped tutorial through the same recognition path
+    // (a) Expense LC-01, read from the shipped tutorial through the same recognition path.
+    // PROPOSAL-110: its first row is now `[*]` → Draft; the geometry below is
+    // the layout specification's worked example (a), computed by hand before
+    // the start point was implemented.
     const expenseMd = await readFile(join(repoRoot, 'tutorial/01-greenfield/outputs/dflow/specs/domain/Expense/analysis.md'), 'utf8');
     const expenseSub = diagrams.findEntrySubsections(lex(expenseMd)).find((sub) => sub.entryId === 'LC-01');
     const expense = checkInvariants(diagrams.drawDiagram(diagrams.lifecycleModel(expenseSub).model, 0).html, 'lc', 'Expense');
-    assert.deepEqual([expense.width, expense.height], [716, 464]);
-    assert.equal(expense.label, 'LC-01：4 個狀態、4 條轉移；細節見下方的卡片或表格');
+    assert.deepEqual([expense.width, expense.height], [716, 528]);
+    assert.equal(expense.label, 'LC-01：4 個狀態、5 條轉移；細節見下方的卡片或表格');
     assert.equal(expense.marker, 'dflow.dg.0.arrow');
     assert.deepEqual(expense.boxes.map((b) => [b.name, b.x, b.y, b.w, b.h]), [
-      ['Draft', 72, 24, 160, 48], ['Submitted', 72, 112, 160, 48], ['Approved', 72, 294, 160, 48], ['Rejected', 72, 382, 160, 48]
+      ['Draft', 72, 88, 160, 48], ['Submitted', 72, 176, 160, 48], ['Approved', 72, 358, 160, 48], ['Rejected', 72, 446, 160, 48]
     ]);
+    assert.deepEqual(expense.points.map((m) => [m.kind, m.x, m.y, m.w, m.h]), [['start', 140, 24, 24, 24]], 'the start point above Draft, on the centre line');
     assert.deepEqual(expense.edges.map((e) => [e.n, e.from, e.to, e.paths.map((p) => p.d).join(' | ')]), [
-      [1, 'Draft', 'Submitted', 'M152 72V112'],
-      [2, 'Submitted', 'Approved', 'M152 160V294'],
-      [3, 'Submitted', 'Rejected', 'M232 136H280V406H232'],
-      [4, 'Rejected', 'Draft', 'M72 406H24V48H72']
+      [1, '[*]', 'Draft', 'M152 48V88'],
+      [2, 'Draft', 'Submitted', 'M152 136V176'],
+      [3, 'Submitted', 'Approved', 'M152 224V358'],
+      [4, 'Submitted', 'Rejected', 'M232 200H280V470H232'],
+      [5, 'Rejected', 'Draft', 'M72 470H24V112H72']
     ], 'direct arrows down the middle, the forward skip on the right, the return on the left');
     assert.deepEqual(expense.edges.map((e) => e.texts.map((t) => [t.x, t.y, t.text])), [
-      [[164, 86, '1']], [[164, 221, '2']], [[240, 130, '3']], [[40, 400, '4']]
+      [[164, 62, '1']], [[164, 150, '2']], [[164, 285, '3']], [[240, 194, '4']], [[40, 464, '5']]
     ], 'route numbers beside their source connector');
     const shown = (p, cls) => p.texts.filter((t) => t.cls === cls).map((t) => [t.x, t.y, t.text]);
     assert.deepEqual(shown(expense, 'dg-primary'), [
-      [340, 38, '員工送出（ExpenseReport.Submit()）'],
-      [340, 126, '主管核准（ExpenseReport.Approve()）'],
-      [340, 194, '主管退回（ExpenseReport.Reject()）'],
-      [340, 396, '員工第一次重編（AddItem()／'],
-      [340, 416, 'RemoveItem()／ModifyItem()）']
+      [340, 38, '員工建立費用單（ExpenseReport.Create()）'],
+      [340, 102, '員工送出（ExpenseReport.Submit()）'],
+      [340, 190, '主管核准（ExpenseReport.Approve()）'],
+      [340, 258, '主管退回（ExpenseReport.Reject()）'],
+      [340, 460, '員工第一次重編（AddItem()／'],
+      [340, 480, 'RemoveItem()／ModifyItem()）']
     ], 'triggers in the label column; a closing mark stays with the unit before it');
     assert.deepEqual(shown(expense, 'dg-secondary'), [
-      [404, 57, 'BR-001'], [404, 145, 'BR-005'], [404, 163, 'BR-006'],
-      [404, 213, 'BR-005'], [404, 231, 'BR-006'], [404, 249, 'BR-007'], [404, 435, 'BR-002']
+      [404, 121, 'BR-001'], [404, 209, 'BR-005'], [404, 227, 'BR-006'],
+      [404, 277, 'BR-005'], [404, 295, 'BR-006'], [404, 313, 'BR-007'], [404, 499, 'BR-002']
     ], 'guard items stay hard line breaks');
-    assert.deepEqual(shown(expense, 'dg-guard-key').map(([x, y]) => [x, y]), [[340, 57], [340, 145], [340, 213], [340, 435]]);
-    assert.match(expense.legend, /^<span><svg class="dg-key" aria-hidden="true" viewBox="0 0 28 8"><path class="dg-route" d="M0 4H28"\/><\/svg>實線：這一條的 Evidence 類型不是 inferred 或 assumed。<\/span>$/,
-      'an all-solid diagram lists only the solid style, and never calls it verified');
+    assert.deepEqual(shown(expense, 'dg-guard-key').map(([x, y]) => [x, y]), [[340, 121], [340, 209], [340, 277], [340, 499]]);
+    assert.equal(expense.legend,
+      '<span><svg class="dg-key" aria-hidden="true" viewBox="0 0 28 8"><path class="dg-route" d="M0 4H28"/></svg>實線：這一條的 Evidence 類型不是 inferred 或 assumed。</span>' +
+      '<span><svg class="dg-key dg-key-point" aria-hidden="true" viewBox="0 0 28 12"><circle class="dg-start-dot" cx="14" cy="6" r="6"/></svg>實心圓：建立之前（From 寫 <code>[*]</code>）。</span>',
+      'the legend lists the solid style and the start point it draws, never calling a line verified');
 
     // (b) OBTS StatusVerifyExp, transcribed
     const obts = checkInvariants(diagrams.drawDiagram(lcModel(['NotYet', 'Submitted', 'Reviewed'], [
@@ -2052,15 +2121,26 @@ Scenario: submit expense
     assert.equal(cutLines.length, 3);
     assert.match(cutLines[2].text, /…$/);
     assert.match(parse(cut).legend, /…：文字已節略，完整內容見下方的卡片或表格。/);
+    // PROPOSAL-110 (D): the note names each cell and the lines it takes. By
+    // hand: one `這是一段很長的觸發條件，` is 10 × 15.4 + 30.8 (the comma stays
+    // with 件) = 184.8 at 14px; eight of them fill 352-wide lines of 338.8,
+    // 338.8, 338.8, 338.8 and 123.2 — five lines.
     assert.equal(diagrams.drawDiagram(lcModel(['A', 'B'], [['A', 'B', long], ['B', 'A', long], ['A', 'A', long]]), 0).issue,
-      '有 3 格文字要節略才放得下，上限 2 格');
+      '轉移表第 1 列的 Trigger（5 行）、第 2 列的 Trigger（5 行）、第 3 列的 Trigger（5 行）要節略才放得下，上限 2 格、每格 3 行');
 
-    // right-to-left text and oversize cells refuse with a note naming the cell
-    const rtlSub = diagrams.findEntrySubsections(lex([
+    // right-to-left text and oversize cells refuse with a note naming the cell —
+    // in a name the picture draws. PROPOSAL-110 (x2 F5, Q8): a state no
+    // transition has is listed under the picture instead, where the page lays
+    // the text out, so the same value there does not stop the picture.
+    const rtlSub = (transitions) => diagrams.findEntrySubsections(lex([
       '### LC-01: x', '', '| State | Means |', '|---|---|', '| `A` | a |', '| `שלום` | b |', '',
-      '| From | Trigger | To |', '|---|---|---|', '| `A` | t | `A` |'
+      '| From | Trigger | To |', '|---|---|---|', ...transitions
     ].join('\n')))[0];
-    assert.deepEqual(diagrams.lifecycleModel(rtlSub), { issue: '狀態表第 2 列的 State 含有由右到左的文字，這個圖還不會排' });
+    assert.deepEqual(diagrams.lifecycleModel(rtlSub(['| `A` | t | `שלום` |'])), { issue: '狀態表第 2 列的 State 含有由右到左的文字，這個圖還不會排' });
+    const rtlListed = diagrams.lifecycleModel(rtlSub(['| `A` | t | `A` |']));
+    assert.deepEqual([rtlListed.model.states, rtlListed.model.unlisted], [['A'], ['שלום']], 'a right-to-left value with no transition is listed, not refused');
+    assert.ok(diagrams.drawDiagram(rtlListed.model, 0).html.includes('轉移表沒有寫到的狀態：<code dir="auto">שלום</code>。'),
+      'the listed value keeps its own direction (dir="auto") under the picture');
     const wideSub = diagrams.findEntrySubsections(lex([
       '### LC-01: x', '', '| State |', '|---|', '| `A` |', '',
       '| From | Trigger | To |', '|---|---|---|', `| \`A\` | ${'x'.repeat(257)} | \`A\` |`
@@ -2109,6 +2189,337 @@ Scenario: submit expense
       }
     }
     assert.ok(drawn >= 150, `the random corpus mostly draws (${drawn} of 230) rather than refusing`);
+
+    // --- PROPOSAL-110: `[*]`, the states listed under the picture, the cells a note names ---
+    // Expected geometry is the layout specification's worked examples
+    // (proposal § 版面規格與手算例子), computed by hand before the code.
+    {
+      const DEF = '[*]: https://example.com/star';
+      // One LC subsection: a state table of `values` and a transition table of
+      // `rows` ([From, Trigger, To] cells), both as written, then `tail` lines.
+      const lcMd = (values, rows, tail = []) => [
+        '### LC-01: x', '', '| State | Means |', '|---|---|', ...values.map((v) => `| ${v} | m |`), '',
+        '| From | Trigger | To |', '|---|---|---|', ...rows.map(([from, trigger, to]) => `| ${from} | ${trigger} | ${to} |`), '', ...tail
+      ].join('\n');
+      const modelOf = (md) => diagrams.lifecycleModel(diagrams.findEntrySubsections(lex(md))[0]);
+      const pageOf = (md) => {
+        const state = diagrams.newPageState();
+        const html = diagrams.insertDiagrams(lex(md), state).filter((t) => t.type === 'html' && t.raw === '').map((t) => t.text);
+        return { state, html };
+      };
+      const ends = (result) => result.model.transitions.map((t) => [t.from, t.to]);
+      const size = (html) => { const p = parse(html); return [p.width, p.height]; };
+
+      // (1) Recognition, through marked's tokens (the confirmation round's first
+      // carried item). The escape below is Markdown's backslash — String.raw keeps
+      // the JavaScript source from taking it — and the lexer is shown to have seen it.
+      const escaped = String.raw`\[*\]`;
+      const fromCell = (md) => lex(md).filter((t) => t.type === 'table')[1].rows[0][0];
+      assert.deepEqual(fromCell(lcMd(['`A`'], [[escaped, 't', '`A`']])).tokens.map((t) => t.type), ['escape', 'text', 'escape'],
+        'fixture: the From cell holds Markdown escapes, not a JavaScript string escape');
+      assert.deepEqual(fromCell(lcMd(['`A`'], [['[*]', 't', '`A`']], [DEF])).tokens.map((t) => t.type), ['link'],
+        'fixture: with a [*]: definition, marked reads an unquoted [*] as a link');
+      for (const cell of ['`[*]`', '[*]', escaped, '**[*]**']) {
+        const m = modelOf(lcMd(['`A`', '`*`'], [[cell, '建立', '`A`'], ['`A`', '刪除', cell]]));
+        assert.deepEqual(ends(m), [['[*]', 'A'], ['A', '[*]']], `${cell}: the start point in From, the end point in To`);
+        assert.deepEqual(m.model.unlisted, ['*'], `${cell}: [*] is not the value *`);
+      }
+      for (const cell of ['`[*]`', escaped]) {
+        assert.deepEqual(ends(modelOf(lcMd(['`A`', '`*`'], [[cell, '建立', '`A`'], ['`A`', '刪除', cell]], [DEF]))), [['[*]', 'A'], ['A', '[*]']],
+          `${cell}: a [*]: definition does not turn a code span or an escape into a link`);
+      }
+      const linkNote = (column, step, row = 1) =>
+        `轉移表第 ${row} 列的 ${column} 是一個連結，判斷不了是${step}（寫成 [*] 加反引號）還是 * 這個值（寫成 * 加反引號）`;
+      for (const cell of ['[*]', '**[*]**', '[*][]', '[*](#star)']) {
+        assert.deepEqual(modelOf(lcMd(['`A`', '`*`'], [[cell, '建立', '`A`']], [DEF])), { issue: linkNote('From', '新建') },
+          `${cell}: a link showing * in From is neither guessed a start point nor the value *`);
+        assert.deepEqual(modelOf(lcMd(['`A`', '`*`'], [['`A`', '刪除', cell]], [DEF])), { issue: linkNote('To', '刪除') },
+          `${cell}: a link showing * in To is neither guessed an end point nor the value *`);
+      }
+      // the third proposal round's counter-example drew an ordinary arrow here; it is now a note
+      assert.deepEqual(modelOf(lcMd(['`A`', '`*`'], [['`*`', '改', '`A`'], ['[*]', '建立', '`A`']], [DEF])), { issue: linkNote('From', '新建', 2) });
+      // the confirmation round's boundaries: no `*` state at all, and the undecided row after good ones
+      assert.deepEqual(modelOf(lcMd(['`A`'], [['[*]', '建立', '`A`']], [DEF])), { issue: linkNote('From', '新建') },
+        'undecided whether or not the state table holds *');
+      const late = pageOf(lcMd(['`A`', '`B`', '`*`'], [['`[*]`', '建立', '`A`'], ['`A`', '送出', '`B`'], ['[*]', '又建立', '`B`']], [DEF]));
+      assert.deepEqual([late.state.drawn, late.state.notDrawn], [0, 1], 'an undecided row after good ones: no half picture');
+      assert.equal(late.html[0], `<p class="dflow-dg-notice">LC-01 沒有畫成圖：${linkNote('From', '新建', 3)}。</p>\n`);
+      // rewritten as the note says: `[*]` is the start point, `*` the value
+      const asPoint = modelOf(lcMd(['`A`', '`*`'], [['`[*]`', '建立', '`A`']], [DEF]));
+      const asValue = modelOf(lcMd(['`A`', '`*`'], [['`*`', '改', '`A`']], [DEF]));
+      assert.deepEqual([ends(asPoint), ends(asValue), asValue.model.states], [[['[*]', 'A']], [['*', 'A']], ['A', '*']]);
+      for (const m of [asPoint, asValue]) {
+        checkInvariants(diagrams.drawDiagram(m.model, 0).html, 'lc', 'a rewritten link');
+      }
+
+      // (1b) State, From and To are read only when the page shows exactly the
+      // text read here. Raw HTML other than <br>, an image, or a character
+      // reference marked passes to the page is a note, never a guess, whatever
+      // else the cell holds (the implementation-stage rounds found one form after
+      // another read wrong: p110-impl-x1r F1, F2; p110-impl-x2 R1, R2). What the
+      // page shows as written is read as written; rewritten in backticks, as the
+      // note says, the subsection is drawn.
+      const stateNote = (row) => `狀態表第 ${row} 列寫了 [*]；新建、刪除寫在 From、To，真的存了 [*] 這個字的值在 State 另取一個名字`;
+      const unreadNote = (table, row, column, what, written) =>
+        `${table}第 ${row} 列的 ${column} 寫了${what} ${written}，判斷不了它顯示的是什麼；請照範本把值寫在反引號裡`;
+      const anchor = (text) => `<a href="https://example.test">${text}</a>`;
+      for (const [cell, written] of [
+        [anchor('[*]'), '<a href="https://example.test">'], ['<span hidden>[*]</span>', '<span hidden>'], ['<b>[*]</b>', '<b>'],
+        ['<code>&#91;*&#93;</code>', '<code>'], ['<code>&#91*&#93</code>', '<code>'], ['<!-- 新建 -->`[*]`', '<!-- 新建 -->']
+      ]) {
+        assert.deepEqual(modelOf(lcMd(['`A`'], [[cell, '建立', '`A`']])), { issue: unreadNote('轉移表', 1, 'From', ' HTML', written) }, `${cell} in From: HTML`);
+        assert.deepEqual(modelOf(lcMd(['`A`'], [['`A`', '刪除', cell]])), { issue: unreadNote('轉移表', 1, 'To', ' HTML', written) }, `${cell} in To: HTML`);
+      }
+      assert.deepEqual(modelOf(lcMd(['`A`', anchor('[*]')], [['`A`', 't', '`A`']])), { issue: unreadNote('狀態表', 2, 'State', ' HTML', '<a href="https://example.test">') },
+        'HTML in State, before it is read as [*]');
+      assert.deepEqual(modelOf(lcMd(['`A`', '<b>Draft</b>'], [['`A`', '送出', '<b>Draft</b>']])), { issue: unreadNote('狀態表', 2, 'State', ' HTML', '<b>') },
+        'HTML in State, even around a plain value');
+      assert.deepEqual(modelOf(lcMd(['`A`'], [['![[*]](start.png)', '建立', '`A`']])), { issue: unreadNote('轉移表', 1, 'From', '圖片', '![[*]](start.png)') }, 'an image');
+      assert.deepEqual(modelOf(lcMd(['`A`'], [['`A`<br>`B`', '改', '`A`']])), { issue: '轉移表第 1 列的 From 有 2 個值，圖上一格只能畫一個' }, '<br> still separates values');
+      for (const [cell, written] of [
+        ['&lbrack;*&rbrack;', '&lbrack;'], ['&#91;*&#93;', '&#91;'], ['&#x5b;*&#x5d;', '&#x5b;'], ['&#38;#x5b;*&#38;#x5d;', '&#38;'],
+        ['&#0000091;*&#0000093;', '&#0000091;'], ['&#x00005b;*&#x00005d;', '&#x00005b;'], ['[&ast;](https://example.test)', '&ast;'],
+        ['**&amp;**', '&amp;'], ['&nosuchname;', '&nosuchname;']
+      ]) {
+        assert.deepEqual(modelOf(lcMd(['`A`'], [[cell, '建立', '`A`']])), { issue: unreadNote('轉移表', 1, 'From', '字元參照', written) }, `${cell} in From: a reference`);
+      }
+      assert.deepEqual(modelOf(lcMd(['`A`', 'R&amp;D'], [['`A`', '改', 'R&amp;D']])), { issue: unreadNote('狀態表', 2, 'State', '字元參照', '&amp;') }, 'a reference in State');
+      for (const [cell, value] of [
+        ['`&lbrack;x`', '&lbrack;x'], [String.raw`\&lbrack;x`, '&lbrack;x'], ['&#91*&#93', '&#91*&#93'], ['&#00000091;x', '&#00000091;x'],
+        ['&#x000005b;x', '&#x000005b;x'], ['R&D', 'R&D'], ['`R&D`', 'R&D'], ['**Draft**', 'Draft'], ['`<b>A</b>`', '<b>A</b>']
+      ]) {
+        assert.deepEqual(ends(modelOf(lcMd(['`A`', cell], [[cell, '改', '`A`']]))), [[value, 'A']], `${cell}: shown as written, read as written`);
+      }
+      assert.deepEqual(ends(modelOf(lcMd(['`A`', '`R&D`'], [['`[*]`', '建立', '`A`'], ['`A`', '改', '`R&D`']]))), [['[*]', 'A'], ['A', 'R&D']],
+        'rewritten in backticks as the note says, the values are read');
+      assert.deepEqual(modelOf(lcMd(['`A`', '`B`'], [['`A`', '<b>送出</b> &amp; &lbrack;存&rbrack;', '`B`']])).model.transitions[0].trigger, ['送出 & &lbrack;存&rbrack;'],
+        'outside State, From and To the cell is not refused');
+      // Descriptive text is decoded once, as the page decodes it, and only as far
+      // as marked passes a reference to the page (7 decimal or 6 hex digits).
+      assert.deepEqual(diagrams.inlineItems(lex('&#38;lt; &amp;lt; &#38;#65;')[0].tokens), ['&lt; &lt; &#65;'], 'every reference is decoded exactly once');
+      assert.deepEqual(diagrams.inlineItems(lex('&#0000065; &#00000065; &#x000041; &#x0000041;')[0].tokens), ['A &#00000065; A &#x0000041;'],
+        'a reference marked escapes stays as written');
+      // (1c) marked keeps a <pre>, <code>, <kbd> or <script> open from one cell, row
+      // or line to the next (p110-impl-x3 R3): text after one that is not closed
+      // reaches the page as written, so a State, From or To cell there is a note
+      // however plain its text — and one in backticks is still read.
+      const rawNote = (table, row, column) =>
+        `${table}第 ${row} 列的 ${column} 在沒關上的 <pre>、<code>、<kbd> 或 <script> 後面，判斷不了它顯示的是什麼；請關上那個標籤，值照範本寫在反引號裡`;
+      for (const tag of ['<code>', '<pre>', '<kbd>', '<script>', '<CODE>', '<code class="x">']) {
+        for (const cell of ['&#91*&#93', '&#00000091;*&#00000093;', '&lbrack', 'B']) {
+          assert.deepEqual(modelOf(lcMd(['`A`', '`B`'], [['`A`', `${tag}送出`, cell]])), { issue: rawNote('轉移表', 1, 'To') }, `${cell} after an unclosed ${tag}`);
+        }
+      }
+      assert.deepEqual(modelOf(lcMd(['`A`', '`B`'], [['`A`', '<code>送出', '`B`'], ['B', '退回', '`A`']])), { issue: rawNote('轉移表', 2, 'From') },
+        'opened in an earlier row; the backticked To before it is read');
+      assert.deepEqual(modelOf(['### LC-01: x', '', '| State | Means |', '|---|---|', '| `A` | <kbd>m |', '| B | m |', '',
+        '| From | Trigger | To |', '|---|---|---|', '| `A` | t | `A` |', ''].join('\n')), { issue: rawNote('狀態表', 2, 'State') }, 'opened in a Means cell');
+      assert.deepEqual(modelOf(`前言 <code>沒有關上\n\n${lcMd(['B'], [['B', 't', 'B']])}`), { issue: rawNote('狀態表', 1, 'State') }, 'opened in a line before the tables');
+      assert.deepEqual(ends(modelOf(lcMd(['`A`', 'B'], [['`A`', '<code>送出</code>', 'B']]))), [['A', 'B']], 'closed in the same cell: the cells after it are read');
+      assert.deepEqual(ends(modelOf(lcMd(['`A`', '`B`'], [['`A`', '<code>送出', '`B`'], ['`B`', '退回', '`A`']]))), [['A', 'B'], ['B', 'A']],
+        'after an unclosed tag, values in backticks are read');
+      // The same through the CLI: each form whose shown value the page decides
+      // gets its note and no picture; the rewritten one, and one the page shows as
+      // written, are drawn.
+      const f12 = join(tempRoot, 'p110-f1f2');
+      await writeFixture(join(f12, 'dflow/specs/domain/analysis.md'), [
+        lcMd(['`A`'], [[anchor('[*]'), '建立', '`A`']]).replace('LC-01', 'LC-01'),
+        lcMd(['`A`'], [['`A`', '刪除', '<span hidden>[*]</span>']]).replace('LC-01', 'LC-02'),
+        lcMd(['`A`', '&lbrack;*&rbrack;'], [['&lbrack;*&rbrack;', '改', '`A`']]).replace('LC-01', 'LC-03'),
+        lcMd(['`A`', '`*`'], [['[&ast;](https://example.test)', '改', '`A`']]).replace('LC-01', 'LC-04'),
+        lcMd(['`A`'], [['`[*]`', '建立', '`A`'], ['`A`', '刪除', '`[*]`']]).replace('LC-01', 'LC-05'),
+        lcMd(['`A`', '<code>&#91*&#93</code>'], [['<code>&#91*&#93</code>', '改', '`A`']]).replace('LC-01', 'LC-06'),
+        lcMd(['`A`', '`&#x5b;*&#x5d;`'], [['&#38;#x5b;*&#38;#x5d;', '改', '`A`']]).replace('LC-01', 'LC-07'),
+        lcMd(['`A`', '`&#00000091;*&#00000093;`'], [['&#00000091;*&#00000093;', '改', '`A`']]).replace('LC-01', 'LC-08'),
+        // p110-impl-x3 R3, as reported: the <code> opened in Trigger is closed in Guard
+        ['### LC-09: cross-cell', '', '| State | Means |', '|---|---|', '| A | normal |', '| `&#91*&#93` | literal reference |', '',
+          '| From | Trigger | To | Guard |', '|---|---|---|---|', '| A | <code>remove | &#91*&#93 | </code> |', ''].join('\n')
+      ].join('\n'));
+      const f12Run = runRenderCli(f12, []);
+      assert.equal(f12Run.code, 0, f12Run.stderr);
+      const f12Page = await readOut(join(f12, 'dflow-specs-html/domain/analysis.html'));
+      assert.deepEqual([...f12Page.matchAll(/<p class="dflow-dg-notice">(.*)<\/p>/g)].map((m) => m[1]), [
+        `LC-01 沒有畫成圖：${unreadNote('轉移表', 1, 'From', ' HTML', '&lt;a href=&quot;https://example.test&quot;&gt;')}。`,
+        `LC-02 沒有畫成圖：${unreadNote('轉移表', 1, 'To', ' HTML', '&lt;span hidden&gt;')}。`,
+        `LC-03 沒有畫成圖：${unreadNote('狀態表', 2, 'State', '字元參照', '&amp;lbrack;')}。`,
+        `LC-04 沒有畫成圖：${unreadNote('轉移表', 1, 'From', '字元參照', '&amp;ast;')}。`,
+        `LC-06 沒有畫成圖：${unreadNote('狀態表', 2, 'State', ' HTML', '&lt;code&gt;')}。`,
+        `LC-07 沒有畫成圖：${unreadNote('轉移表', 1, 'From', '字元參照', '&amp;#38;')}。`,
+        `LC-09 沒有畫成圖：${rawNote('轉移表', 1, 'To').replace(/</g, '&lt;').replace(/>/g, '&gt;')}。`
+      ], 'CLI: each form whose shown value the page decides is a note on the page');
+      assert.deepEqual([...f12Page.matchAll(/<figure class="dflow-dg dg-lc" data-entry="([^"]+)">/g)].map((m) => m[1]), ['LC-05', 'LC-08'],
+        'CLI: the rewritten one and the one shown as written are drawn');
+      const lc08 = /<figure class="dflow-dg dg-lc" data-entry="LC-08">[\s\S]*?<\/figure>/.exec(f12Page)[0];
+      assert.ok(!lc08.includes('dg-marker') && lc08.includes('data-from="&amp;#00000091;*&amp;#00000093;"'), 'CLI: LC-08 draws the value the card shows, with no start point');
+      assert.match(f12Run.stdout, /diagrams: 2 drawn, 7 not drawn/);
+
+      // (2) `[*]` is never a state, and one row cannot both create and remove
+      for (const cell of ['`[*]`', '[*]', escaped]) {
+        assert.deepEqual(modelOf(lcMd(['`A`', cell], [['`A`', 't', '`A`']])), { issue: stateNote(2) }, `${cell} in State is refused`);
+      }
+      assert.deepEqual(modelOf(lcMd(['`A`'], [['`A`', 't', '`A`'], ['`[*]`', '轉一圈', '`[*]`']])), { issue: '轉移表第 2 列的 From 與 To 都是 [*]' });
+      assert.deepEqual(modelOf(lcMd(['`（未設定）`'], [['`[*]`', '建立', '`（未設定）`']])).model.states, ['（未設定）'], 'a name in full-width brackets is an ordinary value');
+
+      // (3) A state no transition has: listed under the picture in state-table
+      // order, once each, escaped; a self-transition or a create is enough to draw
+      // a state; the listed ones do not count toward the limit but are still
+      // checked as values.
+      const listed = modelOf(lcMd(['`Old`', '`A`', '`<script>x</script>`', '`B`', '`Self`', '`Born`'],
+        [['`A`', '送出', '`B`'], ['`Self`', '自轉', '`Self`'], ['`[*]`', '建立', '`Born`']]));
+      assert.deepEqual([listed.model.states, listed.model.unlisted], [['A', 'B', 'Self', 'Born'], ['Old', '<script>x</script>']]);
+      const listedHtml = diagrams.drawDiagram(listed.model, 0).html;
+      checkInvariants(listedHtml, 'lc', 'listed states');
+      assert.ok(listedHtml.includes('<span>轉移表沒有寫到的狀態：<code dir="auto">Old</code>、<code dir="auto">&lt;script&gt;x&lt;/script&gt;</code>。</span>'),
+        'the listed states, in state-table order, escaped');
+      assert.equal((listedHtml.match(/>Old</g) || []).length, 1, 'each listed state appears once');
+      assert.doesNotMatch(listedHtml, /data-state="Old"|<script>/, 'a listed state is not drawn, and no listed text reaches the page raw');
+      assert.match(listedHtml, /aria-label="LC-01：4 個狀態、3 條轉移，另有 2 個狀態沒有轉移、列在圖下；細節見下方的卡片或表格"/);
+      const thirteen = modelOf(lcMd(Array.from({ length: 13 }, (_, i) => `\`V${i + 1}\``),
+        Array.from({ length: 9 }, (_, i) => [`\`V${i + 1}\``, '下一步', `\`V${i + 2}\``])));
+      assert.deepEqual([thirteen.model.states.length, thirteen.model.unlisted], [10, ['V11', 'V12', 'V13']]);
+      checkInvariants(diagrams.drawDiagram(thirteen.model, 0).html, 'lc', 'thirteen values, three listed');
+      assert.deepEqual(modelOf(lcMd(['`A`', '`Old`', '`Old`'], [['`A`', 't', '`A`']])), { issue: '狀態表第 3 列的狀態 Old 重複（第 2 列已有）' },
+        'a repeated value is refused though no transition has it');
+      assert.deepEqual(modelOf(lcMd(['`A`', '`{舊值}`'], [['`A`', 't', '`A`']])), { issue: '狀態表第 2 列的 State 還是佔位文字（{舊值}）' },
+        'a {…} placeholder is refused though no transition has it');
+      assert.deepEqual(modelOf(['### LC-01: x', '', '| State | Means |', '|---|---|', '| `A` | a |', '| `{狀態值}` | {這個狀態允許或擋住接下來的什麼} |', '',
+        '| From | Trigger | To |', '|---|---|---|', '| `A` | t | `A` |', ''].join('\n')), { issue: '狀態表第 2 列還是範本的佔位列' },
+      "the template's placeholder row is refused though no transition has it");
+      const longName = `L${'x'.repeat(70)}`;
+      assert.deepEqual(modelOf(lcMd(['`A`', `\`${longName}\``], [['`A`', 't', '`A`']])).model.unlisted, [longName], 'a name too long to draw is listed');
+      assert.deepEqual(modelOf(lcMd(['`A`', `\`${longName}\``], [['`A`', 't', `\`${longName}\``]])), { issue: '狀態表第 2 列的 State 有 71 個字元，上限 64' },
+        'the same name drawn is refused, naming its state-table row');
+      assert.deepEqual(modelOf(['### LC-01: x', '', '| State |', '|---|', '| `A` |', '| `B` |', '', '| From | Trigger | To |', '|---|---|---|', ''].join('\n')),
+        { issue: '轉移表沒有任何一列' }, 'no transition at all: a note, never a picture holding only the list');
+
+      // (4) Values that cannot be written as themselves each get a name; a name
+      // and a look-alike ordinary value stay two states (x3; the confirmation round)
+      const names = ['（空字串）', '（一個空白）', '（兩個空白）', '（NULL）', 'null', '（存了 [*]）', '空字串', '(空字串)'];
+      const named = modelOf(lcMd(names.map((n) => `\`${n}\``),
+        [['`[*]`', '建立', `\`${names[0]}\``], ...names.slice(1).map((n, i) => [`\`${names[i]}\``, `改成第 ${i + 2} 個`, `\`${n}\``])],
+        ["Evidence: data - SELECT DISTINCT Status（（空字串）＝ ''、（一個空白）＝ ' '、（兩個空白）＝ '  '、（NULL）＝ NULL、（存了 [*]）＝ 字面上的 [*]） (2026-10-10)"]));
+      assert.deepEqual([named.model.states, named.model.unlisted], [names, []], 'every name is its own state, and the look-alikes stay apart');
+      const namedP = checkInvariants(diagrams.drawDiagram(named.model, 0).html, 'lc', 'named values');
+      assert.deepEqual(namedP.boxes.map((b) => unescapeXml(b.name)), names, 'all of them drawn');
+
+      // (5) The migration renames a stored `[*]` in State, From and To, and the
+      // Evidence line says what the name stands for (x3 Q7)
+      const storedNote = { issue: stateNote(2) };
+      assert.deepEqual(modelOf(lcMd(['`Open`', '`[*]`'], [['`Open`', '標成記號', '`[*]`']], ['Evidence: data - SELECT DISTINCT Status (2026-10-10)'])), storedNote,
+        'before the rename the stored [*] is refused, naming its row');
+      const renamed = modelOf(lcMd(['`Open`', '`（存了 [*]）`'], [['`Open`', '標成記號', '`（存了 [*]）`']],
+        ['Evidence: data - SELECT DISTINCT Status；（存了 [*]）是字面上存的 [*] (2026-10-10)']));
+      assert.deepEqual([renamed.model.states, ends(renamed)], [['Open', '（存了 [*]）'], [['Open', '（存了 [*]）']]]);
+      const renamedHtml = diagrams.drawDiagram(renamed.model, 0).html;
+      checkInvariants(renamedHtml, 'lc', 'renamed stored [*]');
+      assert.doesNotMatch(renamedHtml, /dg-marker/, 'after the rename nothing is drawn as a start or end point');
+
+      // (6) Capacity, as the proposal commits it (x2 F1): example (b)
+      const straight = (k, { start = false, end = false, tagged = false } = {}) => {
+        const rows = [];
+        if (start) rows.push(['[*]', 'S1', '建立']);
+        for (let i = 1; i < k; i++) rows.push([`S${i}`, `S${i + 1}`, '下一步', ...(i === 1 && tagged ? [['BR-001'], 'inferred'] : [])]);
+        if (end) rows.push([`S${k}`, '[*]', '刪除']);
+        return lcModel(Array.from({ length: k }, (_, i) => `S${i + 1}`), rows);
+      };
+      const b1 = checkInvariants(diagrams.drawDiagram(straight(10, { start: true }), 0).html, 'lc', 'start and ten states');
+      assert.deepEqual([b1.width, b1.height, b1.points.map((m) => [m.kind, m.x, m.y, m.w, m.h])], [620, 952, [['start', 92, 24, 24, 24]]]);
+      const b2 = checkInvariants(diagrams.drawDiagram(straight(9, { start: true, end: true }), 0).html, 'lc', 'start, nine states, end');
+      assert.deepEqual([b2.width, b2.height, b2.points.map((m) => [m.kind, m.x, m.y, m.w, m.h])], [620, 928, [['start', 92, 24, 24, 24], ['end', 92, 880, 24, 24]]]);
+      assert.deepEqual(size(diagrams.drawDiagram(straight(10, { tagged: true }), 0).html), [620, 898], 'drawn today at 898');
+      assert.deepEqual(diagrams.drawDiagram(straight(10, { start: true, tagged: true }), 0), { issue: '圖高 962，上限 960' },
+        'a start point adds at least 64: a picture that just fitted may not (known limitation 8)');
+
+      // (7) Several creates and deletes: example (c). The end point holds two
+      // ports and stretches into a capsule; one crossing, cut in the vertical.
+      const c = diagrams.drawDiagram(lcModel(['Draft', 'Open', 'Closed'], [
+        ['[*]', 'Draft', 'Create()'], ['[*]', 'Open', 'Import()'], ['Draft', 'Open', 'Open()'], ['Open', 'Closed', 'Close()'],
+        ['Draft', '[*]', 'Discard()'], ['Closed', '[*]', 'Purge()'], ['Open', '[*]', 'Cancel()']
+      ]), 0).html;
+      const cp = checkInvariants(c, 'lc', 'creates and deletes');
+      assert.deepEqual([cp.width, cp.height], [724, 480]);
+      assert.deepEqual(cp.boxes.map((b) => [b.name, b.x, b.y, b.w, b.h]), [['Draft', 24, 116, 160, 48], ['Open', 24, 208, 160, 72], ['Closed', 24, 320, 160, 48]]);
+      assert.deepEqual(cp.points.map((m) => [m.kind, m.x, m.y, m.w, m.h]), [['start', 92, 24, 24, 24], ['end', 92, 408, 24, 48]]);
+      assert.deepEqual(cp.edges.map((e) => [e.n, e.from, e.to, e.paths.map((p) => p.d).join(' | '), e.texts.map((t) => `${t.x},${t.y}`).join()]), [
+        [1, '[*]', 'Draft', 'M104 48V116', '116,76'],
+        [2, '[*]', 'Open', 'M116 36H232V135 | M232 145V232H184', '124,30'],
+        [3, 'Draft', 'Open', 'M104 164V208', '116,180'],
+        [4, 'Open', 'Closed', 'M104 280V320', '116,294'],
+        [5, 'Draft', '[*]', 'M184 140H288V444H116', '192,134'],
+        [6, 'Closed', '[*]', 'M104 368V408', '116,382'],
+        [7, 'Open', '[*]', 'M184 256H260V420H116', '192,250']
+      ], 'markers route by the box rules: direct down the middle, the rest on the right, nested, the one crossing cut');
+      assert.deepEqual(shown(cp, 'dg-primary').map(([x, y]) => [x, y]), [[348, 38], [348, 70], [348, 130], [348, 162], [348, 222], [348, 254], [348, 334]]);
+      assert.match(c, /<rect class="dg-end-dot" x="97" y="413" width="14" height="38" rx="7"\/>/, 'the end point keeps its dot inset 5 when it stretches');
+      assert.match(cp.legend, /實心圓：建立之前（From 寫 <code>\[\*\]<\/code>）。<\/span><span><svg class="dg-key dg-key-point"[^>]*><circle class="dg-end-ring"[^>]*\/><circle class="dg-end-dot"[^>]*\/><\/svg>圈中點：刪除之後（To 寫 <code>\[\*\]<\/code>）。<\/span>$/,
+        'the legend names both points, after the line styles');
+      // only deletes: one end point, no start
+      const onlyDelete = checkInvariants(diagrams.drawDiagram(lcModel(['A', 'B'], [['A', 'B', '送出'], ['B', '[*]', '刪除'], ['A', '[*]', '作廢']]), 0).html, 'lc', 'only deletes');
+      assert.deepEqual(onlyDelete.points.map((m) => [m.kind, m.h]), [['end', 24]]);
+      assert.doesNotMatch(onlyDelete.legend, /實心圓|dg-start-dot/, 'a picture without a create does not explain the start point');
+      // deleting from many states: past the lane limit a note, the table unchanged (known limitation 3)
+      const manyDeletes = lcModel(['S1', 'S2', 'S3', 'S4', 'S5', 'S6'], [
+        ...[1, 2, 3, 4, 5].map((i) => [`S${i}`, `S${i + 1}`, '下一步']), ...[1, 2, 3, 4, 5, 6].map((i) => [`S${i}`, '[*]', '刪除'])
+      ]);
+      assert.deepEqual(diagrams.drawDiagram(manyDeletes, 0), { issue: '右側需要 5 條分道，上限 4' });
+
+      // (8) The note names each cell cut short (D). By hand, per arrow width:
+      // 35 CJK at 14px (15.4 each) take 4 lines in 160 (10 a line, adjacent
+      // participants) but 2 in 344 (22 a line, two pitches apart); four <br>
+      // items are four lines; 50 CJK at 13px (14.3 each) take 5 lines in 160.
+      const cjk = (k) => '甲乙丙丁戊己庚辛壬癸'.repeat(6).slice(0, k);
+      const flowCut = (steps) => diagrams.flowModel(diagrams.findEntrySubsections(lex(['### FL-01: x', '', '| # | From | To | Handed over | State change |', '|---|---|---|---|---|',
+        ...steps.map(([from, to, handed, change], i) => `| ${i + 1} | ${from} | ${to} | ${handed} | ${change} |`), ''].join('\n')))[0]).model;
+      const flowSteps = [['A', 'B', cjk(35), 'x'], ['A', 'D', cjk(35), 'x'], ['B', 'C', 'x<br>y<br>z<br>w', 'x'], ['C', 'D', 'x', cjk(50)]];
+      assert.deepEqual(diagrams.drawDiagram(flowCut(flowSteps), 0), {
+        issue: '流程表第 1 列的 Handed over（4 行）、第 3 列的 Handed over（4 行）、第 4 列的 State change（5 行）要節略才放得下，上限 2 格、每格 3 行'
+      }, 'each cell named with its lines; the same text over a wider arrow is not cut');
+      const twoCut = diagrams.drawDiagram(flowCut(flowSteps.slice(0, 3)), 0);
+      checkInvariants(twoCut.html, 'fl', 'two cells cut');
+      assert.match(parse(twoCut.html).legend, /…：文字已節略/, 'at the limit the picture is drawn and says so');
+      assert.deepEqual(diagrams.drawDiagram(lcModel(['A', 'B'], [['A', 'B', long], ['B', 'A', 't', ['BR-001', 'BR-002', 'BR-003', 'BR-004']], ['A', 'A', long]]), 0),
+        { issue: '轉移表第 1 列的 Trigger（5 行）、第 2 列的 Guard（4 行）、第 3 列的 Trigger（5 行）要節略才放得下，上限 2 格、每格 3 行' },
+        'a lifecycle names Trigger and Guard cells in row order');
+      assert.equal(diagrams.wrapField([cjk(35)], 160, 14, 3).total, 4, 'wrapField reports the lines the whole field takes');
+
+      // (9) The points' colours come from the page's own variables, defined for
+      // light and dark, and print draws them as the screen does (PROPOSAL-100's way)
+      const pageCss = /const CSS = `([\s\S]*?)`;/.exec(renderSource)[1];
+      assert.match(diagrams.DIAGRAM_CSS, /\.dflow-dg \.dg-start-dot, \.dflow-dg \.dg-end-dot \{ fill: var\(--ink\); stroke: none; \}/);
+      assert.match(diagrams.DIAGRAM_CSS, /\.dflow-dg \.dg-end-ring \{ fill: var\(--surface\); stroke: var\(--ink\); stroke-width: 1\.5; \}/);
+      for (const variable of ['--ink', '--surface']) {
+        assert.match(pageCss, new RegExp(`:root \\{[^}]*${variable}:#`), `light: the page defines ${variable}`);
+        assert.match(pageCss, new RegExp(`@media \\(prefers-color-scheme: dark\\) \\{\\s*:root \\{[^}]*${variable}:#`), `dark: the page defines ${variable}`);
+      }
+      const printBlock = /@media print \{([\s\S]*?)\n\}/.exec(diagrams.DIAGRAM_CSS)[1];
+      assert.doesNotMatch(printBlock, /dg-start|dg-end|dg-marker|dg-key-point/, 'print restyles neither point nor its legend key');
+
+      // (10) Fixed-seed corpus through the recognition path, with `[*]` rows and
+      // values no transition has: every picture keeps the invariants, every
+      // refusal names its reason, and the listed states are exactly the unused ones.
+      let seed2 = 20261010;
+      const rand2 = (k) => { seed2 = (seed2 * 1103515245 + 12345) % 2147483648; return seed2 % k; };
+      let drawn2 = 0;
+      for (let k = 0; k < 120; k++) {
+        const values = Array.from({ length: 2 + rand2(10) }, (_, i) => (rand2(5) === 0 ? `（值${i}）` : `S${i}`));
+        const pick = () => (rand2(6) === 0 ? '[*]' : values[rand2(values.length)]);
+        const rows = Array.from({ length: 1 + rand2(10) }, () => [pick(), pick()]).filter(([f, t]) => !(f === '[*]' && t === '[*]'));
+        if (rows.length === 0) continue;
+        const md = lcMd(values.map((v) => `\`${v}\``), rows.map(([f, t], i) => [`\`${f}\``, `t${i + 1}`, `\`${t}\``]));
+        const m = modelOf(md);
+        assert.ok(m.model, `corpus ${k}: a well-formed table reads (${m.issue})`);
+        const used = new Set(rows.flat());
+        assert.deepEqual(m.model.unlisted, values.filter((v) => !used.has(v)), `corpus ${k}: the listed states are the ones no row has`);
+        const result = diagrams.drawDiagram(m.model, 0);
+        if (result.html) {
+          drawn2 += 1;
+          checkInvariants(result.html, 'lc', `corpus ${k}`);
+        } else {
+          assert.ok(typeof result.issue === 'string' && result.issue.length > 0, `corpus ${k}: a refusal names its reason`);
+        }
+      }
+      assert.ok(drawn2 >= 60, `the [*] corpus mostly draws (${drawn2})`);
+    }
   }
 
   // --- PROPOSAL-107: a recorded deviation beside analysis.md entries ---

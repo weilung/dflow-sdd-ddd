@@ -169,7 +169,7 @@ Issues:
      mistaken for a scenario
    → Action: check the implementation, then either add the scenario
      to behavior.md (preferred) or remove BR-003 from rules.md if
-     deprecated
+     the rule no longer applies
 
 2. behavior.md's {scenario section name} formally references BR-010,
    but rules.md doesn't declare it
