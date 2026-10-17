@@ -1,3 +1,4 @@
+<!-- Part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE in the Dflow package, or dflow/specs/shared/dflow-workflows/LICENSE in a project. -->
 # Git Integration with SDD/DDD — Greenfield Clean Architecture
 
 Same minimal Git coupling as the Brownfield edition. Key difference: gate

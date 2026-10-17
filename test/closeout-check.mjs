@@ -1,3 +1,4 @@
+// Part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE.
 // PROPOSAL-105 — `dflow check-closeout`, the closeout gate (dist issue #5).
 //
 // Every fixture is a real temporary git repository, and every archived file in
@@ -611,6 +612,7 @@ assert.ok(projected.startsWith(`${init.WORKFLOW_BUNDLE_GENERATED_MARKER}\n`) && 
     await cp(join(repoRoot, 'lib'), join(pkg, 'lib'), { recursive: true });
     await cp(join(repoRoot, 'templates'), join(pkg, 'templates'), { recursive: true });
     await cp(join(repoRoot, 'package.json'), join(pkg, 'package.json'));
+    await cp(join(repoRoot, 'LICENSE'), join(pkg, 'LICENSE'));
     if (registry === null) await rm(join(pkg, 'lib', 'doc-shapes.json'));
     else await writeFile(join(pkg, 'lib', 'doc-shapes.json'), registry);
     const damaged = createRequire(import.meta.url)(join(pkg, 'lib', 'closeout-check.js'));

@@ -1,3 +1,4 @@
+// Part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE.
 // PROPOSAL-112: tests for the table checks of `dflow render`
 // (lib/table-checks.js, wired in by lib/render.js and lib/render-diagrams.js).
 //

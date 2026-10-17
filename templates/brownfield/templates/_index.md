@@ -7,6 +7,7 @@ branch: feature/{SPEC-ID}-{slug}
 # follow-up-of: {原 SPEC-ID}    # 選用：本 feature 為某個已 completed feature 的 follow-up 時填入
 ---
 <!-- dflow-shape: brownfield/_index.md 3 — keep this line: dflow doctor reads it -->
+<!-- This template is part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE in the Dflow package, or dflow/specs/shared/dflow-workflows/LICENSE in a project. Documents written from it are yours: do not copy this line into them. -->
 
 <!--
 Template note (for AI):

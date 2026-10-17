@@ -1,3 +1,4 @@
+<!-- Part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE in the Dflow package, or dflow/specs/shared/dflow-workflows/LICENSE in a project. -->
 # Drift Verification — rules.md ↔ behavior.md Consistency Check
 
 Triggered by `/dflow:verify` or `/dflow:verify <bounded-context>`.

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// Part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE.
 
 const { runConfigureAgents, runDoctor, runInit } = require('../lib/init');
 const { runRender } = require('../lib/render');

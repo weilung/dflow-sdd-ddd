@@ -1,3 +1,4 @@
+// Part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE.
 // Issue-form map guard (PROPOSAL-113 (E)).
 //
 // The feedback flow (templates/common/references/dflow-feedback-flow.md) carries

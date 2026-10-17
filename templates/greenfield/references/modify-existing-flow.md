@@ -1,3 +1,4 @@
+<!-- Part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE in the Dflow package, or dflow/specs/shared/dflow-workflows/LICENSE in a project. -->
 # Modify Existing Feature Workflow — Greenfield Clean Architecture
 
 Step-by-step guide for changing or fixing existing functionality.

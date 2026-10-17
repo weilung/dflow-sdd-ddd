@@ -1,3 +1,4 @@
+// Part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE.
 // PROPOSAL-092 — template shape markers.
 //
 //   (1) the registry guards (D6): every covered template carries exactly one
@@ -14,7 +15,7 @@
 //
 // ⚠ Each guard is also shown to go red on the defect it names — the `mutation`
 // blocks — not only green on the shipped tree. A guard that has never failed has
-// not been shown to guard anything (planning/review-policy.md § 6, guard tier).
+// not been shown to guard anything.
 //
 // Adding a shape number, for the maintainer who got here from a red (1a):
 //   1. bump the number on the template's marker line;
@@ -1374,6 +1375,7 @@ for (const [edition, track] of [['1', 'greenfield'], ['2', 'brownfield']]) {
     await cp(join(repoRoot, dir), join(pkg, dir), { recursive: true });
   }
   await cp(join(repoRoot, 'package.json'), join(pkg, 'package.json'));
+  await cp(join(repoRoot, 'LICENSE'), join(pkg, 'LICENSE'));
   const templatePath = join(pkg, 'templates/greenfield/templates/rules.md');
   const original = await readFile(templatePath, 'utf8');
   const reg = JSON.parse(await readFile(join(pkg, REGISTRY_REL), 'utf8'));

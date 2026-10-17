@@ -1,3 +1,4 @@
+<!-- Part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE in the Dflow package, or dflow/specs/shared/dflow-workflows/LICENSE in a project. -->
 # Step 6: Reverse-Update Follow-up Tracking — Brownfield Progressive Extraction
 
 Branch file of `references/finish-feature-flow.md`. It **adds** the follow-up

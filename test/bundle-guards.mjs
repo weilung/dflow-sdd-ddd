@@ -1,3 +1,4 @@
+// Part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE.
 // PROPOSAL-064: unit tests for the pure bundle-source guards in lib/init.js.
 // These run on synthetic descriptor lists (no filesystem / no packaged
 // templates/ mutation), so the core-invariant guards — which only fire on a

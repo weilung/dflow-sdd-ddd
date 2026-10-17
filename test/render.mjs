@@ -1,3 +1,4 @@
+// Part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE.
 // PROPOSAL-073: tests for the `dflow render` subcommand (lib/render.js).
 //
 // Covers the proposal's verification plan: CLI surface (help / unknown option /

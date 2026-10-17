@@ -1,3 +1,4 @@
+// Part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE.
 // PROPOSAL-054 — existing-agent-file Dflow shim auto-inject.
 //
 // Covers the runtime behavior that replaces the old "park a side merge snippet"

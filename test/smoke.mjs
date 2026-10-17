@@ -1,3 +1,4 @@
+// Part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { cp, mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
@@ -1272,7 +1273,7 @@ try {
         const rel = relative(repoRoot, src);
         if (rel === '') return true;
         const top = rel.split(/[\\/]/)[0];
-        return ['bin', 'lib', 'templates', 'package.json'].includes(top);
+        return ['bin', 'lib', 'templates', 'package.json', 'LICENSE'].includes(top);
       }
     });
     const brokenBin = join(brokenPkg, 'bin', 'dflow.js');
@@ -1455,7 +1456,7 @@ try {
       filter: (src) => {
         const rel = relative(repoRoot, src);
         if (rel === '') return true;
-        return ['bin', 'lib', 'templates', 'package.json'].includes(rel.split(/[\\/]/)[0]);
+        return ['bin', 'lib', 'templates', 'package.json', 'LICENSE'].includes(rel.split(/[\\/]/)[0]);
       }
     });
     await rm(join(otherTrackPkg, 'templates', 'brownfield', 'references'), { recursive: true, force: true });
@@ -1487,7 +1488,7 @@ try {
       filter: (src) => {
         const rel = relative(repoRoot, src);
         if (rel === '') return true;
-        return ['bin', 'lib', 'templates', 'package.json'].includes(rel.split(/[\\/]/)[0]);
+        return ['bin', 'lib', 'templates', 'package.json', 'LICENSE'].includes(rel.split(/[\\/]/)[0]);
       }
     });
     const mismatchRoot = join(tempRoot, 'resolver-mismatch-project');
@@ -1530,7 +1531,7 @@ try {
       filter: (src) => {
         const rel = relative(repoRoot, src);
         if (rel === '') return true;
-        return ['bin', 'lib', 'templates', 'package.json'].includes(rel.split(/[\\/]/)[0]);
+        return ['bin', 'lib', 'templates', 'package.json', 'LICENSE'].includes(rel.split(/[\\/]/)[0]);
       }
     });
     const gpRoot = join(tempRoot, 'gp-marker-broken-project');
@@ -1674,7 +1675,7 @@ try {
         filter: (src) => {
           const rel = relative(repoRoot, src);
           if (rel === '') return true;
-          return ['bin', 'lib', 'templates', 'package.json'].includes(rel.split(/[\\/]/)[0]);
+          return ['bin', 'lib', 'templates', 'package.json', 'LICENSE'].includes(rel.split(/[\\/]/)[0]);
         }
       });
       for (const ed of brokenEditions) {

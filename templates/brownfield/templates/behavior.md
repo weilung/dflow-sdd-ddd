@@ -1,4 +1,5 @@
 <!-- dflow-shape: brownfield/behavior.md 2 — keep this line: dflow doctor reads it -->
+<!-- This template is part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE in the Dflow package, or dflow/specs/shared/dflow-workflows/LICENSE in a project. Documents written from it are yours: do not copy this line into them. -->
 # {Bounded Context} — Behavior Specification
 
 > **Purpose**: Consolidated current rule scenarios and observations for this context.

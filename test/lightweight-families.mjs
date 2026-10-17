@@ -1,3 +1,4 @@
+// Part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE.
 // No-BR six-family lightweight-spec contract (PROPOSAL-082 / G1, G9, G21, G32).
 //
 // A change can reach T2 carrying no BR delta at all — cross-page copy sweeps,

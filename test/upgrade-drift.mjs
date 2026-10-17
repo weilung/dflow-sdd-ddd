@@ -1,3 +1,4 @@
+// Part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE.
 // PROPOSAL-058 — upgrade-time user-owned / shim drift:
 //   (1) the packaged guide projects with guide-canonical markers, and the marked
 //       region is substitution-free (byte-stable across projections);
@@ -3422,7 +3423,7 @@ try {
         );
         // ⚠⚠ NAMING THE CHARACTERS DIRECTLY IS THE FOURTH SPELLING, and a
         // reviewer defeated the first three bans with it: an escape class
-        // `/[ \f\v]+$/` inside `isThematicBreak` contains no `\s`, no
+        // `/[\u00a0\f\v]+$/` inside `isThematicBreak` contains no `\s`, no
         // `[^\S`, no `.trim(` and no literal invisible character, and it made a
         // `---<NBSP>` line a thematic break — so a section that should have
         // ended ran on and a stale file reported `current`. Silent pass, with
@@ -3709,6 +3710,9 @@ try {
           // a skeleton, never to classify a line.
           'crypto', 'SHAPE_MARKER_MENTION', 'SHAPE_MARKER_RE',
           'FRONTMATTER_COMMENTED_FIELD_RE', 'SHAPE_PLACEHOLDER_RE',
+          // PROPOSAL-114. Excludes a license notice from shape comments;
+          // it does not decide Markdown block boundaries.
+          'TEMPLATE_LICENSE_NOTICE',
         ];
         const strayConsts = declaredConsts.filter((n) => !blockConstants.includes(n) && !nonBlockConsts.includes(n));
         assert.deepEqual(
@@ -5918,6 +5922,7 @@ try {
         await cp(join(repoRoot, dir), join(damagedPkg, dir), { recursive: true });
       }
       await cp(join(repoRoot, 'package.json'), join(damagedPkg, 'package.json'));
+      await cp(join(repoRoot, 'LICENSE'), join(damagedPkg, 'LICENSE'));
       const damagedDoctor = async (cwd) => {
         const { spawnSync } = await import('node:child_process');
         const r = spawnSync(process.execPath, [join(damagedPkg, 'bin', 'dflow.js'), 'doctor'], {
@@ -6072,6 +6077,7 @@ try {
         await cp(join(repoRoot, dir), join(skillPkg, dir), { recursive: true });
       }
       await cp(join(repoRoot, 'package.json'), join(skillPkg, 'package.json'));
+      await cp(join(repoRoot, 'LICENSE'), join(skillPkg, 'LICENSE'));
       const skillDoctor = async (cwd) => {
         const { spawnSync } = await import('node:child_process');
         const r = spawnSync(process.execPath, [join(skillPkg, 'bin', 'dflow.js'), 'doctor'], {
@@ -6183,6 +6189,7 @@ try {
         await cp(join(repoRoot, dir), join(corruptPkg, dir), { recursive: true });
       }
       await cp(join(repoRoot, 'package.json'), join(corruptPkg, 'package.json'));
+      await cp(join(repoRoot, 'LICENSE'), join(corruptPkg, 'LICENSE'));
       const corruptDoctor = async (cwd) => {
         const { spawnSync } = await import('node:child_process');
         const r = spawnSync(process.execPath, [join(corruptPkg, 'bin', 'dflow.js'), 'doctor'], {
@@ -6217,6 +6224,7 @@ try {
         await cp(join(repoRoot, dir), join(crlfPkg, dir), { recursive: true });
       }
       await cp(join(repoRoot, 'package.json'), join(crlfPkg, 'package.json'));
+      await cp(join(repoRoot, 'LICENSE'), join(crlfPkg, 'LICENSE'));
       const guidePath = join(crlfPkg, 'templates/greenfield/scaffolding/AI-AGENT-GUIDE.md');
       await writeFile(guidePath, (await readFile(guidePath, 'utf8')).replace(/\r?\n/g, '\r\n'));
 

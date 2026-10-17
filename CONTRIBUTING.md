@@ -44,6 +44,17 @@ you can ask it to run `/dflow:report-dflow-feedback`. That flow should produce a
 sanitized local draft that you review before opening a GitHub issue or PR. It
 must not submit private project details or publish anything automatically.
 
+## Changing Dflow
+
+If you want Dflow to behave differently, please open an issue or a pull
+request rather than maintaining a separate fork. The license allows forks.
+If you give a modified version to others, you must license it to them under
+the AGPL and provide its source as the AGPL requires; that version must also
+say that it was modified and when, must not use "Dflow" or "dflow-sdd-ddd"
+as its name, and must not be presented as an official release. If a modified
+version is only used by others over a network, you must offer those users
+its source. See the additional terms at the top of `LICENSE`.
+
 ## Pull Request Expectations
 
 Keep pull requests focused. A good PR explains:
@@ -132,3 +143,10 @@ workflow contracts, mention the expected version impact in the PR:
   need manual adjustment.
 
 See `docs/release-versioning-policy.md` for the maintainer release policy.
+
+## License of Contributions
+
+Contributions are accepted under the same terms as the project:
+AGPL-3.0-or-later, together with the additional permissions and the
+additional terms stated at the top of `LICENSE`. By opening a pull request,
+you agree that your contribution may be distributed under these terms.

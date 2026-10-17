@@ -1,3 +1,4 @@
+// Part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE.
 // PROPOSAL-074 — default project-level skill install: the TTY halves of the contract.
 //
 // test/smoke.mjs drives the CLI through spawned processes whose stdio are pipes

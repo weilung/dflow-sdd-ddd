@@ -1,3 +1,4 @@
+<!-- Part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE in the Dflow package, or dflow/specs/shared/dflow-workflows/LICENSE in a project. -->
 # Correcting Checkpoint 1's Own Record — Brownfield Progressive Extraction
 
 Branch file of `references/finish-feature-minimal-host.md`. It **adds** the

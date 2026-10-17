@@ -1,3 +1,4 @@
+// Part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE.
 // Registry-parity guard (PROPOSAL-053 / F-02).
 //
 // The 11 /dflow:* commands are hand-duplicated across several surfaces. The

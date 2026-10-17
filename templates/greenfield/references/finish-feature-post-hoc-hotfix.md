@@ -1,3 +1,4 @@
+<!-- Part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE in the Dflow package, or dflow/specs/shared/dflow-workflows/LICENSE in a project. -->
 # Post-Hoc Hotfix Reconciliation — Greenfield Clean Architecture
 
 Branch file of `references/finish-feature-flow.md`. It **adds** the

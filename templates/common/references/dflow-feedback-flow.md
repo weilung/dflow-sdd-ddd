@@ -1,3 +1,4 @@
+<!-- Part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE in the Dflow package, or dflow/specs/shared/dflow-workflows/LICENSE in a project. -->
 # Dflow Feedback Draft Flow
 
 `/dflow:report-dflow-feedback` helps the developer turn a Dflow problem or

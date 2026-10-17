@@ -9,6 +9,7 @@ branch: bugfix/BUG-{NUMBER}-{slug}    # must equal the host _index.md `branch:` 
 # hotfix-identity: {PR / incident / tracker reference}    # ADD only for a post-hoc T2 — the source the asserted `reconciled ({merged-hotfix-hash})` identity rests on; an uncited hash blocks closeout. Keep it adjacent to hotfix-branch.
 ---
 <!-- dflow-shape: greenfield/lightweight-spec.md 2 — keep this line: dflow doctor reads it -->
+<!-- This template is part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE in the Dflow package, or dflow/specs/shared/dflow-workflows/LICENSE in a project. Documents written from it are yours: do not copy this line into them. -->
 
 <!--
 Template note (for AI):

@@ -14,6 +14,70 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+Additional permissions and additional terms under section 7 of the
+GNU Affero General Public License
+
+"Dflow material" means what `dflow init` or `dflow configure-agents`
+writes into a project - the files it creates there and the marked
+regions it writes into other files of the project - and modified
+versions of it. Text you write yourself in those files is not Dflow
+material.
+
+1. Your project. As a special exception, you may keep Dflow material in
+   the project it was written into, and you may convey it as part of
+   that project, under terms of your choice, for use in developing that
+   project. The terms you choose cannot grant rights in Dflow material
+   beyond this permission: anyone who receives Dflow material as part of
+   the project may keep and convey it under this permission, and any
+   other use of it is governed by this License. This permission does not
+   cover conveying Dflow material as workflow, skill, or template content
+   for use in developing other projects, whether on its own or as part
+   of a larger work - such as a development tool, plugin, platform,
+   service, or template set - and whatever that larger work is as a
+   whole. Such conveying is governed by this License without this
+   permission.
+
+2. Your documents. Documents that you write for a project by following
+   Dflow's workflows and templates (for example specifications, rules,
+   and behavior descriptions) are not covered works merely because they
+   keep the structure that Dflow's templates lay out: headings, field
+   labels, placeholders, comments, and markers. You may use them under
+   terms of your choice. This item does not cover documents conveyed for
+   use as templates, workflows, or skills in other projects, and it does
+   not permit conveying any other text of Dflow, copied or adapted,
+   under terms of your choice: that text is covered by this License, and
+   item 1 applies to it only where it is Dflow material.
+
+3. Rendered pages. You may use and convey the pages that `dflow render`
+   produces from documents to which item 2 applies, including the layout
+   and styles it puts into them, under terms of your choice, as part of
+   those pages. This item does not cover the renderer or any other part
+   of Dflow's code.
+
+4. Earlier versions. The copyright holder also grants the permissions in
+   items 1 to 3 for Dflow versions 0.9.0 through 0.16.7, whether or not
+   they were published on npm: for the Dflow material those versions
+   wrote into projects, for documents written by following their
+   workflows and templates, and for the pages their `dflow render`
+   produced.
+
+5. Removing these permissions. When you convey Dflow or a modified
+   version of it, you may (at your option) remove the permissions in
+   items 1 to 4 from your copy, as section 7 allows.
+
+6. Names (section 7(e)). This License does not grant permission to use
+   the names "Dflow" or "dflow-sdd-ddd" as trade names, trademarks, or
+   service marks, except to state truthfully that a work is based on or
+   works with Dflow.
+
+7. Modified versions (section 7(c)). A modified version of Dflow, or of
+   any part of it, that you convey must be marked in reasonable ways as
+   different from the original: it must not use "Dflow" or
+   "dflow-sdd-ddd" as its name, must not be presented as an official
+   Dflow release, and must carry the notices that section 5(a)
+   requires. This item does not apply to Dflow material conveyed under
+   item 1.
+
 ----------------------------------------------------------------------
 
                     GNU AFFERO GENERAL PUBLIC LICENSE
