@@ -42,10 +42,11 @@ const TRIGGER_END = '<!-- dflow-generated: codex-command-triggers END -->';
 const tempRoot = await mkdtemp(join(tmpdir(), 'dflow-agent-inject-'));
 let projectCounter = 0;
 
-function runDflow(cwd, input, args) {
+function runDflow(cwd, input, args, env = process.env) {
   const result = spawnSync(process.execPath, [dflowBin, ...args], {
     cwd,
     input,
+    env,
     encoding: 'utf8',
     timeout: RUN_TIMEOUT_MS,
     maxBuffer: 1024 * 1024
@@ -902,6 +903,170 @@ spec locations, and SDD/DDD constraints.
         abridged,
         `${rel} is a tutorial copy of a projected artifact but is neither byte-pinned in this section nor marked abridged. Add it to the lists above, or give it an in-file abridgement note saying what it omits.`
       );
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 17. dist #22 — an agent file that git ignores is not versioned on the current
+  //     branch, so the preview warns where Dflow first brings its wording into it:
+  //     an existing ignored file it appends to (init and configure-agents), and
+  //     an ignored path it creates (inside an ignored directory too). The warning
+  //     comes before the confirmation and adds no question. Silent: a re-run on
+  //     files that already carry Dflow wording, a tracked file that an ignore
+  //     pattern also matches, a repository that ignores nothing, and a directory
+  //     outside any git work tree (with or without git). Inside a work tree, a git
+  //     that is missing, fails or does not answer in time gives a note that Dflow
+  //     could not tell — and without git the plan and the written file are the same.
+  //     Every git and CLI run here uses `isolatedGit`: the developer's own global
+  //     or system git configuration (a global excludes file that ignores
+  //     CLAUDE.md, say) and a repository above the temporary directory must not
+  //     decide what these assertions see.
+  // ---------------------------------------------------------------------------
+  {
+    const gitHome = join(tempRoot, 'git-home');
+    await mkdir(gitHome, { recursive: true });
+    const emptyGitConfig = join(gitHome, 'gitconfig');
+    await writeFile(emptyGitConfig, '');
+    const isolatedGit = {
+      ...process.env,
+      GIT_CONFIG_NOSYSTEM: '1',
+      GIT_CONFIG_GLOBAL: emptyGitConfig,
+      HOME: gitHome,
+      XDG_CONFIG_HOME: gitHome,
+      GIT_CEILING_DIRECTORIES: tempRoot
+    };
+    // Windows keeps the variable as `Path`: drop every spelling before setting it.
+    const withPath = (pathValue) => ({
+      ...Object.fromEntries(Object.entries(isolatedGit).filter(([key]) => key.toUpperCase() !== 'PATH')),
+      PATH: pathValue
+    });
+    const git = (cwd, args) => {
+      const result = spawnSync('git', args, { cwd, encoding: 'utf8', env: isolatedGit });
+      assert.equal(result.status, 0, `git ${args.join(' ')} failed: ${result.stderr}`);
+    };
+    const newRepo = async (dir, files) => {
+      const root = join(tempRoot, dir);
+      await mkdir(root, { recursive: true });
+      git(root, ['init', '-q']);
+      for (const [rel, content] of Object.entries(files)) {
+        await mkdir(dirname(join(root, rel)), { recursive: true });
+        await writeFile(join(root, rel), content);
+      }
+      return root;
+    };
+    const init = (root, agents, env = isolatedGit) => {
+      const run = runDflow(root, initInput(agents), ['init'], env);
+      assert.equal(run.code, 0, `[#22] init failed in ${root}\nSTDOUT:\n${run.stdout}\nSTDERR:\n${run.stderr}`);
+      return run;
+    };
+    const planRows = (stdout) => stdout.split('\n').filter((line) => /^\| .+ \| (create|update|skip) \|/.test(line));
+    const IGNORED = /is ignored by git/;
+    const IGNORED_FILES = { '.gitignore': 'CLAUDE.md\nAGENTS.md\n', 'CLAUDE.md': '# My Claude rules\n' };
+
+    // Append to an ignored existing file, create an ignored path; same basename
+    // as the no-git twin below, so the two plans are comparable row by row.
+    const root = await newRepo('i22-with-git/proj', IGNORED_FILES);
+    const run = init(root, '1,2');
+    const appendWarning = /CLAUDE\.md is ignored by git, so the Dflow block added to it is not versioned on this branch/;
+    assert.match(run.stdout, appendWarning, '[#22] appending to an ignored existing file warns');
+    assert.match(run.stdout, /AGENTS\.md is ignored by git, so the AGENTS\.md Dflow creates is not versioned on this branch/, '[#22] creating an ignored file warns');
+    assert.ok(run.stdout.search(appendWarning) < run.stdout.indexOf('Create these files?'), '[#22] the warning is in the preview, before the confirmation');
+    assert.match(run.stdout, /if the branch you switch to tracks CLAUDE\.md — replaces it with that branch's version without asking, and your own changes to it are lost/, '[#22] the warning says a branch that tracks the file replaces it');
+    assert.match(run.stdout, /stop ignoring CLAUDE\.md and commit it on your main branch before adding Dflow/, '[#22] the warning says how to keep Dflow on one branch');
+    assert.match(run.stdout, /save your own changes first if the branch you switch to tracks CLAUDE\.md/, '[#22] the advice protects the developer\'s own changes');
+    const claude = await readFile(join(root, 'CLAUDE.md'), 'utf8');
+    assert.ok(claude.startsWith('# My Claude rules'), '[#22] user content preserved');
+    assert.equal(count(claude, AGENT_SHIM_START), 1, '[#22] the block is still appended — the warning adds no question');
+    assert.equal(await exists(join(root, 'AGENTS.md')), true, '[#22] the ignored AGENTS.md is still created');
+
+    const rerun = runDflow(root, '1,2\ny\n', ['configure-agents'], isolatedGit);
+    assert.equal(rerun.code, 0, `[#22] configure-agents re-run failed\nSTDOUT:\n${rerun.stdout}\nSTDERR:\n${rerun.stderr}`);
+    assert.doesNotMatch(rerun.stdout, IGNORED, '[#22] files that already carry Dflow wording stay silent on a re-run');
+
+    // No git on PATH inside a git work tree: same plan, same file, and a note
+    // that the check could not run — never silence that reads as "not ignored".
+    const emptyBin = join(tempRoot, 'empty-bin');
+    await mkdir(emptyBin, { recursive: true });
+    const twin = await newRepo('i22-no-git/proj', IGNORED_FILES);
+    const noGitRun = init(twin, '1,2', withPath(emptyBin));
+    assert.doesNotMatch(noGitRun.stdout, IGNORED, '[#22] without git there is no "ignored" answer');
+    assert.match(noGitRun.stdout, /Dflow could not tell whether git ignores CLAUDE\.md \(git is not on PATH\); to check, run `git check-ignore CLAUDE\.md`/, '[#22] no git on PATH inside a work tree says the check could not run');
+    assert.match(noGitRun.stdout, /If git ignores it, the Dflow block added to it is not versioned on this branch/, '[#22] the could-not-tell note carries the same guidance');
+    assert.deepEqual(planRows(noGitRun.stdout), planRows(run.stdout), '[#22] the plan does not depend on git');
+    assert.equal(await readFile(join(twin, 'CLAUDE.md'), 'utf8'), claude, '[#22] the written file does not depend on git');
+
+    // A git that fails inside a work tree (a `.git` file that points nowhere).
+    const broken = await newRepo('i22-broken', IGNORED_FILES);
+    await rm(join(broken, '.git'), { recursive: true, force: true });
+    await writeFile(join(broken, '.git'), 'gitdir: does-not-exist\n');
+    assert.match(init(broken, '1,2').stdout, /Dflow could not tell whether git ignores CLAUDE\.md \(git exited with code \d+\)/, '[#22] a failing git inside a work tree says the check could not run');
+
+    // A work tree that the environment names (GIT_DIR), with no `.git` above the
+    // project: git uses it, so an unanswered check still says it could not tell.
+    const envRepo = await newRepo('i22-env-repo', {});
+    const envWork = join(tempRoot, 'i22-env-work');
+    await mkdir(envWork, { recursive: true });
+    await writeFile(join(envWork, 'CLAUDE.md'), '# My Claude rules\n');
+    const envRun = init(envWork, '1,2', { ...withPath(emptyBin), GIT_DIR: join(envRepo, '.git'), GIT_WORK_TREE: envWork });
+    assert.match(envRun.stdout, /Dflow could not tell whether git ignores CLAUDE\.md \(git is not on PATH\)/, '[#22] a work tree named by GIT_DIR counts as a work tree');
+
+    // A negated rule: git answers "not ignored", so Dflow stays silent — and the
+    // command the could-not-tell note gives prints nothing for it, but prints the
+    // path for a file that is ignored.
+    const negated = await newRepo('i22-negated', { '.gitignore': '*.md\n!CLAUDE.md\n', 'CLAUDE.md': '# My Claude rules\n' });
+    assert.doesNotMatch(init(negated, '2').stdout, IGNORED, '[#22] a file a negated rule un-ignores gets no warning');
+    const manualCheck = (cwd) => spawnSync('git', ['check-ignore', 'CLAUDE.md'], { cwd, encoding: 'utf8', env: isolatedGit });
+    const negatedCheck = manualCheck(negated);
+    assert.equal(negatedCheck.status, 1, '[#22] the suggested check answers "not ignored" for a negated rule');
+    assert.equal(negatedCheck.stdout.trim(), '', '[#22] the suggested check prints nothing for a file that is not ignored');
+    const ignoredCheck = manualCheck(root);
+    assert.equal(ignoredCheck.status, 0, '[#22] the suggested check answers "ignored" for an ignored file');
+    assert.equal(ignoredCheck.stdout.trim(), 'CLAUDE.md', '[#22] the suggested check prints the path of an ignored file');
+
+    // configure-agents bringing Dflow into an ignored file for the first time.
+    const later = await newRepo('i22-later', { '.gitignore': 'CLAUDE.md\n' });
+    init(later, 'none');
+    await writeFile(join(later, 'CLAUDE.md'), '# Rules written after init\n');
+    const laterRun = runDflow(later, '2\ny\n', ['configure-agents'], isolatedGit);
+    assert.equal(laterRun.code, 0, `[#22] configure-agents (first insertion) failed\nSTDOUT:\n${laterRun.stdout}\nSTDERR:\n${laterRun.stderr}`);
+    assert.match(laterRun.stdout, appendWarning, '[#22] configure-agents warns when it first appends to an ignored file');
+
+    // A path inside an ignored directory.
+    const ghIgnored = await newRepo('i22-github', { '.gitignore': '.github/\n' });
+    const ghRun = init(ghIgnored, '3');
+    assert.match(ghRun.stdout, /\.github\/copilot-instructions\.md is ignored by git, so the \.github\/copilot-instructions\.md Dflow creates/, '[#22] a file inside an ignored directory warns');
+
+    // Silent cases.
+    const trackedIgnored = await newRepo('i22-tracked', { '.gitignore': 'CLAUDE.md\n', 'CLAUDE.md': '# Tracked rules\n' });
+    git(trackedIgnored, ['add', '-f', 'CLAUDE.md']);
+    assert.doesNotMatch(init(trackedIgnored, '2').stdout, IGNORED, '[#22] a tracked file is versioned even when an ignore pattern matches it');
+    const plain = await newRepo('i22-plain', { 'CLAUDE.md': '# My Claude rules\n' });
+    assert.doesNotMatch(init(plain, '1,2').stdout, IGNORED, '[#22] a repository that ignores nothing stays silent');
+    const COULD_NOT_TELL = /Dflow could not tell whether git ignores/;
+    const noRepo = join(tempRoot, 'i22-no-repo');
+    await mkdir(noRepo, { recursive: true });
+    await writeFile(join(noRepo, 'CLAUDE.md'), '# My Claude rules\n');
+    const noRepoRun = init(noRepo, '1,2');
+    assert.doesNotMatch(noRepoRun.stdout, IGNORED, '[#22] a directory that is no git repository stays silent');
+    assert.doesNotMatch(noRepoRun.stdout, COULD_NOT_TELL, '[#22] outside any work tree there is nothing to be unsure about');
+    const noRepoNoGit = join(tempRoot, 'i22-no-repo-no-git');
+    await mkdir(noRepoNoGit, { recursive: true });
+    await writeFile(join(noRepoNoGit, 'CLAUDE.md'), '# My Claude rules\n');
+    const noRepoNoGitRun = init(noRepoNoGit, '1,2', withPath(emptyBin));
+    assert.doesNotMatch(noRepoNoGitRun.stdout, COULD_NOT_TELL, '[#22] no git and no work tree stays silent');
+
+    // A git that does not answer: each check gives up within its time limit, so
+    // init finishes well inside RUN_TIMEOUT_MS and says the check could not run.
+    // Windows is skipped: Node resolves `git` through PATH without a shell, so a
+    // stand-in there has to be an .exe; the time limit is the same code on every
+    // platform.
+    if (process.platform !== 'win32') {
+      const slowBin = join(tempRoot, 'slow-git-bin');
+      await mkdir(slowBin, { recursive: true });
+      await writeFile(join(slowBin, 'git'), '#!/bin/sh\nsleep 60\n', { mode: 0o755 });
+      const slow = await newRepo('i22-slow-git', IGNORED_FILES);
+      const slowRun = init(slow, '1,2', withPath(`${slowBin}:/usr/bin:/bin`));
+      assert.match(slowRun.stdout, /Dflow could not tell whether git ignores CLAUDE\.md \(git did not answer within 5 seconds\)/, '[#22] a git that does not answer in time says the check could not run');
     }
   }
 

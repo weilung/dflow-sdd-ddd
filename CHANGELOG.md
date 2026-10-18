@@ -8,8 +8,24 @@
 
 ## Unreleased
 
-> **目前投影版號：`0.16.8`**（**未發布到 npm**；npm latest 仍是 `0.16.0`）。
-> 下面十三段都在這一版裡，每段標題標出它第一次投影的版號。
+> **目前投影版號：`0.16.9`**（**未發布到 npm**；npm latest 仍是 `0.16.0`）。
+> 下面十四段都在這一版裡，每段標題標出它第一次投影的版號。
+
+### `dflow init` 的兩個提醒：既有的 ASP.NET Core 專案不再被提示成 Greenfield；入口檔被 git 忽略時說明影響（dist #21、#22）——`0.16.9`
+
+**來源**：在一個既有的 ASP.NET Core 練習專案試用 `0.16.7` 時回報的兩件事（dist issue #21、#22）。
+
+- **選軌道的提醒只看有沒有既有原始碼，不再看技術棧或框架版本。** 原本只要 `.csproj` 是 `Microsoft.NET.Sdk.Web`、版本在 net6 以上，
+  就提示「看起來像 Greenfield」，選 Brownfield 會跳出警告；可是業務邏輯已經寫在 Controller 的既有專案正是 Brownfield。
+  現在選 Brownfield 不會再看到這條警告。偵測到既有原始碼（`src/`、建置檔，或 WebForms 的 `.aspx`／`.ascx`／`.master`）而選 Greenfield 時，
+  印「偵測到既有原始碼」那條 Note（同一類專案原本反而收不到它）。
+- **`CLAUDE.md`、`AGENTS.md`、`.github/copilot-instructions.md` 被 git 忽略時，預覽與結果說明影響。** 被忽略的檔不在目前分支的版控裡：
+  Dflow 寫進去的內容 `git status` 看不到，切換分支也不會跟著走——切到不追蹤這支檔的分支時原樣留在工作目錄，
+  切到追蹤它的分支時會被那個分支的版本直接蓋掉（連同自己改過的內容）。所以「先開一個分支試用」時，Dflow 的內容不會只留在試用分支上。
+  只在 Dflow 第一次把內容寫進這支檔（新建，或附加 Dflow 區塊）時提醒，並附上只讓 Dflow 留在一個分支的做法；照常寫入、不多問一題。
+  不在 git repository 裡時不提醒；在 git repository 裡、卻問不到 git（找不到 git、git 出錯，或 5 秒內沒有回應）時，
+  改印一則「沒辦法確認」的提醒，附上自己確認的指令與同樣的做法。
+- **既有專案**：只改 `init`／`configure-agents` 印的提醒，不改任何寫出的檔，升級不必做什麼。
 
 ### 授權：給採用者的附加許可、名稱條款與原始檔告示（PROPOSAL-114）——`0.16.8`
 

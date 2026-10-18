@@ -1760,6 +1760,50 @@ try {
     assert.doesNotMatch(noEdHealthy, /Git-principles-trunk\.md (predates managed|has malformed|canonical sections differ)/, 'gp-marker/no-edition healthy: an intact file must not be reported merely because the edition is unknown');
   }
 
+  // dist #21: the track hint is "existing source or not", never the stack or its
+  // framework version. An existing ASP.NET Core MVC project (Web SDK, net10.0)
+  // that picks Brownfield gets no warning; the same project picking Greenfield
+  // gets the existing-source note. A folder holding only WebForms pages counts as
+  // existing source too.
+  {
+    const trackInput = (track) => [
+      track,
+      'ASP.NET Core 10, EF Core 10',
+      'none',
+      '1',       // prose
+      '2',       // Git policy: trunk
+      '1',       // AI commit marker: none
+      'none',    // optional starter files
+      'none',    // AI agents
+      'y'
+    ].join('\n') + '\n';
+    const makeCoreProject = async (label) => {
+      const dir = join(tempRoot, `i21-${label}`);
+      await mkdir(join(dir, 'Controllers'), { recursive: true });
+      await writeFile(join(dir, 'Shop.csproj'), '<Project Sdk="Microsoft.NET.Sdk.Web">\n  <PropertyGroup>\n    <TargetFramework>net10.0</TargetFramework>\n  </PropertyGroup>\n</Project>\n');
+      await writeFile(join(dir, 'Program.cs'), 'var builder = WebApplication.CreateBuilder(args);\n');
+      await writeFile(join(dir, 'Controllers', 'OrdersController.cs'), 'public class OrdersController { }\n');
+      return dir;
+    };
+    const NOTE = /Note: existing source files were detected/;
+
+    const brown = runDflow(await makeCoreProject('brownfield'), trackInput('2'));
+    assert.equal(brown.code, 0, `#21 brownfield init failed\nSTDOUT:\n${brown.stdout}\nSTDERR:\n${brown.stderr}`);
+    assert.doesNotMatch(brown.stdout, /look like (Greenfield|Brownfield)/, '#21: an existing ASP.NET Core project that picks Brownfield must not be told it looks like Greenfield');
+    assert.doesNotMatch(brown.stdout, NOTE, '#21: the existing-source note is for Greenfield only');
+
+    const green = runDflow(await makeCoreProject('greenfield'), trackInput('1'));
+    assert.equal(green.code, 0, `#21 greenfield init failed\nSTDOUT:\n${green.stdout}\nSTDERR:\n${green.stderr}`);
+    assert.match(green.stdout, NOTE, '#21: an ASP.NET Core project with existing source that picks Greenfield gets the existing-source note');
+
+    const webFormsDir = join(tempRoot, 'i21-webforms');
+    await mkdir(webFormsDir, { recursive: true });
+    await writeFile(join(webFormsDir, 'Default.aspx'), '<%@ Page Language="C#" %>\n');
+    const webForms = runDflow(webFormsDir, trackInput('1'));
+    assert.equal(webForms.code, 0, `#21 webforms init failed\nSTDOUT:\n${webForms.stdout}\nSTDERR:\n${webForms.stderr}`);
+    assert.match(webForms.stdout, NOTE, '#21: a folder of WebForms pages is existing source');
+  }
+
   console.log(`Smoke test passed in ${tempRoot}`);
 } finally {
   if (process.env.DFLOW_KEEP_SMOKE_TMP !== '1') {

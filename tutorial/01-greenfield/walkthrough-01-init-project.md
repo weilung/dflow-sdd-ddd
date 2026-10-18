@@ -200,9 +200,8 @@ workflow bundle 檔，所以 Alice 螢幕上的 create 列共 **47** 列（本�
 `Will defer:` 則是產品真正印的段名。）
 
 ⚠ **還有一個位置要先知道：`File plan:` 與表格之間可能插進一個 `Warnings:` 區塊**——有警告
-才印，沒有就直接接表格。Alice 不會看到它，因為她的 `.csproj` 讓 init 判得出這是 .NET Core
-系（見 walkthrough-00 的 tree 表）。但**你自己的 repo 很可能會看到**：只要有頂層 `src/`、
-而 init 讀不出技術方向，你在第 1 題選 Greenfield 就會得到
+才印，沒有就直接接表格。Alice 會看到它：她的 repo 已經有 `src/` 與 `.sln`／`.csproj`
+（見 walkthrough-00 的 tree 表），第 1 題又選了 Greenfield，所以表格之前先印
 
 ```text
 Warnings:
@@ -210,20 +209,17 @@ Warnings:
   ... If this is actually an existing codebase, consider re-running and selecting Brownfield.
 ```
 
-⚠ 這裡有兩個**不同**的判斷，別混在一起：Step 1 那張表講的是「**有沒有既有 source**」，
-`.sln` 算數（它是 build manifest 之一），所以 Alice 的第一題才會被拿掉預設值。這裡講的是
-「**是什麼技術方向**」，只看 **`.csproj` 的內容**（`Microsoft.NET.Sdk.Web` + net6 以上）
-與 WebForms 副檔名（`.aspx`／`.ascx`／`.master`）——**`.sln` 對這一個判斷沒有貢獻**，
-光有 solution 檔救不了。兩個判斷都成立時（有 source、但看不出方向）才會印那則提醒。
-這是**資訊性提醒、不是錯誤**，Greenfield 仍然是對的答案；同一則訊息會在收尾報告的
-`Warnings:` 再印一次；那一格**還可能同時列出未解決的佔位符，所以未必只有一列**——
-偵測提醒與佔位符提醒是兩個獨立來源，而看不出技術方向的 repo 往往兩個都中。
-**Alice 那一格印的是 `- (none)`**——
-她沒有這則提醒，而 `Warnings:` 只追蹤 **init 從第 2 題抽出來的那組技術佔位符**——
+這則提醒用的是 Step 1 那張表的**同一個判斷**——「**有沒有既有 source**」，`.sln` 也算數
+（它是 build manifest 之一），所以 Alice 的第一題才會被拿掉預設值。init **不看**技術棧或框架版本：
+偵測到既有 source、第 1 題又答 Greenfield，就印這則提醒。
+這是**資訊性提醒、不是錯誤**：Alice 的 solution 是剛建好的空骨架，Greenfield 仍然是對的答案。
+同一則訊息會在收尾報告的 `Warnings:` 再印一次；那一格**還可能同時列出未解決的佔位符，所以未必只有一列**——
+偵測提醒與佔位符提醒是兩個獨立來源。**Alice 那一格只有這一則 Note**，沒有佔位符提醒：
+`Warnings:` 追蹤的佔位符只有 **init 從第 2 題抽出來的那組技術佔位符**——
 `{Language}`／`{Framework}`／`{Framework version}`／`{ORM / persistence}`／`{ORM version}`／
 `{Mediator}`／`{Test framework}` 共七個。Alice 第 2 題把它們**全部**答滿了
-（MediatR 12 對到 `{Mediator}`、xUnit 對到 `{Test framework}`），所以那一格才是 `- (none)`。
-答一個抽不出這麼多欄位的技術棧，那一格就會列出沒解掉的幾個。
+（MediatR 12 對到 `{Mediator}`、xUnit 對到 `{Test framework}`），所以一個都沒有列進去。
+答一個抽不出這麼多欄位的技術棧，那一格就會在 Note 之後列出沒解掉的幾個。
 
 ⚠ **這不代表 `_overview.md` 沒有佔位符要補**——實測仍有 8 個 `{e.g. …}` 沒填（連她答過
 `xUnit` 的 `Testing` 那格都還是佔位符），只是它們不在 `Warnings:` 的追蹤範圍內。

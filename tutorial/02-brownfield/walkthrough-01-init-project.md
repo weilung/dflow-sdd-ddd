@@ -85,13 +85,11 @@ inventory 報告。偵測結果只影響第一題怎麼問：
 
 ⚠ Dflow **不會替 Bob 判定 Brownfield**。它偵測到既有 source 之後做的是把第一題的預設值
 拿掉、要 Bob 自己選 2。判定是人做的，Dflow 只負責不讓人矇著眼睛按 Enter。
-（順帶一提：Dflow 有一則「看起來像既有 codebase，考慮選 Brownfield」的 warning，但
-**Bob 無論如何都看不到，理由比想像的簡單**——那則 warning 只在使用者第 1 題答
-**Greenfield** 時才可能出現，而 Bob 答的是 Brownfield。跟他的 repo 長什麼樣沒有關係：
-即使 Dflow 判不出技術方向，答 Brownfield 的人也不會被提醒去選 Brownfield。
-⚠ 別把功勞算給 `OrderManager.sln`——`.sln` **不參與**技術方向的判斷，只算「有既有 source」
-的證據之一。真正被讀的是 `.csproj` 的內容與 WebForms 副檔名，Bob 的 `.aspx` 屬於後者。
-會踩到那則 warning 的是 Greenfield 那一邊，說明在 `01-greenfield/walkthrough-01` Step 3。）
+（順帶一提：Dflow 有一則「看起來像既有 codebase，考慮選 Brownfield」的提醒，但
+**Bob 看不到，理由很簡單**——那則提醒只在第 1 題答 **Greenfield**、而且偵測到既有 source
+時才出現，Bob 答的是 Brownfield。答 Brownfield 的人不會被提醒去選 Brownfield，也不會被
+提醒去選 Greenfield：init 不看技術棧或框架版本，只看有沒有既有 source。
+會碰到那則提醒的是 Greenfield 那一邊，說明在 `01-greenfield/walkthrough-01` Step 3。）
 
 這個判定的效果和 Greenfield 不同：
 
