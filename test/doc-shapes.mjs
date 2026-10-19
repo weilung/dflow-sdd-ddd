@@ -779,28 +779,36 @@ assert.equal(
 }
 
 // --- (1k) changes that carry their own migration (PROPOSAL-107 D7.5) ---------
-// Taken by the default for its kind, three changes leave a doc wrong: `rules.md`'s
+// Taken by the default for its kind, these changes leave a doc wrong: `rules.md`'s
 // `Known deviations` column (the default fills existing rows with `{TBD}`),
-// `behavior.md`'s Purpose note (the default says keeping yours is fine), and
+// `behavior.md`'s Purpose note (the default says keeping yours is fine),
 // `analysis.md`'s `Role-specific actions` column (PROPOSAL-109: an empty cell
-// there means nobody has checked, and its one-line-per-role notation needs the
-// new comments, which the default for a comment leaves optional), and
-// `analysis.md`'s Lifecycles comment (PROPOSAL-110: kept, the old comment
-// leaves a doc without `[*]` and without the line saying where the values came
-// from, and nothing asks for the values left out to get a diagram back). Each
-// carries the sentence doctor prints instead. The sentences are spelled out
-// here, not read from the registry, so a migration dropped from the registry —
-// or added to a change that does not need one — fails.
+// there means nobody has checked) and the two comments its one-line-per-role
+// notation needs — the Referring to a rule comment at the top and the
+// Function / Role Index comment, which the default for a comment leaves
+// optional — and `analysis.md`'s Lifecycles comment (PROPOSAL-110: kept, the
+// old comment leaves a doc without `[*]` and without the line saying where the
+// values came from, and nothing asks for the values left out to get a diagram
+// back). Each carries the sentence doctor prints instead, right after that
+// change: an instruction about a comment sits on the comment's own change, so
+// the line doctor prints for it never reads as the default for a comment. The
+// sentences are spelled out here, not read from the registry, so a migration
+// dropped from the registry — or added to a change that does not need one —
+// fails.
 const RULES_MIGRATION = 'rules.md, column Known deviations: when you add this column, give existing rows `—`, which records no deviation in this format; do not use `{TBD}`.';
 const BEHAVIOR_MIGRATION = "behavior.md, Purpose note: replace the old Purpose with the template's; the old one says this file records what the system does now.";
-const ANALYSIS_MIGRATION = "analysis.md, column Role-specific actions: replace this section's comment and the file's Referring to a rule comment with the template's, whether you add this column or the doc already has it. A doc that already has this column keeps its values; bring them to one line per role and action. When you add this column, put it just before Evidence, give a row that is the template's placeholder the template's placeholder cell, and fill the other rows from what the project has already established: differences recorded elsewhere - after a role in Roles, or in a column the project added for them - move into this column, one line per role and action; a function more than one role reaches whose roles the project has already found able to do the same there gets `—`; every other row stays empty, which records that nobody has checked it yet - do not write `{TBD}`.";
+const ANALYSIS_MIGRATION = "analysis.md, column Role-specific actions: a doc that already has this column keeps its values; bring them to one line per role and action. When you add this column, put it just before Evidence, give a row that is the template's placeholder the template's placeholder cell, and fill the other rows from what the project has already established: differences recorded elsewhere - after a role in Roles, or in a column the project added for them - move into this column, one line per role and action; a function more than one role reaches whose roles the project has already found able to do the same there gets `—`; every other row stays empty, which records that nobody has checked it yet - do not write `{TBD}`.";
+const ANALYSIS_TOP_MIGRATION = "analysis.md, comments at the top of the document: replace the Referring to a rule comment with the template's. The Placement and Entry ids comments changed too; for those two, keeping yours is a valid answer.";
+const ANALYSIS_INDEX_MIGRATION = "analysis.md, Function / Role Index comment: replace this section's comment with the template's.";
 const LIFECYCLES_MIGRATION = "analysis.md, Lifecycles comment: replace this section's comment with the template's. A value you left out of a state table to get a diagram goes back in, with the line after the tables that says where the list of values was taken from; dflow render now lists a value no transition has under the diagram instead of drawing it. If you do not know which values were left out, rebuild the list from where it was taken - the code or the data query - and do not guess. A state written `[*]` that is a stored value gets a name instead. Other lifecycles stay valid as they are: when you next change one, a create or delete step written below its table becomes a row with `[*]` in From or To, and the table gets that line.";
 {
   const expected = ['greenfield', 'brownfield'].flatMap((t) => [
     [`${t}/rules.md`, 2, (c) => c.kind === 'added' && c.item[0] === 'column' && c.item[5] === 'Known deviations', RULES_MIGRATION],
     [`${t}/behavior.md`, 2, (c) => c.kind === 'reworded' && c.from[0] === 'note' && c.from[1] === '' && c.from[2] === '', BEHAVIOR_MIGRATION],
     [`${t}/analysis.md`, 2, (c) => c.kind === 'added' && c.item[0] === 'column' && c.item[5] === 'Role-specific actions', ANALYSIS_MIGRATION],
-    [`${t}/analysis.md`, 2, (c) => c.kind === 'reworded' && c.from[0] === 'comment' && c.from[1] === 'Lifecycles', LIFECYCLES_MIGRATION]
+    [`${t}/analysis.md`, 2, (c) => c.kind === 'reworded' && c.from[0] === 'comment' && c.from[1] === '' && c.from[2] === '', ANALYSIS_TOP_MIGRATION],
+    [`${t}/analysis.md`, 2, (c) => c.kind === 'reworded' && c.from[0] === 'comment' && c.from[1] === 'Lifecycles', LIFECYCLES_MIGRATION],
+    [`${t}/analysis.md`, 2, (c) => c.kind === 'reworded' && c.from[0] === 'comment' && c.from[1] === 'Function / Role Index', ANALYSIS_INDEX_MIGRATION]
   ]);
   const registered = [];
   for (const [key, e] of Object.entries(registry.templates)) {
@@ -820,11 +828,15 @@ const LIFECYCLES_MIGRATION = "analysis.md, Lifecycles comment: replace this sect
   }
   // Only for a doc that is adding the column: a doc that already has it keeps its values.
   assert.ok(RULES_MIGRATION.includes('when you add this column'), 'the rules.md migration governs adding the column, never values already in it');
-  // analysis.md: the comments are replaced in every doc that reaches shape 2 — the
-  // per-line notation is unreadable under the old cell-wide reference rule — and a
-  // doc that already has the column keeps what it holds (PROPOSAL-109, review F5).
-  assert.ok(ANALYSIS_MIGRATION.includes('whether you add this column or the doc already has it'), 'the analysis.md migration replaces both comments whether or not the doc already has the column');
-  assert.ok(ANALYSIS_MIGRATION.includes('A doc that already has this column keeps its values'), 'the analysis.md migration never clears a column the doc already has');
+  // analysis.md: the two comments are replaced in every doc that reaches shape 2,
+  // with no condition — the per-line notation is unreadable under the old
+  // cell-wide reference rule — and a doc that already has the column keeps what
+  // it holds (PROPOSAL-109, review F5). The column's sentence leaves the comments
+  // to their own changes, so the instruction has one home.
+  assert.ok(ANALYSIS_TOP_MIGRATION.startsWith("analysis.md, comments at the top of the document: replace the Referring to a rule comment with the template's."), 'the analysis.md top-comments migration replaces the Referring to a rule comment, with no condition');
+  assert.ok(ANALYSIS_INDEX_MIGRATION.startsWith("analysis.md, Function / Role Index comment: replace this section's comment with the template's."), 'the analysis.md Function / Role Index migration replaces the comment, with no condition');
+  assert.ok(!ANALYSIS_MIGRATION.includes('comment'), 'the column migration leaves the comments to their own changes');
+  assert.ok(ANALYSIS_MIGRATION.includes('a doc that already has this column keeps its values'), 'the analysis.md migration never clears a column the doc already has');
   assert.ok(ANALYSIS_MIGRATION.includes('do not write `{TBD}`'), 'the analysis.md migration replaces the default of filling existing rows with `{TBD}`');
   // Lifecycles: the comment is replaced (the default for a comment would let a
   // doc keep the old one), the values left out for a diagram go back — rebuilt
@@ -1279,14 +1291,19 @@ for (const [edition, track] of [['1', 'greenfield'], ['2', 'brownfield']]) {
   assert.ok(!debtGroup.includes('(migration:'), `${track}: a change without a migration prints none\n${debtGroup}`);
   assert.ok(mixed.action.includes(`${MIGRATION_LEAD} For each ADDED item, add it to the doc`), `${track}: the action opens its defaults with the lead\n${mixed.action}`);
 
-  // analysis.md 1 → 2 carries two migrations: the Role-specific actions column's
-  // and the Lifecycles comment's (PROPOSAL-110), each right after its change.
+  // analysis.md 1 → 2 carries four migrations: the Role-specific actions
+  // column's, the top comments', the Lifecycles comment's (PROPOSAL-110) and the
+  // Function / Role Index comment's, each right after its change.
   const a = await newProject(edition);
   await put(a, 'domain/analysis.md', await older(a, 'analysis.md'));
   const analysisGroup = olderGroup(findingOf(await doctorAt(a), /^\[info\] 1 spec doc\(s\) were written against an older template shape$/).detail, `${track}/analysis.md 1 → 2`);
+  assert.ok(analysisGroup.includes(`the HTML comments at the top of the document changed (migration: ${ANALYSIS_TOP_MIGRATION})`),
+    `${track}: the analysis.md top comments are followed by their migration\n${analysisGroup}`);
   assert.ok(analysisGroup.includes(`the HTML comments under \`## Lifecycles\` changed (migration: ${LIFECYCLES_MIGRATION})`),
     `${track}: the analysis.md Lifecycles comment is followed by its migration\n${analysisGroup}`);
-  assert.ok(analysisGroup.includes(`(migration: ${ANALYSIS_MIGRATION})`), `${track}: the column keeps its own migration beside the Lifecycles one\n${analysisGroup}`);
+  assert.ok(analysisGroup.includes(`the HTML comments under \`## Function / Role Index\` changed (migration: ${ANALYSIS_INDEX_MIGRATION})`),
+    `${track}: the analysis.md Function / Role Index comment is followed by its migration\n${analysisGroup}`);
+  assert.ok(analysisGroup.includes(`(migration: ${ANALYSIS_MIGRATION})`), `${track}: the column keeps its own migration beside the comments' ones\n${analysisGroup}`);
 
   // Only changes without a migration: the action is the one above without its lead.
   const q = await newProject(edition);

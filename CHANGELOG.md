@@ -8,8 +8,26 @@
 
 ## Unreleased
 
-> **目前投影版號：`0.16.9`**（**未發布到 npm**；npm latest 仍是 `0.16.0`）。
-> 下面十四段都在這一版裡，每段標題標出它第一次投影的版號。
+> **目前投影版號：`0.16.10`**（**未發布到 npm**；npm latest 仍是 `0.16.0`）。
+> 下面十五段都在這一版裡，每段標題標出它第一次投影的版號。
+
+### 落地專案升級到 `0.16.7` 時回報的小修——`0.16.10`
+
+**來源**：落地專案從 `0.16.3` 升級到 `0.16.7` 時記下的觀察。
+
+- **`dflow doctor` 對舊形狀 `analysis.md` 的提示：要換的註解，在那段註解自己那一項後面說。** 升到形狀 2 要換掉兩段註解
+  （檔頭的 `Referring to a rule`、`## Function / Role Index` 底下的說明），這句話原本附在新欄 `Role-specific actions` 那一項後面；
+  兩段註解自己那兩項照註解類的預設，讀起來是「保留原樣也可以」，要把兩處對起來才知道該換。現在換註解的說明各自附在那兩項後面；
+  檔頭那一項也寫明 `Placement`、`Entry ids` 兩段同樣改過，那兩段保留原樣也可以。要換什麼沒有變。
+- **brownfield `modify-existing` 記技術債的寫法跟範本一致**：Step 3 原本叫 AI 把技術債寫成清單項（`- [ ] {File}:{Line} — …`），
+  可是 `tech-debt.md` 是表格。改成在 `## Debt Items` 表加一列、欄位照範本（`{File}:{Line}` 寫在 Location），接在最後一列正下方
+  （表裡還只有範本的佔位列時，取代那一列）——列與列之間有空行，表格就從那裡斷開，後面的列變成一段文字。
+- **使用回報的送出**：feedback flow 使用回報那一段原本寫「never post anything yourself」，比開頭的界線講得更死。
+  改成和界線一致：這個 flow 自己不送出；開發者要求送出時，那是另外一件事。
+- **說明頁寫明 `dflow render` 只有中文**：頁面上 Dflow 加的說明與操作文字、命令列印的原因與修法，都不看 `_conventions.md` 的語言
+  （`docs/commands`、`docs/render-table-checks` 兩語）。
+- **CHANGELOG 補上 PROPOSAL-080**：`0.15.0` 那一段原本漏了它（PR review 碰到高風險的建模改動時，回頭讀 DDD 指引）。
+- **既有專案**：跑一次 `dflow configure-agents` 換上新的 flow 檔；範本與形狀號碼沒變，不必改任何文件。
 
 ### `dflow init` 的兩個提醒：既有的 ASP.NET Core 專案不再被提示成 Greenfield；入口檔被 git 忽略時說明影響（dist #21、#22）——`0.16.9`
 
@@ -512,7 +530,7 @@ feedback flow 只會「一個問題對一張表單」，跨次的編號、補充
 
 ## 0.15.0 — 2026-09-27 — 分級改為順序判定、analysis.md 與 render 畫圖、doctor 看不準就直說
 
-**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）、PROPOSAL-086（受限標頭比讀者窄）、PROPOSAL-087（finish-feature 罕見路徑抽離）、PROPOSAL-090（`Git-principles-*.md` 的 canonical 區改為可刷新）、PROPOSAL-091（`doctor` 的兩條 false-clean 路徑）、PROPOSAL-093（closeout 尾巴的 cursor 矛盾）、PROPOSAL-095（BR Snapshot 範例列移出資料面）、PROPOSAL-096（closeout baseline 的鑰匙改為可推導）、PROPOSAL-099（系統級知識的落點）、PROPOSAL-100（render 把生命週期與流程畫成圖）、PROPOSAL-101（render 首頁改成分組目錄）、PROPOSAL-092（規格文件的形狀版號）
+**Proposals**：PROPOSAL-077（A1 — spec 人讀可讀性：render 長欄位排版）、PROPOSAL-078 phase 1（formatting convention 投遞與偵測）、PROPOSAL-079（render index completed/ 年度分頁）、PROPOSAL-080（PR review 碰到高風險建模時回頭讀 DDD 指引）、PROPOSAL-081（README 瘦身重組＋防過度設計特點露出）、PROPOSAL-082（Tier 邊界語意改為順序 cascade）、PROPOSAL-083（standalone minimal host 生命週期）、PROPOSAL-084（`doctor` 誠實揭露不確定性）、PROPOSAL-085（flow reference 執行期體積）、PROPOSAL-086（受限標頭比讀者窄）、PROPOSAL-087（finish-feature 罕見路徑抽離）、PROPOSAL-090（`Git-principles-*.md` 的 canonical 區改為可刷新）、PROPOSAL-091（`doctor` 的兩條 false-clean 路徑）、PROPOSAL-093（closeout 尾巴的 cursor 矛盾）、PROPOSAL-095（BR Snapshot 範例列移出資料面）、PROPOSAL-096（closeout baseline 的鑰匙改為可推導）、PROPOSAL-099（系統級知識的落點）、PROPOSAL-100（render 把生命週期與流程畫成圖）、PROPOSAL-101（render 首頁改成分組目錄）、PROPOSAL-092（規格文件的形狀版號）
 
 ### 從 `0.14.0` 升上來
 
@@ -1234,6 +1252,23 @@ feedback flow 只會「一個問題對一張表單」，跨次的編號、補充
   （含 ownership × flag 對照表、latest 標示與「先升 npm latest」提示）；
   `dflow doctor` 升級提示改指 canonical URL（`blob/main/docs/upgrading.en.md`，
   套件內附離線副本），測試鎖定 URL 組合與目標存在。
+
+- **PR review 碰到高風險的建模改動時，回頭讀 DDD 指引（P-080）**：兩軌 `pr-review-checklist.md`
+  在對完規格之後、逐層檢查之前多一段條件式檢查——一個 use case 改到多個 Aggregate root、跨
+  Bounded Context 或改了事件、有期限／重試／補償或把本地寫入與外部服務的結果當成同一件事、
+  唯一性這類集合式不變式、新增或改動 Domain Service——命中哪一種，就讀 `ddd-modeling-guide.md`
+  對應的幾節，並在 review 裡表態：提出 finding、附理由接受（理由寫進 Greenfield 的
+  `aggregate-design.md` 或 Brownfield 的 `models.md`／`rules.md`，不能只留在對話裡），或說明只是
+  表面命中。都沒命中時，review 跟以前一樣。擋下合併的建模問題要附上怎麼解除：要改的程式邊界、
+  要同步的文件、能重新驗證的測試，以及修好之前不能宣稱已完成的保證；決定延後就留下負責人、
+  已知風險與結束條件。`ddd-modeling-guide.md` 同時把「一個 transaction 只改一個 Aggregate」
+  改成預設加例外（例外要記理由與何時重看；本地的資料庫 transaction 不能讓外部服務的結果跟著
+  一起成立），Domain Service 的角色與常見錯誤第 5 條跟著改。
+  - **既有專案**：兩支 checklist 與指引隨 workflow bundle 更新。Greenfield 的 `_overview.md` 與
+    `CLAUDE-md-snippet.md` 那一句也改成預設加例外、指向指引，但這兩支是專案自己的檔，不會自動
+    更新：要一致就自己對照範本改那一句。
+  - 只直接驗證過 Greenfield 一個小型、訊號清楚的 PR 情境；Brownfield 是照兩份 checklist 結構對等
+    同步的。
 
 - **Formatting convention 從被動註解升級為主動投遞（P-078 phase 1）**：
   concise-cell/`<br>` 慣例（P-072）原本只存在於模板檔頭 HTML 註解——

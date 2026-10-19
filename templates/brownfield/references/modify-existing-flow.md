@@ -610,10 +610,12 @@ Look for:
 - Try/catch blocks swallowing exceptions silently
 - String concatenation for SQL (SQL injection risk)
 
-Record each finding in `dflow/specs/migration/tech-debt.md` with:
-```markdown
-- [ ] {File}:{Line} — {Description} — Severity: {High|Medium|Low}
-```
+Record each finding as a new row of the `## Debt Items` table in
+`dflow/specs/migration/tech-debt.md`, filling the columns `templates/tech-debt.md`
+defines; `{File}:{Line}` goes in Location. While the table still holds only the
+template's placeholder row, replace that row. Otherwise add the row directly
+below the table's last row: a blank line between rows ends a Markdown table,
+and the rows after it show as plain text.
 
 ### System-Level Knowledge to Record
 Look for what this change depends on and no single context document holds:

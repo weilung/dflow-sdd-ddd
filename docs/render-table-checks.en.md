@@ -54,6 +54,7 @@ tables: 3 problems
 The file is relative to `--src`; the line is the line in the **source `.md` file**, counted from its first line with the frontmatter included, so opening the file at that line lands on it. Lines follow the order render processes the files, and line order within a file. Each line says how to fix it. With no problem, the block does not appear at all.
 
 stdout and the page notices only carry file names, line numbers, row and cell counts and fixed wording, never the content of a cell or a paragraph; to see which text was dropped, open the file at the line.
+That fixed wording is in Traditional Chinese only, whatever the Prose Language in `_conventions.md`: so is the rest of `render`'s pages and command-line output, as the CLI commands section of the [Command Reference](commands.en.md) says.
 
 ### On the page
 

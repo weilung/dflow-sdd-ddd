@@ -150,3 +150,15 @@ templates, are in [Checking the closeout commit](closeout-check.en.md).
 transition as breaking a rule; when the code does not follow a confirmed rule yet, the deviation
 is recorded in the text beside the diagram — see
 [When a confirmed rule and the code disagree](confirmed-rule-vs-code.en.md).
+
+On the pages `render` produces, the captions and controls Dflow adds (the cards | table switch,
+the expand toggle, the directory and diagram captions, every notice) are in Traditional Chinese
+only, whatever the Prose Language in `_conventions.md`; so are the reasons and fixes it prints on
+the command line, where file names, line numbers and entry ids still read the same. Your
+documents' own text is shown as written.
+
+- Why not in both languages yet: the projects using `render` so far write in Chinese; two
+  languages need a second set of every string, and a decision on what a project in any other
+  language gets.
+- Who bears it: projects that write their documents in another language.
+- Reconsider: when someone using another language reports it.

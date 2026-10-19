@@ -1,6 +1,6 @@
 {
   "name": "dflow-sdd-ddd",
-  "version": "0.16.9",
+  "version": "0.16.10",
   "description": "Spec-first SDD/DDD workflow kit for AI-assisted development",
   "type": "commonjs",
   "bin": {

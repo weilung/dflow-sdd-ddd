@@ -143,8 +143,9 @@ with two lines that are local notes and are never pasted:
 `{N}` is the part number. `{n}` is the number the next new observation takes;
 it counts across all parts of the report. When the developer confirms that the
 part was posted, replace the first line with
-`Part {N} — submitted: {issue URL}`. Change it only on the developer's word;
-never post anything yourself (Hard Boundaries).
+`Part {N} — submitted: {issue URL}`. Change it only on the developer's word.
+This flow never posts anything itself: a submission the developer asks for is
+a separate task (Hard Boundaries).
 
 **Continue or start.** Before drafting, look in `dflow/feedback/` for
 usage-report drafts. Take the report with the highest `{R}`, and in it the
