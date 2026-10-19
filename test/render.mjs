@@ -132,6 +132,7 @@ try {
       `--diagram-max-width <pixels> Maximum natural lifecycle width for every page in this run (default: ${L.LC_MAX_WIDTH}). Flows have no width limit and are unaffected by this option.`,
       `Both size options take a positive decimal integer from 1 to ${Number.MAX_SAFE_INTEGER}, in CSS pixels at natural size; --name=value also works. Invalid values exit 1 before any output is written. If repeated, the last value is used; every supplied value must be valid.`,
       'Rows with the same From and To after reading the cells share one arrow, labelled with their row numbers.',
+      'Every row keeps its own Trigger and Guard beside the diagram, and a row whose Evidence type is inferred or assumed keeps its own tag there; the cards and tables are unchanged.',
       'Routing limits count the shared arrows, while the transition limit counts all rows:',
       'For a lifecycle, an arrow is dashed when any row it represents has an Evidence whose first word is inferred or assumed.',
       'For a flow, each row keeps its own arrow, dashed when its Evidence\'s first word is inferred or assumed. A solid arrow does not mean that its evidence has been verified.',

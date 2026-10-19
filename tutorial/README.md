@@ -60,7 +60,7 @@ legacy system context 與 Brownfield baseline，02 之後才開始修改既有�
 | [`/dflow:new-feature` 在既有 Order BC 上新增 VIP discount policy](02-brownfield/walkthrough-04-new-feature.md) | 第二個 Order feature、Customer reference data 邊界、VIP discount BR-005~008。 |
 | [`/dflow:bug-fix` 修正跨頁 rounding inconsistency](02-brownfield/walkthrough-05-bug-fix.md) | T2 bug-fix、BUG-001、rounding display contract、BR snapshot intentionally unchanged。 |
 | [`/dflow:finish-feature` 收尾第一個 Order feature](02-brownfield/walkthrough-06-finish-feature.md) | Finish-feature、BR snapshot sync、completed archive、Integration Summary。 |
-| [沒有相關 feature 的 baseline capture](02-brownfield/walkthrough-07-baseline-minimal-host.md) | Baseline 最小 host、tier-exempt、`spec-baseline` checkpoint、`Tier = baseline` row、BC 已 precaptured。 |
+| [沒有相關 feature 的 baseline capture](02-brownfield/walkthrough-07-baseline-minimal-host.md) | Baseline 最小 host、tier-exempt、`spec-baseline` checkpoint、`Tier = baseline` row、BC 已 precaptured；支線：6.2 題目延後、checkpoint 1 前答一題、收尾後另開一次盤點答完。 |
 
 ## 最小 host：三條路徑一次看懂
 

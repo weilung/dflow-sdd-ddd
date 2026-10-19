@@ -296,6 +296,9 @@ intake -> bounded context -> domain modeling -> slug confirmation -> spec
 - 某段 code-behind 裡的折扣規則要改
 - 既有 rounding 行為要補 baseline
 - 舊系統中散落的 business rule 要逐步抽出
+- 把既有系統現在的行為盤點進文件（baseline 盤點）；盤點的 6.2 題目可以明說延後、之後再答，
+  見 [walkthrough 07 的支線](02-brownfield/walkthrough-07-baseline-minimal-host.md#支線那天-bob-不在題目延後之後再答)
+  與 [延後回答 6.2 的題目](../docs/baseline-deferred-confirmation.md)
 
 Brownfield 劇情目前從這裡展開：
 

@@ -8,6 +8,8 @@ Markdown 表格有兩種壞法不會出現任何錯誤訊息：表格被一個�
 
 這一頁寫清楚查什麼、查到之後怎麼修、提醒出現在哪裡，以及我們知道、但決定不查的情況。
 
+`dflow render` 另外會讀 brownfield baseline 盤點留下的待確認紀錄，對寫得不合格式的行提醒；那是另一套檢查，命令列列在 `confirmation records:` 底下、不在 `tables:` 底下，怎麼修見 [Brownfield baseline 盤點：延後回答 6.2 的題目](baseline-deferred-confirmation.md)。
+
 ## 查什麼
 
 只查**最上層的表格**：不在清單項目、引言（`>`）裡的表格。判斷用的是畫頁面的同一份解析結果（Markdown 解析器 marked），所以被報的，就是頁面上真的壞掉的。

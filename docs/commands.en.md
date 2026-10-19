@@ -29,6 +29,13 @@ is a prerequisite for another.
 comes from the ceremony cascade, not from which command you typed. Picking the wrong one
 of these two has no consequence.
 
+In brownfield, `/dflow:modify-existing` also runs a baseline capture (recording what an
+existing system does now, without changing code). The capture's Step 6.2 asks you to
+confirm each item; when you are away or there are many, you can explicitly defer named
+questions and answer them before the capture closes, or in a later ordinary capture — see
+[Brownfield baseline capture: answering 6.2's questions later](baseline-deferred-confirmation.en.md).
+Deferring is not confirming, and every other Step Gate still needs you.
+
 ### Feature-internal commands (active feature only)
 
 Available only inside a started, active feature. Pointing them at a `completed/` feature

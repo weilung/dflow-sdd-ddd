@@ -562,6 +562,129 @@ baseline host **走完整個生命週期然後歸檔**，不會以一個半開�
 這一點在 Brownfield 特別重要：baseline capture 做得越多，留下的空殼就越多，
 而空殼會讓 `/dflow:status` 的 in-flight 清單失去意義。
 
+## 支線：那天 Bob 不在——題目延後，之後再答
+
+> 這一節是**假設的另一種走法**，不是上面那個已完成的故事：fixture 照上面的故事，不含這一節的內容。
+> 為了有題目可延，假設這次盤點另外讀到兩條規則候選，並且多問一題技術債。
+
+假設 6.2 問到一半，Bob 要去開會：
+
+```text
+Bob:
+第 4 題的兩條規則我要問營運，技術債那題我開完會回你。這三題先延後，其他照問。
+```
+
+這是**明確授權**：Bob 指名了要延後哪幾題。沒有回答、Bob 不在、一句「繼續」，都不算。AI 先把這三題整理成一份清單
+給 Bob 一次看（靠推論的、程式直接讀到的、技術債，分組列出，每一題有題號），其餘幾題照常逐題問完。
+延後的題目記在答案會改到的那份文件裡；Goals & Scope 只記真的取得的確認，不寫延後。
+
+`Shipment/rules.md`（節錄）：
+
+```markdown
+| BR-001 | 訂單小計滿 1,000 元免運 | [BR-001](./behavior.md#br-001-free-shipping-threshold) | draft | 2026-05-11 | — |
+| BR-002 | 只有 draft 訂單可以改運送方式 | [BR-002](./behavior.md#br-002-shipping-method-editable-only-in-draft) | draft | 2026-05-11 | — |
+
+## Open Questions
+
+- Question: SPEC-20260511-001/Q01 — target: domain/Shipment/rules.md BR-001 — asks: 免運門檻就是訂單小計滿 1,000 元嗎？
+
+> Deferred confirmation: SPEC-20260511-001/Q01 — state: pending — scope: Business rules — assigned to: 營運 — authorized by: Bob (2026-05-11)
+
+- Question: SPEC-20260511-001/Q02 — target: domain/Shipment/rules.md BR-002 — asks: 只有 draft 訂單可以改運送方式，是業務規則嗎？
+
+> Deferred confirmation: SPEC-20260511-001/Q02 — state: pending — scope: Business rules — assigned to: 營運 — authorized by: Bob (2026-05-11)
+
+> Provisional: SPEC-20260511-001/Q02 — answer: 是，下單後就不能改 — basis: inferred - OrderEdit.aspx 只對 draft 顯示運送方式下拉選單；儲存的 handler 沒有檢查狀態 (2026-05-11)
+```
+
+`Shipment/behavior.md`（節錄）：
+
+```markdown
+### BR-001: Free shipping threshold
+
+> Draft basis: code - CheckoutService.CalculateShipping(), subtotal >= 1000 check (2026-05-11) — confirmation: [SPEC-20260511-001/Q01](./rules.md#open-questions) — observation: same-scenario
+
+Given 訂單小計 1,000 元
+When 結帳計算運費
+Then 運費為 0
+
+### BR-002: Shipping method editable only in draft
+
+> Draft basis: inferred - OrderEdit.aspx shows the shipping-method dropdown only for draft; the save handler has no status check (2026-05-11) — confirmation: [SPEC-20260511-001/Q02](./rules.md#open-questions) — observation: [Shipping method edit observation](#shipping-method-edit-observation)
+
+Given 一張已下單的訂單
+When 要改運送方式
+Then 不允許
+
+### Shipping method edit observation
+
+`OrderEdit.aspx` 只在訂單是 draft 時顯示運送方式下拉選單；儲存的 handler（`OrderEdit.aspx.cs` `btnSave_Click`）不檢查訂單狀態，直接送出的請求可以改任何狀態的訂單。
+```
+
+`migration/tech-debt.md` 的 `## Follow-up Notes`（節錄）：
+
+```markdown
+## Follow-up Notes
+
+- Question: SPEC-20260511-001/Q03 — target: migration/tech-debt.md Shipment 免運門檻判斷基準三處不一致 — asks: 這一列的嚴重度 Medium 對嗎？
+
+> Deferred confirmation: SPEC-20260511-001/Q03 — state: pending — scope: tech debt Step 3 — assigned to: Bob — authorized by: Bob (2026-05-11)
+```
+
+幾個重點：
+
+- BR-001 是 `code`：結帳的那個方法直接做了這個判斷，所以情境就寫那個條件（`same-scenario`）。這**不表示**系統每個入口都守住，更不是營運確認了這條規則。
+- BR-002 是 `inferred`：畫面只對 draft 顯示下拉選單，server 卻沒檢查。所以另外寫一段沒有 BR-ID 的「現在怎麼做」，`Draft basis` 連過去。確認之前，畫面與 server 的差異**不是**偏離。
+- `Provisional` 是 AI 的暫定答案，不是確認；BR-001 沒有暫定答案，就不寫這一行。
+
+### checkpoint 1 之前答：直接寫成最終形狀
+
+開完會，Bob 在 checkpoint 1 之前回來答了技術債那題：「嚴重度改 High。」AI 改那一列的 Severity、把 Q03 的整筆紀錄拿掉，
+Goals & Scope 照當場確認一樣記一行：
+
+```markdown
+- 技術債：「Shipment 免運門檻判斷基準三處不一致」嚴重度改為 High。
+```
+
+checkpoint 1 commit 的就是這個最終形狀——文件裡看不出這題曾經延後。Q03 的紀錄還沒 commit 就拿掉了，所以 checkpoint 1 的
+commit message 要寫出它：`SPEC-20260511-001/Q03: answered by Bob (2026-05-11) — Severity High`；之後配新題號時，
+版本歷史裡才看得到 Q03 已經用過。Q01、Q02 還在等營運，照樣跟著 checkpoint 1 進去；
+盤點照常收尾、歸檔。（checkpoint 1 之後才回來的答案，不能塞進收尾的 commit：最小 host 只能修回 checkpoint 1。）
+
+### 收尾之後答：另開一次普通的盤點
+
+兩週後營運回覆了。Bob 另開一次 baseline 盤點（`SPEC-20260525-001`）來答這兩題。從一次較大的盤點裡挑幾題回答，
+不會讓它變成 `SPEC-20260511-001` 的 follow-up：它是 standalone，照常兩次 checkpoint。
+
+- Q01，營運：「對，就是小計滿 1,000。」→ BR-001 改 `active`，拿掉它的 `Draft basis` 與 Q01 的整筆紀錄。
+- Q02，營運：「沒有這條規則，下單後本來就可以改運送方式。」→ 拿掉 BR-002 那一列、它的情境段、`Draft basis` 與 Q02 的整筆紀錄；
+  「Shipping method edit observation」那一段留著，照樣是沒有 BR-ID 的現況觀察。
+
+確認記在**這一次**的 host、用這一次的 SPEC-ID：
+
+```markdown
+2026-05-25 baseline capture 的 6.2 確認（營運，Bob 轉述）：
+- BR-001：免運門檻就是訂單小計滿 1,000 元，`Shipment/rules.md` BR-001 改為 active。
+- BR-002：沒有這條規則，候選拿掉；運送方式修改的現況留在 `Shipment/behavior.md` 的「Shipping method edit observation」。
+```
+
+答完之後，`Shipment/rules.md` 與 `Shipment/behavior.md` 跟營運在 5/25 這次盤點的 6.2 當場確認會長得一字不差（`Last updated`
+是寫進答覆的這一天）：沒有題號、沒有 `Draft basis`、
+沒有「延後過」的痕跡。誰在哪天怎麼答、原本的題號，寫在這次 commit 的 message：
+
+```text
+[SPEC-20260525-001] baseline capture: answer SPEC-20260511-001/Q01, Q02
+
+SPEC-20260511-001/Q01: accepted by 營運 (2026-05-25) — BR-001 active
+SPEC-20260511-001/Q02: rejected by 營運 (2026-05-25) — BR-002 removed; the observation stays
+```
+
+之後若又要問 `SPEC-20260511-001` 的新題，編號從版本歷史裡用過的最大號往上加（Q03 在 checkpoint 1 的 commit message 裡）：
+下一題是 Q04，不是 Q01。
+
+> 不開 host、直接回答既有清單的那條路還沒有提供；目前盤點收尾之後，就是像這樣另開一次普通的盤點。
+> 延後與答題的完整說明見 [`docs/baseline-deferred-confirmation.md`](../../docs/baseline-deferred-confirmation.md)。
+
 ## 本步驟的文件地圖
 
 | 狀態 | Path | 讀者看什麼 |

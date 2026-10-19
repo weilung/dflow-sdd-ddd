@@ -6,7 +6,7 @@ created: {YYYY-MM-DD}
 branch: feature/{SPEC-ID}-{slug}
 # follow-up-of: {原 SPEC-ID}    # 選用：本 feature 為某個已 completed feature 的 follow-up 時填入
 ---
-<!-- dflow-shape: brownfield/_index.md 3 — keep this line: dflow doctor reads it -->
+<!-- dflow-shape: brownfield/_index.md 4 — keep this line: dflow doctor reads it -->
 <!-- This template is part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE in the Dflow package, or dflow/specs/shared/dflow-workflows/LICENSE in a project. Documents written from it are yours: do not copy this line into them. -->
 
 <!--
@@ -91,7 +91,8 @@ Template note (for AI):
 > ⚠ **這張表在範本裡是空的（只有表頭），那是對的 —— 不要為了讓它看起來有東西而造一列。**
 > 只有這個 host 真的帶著 BR delta 時才會有列（`/dflow:new-feature` 會拿第一個 phase
 > 規劃中的 BR 初始化它；phase-specs 沒有帶出 BR delta 的 host 就留空）；**BC-bearing
-> 的 follow-up host** 另外會從 `rules.md` 繼承 in-scope 的列
+> 的 follow-up host** 另外會從 `rules.md` 繼承 in-scope 而且是 `active` 的列——
+> `draft` 的列不繼承，它的 Draft basis 與待確認題目留在原文件
 > （見 references/modify-existing-follow-up.md）。
 > ⚠ **`Tier = baseline` 的 capture host 是例外：本表留空，而且不繼承** —— 即使它是
 > BC-bearing 的 follow-up 也一樣（見 references/modify-existing-follow-up.md 的

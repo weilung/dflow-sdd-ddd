@@ -1,15 +1,19 @@
-<!-- dflow-shape: brownfield/behavior.md 2 — keep this line: dflow doctor reads it -->
+<!-- dflow-shape: brownfield/behavior.md 3 — keep this line: dflow doctor reads it -->
 # Order — Behavior Specification
 
 > **Purpose**: Order context 現行規則的情境與觀察，彙整在本檔。
 > 帶 BR-ID 的情境寫業務規則；Known deviation 紀錄寫觀察到的實作差異。
 > 沒有確認 BR 的觀察仍是觀察，不是驗證過的規則。
+> `draft` BR 的情境是候選規則，不是確認過的規則：它的 `> Draft basis:` 行寫候選從哪裡來，
+> 沒有 BR-ID 的段落寫系統現在怎麼做。
 >
 > **Maintenance**: AI 在 completion flow（Step 8.3 / Step 6.3）更新本檔。
 > feature completed 時，將 Given/When/Then scenarios merge 到這裡。
 > behavior modified 時，用 Delta result 更新對應 section；不要保留 Delta markup。
 > 取代或刪除帶 `> Known deviation:` 行的 section 時，套用
 > `references/confirmed-rule-vs-code.md` § Preserve during merge。
+> 改寫、確認或刪除帶 `> Draft basis:` 行的 `draft` BR 時，套用
+> `references/modify-existing-baseline.md` § Preserve pending confirmations。
 
 ---
 

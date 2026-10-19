@@ -13,7 +13,7 @@
 | 文件 | 記什麼 |
 |---|---|
 | `rules.md` | 規則照確認的寫。最後一欄 `Known deviations`：有延後修的偏離時，連到記這個偏離的那一列技術債；沒有就是 `—`。 |
-| `behavior.md` | Given/When/Then 情境只寫確認的規則。程式實際怎麼做，寫在那條規則標題下的一行 `> Known deviation:`：觀察到什麼、證據、技術債連結。你確認過「程式確實這樣做」、而且那個確認記在打得開的地方時，證據保留原本那段，後面接上誰、在哪裡確認的。 |
+| `behavior.md` | 有偏離紀錄的那條 BR，Given/When/Then 情境只寫確認的規則。程式實際怎麼做，寫在那條規則標題下的一行 `> Known deviation:`：觀察到什麼、證據、技術債連結。你確認過「程式確實這樣做」、而且那個確認記在打得開的地方時，證據保留原本那段，後面接上誰、在哪裡確認的。 |
 | `analysis.md` | 表格照實記程式怎麼做；轉移的 Guard 寫「應該由哪條規則決定它」，不寫程式裡的條件。條目引用了某條規則、程式卻沒照做時——不論引用寫在表格的一列，還是表格外的一句說明——條目旁邊加一行 `> Known deviation:`，指出違反的是哪條規則。 |
 | 技術債（brownfield 是 `migration/tech-debt.md`，greenfield 是 `architecture/tech-debt.md`） | 一個偏離一列，名稱像 `Qualification BR-007: release timing`：哪條規則、確認的規則摘要、程式現況、規則與程式各自的證據、為什麼延後。 |
 | 這次工作的 spec | flow 進行中確認並延後的偏離，在 spec 標題底下記一行 `> Deferred deviation:`。刪掉一條帶著偏離的規則時，在 REMOVED 條目底下記一行 `**Recorded deviation**:`，收尾才找得到它。 |
@@ -29,6 +29,7 @@
 - 只在當下的工作本來就能改那個 context 的文件時：宣告了那個 bounded context 的變更，或 flow 允許的觀察紀錄（brownfield 是 baseline 盤點，greenfield 是 `/dflow:modify-existing` 的觀察紀錄）。T3、或沒有宣告 bounded context 的變更不寫——AI 會告訴你它看到什麼、還有什麼沒記。
 - flow 進行中確認的，先在 spec 記那一行延後紀錄；`rules.md`、`behavior.md` 與技術債，在那個 flow 寫這些文件的那一步補上。`/dflow:new-phase` 不寫這些文件，所以留到收尾補。
 - 驗證與 PR review 碰到帶著延後紀錄的 spec：把那一個偏離當成已知的例外，並引用那一列技術債。但這份 spec 自己要加、要改或要修那個行為時——它的 Delta、它新加的規則、family (e) 要修的缺陷，或修那個偏離的任務——就不算例外：延後紀錄寫下之後不再改，這份 spec 後來決定修它，照樣要修到。其他沒做到的地方照樣不過。
+- brownfield baseline 盤點留下的 `draft` 規則不是確認的規則：它的情境是候選，程式現況另寫成沒有 BR-ID 的段落，確認之前兩者的差異不算偏離。你確認了規則、也決定延後修時，那段現況才轉成這裡的偏離紀錄（見 [Brownfield baseline 盤點：延後回答 6.2 的題目](baseline-deferred-confirmation.md)）。
 - 用舊方式記的偏離（例如寫成 edge case）不會自動轉換：之後的工作碰到那條規則、你也確認它是延後修的缺陷時，AI 才改成這個記法。原本就有的那一列技術債直接改成記這個偏離，名稱沿用原來的。你若說那個情況其實沒有確認過的規則，它就不是偏離：AI 把程式現況改記成不帶規則編號的觀察，還沒定的照待決問題處理。
 
 ## 修好之後誰收掉

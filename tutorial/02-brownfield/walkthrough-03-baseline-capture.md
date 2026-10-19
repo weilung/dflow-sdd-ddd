@@ -701,6 +701,12 @@ Goals & Scope 那一行寫這條 BR（含 context）、確認了什麼與技術�
 照上面第二點進 `## Open Questions`；技術債那一列照樣現在就寫，`Known deviations` 那一格與就地的偏離行，
 等之後改這條 BR 的變更改了規則再補——在那之前，它們只能指向還沒改的舊文字。
 
+第三種答法這次也沒有發生：「**我也確認不了**」。那時 `rules.md` 那一列是 `draft`。`draft` 可以留在文件裡，
+但它不會因為程式讀得到、或之後有人照著它做就自己變成 `active`——只有開發者確認才算。這次盤點寫的 BR
+到 6.2 結束還是 `draft` 時，`behavior.md` 那個 BR 的標題下多一行 `> Draft basis:`，寫它是從哪裡讀來的，
+題目照固定格式記在 `rules.md` 的 `## Open Questions`。Bob 那天若不在、明說把題目延後，也是同樣的記法；
+之後怎麼答，見 [walkthrough 07 的支線](walkthrough-07-baseline-minimal-host.md#支線那天-bob-不在題目延後之後再答)。
+
 每一個確認在 host 的 Goals & Scope 記一行：它定了什麼、落在哪。這次的 host 是 phase-bearing 的
 `SPEC-20260430-001`，所以記在它的 Goals & Scope，接在原本那幾段之後：
 

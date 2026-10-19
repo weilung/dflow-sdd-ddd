@@ -281,6 +281,11 @@ uses:
 The implicit-confirmation rule matters — do not turn every transition into a
 ceremony where the developer must say "OK" before every sentence.
 
+Deferring a baseline capture's 6.2 questions
+(`references/modify-existing-baseline.md` § Deferring 6.2 questions) postpones
+answering them. It is not consent to pass a Step Gate, and it is not a
+confirmation.
+
 ### Completion Checklist Skip Guard
 
 Completion checklists and their step ordering live in the flow files and run at
@@ -478,6 +483,12 @@ two complementary files:
 
 When a developer confirms a rule the code violates and defers the fix, read
 `references/confirmed-rule-vs-code.md` § Scope and recording before writing it.
+
+A `draft` BR is not a confirmed rule, whether or not it carries a
+`> Draft basis:` line. Before work depends on one, or rewrites one that carries
+that line, read `references/modify-existing-baseline.md` § Preserve pending
+confirmations. Read only the questions still pending and the answers not yet
+applied: an applied answer is already in the documents.
 
 `dflow/specs/features/completed/` is a historical archive (individual change
 records). `behavior.md` holds the **merged current rule scenarios and

@@ -123,7 +123,10 @@ Walk the developer through what the new phase covers:
 1. **What does this phase add or change?** Plain-language description.
 2. **Which BRs are touched?** Compare against the current BR Snapshot. New
    BRs (ADDED), changed BRs (MODIFIED), removed BRs (REMOVED), renamed
-   (RENAMED). Items not mentioned stay UNCHANGED implicitly.
+   (RENAMED). Items not mentioned stay UNCHANGED implicitly. When this phase
+   depends on, rewrites or settles a `draft` BR with a `> Draft basis:` line,
+   or a question whose id reads `{SPEC-ID}/QNN`, apply
+   `references/modify-existing-baseline.md` § Preserve pending confirmations.
 3. **Any Domain concepts introduced or changed?** New Entities / Value
    Objects / Services touching `src/Domain/{context}/`? If this phase is an
    **Aggregate-emergence escalation** (handed off from `/dflow:modify-existing`),

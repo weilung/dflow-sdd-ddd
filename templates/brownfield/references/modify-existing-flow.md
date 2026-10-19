@@ -813,11 +813,13 @@ If any item fails, report the gap and pause — don't proceed to 6.2.
 - [ ] Do the scenarios merged into `behavior.md` faithfully express the Delta's final-state behavior? (AI lists updated anchors; developer judges)
 - [ ] Should the `Implementation Tasks` section in the spec be collapsed / removed now that it's complete? (team convention — developer decides; applies to both phase-spec and lightweight-spec)
 
-Ask these one-by-one.
+Ask these one-by-one — except in a baseline capture.
 
 A **baseline capture** answers questions 1 and 5 as N/A, asks question 4 in a
 baseline form, and adds five questions — ask them in the order
-`references/modify-existing-baseline.md` § Step 6.2 gives.
+`references/modify-existing-baseline.md` § Step 6.2 gives, one by one or, for
+the questions the developer explicitly defers, as its § Deferring 6.2
+questions says.
 
 ### 6.3 Documentation updates
 
@@ -828,6 +830,7 @@ baseline form, and adds five questions — ask them in the order
 - [ ] The items below are the Domain sweep — **N/A for a T3**. For a **no-BC change** (one whose host Goals & Scope says it touches no bounded context) the **BC-scoped** items are N/A — everything under `dflow/specs/domain/{context}/`: there is no `{context}` to sweep, and inventing one plants the fiction Step 2's no-BC guard refuses. The **global** documents are *not* covered by that: `glossary.md`, `domain/analysis.md` and `migration/tech-debt.md` belong to no bounded context, and a no-BC operational T2 can genuinely rename a term, change which roles reach a function, or discover migration debt — judge those three from the actual change, as always. For a no-BR family T2 only the *BR-derived* items are N/A; run each remaining item where this change actually touches that document.
       If this work's spec carries a `Deferred deviation` line, first complete that line's records using `references/confirmed-rule-vs-code.md` § Scope and recording.
       Before you change or delete a `rules.md` row, `behavior.md` section or `analysis.md` entry below that carries a deviation record — a `Known deviations` cell that is neither `—` nor empty, or a `> Known deviation:` line — apply `references/confirmed-rule-vs-code.md` § Preserve during merge.
+      Before this change depends on, rewrites or settles a `draft` BR with a `> Draft basis:` line, or a question whose id reads `{SPEC-ID}/QNN`, apply `references/modify-existing-baseline.md` § Preserve pending confirmations.
 - [ ] `dflow/specs/domain/{context}/rules.md` — business rules updated
 - [ ] `dflow/specs/domain/{context}/models.md` — domain model updated
 - [ ] `dflow/specs/domain/{context}/analysis.md` — lifecycles, derived figures or mechanisms no single rule explains this change found or altered, in the owning context's copy, which may not be this host's; any spot this change worked around pending a domain decision, in those or in a rule or unrecorded knowledge that belongs there; and any open row there this change settled (created from `templates/analysis.md` the first time there is something to record; N/A when there is none)

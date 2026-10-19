@@ -8,6 +8,8 @@ Two ways a Markdown table goes wrong give no error at all: a blank line cuts the
 
 This page says what is checked, how to fix what is found, where the notices appear, and the cases we know about and decided not to check.
 
+`dflow render` also reads the pending-question records a brownfield baseline capture leaves, and flags a line that is not written to their format; that is a separate check, listed on stdout under `confirmation records:`, not under `tables:` — how to fix it: [Brownfield baseline capture: answering 6.2's questions later](baseline-deferred-confirmation.en.md).
+
 ## What is checked
 
 Only **tables at the top level** of a page: not inside a list item or a block quote (`>`). The checks read the same parse the page is drawn from (the Markdown parser marked), so what is reported is what is really broken on the page.

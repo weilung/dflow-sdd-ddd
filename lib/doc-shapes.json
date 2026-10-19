@@ -923,6 +923,55 @@
             ["note","Resume Pointer","","6282e389a109b5f3"],
             ["comment","Resume Pointer","","5b3dcd00f70f0239"]
           ]
+        },
+        {
+          "number": 4,
+          "digest": "5f697ef969ca23d0efc5c954f810973d033b5b67e3b50a48888014cbc3a1c519",
+          "changes": [
+            {"kind":"reworded","from":["note","Current BR Snapshot","","bb237977c8b6a9c8"],"to":["note","Current BR Snapshot","","af8e9234acbf9bdd"],"migration":"_index.md, Current BR Snapshot notes: compare this section's notes with the current brownfield template's and apply references/modify-existing-follow-up.md when inheriting rules. Do not rewrite existing Snapshot rows or completed records as a shape migration; resolve a draft or confirmation conflict through the running workflow before syncing it."}
+          ],
+          "skeleton": [
+            ["field","spec-id"],
+            ["field","slug"],
+            ["field","status"],
+            ["field","created"],
+            ["field","branch"],
+            ["field","follow-up-of","optional"],
+            ["h2","Goals & Scope"],
+            ["h2","Phase Specs"],
+            ["column","Phase Specs","",1,1,"Phase"],
+            ["column","Phase Specs","",1,2,"Date"],
+            ["column","Phase Specs","",1,3,"Slug"],
+            ["column","Phase Specs","",1,4,"Status"],
+            ["column","Phase Specs","",1,5,"File Link"],
+            ["h2","Current BR Snapshot"],
+            ["column","Current BR Snapshot","",1,1,"BR-ID"],
+            ["column","Current BR Snapshot","",1,2,"Current Rule"],
+            ["column","Current BR Snapshot","",1,3,"First Seen (phase)"],
+            ["column","Current BR Snapshot","",1,4,"Last Updated (phase)"],
+            ["column","Current BR Snapshot","",1,5,"Status"],
+            ["h2","Lightweight Changes"],
+            ["column","Lightweight Changes","",1,1,"Date"],
+            ["column","Lightweight Changes","",1,2,"Tier"],
+            ["column","Lightweight Changes","",1,3,"Description"],
+            ["column","Lightweight Changes","",1,4,"Commit"],
+            ["h2","Checkpoint Log"],
+            ["column","Checkpoint Log","",1,1,"Timestamp"],
+            ["column","Checkpoint Log","",1,2,"Checkpoint"],
+            ["column","Checkpoint Log","",1,3,"Result"],
+            ["h2","Resume Pointer"],
+            ["comment","","","ebf6a0dffec4e89d"],
+            ["note","Goals & Scope","","47f7d220a44ffc70"],
+            ["note","Phase Specs","","5dff0b02b2fefdac"],
+            ["comment","Phase Specs","","60305a8c385cd40f"],
+            ["note","Current BR Snapshot","","af8e9234acbf9bdd"],
+            ["comment","Current BR Snapshot","","44a797a7db5f5224"],
+            ["note","Lightweight Changes","","5d6225b2a04687b3"],
+            ["comment","Lightweight Changes","","013165e8c56f2b73"],
+            ["note","Checkpoint Log","","f3336d6c95603aa2"],
+            ["note","Resume Pointer","","6282e389a109b5f3"],
+            ["comment","Resume Pointer","","5b3dcd00f70f0239"]
+          ]
         }
       ]
     },
@@ -1060,6 +1109,17 @@
           ],
           "skeleton": [
             ["note","","","bc58e075696addb6"],
+            ["comment","","","e798bd7586dcb886"]
+          ]
+        },
+        {
+          "number": 3,
+          "digest": "37615cf5e6b1dd4dd430ecf992c2d1e0de5759f16d89162dea29f27e7572a3ec",
+          "changes": [
+            {"kind":"reworded","from":["note","","","bc58e075696addb6"],"to":["note","","","1968dbf69c49ad20"],"migration":"behavior.md, Purpose and Maintenance notes: replace these notes with the current brownfield template's. Existing draft scenarios and observations remain valid; do not infer their basis or confirmation from their text. Add Draft basis only when a capture next writes or substantively revises that draft BR, using references/modify-existing-baseline.md § Draft basis and current observations."}
+          ],
+          "skeleton": [
+            ["note","","","1968dbf69c49ad20"],
             ["comment","","","e798bd7586dcb886"]
           ]
         }

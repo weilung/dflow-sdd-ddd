@@ -368,7 +368,11 @@ will rewrite or delete. If one carries a deviation record — a
 `Known deviations` cell that is neither `—` nor empty, or a
 `> Known deviation:` line — apply
 `references/confirmed-rule-vs-code.md` § Preserve during merge before changing
-it; otherwise sync without it.
+it; otherwise sync without it. When one is a `draft` BR with a
+`> Draft basis:` line, or a question whose id reads `{SPEC-ID}/QNN` is about
+it, or a Snapshot row is `active` while the Domain documents still hold that
+rule as pending, apply `references/modify-existing-baseline.md` § Preserve
+pending confirmations before syncing that row.
 
 For each row in Current BR Snapshot — **every** row, not only the `active` ones.
 The branch below is selected by the row's own Status, and a `removed` row is

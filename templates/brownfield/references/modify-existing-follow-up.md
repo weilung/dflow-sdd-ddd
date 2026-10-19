@@ -42,7 +42,10 @@ first checkpoint keeps the `implementation` name but carries Result
 - **`_index.md` Current BR Snapshot baseline** (**BC-bearing follow-up only**):
   if the follow-up touches a bounded context, AI reads the BC's
   `dflow/specs/domain/{context}/rules.md` and inherits the BRs that are
-  in-scope for this follow-up. Mark each inherited row with First Seen
+  in-scope for this follow-up and `active`. An in-scope `draft` BR is not
+  inherited, and its Draft basis and questions stay where they are: apply
+  `references/modify-existing-baseline.md` § Preserve pending confirmations
+  before this follow-up depends on it. Mark each inherited row with First Seen
   = `inherited from rules.md` and Last Updated = (empty until the new
   feature's first phase Delta — or, for a minimal follow-up, its
   lightweight-spec's delta — touches it). When a `rules.md` row you inherit

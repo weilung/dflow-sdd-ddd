@@ -1,4 +1,4 @@
-<!-- dflow-shape: brownfield/behavior.md 2 — keep this line: dflow doctor reads it -->
+<!-- dflow-shape: brownfield/behavior.md 3 — keep this line: dflow doctor reads it -->
 <!-- This template is part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE in the Dflow package, or dflow/specs/shared/dflow-workflows/LICENSE in a project. Documents written from it are yours: do not copy this line into them. -->
 # {Bounded Context} — Behavior Specification
 
@@ -6,6 +6,9 @@
 > BR-ID scenarios state the business rules; Known deviation records state observed
 > implementation differences.
 > Observations without a confirmed BR remain observations, not validated rules.
+> A `draft` BR's scenarios are a candidate rule, not a confirmed one: its
+> `> Draft basis:` line says where the candidate came from, and a passage without
+> a BR-ID says what the system does now.
 >
 > **Maintenance**: AI updates this file during the completion flow (Step 8.3 / Step 6.3).
 > When a feature is completed, merge its Given/When/Then scenarios here.
@@ -13,6 +16,8 @@
 > (not the Delta markup — merge the final state).
 > When replacing or deleting a section that holds a `> Known deviation:` line, apply
 > `references/confirmed-rule-vs-code.md` § Preserve during merge.
+> When rewriting, confirming or deleting a `draft` BR that holds a `> Draft basis:`
+> line, apply `references/modify-existing-baseline.md` § Preserve pending confirmations.
 >
 > **Relationship to rules.md**: `rules.md` is the declarative index (BR-ID + one-line summary).
 > This file is the scenario-level detail. Each BR-ID in `rules.md` should have a

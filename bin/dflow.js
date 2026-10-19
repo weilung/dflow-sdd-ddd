@@ -198,6 +198,29 @@ cells cut short says that increasing the size limits will not draw it,
 whether or not it is also over them; keep the full table and read the
 cards or table below.
 
+Confirmation records: render reads the records a brownfield baseline
+capture writes for questions still waiting for an answer, in the format the
+workflow bundle's references/modify-existing-baseline.md defines. A
+Question, Deferred confirmation, Provisional or Decision line read exactly,
+and a Draft basis line in behavior.md, gets a badge saying it is pending, an
+AI provisional answer, an answer not applied yet or a draft's basis, and a
+page with any of them opens with one summary line. A badge says only that
+the format was read: roles, authorizations, code and rules are not checked,
+and nothing is shown as confirmed. No badge does not mean nothing is
+pending: an answered question leaves no record, and a question written in
+free text is not read. A line that starts with one of those words and holds
+a question id (SPEC-YYYYMMDD-NNN/QNN) but is not exactly the format — its
+fields, separators, dates, form, the blank lines around it or its place (a
+Draft basis directly under its BR heading), the record before it, or a
+second definition of the same record anywhere in --src, every copy of which
+is reported — keeps its text, gets no badge, and gets a notice on its page
+and a line on stdout under a
+confirmation records line, with its file, its line in the source file and
+how to fix it; rendering still completes and the exit code is unchanged. A
+line with no question id is ordinary text. Code blocks, HTML comments and
+inline code are not read. See
+https://github.com/weilung/dflow-sdd-ddd/blob/main/docs/baseline-deferred-confirmation.en.md
+
 The output directory is owned by dflow render: every rendered file embeds a
 generated-by marker, and a .dflow-render-manifest.json ledger tracks the
 mirror. Files whose sources were deleted or renamed are cleaned up on the

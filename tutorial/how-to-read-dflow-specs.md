@@ -144,6 +144,8 @@ Greenfield 的主要讀法是從 feature phase 長出 domain model。Brownfield 
 | `behavior.md` 的 confirmed behavior | 目前已確認的 legacy 行為，可能跨多個頁面。 |
 | `migration/tech-debt.md` | 尚未修的 legacy risk、buggy behavior、unknown behavior、migration blocker。 |
 | baseline-capture row | 這次沒有改 code，但有新增系統知識。 |
+| `draft` BR 標題下的 `> Draft basis:` | 這條候選規則從哪裡讀來（`code`、`inferred`……），**還沒確認**；`inferred` 的另有一段沒有 BR-ID 的「現在怎麼做」。 |
+| `Question:` 與緊接的 `Deferred confirmation:`／`Provisional:`／`Decision:` | 還在等答案的題目。`Provisional` 是 AI 的暫定答案、不是確認；`Decision` 是答覆記下了、但還不能套用。答完套用之後整筆拿掉，文件只剩答案。 |
 | Status 與 `Resolved by:` / disposition note | 這個 tech debt 已經由哪一份 spec 還清（`done`，收尾 Step 3 對證據寫下 `Resolved by:`）、已排進哪個 feature（`planned`），或仍需追蹤（`open`）。 |
 
 Brownfield 最重要的紀律是：
@@ -195,6 +197,7 @@ Brownfield 最重要的紀律是：
 | `rules.md` 只屬於正在 finish 的 feature | `rules.md` 是 BC cumulative state，可能同時含 completed 與 active feature 的 BR。 |
 | 沒有 BR Delta 就不需要記文件 | bug fix、baseline capture、tech debt disposition 仍可能需要文件。 |
 | Brownfield 看到 code 行為就等於 business rule | 要先分 confirmed / buggy / unknown，再決定寫到 behavior、rules 或 tech debt。 |
+| 有 `Draft basis`、或 `dflow render` 標了「AI 暫定」的規則，大概就是對的 | `draft` 就是還沒確認；只有開發者確認才變 `active`。標示只代表讀到格式（見 [延後回答 6.2 的題目](../docs/baseline-deferred-confirmation.md)）。 |
 | completed feature 可以繼續追加 T2 | completed directory 是 frozen history；後續變更走 follow-up feature。 |
 
 ## 和 walkthrough 系列怎麼搭配

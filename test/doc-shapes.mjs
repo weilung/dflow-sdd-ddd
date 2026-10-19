@@ -801,6 +801,11 @@ const ANALYSIS_MIGRATION = "analysis.md, column Role-specific actions: a doc tha
 const ANALYSIS_TOP_MIGRATION = "analysis.md, comments at the top of the document: replace the Referring to a rule comment with the template's. The Placement and Entry ids comments changed too; for those two, keeping yours is a valid answer.";
 const ANALYSIS_INDEX_MIGRATION = "analysis.md, Function / Role Index comment: replace this section's comment with the template's.";
 const LIFECYCLES_MIGRATION = "analysis.md, Lifecycles comment: replace this section's comment with the template's. A value you left out of a state table to get a diagram goes back in, with the line after the tables that says where the list of values was taken from; dflow render now lists a value no transition has under the diagram instead of drawing it. If you do not know which values were left out, rebuild the list from where it was taken - the code or the data query - and do not guess. A state written `[*]` that is a stored value gets a name instead. Other lifecycles stay valid as they are: when you next change one, a create or delete step written below its table becomes a row with `[*]` in From or To, and the table gets that line.";
+// PROPOSAL-115 (brownfield only): the default for a note says keeping yours is
+// fine, which would leave a doc whose notes still let a draft BR's scenarios read
+// as a confirmed rule, or a follow-up inherit a draft row into its Snapshot.
+const DRAFT_BASIS_MIGRATION = "behavior.md, Purpose and Maintenance notes: replace these notes with the current brownfield template's. Existing draft scenarios and observations remain valid; do not infer their basis or confirmation from their text. Add Draft basis only when a capture next writes or substantively revises that draft BR, using references/modify-existing-baseline.md § Draft basis and current observations.";
+const SNAPSHOT_DRAFT_MIGRATION = "_index.md, Current BR Snapshot notes: compare this section's notes with the current brownfield template's and apply references/modify-existing-follow-up.md when inheriting rules. Do not rewrite existing Snapshot rows or completed records as a shape migration; resolve a draft or confirmation conflict through the running workflow before syncing it.";
 {
   const expected = ['greenfield', 'brownfield'].flatMap((t) => [
     [`${t}/rules.md`, 2, (c) => c.kind === 'added' && c.item[0] === 'column' && c.item[5] === 'Known deviations', RULES_MIGRATION],
@@ -809,6 +814,9 @@ const LIFECYCLES_MIGRATION = "analysis.md, Lifecycles comment: replace this sect
     [`${t}/analysis.md`, 2, (c) => c.kind === 'reworded' && c.from[0] === 'comment' && c.from[1] === '' && c.from[2] === '', ANALYSIS_TOP_MIGRATION],
     [`${t}/analysis.md`, 2, (c) => c.kind === 'reworded' && c.from[0] === 'comment' && c.from[1] === 'Lifecycles', LIFECYCLES_MIGRATION],
     [`${t}/analysis.md`, 2, (c) => c.kind === 'reworded' && c.from[0] === 'comment' && c.from[1] === 'Function / Role Index', ANALYSIS_INDEX_MIGRATION]
+  ]).concat([
+    ['brownfield/behavior.md', 3, (c) => c.kind === 'reworded' && c.from[0] === 'note' && c.from[1] === '' && c.from[2] === '', DRAFT_BASIS_MIGRATION],
+    ['brownfield/_index.md', 4, (c) => c.kind === 'reworded' && c.from[0] === 'note' && c.from[1] === 'Current BR Snapshot', SNAPSHOT_DRAFT_MIGRATION]
   ]);
   const registered = [];
   for (const [key, e] of Object.entries(registry.templates)) {
@@ -1282,9 +1290,16 @@ for (const [edition, track] of [['1', 'greenfield'], ['2', 'brownfield']]) {
     olderGroup(mixed.detail, `${track}/rules.md 1 → 2`).includes(`added — column \`Known deviations\` (position ${knownDeviationsAt}) in table 1 under \`## Rule Index\` (migration: ${RULES_MIGRATION})`),
     `${track}: the rules.md column is followed by its migration\n${mixed.detail}`
   );
+  const behaviorLatest = registry.templates[`${track}/behavior.md`].shapes.length;
+  const behaviorGroup = olderGroup(mixed.detail, `${track}/behavior.md 1 → ${behaviorLatest}`);
   assert.ok(
-    olderGroup(mixed.detail, `${track}/behavior.md 1 → 2`).includes(`the \`>\` notes at the top of the document changed (migration: ${BEHAVIOR_MIGRATION})`),
+    behaviorGroup.includes(`the \`>\` notes at the top of the document changed (migration: ${BEHAVIOR_MIGRATION})`),
     `${track}: the behavior.md Purpose note is followed by its migration\n${mixed.detail}`
+  );
+  // PROPOSAL-115: brownfield's behavior.md 3 adds its own, after the shape-2 one.
+  assert.equal(
+    behaviorGroup.includes(`the \`>\` notes at the top of the document changed (migration: ${DRAFT_BASIS_MIGRATION})`), track === 'brownfield',
+    `${track}: the Draft basis migration is printed for brownfield only\n${behaviorGroup}`
   );
   const debtGroup = olderGroup(mixed.detail, `${track}/tech-debt.md 1 → 2`);
   assert.ok(debtGroup.includes('the HTML comments under `## Debt Items` added'), `${track}: fixture — the tech-debt.md group lists its changes\n${debtGroup}`);

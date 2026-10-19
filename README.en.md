@@ -175,7 +175,12 @@ a row has more cells than the header and the extra cells hold text (usually a
 `|` in a cell not written as `\|`), the page carries a one-line notice there,
 and the command lists each one with its file, line and how to fix it; what is
 and is not checked is in
-[`docs/render-table-checks.en.md`](docs/render-table-checks.en.md). Open the output
+[`docs/render-table-checks.en.md`](docs/render-table-checks.en.md). Questions a brownfield
+baseline capture deferred, the AI's provisional answers and the basis of rules not yet
+confirmed get badges such as "pending" and "AI provisional, not a confirmation", and a
+line written off-format gets a notice; a badge means only that the format was read, never
+that anything is confirmed — see
+[`docs/baseline-deferred-confirmation.en.md`](docs/baseline-deferred-confirmation.en.md). Open the output
 directory's `index.html` in a browser (`file://` works; no server needed):
 the front page is a grouped directory — Features, Domain, architecture and
 migration, shared documents, and the rest — each group collapsed until you

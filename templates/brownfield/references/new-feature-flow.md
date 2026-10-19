@@ -155,6 +155,8 @@ For each of the system-level answers above — the state machines included: reco
 
 Before changing an `analysis.md` entry that holds a `> Known deviation:` line, apply `references/confirmed-rule-vs-code.md` § Preserve during merge.
 
+When this feature depends on a `draft` BR with a `> Draft basis:` line, or on a question whose id reads `{SPEC-ID}/QNN`, apply `references/modify-existing-baseline.md` § Preserve pending confirmations before relying on it.
+
 If foundational domain docs are missing, create them from templates before writing content:
 - `dflow/specs/domain/glossary.md` → `templates/glossary.md`
 - `dflow/specs/domain/{context}/models.md` → `templates/models.md`
@@ -460,6 +462,8 @@ Ask these one-by-one; do not dump all five at once.
 ### 8.3 Documentation updates
 
 > **Table-cell formatting**: keep table cells concise — separate multiple short items with `<br>` (never chain them into one line with ；/; separators), and move long narrative detail out of the cell into a document section (full convention: the formatting comment at each spec doc's head).
+
+Before this feature depends on, rewrites or settles a `draft` BR with a `> Draft basis:` line, or a question whose id reads `{SPEC-ID}/QNN`, apply `references/modify-existing-baseline.md` § Preserve pending confirmations.
 
 Before you change or delete a `rules.md` row, `behavior.md` section or `analysis.md` entry below that carries a deviation record — a `Known deviations` cell that is neither `—` nor empty, or a `> Known deviation:` line — apply `references/confirmed-rule-vs-code.md` § Preserve during merge.
 
