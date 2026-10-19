@@ -196,6 +196,8 @@ dflow render --src dflow/specs --out dflow-specs-html --title "我的專案 spec
 | `--src <dir>` | `dflow/specs` | 要投影的 specs 根目錄。 |
 | `--out <dir>` | `dflow-specs-html` | 輸出目錄；產生 `index.html` 檔案樹，`file://` 直接開得起來。 |
 | `--title <text>` | `dflow specs` | `index.html` 的頁面標題。 |
+| `--diagram-max-height <pixels>` | 生命週期圖 1600、流程圖 960 | 這一次執行裡每一張生命週期圖與流程圖的高度上限（原始大小，CSS pixel）。 |
+| `--diagram-max-width <pixels>` | 1024 | 這一次執行裡每一張生命週期圖的寬度上限；流程圖沒有寬度上限，不受影響。 |
 
 要點：
 
@@ -203,6 +205,8 @@ dflow render --src dflow/specs --out dflow-specs-html --title "我的專案 spec
 - 它**只寫 `--out`，不碰 `--src`**。輸出目錄由 render 擁有（每個產出檔內嵌
   generated-by 標記，另有 `.dflow-render-manifest.json` 帳本），來源被刪或改名的殘檔會在
   下次執行時清掉。輸出目錄通常該 gitignore。
+- `analysis.md` 的圖只因為太大而沒畫時，頁面與命令列會寫出它需要的寬、高與要加的選項，
+  照著加上重跑就畫得出來；表格照原樣留著。
 - 它是**人類可讀性工具，不是 workflow command**：不在 `/dflow:*` 那 11 個命令裡，
   也沒有 command adapter。
 

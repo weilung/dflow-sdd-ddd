@@ -122,10 +122,21 @@ try {
     // a limit changed in lib/render-diagrams.js without the help fails here.
     const L = diagrams.DIAGRAM_LIMITS;
     const helpText = help.stdout.replace(/\s+/g, ' ');
+    // PROPOSAL-116: the size options, their defaults and the shared arrows
+    assert.match(help.stdout, /\n {15}\[--diagram-max-height <pixels>\] \[--diagram-max-width <pixels>\]\n/, 'help shows the size options in the usage');
     for (const phrase of [
-      `at most ${L.LC_MAX_STATES} states and ${L.LC_MAX_TRANSITIONS} transitions, ${L.DIAGRAM_MAX_WIDTH} wide and ${L.DIAGRAM_MAX_HEIGHT} tall`,
+      `at most ${L.LC_MAX_STATES} drawn states and ${L.LC_MAX_TRANSITIONS} transition rows; by default ${L.LC_MAX_WIDTH} wide and ${L.LC_MAX_HEIGHT} tall`,
       `at most ${L.LC_MAX_SIDE_LANES} routing lanes on either side, ${L.LC_MAX_SIDE_PORTS} arrow ends on one side of a state or point, ${L.LC_MAX_CROSSINGS} crossings in all and ${L.LC_MAX_CROSSINGS_PER_EDGE} on one arrow`,
-      `at most ${L.FL_MAX_PARTICIPANTS} participants and ${L.FL_MAX_STEPS} steps, ${L.DIAGRAM_MAX_HEIGHT} tall (no width limit`,
+      `at most ${L.FL_MAX_PARTICIPANTS} participants and ${L.FL_MAX_STEPS} steps, by default ${L.FL_MAX_HEIGHT} tall (no width limit`,
+      `--diagram-max-height <pixels> Maximum natural diagram height for every lifecycle and flow in this run (defaults: lifecycle ${L.LC_MAX_HEIGHT}, flow ${L.FL_MAX_HEIGHT}).`,
+      `--diagram-max-width <pixels> Maximum natural lifecycle width for every page in this run (default: ${L.LC_MAX_WIDTH}). Flows have no width limit and are unaffected by this option.`,
+      `Both size options take a positive decimal integer from 1 to ${Number.MAX_SAFE_INTEGER}, in CSS pixels at natural size; --name=value also works. Invalid values exit 1 before any output is written. If repeated, the last value is used; every supplied value must be valid.`,
+      'Rows with the same From and To after reading the cells share one arrow, labelled with their row numbers.',
+      'Routing limits count the shared arrows, while the transition limit counts all rows:',
+      'For a lifecycle, an arrow is dashed when any row it represents has an Evidence whose first word is inferred or assumed.',
+      'For a flow, each row keeps its own arrow, dashed when its Evidence\'s first word is inferred or assumed. A solid arrow does not mean that its evidence has been verified.',
+      'A suggested height is never below either kind\'s current height limit, so following it does not stop another diagram in the run from being drawn.',
+      `The print version draws a lifecycle of at most ${L.LC_PRINT_MAX_WIDTH} wide and ${L.LC_PRINT_MAX_HEIGHT} tall at natural size and prints a one-line note for a larger one; the size options do not change this.`,
       `a flow of at most ${L.FL_PRINT_MAX_PARTICIPANTS} participants`,
       `a name drawn in the diagram (a state or a participant) at most ${L.IDENTITY_MAX_CODEPOINTS} characters on ${L.IDENTITY_MAX_LINES} lines`,
       `Trigger, Guard, Handed over and State change each at most ${L.FIELD_MAX_ITEMS} values and ${L.FIELD_MAX_CODEPOINTS} characters`,
@@ -135,7 +146,7 @@ try {
       'a state that no transition has in From or To is listed under the diagram instead of drawn, and does not count toward the state or height limits',
       'A state listed under the diagram has none of these limits.',
       'Means and Evidence have no limit, and Means is not drawn',
-      'an Evidence whose first word is inferred or assumed makes the arrow dashed and adds a one-row tag with that word, which counts toward the height'
+      'a row whose Evidence\'s first word is inferred or assumed gets a one-row tag with that word, which counts toward the height'
     ]) {
       assert.ok(helpText.includes(phrase), `render --help states the renderer's limit: "${phrase}"`);
     }
@@ -1626,7 +1637,7 @@ Scenario: submit expense
     // the picture in state-table order, none counted toward the limit (x1 Q8)
     const lc10 = /<figure class="dflow-dg dg-lc" data-entry="LC-10">[\s\S]*?<\/figure>\n/.exec(page)[0];
     assert.deepEqual([...lc10.matchAll(/<g class="dg-state" data-state="([^"]+)"/g)].map((m) => m[1]), ['S1', 'S2']);
-    assert.match(lc10, /aria-label="LC-10：2 個狀態、1 條轉移，另有 15 個狀態沒有轉移、列在圖下；細節見下方的卡片或表格"/);
+    assert.match(lc10, /aria-label="LC-10：2 個狀態、1 列轉移、1 條線，另有 15 個狀態沒有轉移、列在圖下；細節見下方的卡片或表格"/);
     assert.ok(lc10.includes(`<span>轉移表沒有寫到的狀態：${Array.from({ length: 15 }, (_, i) => `<code dir="auto">S${i + 3}</code>`).join('、')}。</span>`),
       'LC-10 lists the fifteen states no transition has, in state-table order');
     assert.ok(page.includes('>B &amp;#99999999;</text>') && page.includes('>送出 &amp;#88888888;</text>'),
@@ -1710,8 +1721,11 @@ Scenario: submit expense
       FL_MAX_PARTICIPANTS: 8,
       FL_PRINT_MAX_PARTICIPANTS: 4,
       FL_MAX_STEPS: 10,
-      DIAGRAM_MAX_WIDTH: 864,
-      DIAGRAM_MAX_HEIGHT: 960,
+      LC_MAX_WIDTH: 1024,
+      LC_MAX_HEIGHT: 1600,
+      FL_MAX_HEIGHT: 960,
+      LC_PRINT_MAX_WIDTH: 864,
+      LC_PRINT_MAX_HEIGHT: 960,
       IDENTITY_MAX_CODEPOINTS: 64,
       FIELD_MAX_CODEPOINTS: 256,
       FIELD_MAX_ITEMS: 8,
@@ -1779,7 +1793,7 @@ Scenario: submit expense
     const wideHtml = inserted(diagrams.insertDiagrams(lex(wideFlow), widePage));
     assert.equal(widePage.drawn, 1, `a ${DL.FL_MAX_PARTICIPANTS}-participant flow is drawn`);
     const wideWidth = Number(/<svg[^>]*\swidth="(\d+)"/.exec(wideHtml[0])[1]);
-    assert.ok(wideWidth > DL.DIAGRAM_MAX_WIDTH, `a flow is drawn wider than ${DL.DIAGRAM_MAX_WIDTH} (got ${wideWidth}): the width limit is a lifecycle limit`);
+    assert.ok(wideWidth > DL.LC_MAX_WIDTH, `a flow is drawn wider than ${DL.LC_MAX_WIDTH} (got ${wideWidth}): the width limit is a lifecycle limit`);
     const longCell = 'x'.repeat(DL.FIELD_MAX_CODEPOINTS + 44);
     const longLc = ['### LC-01: long cells', '', '| State | Means |', '|---|---|', `| \`A\` | ${longCell} |`, `| \`B\` | ${longCell} |`, '',
       '| From | Trigger | To | Guard | Evidence |', '|---|---|---|---|---|', `| \`A\` | t | \`B\` |  | code - ${longCell} |`, ''].join('\n');
@@ -1820,8 +1834,11 @@ Scenario: submit expense
       }
       return points;
     };
-    const textsOf = (html) => [...html.matchAll(/<text class="([^"]+)" x="(-?\d+)" y="(-?\d+)">([^<]*)<\/text>/g)]
-      .map((m) => ({ cls: m[1], x: Number(m[2]), y: Number(m[3]), text: m[4] }));
+    // PROPOSAL-116: coordinates may be decimals, and a shared line's numbers
+    // on the left end at their x (text-anchor="end").
+    const NUM = String.raw`-?\d+(?:\.\d+)?`;
+    const textsOf = (html) => [...html.matchAll(new RegExp(`<text class="([^"]+)" x="(${NUM})" y="(${NUM})"( text-anchor="end")?>([^<]*)</text>`, 'g'))]
+      .map((m) => ({ cls: m[1], x: Number(m[2]), y: Number(m[3]), anchor: m[4] ? 'end' : null, text: m[5] }));
     const parse = (html) => {
       const svg = /<svg [^>]*>/.exec(html)[0];
       const attr = (name) => new RegExp(`\\s${name}="([^"]*)"`).exec(svg)[1];
@@ -1831,25 +1848,34 @@ Scenario: submit expense
         viewBox: attr('viewBox'),
         label: attr('aria-label'),
         marker: /<marker id="([^"]+)"/.exec(html)[1],
-        boxes: [...html.matchAll(/<g class="dg-(?:state|participant)" data-(?:state|participant)="([^"]*)"><rect class="dg-box" x="(\d+)" y="(\d+)" width="(\d+)" height="(\d+)"/g)]
+        boxes: [...html.matchAll(new RegExp(`<g class="dg-(?:state|participant)" data-(?:state|participant)="([^"]*)"><rect class="dg-box" x="(${NUM})" y="(${NUM})" width="(${NUM})" height="(${NUM})"`, 'g'))]
           .map((m) => ({ name: m[1], x: Number(m[2]), y: Number(m[3]), w: Number(m[4]), h: Number(m[5]) })),
         // PROPOSAL-110: the start and end points, each its own node
-        points: [...html.matchAll(/<g class="dg-marker dg-(start|end)" data-marker="(start|end)"><rect class="dg-(start-dot|end-ring)" x="(\d+)" y="(\d+)" width="(\d+)" height="(\d+)" rx="(\d+)"\/>(?:<rect class="dg-end-dot" x="(\d+)" y="(\d+)" width="(\d+)" height="(\d+)" rx="(\d+)"\/>)?<\/g>/g)]
+        points: [...html.matchAll(new RegExp(`<g class="dg-marker dg-(start|end)" data-marker="(start|end)"><rect class="dg-(start-dot|end-ring)" x="(${NUM})" y="(${NUM})" width="(${NUM})" height="(${NUM})" rx="(${NUM})"/>` +
+          `(?:<rect class="dg-end-dot" x="(${NUM})" y="(${NUM})" width="(${NUM})" height="(${NUM})" rx="(${NUM})"/>)?</g>`, 'g'))]
           .map((m) => ({
             name: `[*] ${m[1]}`, kind: m[1], data: m[2], shape: m[3],
             x: Number(m[4]), y: Number(m[5]), w: Number(m[6]), h: Number(m[7]), rx: Number(m[8]),
             dot: m[9] === undefined ? null : { x: Number(m[9]), y: Number(m[10]), w: Number(m[11]), h: Number(m[12]), rx: Number(m[13]) }
           })),
-        edges: [...html.matchAll(/<g class="dg-(?:edge|step)" data-n="(\d+)" data-from="([^"]*)" data-to="([^"]*)"(?: data-evidence="([^"]*)")?>([\s\S]*?)<\/g>/g)]
+        // A line for one row says which (data-n); a lifecycle line shared by
+        // several rows lists them (data-rows, PROPOSAL-116) and has no data-evidence.
+        edges: [...html.matchAll(/<g class="dg-(?:edge|step)" data-(n|rows)="([\d,]+)" data-from="([^"]*)" data-to="([^"]*)"(?: data-evidence="([^"]*)")?>([\s\S]*?)<\/g>/g)]
           .map((m) => ({
-            n: Number(m[1]),
-            from: m[2],
-            to: m[3],
-            evidence: m[4] || null,
-            paths: [...m[5].matchAll(/<path class="([^"]+)" d="([^"]+)"(?: marker-end="url\(#([^)]+)\)")?\/>/g)]
+            n: Number(m[2].split(',')[0]),
+            rows: m[2].split(',').map(Number),
+            shared: m[1] === 'rows',
+            from: m[3],
+            to: m[4],
+            evidence: m[5] || null,
+            paths: [...m[6].matchAll(/<path class="([^"]+)" d="([^"]+)"(?: marker-end="url\(#([^)]+)\)")?\/>/g)]
               .map((p) => ({ cls: p[1], d: p[2], points: pathPoints(p[2]), marker: p[3] || null })),
-            texts: textsOf(m[5])
+            texts: textsOf(m[6])
           })),
+        // The rows whose entry in the column carries an Evidence tag, and every row the column describes.
+        tagged: new Set([...html.matchAll(/<g class="dg-label" data-n="(\d+)">([\s\S]*?)<\/g>/g)]
+          .filter((m) => m[2].includes('dg-evidence-text')).map((m) => Number(m[1]))),
+        described: [...html.matchAll(/<g class="dg-label" data-n="(\d+)">/g)].map((m) => Number(m[1])),
         lifelines: [...html.matchAll(/<path class="dg-lifeline" d="([^"]+)"\/>/g)].map((m) => m[1]),
         texts: textsOf(html),
         legend: /<figcaption class="dg-legend">([\s\S]*?)<\/figcaption>/.exec(html)[1]
@@ -1870,7 +1896,7 @@ Scenario: submit expense
       ...texts.filter((t) => t.cls !== 'dg-evidence-text').map((t) => {
         const { size, middle } = textStyle(t.cls);
         const w = diagrams.textWidth(unescapeXml(t.text), size);
-        return { name: t.text, x: middle ? t.x - w / 2 : t.x, y: t.y - size, w, h: size + Math.round(size * 0.3) };
+        return { name: t.text, x: middle ? t.x - w / 2 : t.anchor === 'end' ? t.x - w : t.x, y: t.y - size, w, h: size + Math.round(size * 0.3) };
       }),
       ...[...html.matchAll(/<rect class="dg-evidence-box" x="(-?[\d.]+)" y="(-?[\d.]+)" width="([\d.]+)" height="([\d.]+)"/g)]
         .map((m) => ({ name: 'Evidence tag', x: Number(m[1]), y: Number(m[2]), w: Number(m[3]), h: Number(m[4]) }))
@@ -1957,8 +1983,24 @@ Scenario: submit expense
             assert.equal(Math.sign(tip[0] - prev[0]), Math.sign(cx(e.to) - cx(e.from)), `${why}: step ${e.n} points at ${e.to}`);
           }
         }
-        const dashed = e.evidence === 'inferred' || e.evidence === 'assumed';
+        // A shared line is dashed when any of its rows has a tag in the column;
+        // a line for one row follows its Evidence type, which its tag states.
+        const dashed = e.shared ? e.rows.some((n) => p.tagged.has(n)) : e.evidence === 'inferred' || e.evidence === 'assumed';
         assert.ok(e.paths.every((path) => path.cls === (dashed ? 'dg-route dg-uncertain' : 'dg-route')), `${why}: edge ${e.n} dash style follows its Evidence type`);
+        if (kind === 'lc') {
+          assert.equal(e.shared, e.rows.length > 1, `${why}: line ${e.n} lists rows only when it stands for several`);
+          assert.ok(!e.shared || e.evidence === null, `${why}: shared line ${e.n} claims no single Evidence type`);
+          if (!e.shared) {
+            assert.equal(dashed, p.tagged.has(e.n), `${why}: line ${e.n}'s dash style matches its row's tag`);
+          }
+          assert.deepEqual(e.rows, [...new Set(e.rows)].sort((a, b) => a - b), `${why}: line ${e.n}'s rows are listed once each, in order`);
+          assert.deepEqual(e.texts.filter((t) => t.cls === 'dg-number').map((t) => t.text), [e.rows.join('、')], `${why}: line ${e.n} is numbered with every row it stands for`);
+        }
+      }
+      if (kind === 'lc') {
+        // One line per From and To, and every row of the column on exactly one line.
+        assert.equal(new Set(p.edges.map((e) => JSON.stringify([e.from, e.to]))).size, p.edges.length, `${why}: rows with the same From and To share one line`);
+        assert.deepEqual(p.edges.flatMap((e) => e.rows).sort((a, b) => a - b), [...p.described].sort((a, b) => a - b), `${why}: every row is on exactly one line`);
       }
       assert.equal(p.texts.length, (html.match(/<text /g) || []).length, `${why}: every text element is read back`);
       assert.ok(p.texts.every((t) => t.x >= 0 && t.y > 0 && t.y <= p.height), `${why}: text inside the viewBox`);
@@ -1977,6 +2019,8 @@ Scenario: submit expense
       kind: 'LC', entryId: 'LC-01', states,
       transitions: rows.map(([from, to, trigger, guard = [], evidenceType = 'code'], i) => ({ n: i + 1, from, to, trigger: [trigger], guard, evidenceType }))
     });
+    // PROPOSAL-116: a refusal the size limits have no part in says so.
+    const noSize = (issue) => `${issue}。提高尺寸上限不會解除這項限制；請保留完整表格，改看下方的卡片或表格`;
 
     // (a) Expense LC-01, read from the shipped tutorial through the same recognition path.
     // PROPOSAL-110: its first row is now `[*]` → Draft; the geometry below is
@@ -1986,7 +2030,7 @@ Scenario: submit expense
     const expenseSub = diagrams.findEntrySubsections(lex(expenseMd)).find((sub) => sub.entryId === 'LC-01');
     const expense = checkInvariants(diagrams.drawDiagram(diagrams.lifecycleModel(expenseSub).model, 0).html, 'lc', 'Expense');
     assert.deepEqual([expense.width, expense.height], [716, 528]);
-    assert.equal(expense.label, 'LC-01：4 個狀態、5 條轉移；細節見下方的卡片或表格');
+    assert.equal(expense.label, 'LC-01：4 個狀態、5 列轉移、5 條線；細節見下方的卡片或表格', 'states drawn, rows, lines drawn (PROPOSAL-116)');
     assert.equal(expense.marker, 'dflow.dg.0.arrow');
     assert.deepEqual(expense.boxes.map((b) => [b.name, b.x, b.y, b.w, b.h]), [
       ['Draft', 72, 88, 160, 48], ['Submitted', 72, 176, 160, 48], ['Approved', 72, 358, 160, 48], ['Rejected', 72, 446, 160, 48]
@@ -2017,7 +2061,7 @@ Scenario: submit expense
     ], 'guard items stay hard line breaks');
     assert.deepEqual(shown(expense, 'dg-guard-key').map(([x, y]) => [x, y]), [[340, 121], [340, 209], [340, 277], [340, 499]]);
     assert.equal(expense.legend,
-      '<span><svg class="dg-key" aria-hidden="true" viewBox="0 0 28 8"><path class="dg-route" d="M0 4H28"/></svg>實線：這一條的 Evidence 類型不是 inferred 或 assumed。</span>' +
+      '<span><svg class="dg-key" aria-hidden="true" viewBox="0 0 28 8"><path class="dg-route" d="M0 4H28"/></svg>實線：這條線代表的各列，Evidence 類型都不是 inferred 或 assumed。</span>' +
       '<span><svg class="dg-key dg-key-point" aria-hidden="true" viewBox="0 0 28 12"><circle class="dg-start-dot" cx="14" cy="6" r="6"/></svg>實心圓：建立之前（From 寫 <code>[*]</code>）。</span>',
       'the legend lists the solid style and the start point it draws, never calling a line verified');
 
@@ -2039,12 +2083,24 @@ Scenario: submit expense
       ['Settled', 'Queued', 'Requeue'], ['Running', 'Running', 'Progress'], ['Queued', 'Review', 'AutoReview'],
       ['Draft', 'Ready', 'FastTrack'], ['Queued', 'Ready', 'SkipReview']
     ].map(([from, to, trigger]) => [from, to, trigger, [], 'document']);
+    // PROPOSAL-116, recomputed by hand: rows 2 and 11 (Queued → Review) share
+    // the line down the middle, numbered 2、11 at (164, (164 + 240) / 2 - 6).
+    // Without row 11 on the right, SkipReview (1–3) moves to lane 0 beside the
+    // self-transition (4–4) and FastTrack (0–3) to lane 1 at 232 + 48 + 28 =
+    // 308: two lanes, so 772 - 28 = 744 wide. Queued loses its right port for
+    // row 11, so its box is 48, not 72, tall; its band stays 84 (three rows
+    // of text: 3 × 20 + 2 × 12), so the height stays 892, and Queued's ports
+    // move up 12 (140, its centre, for the return and for SkipReview).
     const nineDrawn = checkInvariants(diagrams.drawDiagram(lcModel(nine, nineRows), 0).html, 'lc', 'nine states');
-    assert.deepEqual([nineDrawn.width, nineDrawn.height], [772, 892]);
-    assert.deepEqual(nineDrawn.edges.map((e) => e.paths.map((p) => p.d).join(' | ')), [
-      'M152 72V116', 'M152 188V240', 'M152 288V328', 'M152 400V440', 'M152 512V552', 'M152 600V640', 'M152 688V732', 'M152 780V820',
-      'M72 664H24V152H72', 'M232 464H280V488H232', 'M232 164H280V264H232', 'M232 48H336V376H232', 'M232 140H308V352H232'
-    ], 'lanes: shortest spans nearest the boxes; disjoint spans share a lane; nested brackets never cross');
+    assert.deepEqual([nineDrawn.width, nineDrawn.height], [744, 892]);
+    assert.deepEqual(nineDrawn.edges.map((e) => [e.rows.join(), e.paths.map((p) => p.d).join(' | ')]), [
+      ['1', 'M152 72V116'], ['2,11', 'M152 164V240'], ['3', 'M152 288V328'], ['4', 'M152 400V440'], ['5', 'M152 512V552'],
+      ['6', 'M152 600V640'], ['7', 'M152 688V732'], ['8', 'M152 780V820'],
+      ['9', 'M72 664H24V140H72'], ['10', 'M232 464H280V488H232'], ['12', 'M232 48H308V376H232'], ['13', 'M232 140H280V352H232']
+    ], 'lanes: shortest spans nearest the boxes; disjoint spans share a lane; nested brackets never cross; a same-pair duplicate shares its line');
+    assert.deepEqual(nineDrawn.edges[1].texts.map((t) => [t.x, t.y, t.text, t.anchor]), [[164, 196, '2、11', null]]);
+    assert.match(diagrams.drawDiagram(lcModel(nine, nineRows), 0).html, /<g class="dg-edge" data-rows="2,11" data-from="Queued" data-to="Review">/,
+      'the shared line lists its rows and claims no single Evidence type');
 
     // (d) a five-step flow with a self-step and an inferred step
     const flowMd = [
@@ -2128,7 +2184,7 @@ Scenario: submit expense
     // with 件) = 184.8 at 14px; eight of them fill 352-wide lines of 338.8,
     // 338.8, 338.8, 338.8 and 123.2 — five lines.
     assert.equal(diagrams.drawDiagram(lcModel(['A', 'B'], [['A', 'B', long], ['B', 'A', long], ['A', 'A', long]]), 0).issue,
-      '轉移表第 1 列的 Trigger（5 行）、第 2 列的 Trigger（5 行）、第 3 列的 Trigger（5 行）要節略才放得下，上限 2 格、每格 3 行');
+      noSize('轉移表第 1 列的 Trigger（5 行）、第 2 列的 Trigger（5 行）、第 3 列的 Trigger（5 行）要節略才放得下，上限 2 格、每格 3 行'));
 
     // right-to-left text and oversize cells refuse with a note naming the cell —
     // in a name the picture draws. PROPOSAL-110 (x2 F5, Q8): a state no
@@ -2375,7 +2431,7 @@ Scenario: submit expense
         'the listed states, in state-table order, escaped');
       assert.equal((listedHtml.match(/>Old</g) || []).length, 1, 'each listed state appears once');
       assert.doesNotMatch(listedHtml, /data-state="Old"|<script>/, 'a listed state is not drawn, and no listed text reaches the page raw');
-      assert.match(listedHtml, /aria-label="LC-01：4 個狀態、3 條轉移，另有 2 個狀態沒有轉移、列在圖下；細節見下方的卡片或表格"/);
+      assert.match(listedHtml, /aria-label="LC-01：4 個狀態、3 列轉移、3 條線，另有 2 個狀態沒有轉移、列在圖下；細節見下方的卡片或表格"/);
       const thirteen = modelOf(lcMd(Array.from({ length: 13 }, (_, i) => `\`V${i + 1}\``),
         Array.from({ length: 9 }, (_, i) => [`\`V${i + 1}\``, '下一步', `\`V${i + 2}\``])));
       assert.deepEqual([thirteen.model.states.length, thirteen.model.unlisted], [10, ['V11', 'V12', 'V13']]);
@@ -2429,8 +2485,10 @@ Scenario: submit expense
       const b2 = checkInvariants(diagrams.drawDiagram(straight(9, { start: true, end: true }), 0).html, 'lc', 'start, nine states, end');
       assert.deepEqual([b2.width, b2.height, b2.points.map((m) => [m.kind, m.x, m.y, m.w, m.h])], [620, 928, [['start', 92, 24, 24, 24], ['end', 92, 880, 24, 24]]]);
       assert.deepEqual(size(diagrams.drawDiagram(straight(10, { tagged: true }), 0).html), [620, 898], 'drawn today at 898');
-      assert.deepEqual(diagrams.drawDiagram(straight(10, { start: true, tagged: true }), 0), { issue: '圖高 962，上限 960' },
-        'a start point adds at least 64: a picture that just fitted may not (known limitation 8)');
+      // PROPOSAL-116: a start point still adds at least 64, but 962 is within
+      // the default 1600 now, so the picture that just fitted 960 still draws.
+      const b3 = checkInvariants(diagrams.drawDiagram(straight(10, { start: true, tagged: true }), 0).html, 'lc', 'start, ten states, a tag');
+      assert.deepEqual([b3.width, b3.height], [620, 962], 'a start point adds 64: drawn under the default height limit');
 
       // (7) Several creates and deletes: example (c). The end point holds two
       // ports and stretches into a capsule; one crossing, cut in the vertical.
@@ -2453,8 +2511,8 @@ Scenario: submit expense
       ], 'markers route by the box rules: direct down the middle, the rest on the right, nested, the one crossing cut');
       assert.deepEqual(shown(cp, 'dg-primary').map(([x, y]) => [x, y]), [[348, 38], [348, 70], [348, 130], [348, 162], [348, 222], [348, 254], [348, 334]]);
       assert.match(c, /<rect class="dg-end-dot" x="97" y="413" width="14" height="38" rx="7"\/>/, 'the end point keeps its dot inset 5 when it stretches');
-      assert.match(cp.legend, /實心圓：建立之前（From 寫 <code>\[\*\]<\/code>）。<\/span><span><svg class="dg-key dg-key-point"[^>]*><circle class="dg-end-ring"[^>]*\/><circle class="dg-end-dot"[^>]*\/><\/svg>圈中點：刪除之後（To 寫 <code>\[\*\]<\/code>）。<\/span>$/,
-        'the legend names both points, after the line styles');
+      assert.match(cp.legend, /實心圓：建立之前（From 寫 <code>\[\*\]<\/code>）。<\/span><span><svg class="dg-key dg-key-point"[^>]*><circle class="dg-end-ring"[^>]*\/><circle class="dg-end-dot"[^>]*\/><\/svg>圈中點：刪除之後（To 寫 <code>\[\*\]<\/code>）。<\/span><span>同一記號上的多條線代表不同轉移，不是多個起點或終點。<\/span>$/,
+        'the legend names both points, after the line styles, then says the lines on one point are different transitions (PROPOSAL-116)');
       // only deletes: one end point, no start
       const onlyDelete = checkInvariants(diagrams.drawDiagram(lcModel(['A', 'B'], [['A', 'B', '送出'], ['B', '[*]', '刪除'], ['A', '[*]', '作廢']]), 0).html, 'lc', 'only deletes');
       assert.deepEqual(onlyDelete.points.map((m) => [m.kind, m.h]), [['end', 24]]);
@@ -2463,7 +2521,8 @@ Scenario: submit expense
       const manyDeletes = lcModel(['S1', 'S2', 'S3', 'S4', 'S5', 'S6'], [
         ...[1, 2, 3, 4, 5].map((i) => [`S${i}`, `S${i + 1}`, '下一步']), ...[1, 2, 3, 4, 5, 6].map((i) => [`S${i}`, '[*]', '刪除'])
       ]);
-      assert.deepEqual(diagrams.drawDiagram(manyDeletes, 0), { issue: '右側需要 5 條分道，上限 4' });
+      assert.deepEqual(diagrams.drawDiagram(manyDeletes, 0), { issue: noSize('右側需要 5 條分道，上限 4') },
+        'past the lane limit, and raising the size limits would not help (PROPOSAL-116)');
 
       // (8) The note names each cell cut short (D). By hand, per arrow width:
       // 35 CJK at 14px (15.4 each) take 4 lines in 160 (10 a line, adjacent
@@ -2474,13 +2533,13 @@ Scenario: submit expense
         ...steps.map(([from, to, handed, change], i) => `| ${i + 1} | ${from} | ${to} | ${handed} | ${change} |`), ''].join('\n')))[0]).model;
       const flowSteps = [['A', 'B', cjk(35), 'x'], ['A', 'D', cjk(35), 'x'], ['B', 'C', 'x<br>y<br>z<br>w', 'x'], ['C', 'D', 'x', cjk(50)]];
       assert.deepEqual(diagrams.drawDiagram(flowCut(flowSteps), 0), {
-        issue: '流程表第 1 列的 Handed over（4 行）、第 3 列的 Handed over（4 行）、第 4 列的 State change（5 行）要節略才放得下，上限 2 格、每格 3 行'
+        issue: noSize('流程表第 1 列的 Handed over（4 行）、第 3 列的 Handed over（4 行）、第 4 列的 State change（5 行）要節略才放得下，上限 2 格、每格 3 行')
       }, 'each cell named with its lines; the same text over a wider arrow is not cut');
       const twoCut = diagrams.drawDiagram(flowCut(flowSteps.slice(0, 3)), 0);
       checkInvariants(twoCut.html, 'fl', 'two cells cut');
       assert.match(parse(twoCut.html).legend, /…：文字已節略/, 'at the limit the picture is drawn and says so');
       assert.deepEqual(diagrams.drawDiagram(lcModel(['A', 'B'], [['A', 'B', long], ['B', 'A', 't', ['BR-001', 'BR-002', 'BR-003', 'BR-004']], ['A', 'A', long]]), 0),
-        { issue: '轉移表第 1 列的 Trigger（5 行）、第 2 列的 Guard（4 行）、第 3 列的 Trigger（5 行）要節略才放得下，上限 2 格、每格 3 行' },
+        { issue: noSize('轉移表第 1 列的 Trigger（5 行）、第 2 列的 Guard（4 行）、第 3 列的 Trigger（5 行）要節略才放得下，上限 2 格、每格 3 行') },
         'a lifecycle names Trigger and Guard cells in row order');
       assert.equal(diagrams.wrapField([cjk(35)], 160, 14, 3).total, 4, 'wrapField reports the lines the whole field takes');
 
@@ -2521,6 +2580,339 @@ Scenario: submit expense
         }
       }
       assert.ok(drawn2 >= 60, `the [*] corpus mostly draws (${drawn2})`);
+    }
+    // --- PROPOSAL-116: rows with the same From and To share one line; the
+    // run's size limits; notes that say what size would draw a diagram ---
+    // Expected geometry is the hand computation in the comments, made before
+    // the code ran, not output copied back; the invariants are checked apart.
+    {
+      const L = diagrams.DIAGRAM_LIMITS;
+      const limits = (given) => diagrams.sizeLimits(given);
+      const sizeOf = (html) => { const p = parse(html); return [p.width, p.height]; };
+      const lines = (p) => p.edges.map((e) => [e.rows.join(), e.paths.map((path) => path.d).join(' | '),
+        ...e.texts.filter((t) => t.cls === 'dg-number').map((t) => [t.x, t.y, t.text, t.anchor])]);
+      const triggers = (p) => p.texts.filter((t) => t.cls === 'dg-primary').map((t) => [t.x, t.y, t.text]);
+
+      // (1) Three rows straight down the middle: one line A → B at x 104
+      // (24 + 160 / 2), from 72 to 148, as A's band is its three rows, 3 × 20
+      // + 2 × 12 = 84. 1、2、3 is 0.12 × (3 × 70 + 2 × 110) = 51.6 wide from
+      // 116, short of A's right side (184), so the column stays at 184 + 32 =
+      // 216: 620 wide, 148 + 48 + 24 = 220 tall.
+      const straight3 = checkInvariants(diagrams.drawDiagram(lcModel(['A', 'B'], [['A', 'B', '送出'], ['A', 'B', '補件送出'], ['A', 'B', '重送']]), 0).html, 'lc', 'three rows straight');
+      assert.deepEqual([straight3.width, straight3.height], [620, 220]);
+      assert.deepEqual(lines(straight3), [['1,2,3', 'M104 72V148', [116, 104, '1、2、3', null]]]);
+      assert.deepEqual(triggers(straight3), [[244, 38, '送出'], [244, 70, '補件送出'], [244, 102, '重送']], 'each row keeps its own entry in the column');
+      assert.equal(straight3.label, 'LC-01：2 個狀態、3 列轉移、1 條線；細節見下方的卡片或表格', 'states drawn, rows, lines drawn');
+
+      // (2) Three rows returning on the left: 2、3、4 is 51.6 wide, so the
+      // left lane moves out to ceil(51.6 + 16) = 68 from the box — the box at
+      // 24 + 68 = 92, the lane at 24 — and the numbers end 8 left of the box
+      // (x 84, text-anchor end), clear of the lane by 8.4. The column is at
+      // 252 + 32 = 284: 688 wide; B's band is 84: 112 + 84 + 24 = 220 tall.
+      const returnRows = [['A', 'B', '送出'], ['B', 'A', '退回'], ['B', 'A', '撤回'], ['B', 'A', '逾期退回']];
+      const returns3Html = diagrams.drawDiagram(lcModel(['A', 'B'], returnRows), 0).html;
+      const returns3 = checkInvariants(returns3Html, 'lc', 'three rows returning');
+      assert.deepEqual([returns3.width, returns3.height], [688, 220]);
+      assert.deepEqual(lines(returns3), [['1', 'M172 72V112', [184, 86, '1', null]], ['2,3,4', 'M92 136H24V48H92', [84, 130, '2、3、4', 'end']]]);
+      assert.match(returns3Html, /<text class="dg-number" x="84" y="130" text-anchor="end">2、3、4<\/text>/, 'the SVG states the end anchor the audit measured');
+
+      // (3) Two rows of one self-transition: one loop, two ports on B's right
+      // (B 72 tall); 2、3 is 30 wide, ceil(30 + 16) = 46 < 48, so the lane
+      // keeps 48 (at 232). 668 wide, 112 + 72 + 24 = 208 tall.
+      const self2 = checkInvariants(diagrams.drawDiagram(lcModel(['A', 'B'], [['A', 'B', '送出'], ['B', 'B', '更新備註'], ['B', 'B', '重送通知']]), 0).html, 'lc', 'two rows of one self-transition');
+      assert.deepEqual([self2.width, self2.height], [668, 208]);
+      assert.deepEqual(lines(self2), [['1', 'M104 72V112', [116, 86, '1', null]], ['2,3', 'M184 136H232V160H184', [192, 130, '2、3', null]]]);
+
+      // (4) Three ways to create, into one state: one line from a start point
+      // that holds no side port, so a 24 circle; its band is the three rows,
+      // 84. 620 wide, 236 + 48 + 24 = 308 tall.
+      const create3 = checkInvariants(diagrams.drawDiagram(lcModel(['Draft', 'Open'], [
+        ['[*]', 'Draft', '人工建立'], ['[*]', 'Draft', '匯入建立'], ['[*]', 'Draft', '外部事件建立'], ['Draft', 'Open', '送出']
+      ]), 0).html, 'lc', 'three creates');
+      assert.deepEqual([create3.width, create3.height], [620, 308]);
+      assert.deepEqual(create3.points.map((m) => [m.kind, m.x, m.y, m.w, m.h]), [['start', 92, 24, 24, 24]], 'one start point: a circle, not a capsule');
+      assert.deepEqual(lines(create3), [['1,2,3', 'M104 48V148', [116, 92, '1、2、3', null]], ['4', 'M104 196V236', [116, 210, '4', null]]]);
+      assert.doesNotMatch(create3.legend, /同一記號上的多條線/, 'one line on the start point: nothing to tell apart');
+
+      // (5) Numbers not consecutive, two digits, on both sides. 2、5、11 on the
+      // right is 0.12 × (4 × 70 + 2 × 110) = 60 wide: that lane is ceil(76) =
+      // 76 out. 10、12 on the left is 46.8 wide: that lane is ceil(62.8) = 63
+      // out, so the box is at 87, its centre 167. Down the middle 3、6、9 ends
+      // at ceil(167 + 12 + 51.6) = 231, inside the right lane (247 + 76 =
+      // 323): the column is at 355, 759 wide. Bands of 5, 3, 2 and 2 rows:
+      // 148, 84, 52, 52, so 428 + 52 + 24 = 504 tall.
+      const scattered = checkInvariants(diagrams.drawDiagram(lcModel(['S1', 'S2', 'S3', 'S4'], [
+        ['S1', 'S2', 'a'], ['S1', 'S3', 'b'], ['S2', 'S3', 'c'], ['S3', 'S4', 'd'], ['S1', 'S3', 'e'], ['S2', 'S3', 'f'],
+        ['S3', 'S4', 'g'], ['S1', 'S2', 'h'], ['S2', 'S3', 'i'], ['S4', 'S1', 'j'], ['S1', 'S3', 'k'], ['S4', 'S1', 'l']
+      ]), 0).html, 'lc', 'scattered row numbers');
+      assert.deepEqual([scattered.width, scattered.height], [759, 504]);
+      assert.deepEqual(lines(scattered), [
+        ['1,8', 'M167 72V212', [179, 136, '1、8', null]],
+        ['2,5,11', 'M247 48H323V360H247', [255, 42, '2、5、11', null]],
+        ['3,6,9', 'M167 260V336', [179, 292, '3、6、9', null]],
+        ['4,7', 'M167 384V428', [179, 400, '4、7', null]],
+        ['10,12', 'M87 452H24V48H87', [79, 446, '10、12', 'end']]
+      ]);
+
+      // (6) Which rows share a line: the values read from the cells, as the
+      // cards show them. A plain, a code span and a bold value are one value;
+      // another case, or the other direction, is another line; rows apart in
+      // the table still share one. Trigger and Guard never keep rows apart.
+      const lcMd2 = (values, rows) => [
+        '### LC-01: x', '', '| State | Means |', '|---|---|', ...values.map((v) => `| ${v} | m |`), '',
+        '| From | Trigger | To | Guard | Evidence |', '|---|---|---|---|---|',
+        ...rows.map(([from, trigger, to, guard = '', evidence = 'code - x (2026-10-19)']) => `| ${from} | ${trigger} | ${to} | ${guard} | ${evidence} |`), ''
+      ].join('\n');
+      const modelMd = (md) => diagrams.lifecycleModel(diagrams.findEntrySubsections(lex(md))[0]);
+      const sameValue = checkInvariants(diagrams.drawDiagram(modelMd(lcMd2(['`A`', '`B`'],
+        [['`A`', '送出', '`B`', 'BR-001'], ['A', '補件', 'B'], ['**A**', '重送', '**B**', 'BR-002<br>BR-003']])).model, 0).html, 'lc', 'one value, three writings');
+      assert.deepEqual(sameValue.edges.map((e) => e.rows), [[1, 2, 3]], 'a plain, a code span and a bold value share the line');
+      assert.deepEqual(triggers(sameValue).map((t) => t[2]), ['送出', '補件', '重送'], 'every row keeps its Trigger');
+      assert.deepEqual(sameValue.texts.filter((t) => t.cls === 'dg-secondary').map((t) => t.text), ['BR-001', 'BR-002', 'BR-003'], 'and its own Guard, none merged');
+      const apart = checkInvariants(diagrams.drawDiagram(modelMd(lcMd2(['`A`', '`a`', '`B`'],
+        [['`A`', 't1', '`B`'], ['`a`', 't2', '`B`'], ['`B`', 't3', '`A`'], ['`A`', 't4', '`B`']])).model, 0).html, 'lc', 'case and direction');
+      assert.deepEqual(apart.edges.map((e) => [e.from, e.to, e.rows.join()]), [['A', 'B', '1,4'], ['a', 'B', '2'], ['B', 'A', '3']]);
+      const ends2 = checkInvariants(diagrams.drawDiagram(lcModel(['Draft', 'Open'], [
+        ['[*]', 'Draft', '建立'], ['Draft', 'Open', '送出'], ['Draft', '[*]', '捨棄'], ['[*]', 'Draft', '匯入'], ['Open', '[*]', '刪除'], ['Draft', '[*]', '作廢']
+      ]), 0).html, 'lc', 'creates and deletes by pair');
+      assert.deepEqual(ends2.edges.map((e) => [e.from, e.to, e.rows.join()]), [['[*]', 'Draft', '1,4'], ['Draft', 'Open', '2'], ['Draft', '[*]', '3,6'], ['Open', '[*]', '5']],
+        'creates into one state share a line, deletes from one state share one, and deletes from two states stay two');
+      assert.match(ends2.legend, /<span>同一記號上的多條線代表不同轉移，不是多個起點或終點。<\/span>/, 'the end point holds two lines: the legend says they are two transitions');
+
+      // (7) The transition limit counts rows, not lines. Twenty rows of one
+      // pair are read; their numbers, 0.12 × (29 × 70 + 19 × 110) = 511.2
+      // wide down the middle, end at ceil(104 + 12 + 511.2) = 628, so the
+      // column is at 660 and the diagram 1064 wide; A's band is 20 × 20 + 19 ×
+      // 12 = 628, so 692 + 48 + 24 = 764 tall. Twenty-one are refused.
+      const twenty = modelMd(lcMd2(['`A`', '`B`'], Array.from({ length: 20 }, (_, i) => ['`A`', `t${i + 1}`, '`B`'])));
+      assert.equal(twenty.model.transitions.length, 20, 'twenty rows of one pair are read');
+      assert.deepEqual(modelMd(lcMd2(['`A`', '`B`'], Array.from({ length: 21 }, (_, i) => ['`A`', `t${i + 1}`, '`B`']))), { issue: '轉移 21 個，超過上限 20' },
+        'twenty-one rows are refused though they would share one line');
+      const twentyDrawn = checkInvariants(diagrams.drawDiagram(twenty.model, 0, limits({ width: 1064 })).html, 'lc', 'twenty rows, one line');
+      assert.deepEqual([twentyDrawn.width, twentyDrawn.height, twentyDrawn.edges.map((e) => e.rows.length)], [1064, 764, [20]], 'a width limit equal to the size draws');
+
+      // (8) The run's size limits: the defaults; a height given is both kinds';
+      // a width, lifecycles' only.
+      assert.deepEqual(limits(), { lcWidth: L.LC_MAX_WIDTH, lcHeight: L.LC_MAX_HEIGHT, flHeight: L.FL_MAX_HEIGHT });
+      assert.deepEqual(limits({ height: 1800 }), { lcWidth: 1024, lcHeight: 1800, flHeight: 1800 });
+      assert.deepEqual(limits({ height: null, width: 1200 }), { lcWidth: 1200, lcHeight: 1600, flHeight: 960 });
+
+      // (9) Notes when size is all a diagram lacks: the size it needs, the
+      // limits it was drawn under, and the options that draw it, width first.
+      const ask = '請保留原本的來源與輸出選項，加上';
+      assert.deepEqual(diagrams.drawDiagram(twenty.model, 0), { issue: `排版需要寬 1064、高 764；目前上限為寬 1024、高 1600。${ask} --diagram-max-width 1064 後重新執行 dflow render` },
+        'only the width: no height asked for, no bands');
+      assert.equal(diagrams.drawDiagram(twenty.model, 0, limits({ width: 1063 })).issue,
+        `排版需要寬 1064、高 764；目前上限為寬 1063、高 1600。${ask} --diagram-max-width 1064 後重新執行 dflow render`, 'one less refuses, and the limit given is the one stated');
+      // Both: and the bands when the height is over — fewer than three when
+      // there are fewer, a position with no row said so.
+      assert.equal(diagrams.drawDiagram(twenty.model, 0, limits({ height: 700 })).issue,
+        `排版需要寬 1064、高 764；目前上限為寬 1024、高 700。${ask} --diagram-max-width 1064 --diagram-max-height 764 後重新執行 dflow render` +
+        `；段高較大的位置：狀態 A（轉移表第 ${Array.from({ length: 20 }, (_, i) => i + 1).join('、')} 列，段高 628）、狀態 B（沒有出發轉移，段高 48）。` +
+        '段高取記號或方框與逐列說明中較高者；請保留完整表格');
+      // Only the height. A start, ten states and one tagged row: S1's band is
+      // 20 + 18 + 20 = 58, every other state's one row under its 48-tall box,
+      // the start's 24: 24 + 24 + 58 + 9 × 48 + 10 × 40 + 24 = 962.
+      const tenTall = lcModel(Array.from({ length: 10 }, (_, i) => `S${i + 1}`), [
+        ['[*]', 'S1', '建立'], ['S1', 'S2', '下一步', ['BR-001'], 'inferred'], ...Array.from({ length: 8 }, (_, i) => [`S${i + 2}`, `S${i + 3}`, '下一步'])
+      ]);
+      assert.deepEqual(sizeOf(diagrams.drawDiagram(tenTall, 0, limits({ height: 962 })).html), [620, 962], 'a height limit equal to the size draws');
+      assert.deepEqual(diagrams.drawDiagram(tenTall, 0, limits({ height: 961 })), {
+        issue: `排版需要寬 620、高 962；目前上限為寬 1024、高 961。${ask} --diagram-max-height 962 後重新執行 dflow render` +
+          '；段高較大的位置：狀態 S1（轉移表第 2 列，段高 58）、狀態 S2（轉移表第 3 列，段高 48）、狀態 S3（轉移表第 4 列，段高 48）。' +
+          '段高取記號或方框與逐列說明中較高者；請保留完整表格'
+      }, 'the three tallest bands, ties in diagram order');
+      // A flow has no width limit to state. The ten-step sample measured for
+      // the proposal (three items in each of Handed over and State change)
+      // needs 744 × 1892: over every limit, so the height asked for is its own.
+      const flowRows = (k, handed, change) => ['### FL-01: x', '', '| # | From | To | Handed over | State change | Evidence |', '|---|---|---|---|---|---|',
+        ...Array.from({ length: k }, (_, i) => `| ${i + 1} | Context${(i % 4) + 1} | Context${((i + 1) % 4) + 1} | ${handed} | ${change} | inferred - sample |`), ''].join('\n');
+      const flowOf = (md) => diagrams.flowModel(diagrams.findEntrySubsections(lex(md))[0]).model;
+      const denseFlow = flowOf(flowRows(10, '申請識別碼<br>明細項目<br>審核結果', '記錄收件<br>更新狀態<br>等待處理'));
+      assert.deepEqual(diagrams.drawDiagram(denseFlow, 0), {
+        issue: `排版需要寬 744、高 1892；目前高度上限為 960，流程圖沒有寬度上限。${ask} --diagram-max-height 1892 後重新執行 dflow render`
+      });
+      checkInvariants(diagrams.drawDiagram(denseFlow, 0, limits({ height: 1892 })).html, 'fl', 'the dense flow, drawn at its height');
+      // A flow over its 960 but under the lifecycles' 1600: the option sets
+      // both, so it asks for 1600 and says why, while stating the real need.
+      const midFlow = flowOf(flowRows(10, '申請識別碼<br>明細項目', '記錄收件'));
+      const midNote = diagrams.drawDiagram(midFlow, 0).issue;
+      const midNeed = /^排版需要寬 744、高 (\d+)；/.exec(midNote);
+      assert.ok(midNeed && Number(midNeed[1]) > L.FL_MAX_HEIGHT && Number(midNeed[1]) < L.LC_MAX_HEIGHT, `the sample is between the two limits (${midNote})`);
+      assert.equal(midNote, `排版需要寬 744、高 ${midNeed[1]}；目前高度上限為 960，流程圖沒有寬度上限。${ask} --diagram-max-height 1600 後重新執行 dflow render` +
+        '（這個選項同時管生命週期圖，1600 是它們目前的上限；取較大的值，已經畫得出來的圖才不會變成不畫）');
+      assert.deepEqual(sizeOf(diagrams.drawDiagram(midFlow, 0, limits({ height: Number(midNeed[1]) })).html), [744, Number(midNeed[1])], 'the size stated is the size drawn');
+
+      // (10) Refusals size has no part in. Seven states with four interleaved
+      // skips on the right cross five times; by hand it needs four right
+      // lanes (316, so 752 wide) and 660 tall. Within the limits the note is
+      // the crossing; over them too, the size it needs and that size alone
+      // will not draw it — never options that would not.
+      const crossing = lcModel(['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7'], [
+        ...[1, 2, 3, 4, 5, 6].map((i) => [`S${i}`, `S${i + 1}`, 't']), ...[[1, 4], [2, 5], [3, 6], [4, 7]].map(([a, b]) => [`S${a}`, `S${b}`, 't'])
+      ]);
+      assert.deepEqual(diagrams.drawDiagram(crossing, 0), { issue: noSize('箭頭交叉 5 處，上限 4') });
+      assert.deepEqual(diagrams.drawDiagram(crossing, 0, limits({ height: 600 })), {
+        issue: '排版需要寬 752、高 660；目前上限為寬 1024、高 600；另有箭頭交叉 5 處，上限 4。單獨提高尺寸上限仍無法畫出；請保留完整表格，改看下方的卡片或表格'
+      });
+      // The same for an overlap, which the audit finds after the crossings:
+      // six rows A → B share the straight line, and its numbers reach into
+      // the right lane of the skip A → C (without that row it draws, 669 × 404).
+      const overlapping = lcModel(['A', 'B', 'C'], [...Array.from({ length: 6 }, () => ['A', 'B', 't']), ['A', 'C', 't'], ['B', 'C', 't']]);
+      assert.deepEqual(diagrams.drawDiagram(overlapping, 0), { issue: noSize('圖上的文字或線條會互相重疊') });
+      assert.deepEqual(diagrams.drawDiagram(overlapping, 0, limits({ height: 400 })), {
+        issue: '排版需要寬 669、高 436；目前上限為寬 1024、高 400；另有圖上的文字或線條會互相重疊。單獨提高尺寸上限仍無法畫出；請保留完整表格，改看下方的卡片或表格'
+      });
+      assert.ok(diagrams.drawDiagram(lcModel(['A', 'B', 'C'], [...Array.from({ length: 6 }, () => ['A', 'B', 't']), ['B', 'C', 't']]), 0).html,
+        'without the skip the same shared line draws');
+      // A refusal before the size is known keeps its reason and gives no size, at any limit.
+      const deletes6 = lcModel(['S1', 'S2', 'S3', 'S4', 'S5', 'S6'], [
+        ...[1, 2, 3, 4, 5].map((i) => [`S${i}`, `S${i + 1}`, '下一步']), ...[1, 2, 3, 4, 5, 6].map((i) => [`S${i}`, '[*]', '刪除'])
+      ]);
+      assert.deepEqual(diagrams.drawDiagram(deletes6, 0, limits({ height: 10, width: 10 })), { issue: noSize('右側需要 5 條分道，上限 4') });
+
+      // (11) The legend: a single shared line of a code row and an inferred
+      // row is dashed, and the legend has only the dashed sentence — no solid
+      // one for its code row — and the sentence on the numbers.
+      const mixed = checkInvariants(diagrams.drawDiagram(lcModel(['A', 'B'], [['A', 'B', '送出', [], 'code'], ['A', 'B', '補件', [], 'inferred']]), 0).html, 'lc', 'one shared mixed line');
+      assert.equal(mixed.legend,
+        '<span><svg class="dg-key" aria-hidden="true" viewBox="0 0 28 8"><path class="dg-route dg-uncertain" d="M0 4H28"/></svg>' +
+        '虛線：這條線代表的列中，至少一列的 Evidence 類型是 inferred 或 assumed；各列類型見旁邊的標籤與下方表格。本圖類型：inferred。</span>' +
+        '<span>同一條線上的多個編號是轉移表的列號；相同 From、To 共用線路，各列動作與條件仍分開。</span>');
+      assert.deepEqual([...mixed.tagged], [2], 'only the inferred row carries a tag');
+      assert.match(straight3.legend, /^<span><svg[^>]*><path class="dg-route" d="M0 4H28"\/><\/svg>實線：這條線代表的各列，Evidence 類型都不是 inferred 或 assumed。<\/span><span>同一條線上的多個編號是轉移表的列號/,
+        'a solid shared line: the solid sentence, then the one on the numbers');
+      assert.equal((returns3.legend.match(/同一條線上的多個編號/g) || []).length, 1, 'one sentence on the numbers, however many lines are shared');
+      assert.doesNotMatch(diagrams.drawDiagram(lcModel(['A', 'B'], [['A', 'B', 't']]), 0).html, /同一條線上的多個編號|data-rows/, 'no shared line: no sentence on the numbers');
+
+      // (12) A fixed-seed corpus of rows drawn from a few pairs, so lines are
+      // often shared: every picture keeps the invariants, every refusal names a reason.
+      let seed3 = 20261019;
+      const rand3 = (k) => { seed3 = (seed3 * 1103515245 + 12345) % 2147483648; return seed3 % k; };
+      let sharedLines = 0;
+      for (let c = 0; c < 150; c++) {
+        const states = Array.from({ length: 2 + rand3(6) }, (_, i) => `S${i}`);
+        const pool = Array.from({ length: 1 + rand3(4) }, () => [rand3(4) === 0 ? '[*]' : states[rand3(states.length)], rand3(5) === 0 ? '[*]' : states[rand3(states.length)]])
+          .filter(([f, t]) => !(f === '[*]' && t === '[*]'));
+        if (pool.length === 0) continue;
+        const rows = Array.from({ length: 2 + rand3(10) }, () => {
+          const [f, t] = pool[rand3(pool.length)];
+          return [f, t, words[rand3(words.length)], rand3(3) ? [] : ['BR-001'], ['code', 'inferred', 'assumed', null][rand3(4)]];
+        });
+        const used = new Set(rows.flatMap(([f, t]) => [f, t]));
+        const result = diagrams.drawDiagram(lcModel(states.filter((s) => used.has(s)), rows), 0);
+        if (result.html) {
+          sharedLines += checkInvariants(result.html, 'lc', `shared-line corpus ${c}`).edges.filter((e) => e.shared).length;
+        } else {
+          assert.ok(typeof result.issue === 'string' && result.issue.length > 0, `shared-line corpus ${c}: a refusal names its reason`);
+        }
+      }
+      assert.ok(sharedLines >= 100, `the corpus draws many shared lines (${sharedLines})`);
+
+      // (12b) Print (D1052, 乙): a lifecycle over 864 wide or 960 tall at
+      // natural size prints a one-line note instead, whatever the run's size
+      // limits; one at the threshold prints as drawn. A start, ten states and
+      // two Guard lines on S1's row: 24 + 56 + 9 × 48 + 10 × 40 + 2 × 24 = 960.
+      const printNote = (html) => (/<p class="dg-print-note">([^<]*)<\/p>/.exec(html) || [])[1] || null;
+      const atThreshold = diagrams.drawDiagram(lcModel(Array.from({ length: 10 }, (_, i) => `S${i + 1}`), [
+        ['[*]', 'S1', '建立'], ['S1', 'S2', '下一步', ['BR-001', 'BR-002']], ...Array.from({ length: 8 }, (_, i) => [`S${i + 2}`, `S${i + 3}`, '下一步'])
+      ]), 0).html;
+      assert.deepEqual([sizeOf(atThreshold), printNote(atThreshold), atThreshold.startsWith('<figure class="dflow-dg dg-lc" ')], [[620, 960], null, true],
+        'at 960 tall the picture prints as drawn');
+      const overHtml = diagrams.drawDiagram(tenTall, 0).html;
+      assert.ok(overHtml.startsWith('<figure class="dflow-dg dg-lc dg-large" data-entry="LC-01">\n<p class="dg-print-note">'), '962 tall: replaced in print');
+      assert.equal(printNote(overHtml), 'LC-01 的圖寬 620、高 962；列印版只印寬 864、高 960 以內的生命週期圖；內容見下方的卡片或表格。');
+      assert.equal(printNote(diagrams.drawDiagram(tenTall, 0, limits({ height: 5000, width: 5000 })).html), printNote(overHtml),
+        'the size options do not move the print threshold');
+      assert.equal(printNote(diagrams.drawDiagram(twenty.model, 0, limits({ width: 1064 })).html),
+        'LC-01 的圖寬 1064、高 764；列印版只印寬 864、高 960 以內的生命週期圖；內容見下方的卡片或表格。', 'over the width alone: replaced in print');
+      assert.equal(printNote(returns3Html), null, 'a small picture prints as drawn');
+      const printCss = /@media print \{([\s\S]*?)\n\}/.exec(diagrams.DIAGRAM_CSS)[1];
+      assert.match(printCss, /\.dflow-dg\.dg-large \.dg-scroll, \.dflow-dg\.dg-large \.dg-legend \{ display: none; \}/, 'in print the picture and its legend are hidden');
+      assert.match(printCss, /\.dflow-dg\.dg-large \.dg-print-note \{ display: block;/, 'and the note is shown');
+      assert.match(diagrams.DIAGRAM_CSS, /\.dflow-dg \.dg-print-note \{ display: none; \}/, 'on screen the note is hidden');
+      assert.match(diagrams.drawDiagram(participants(5), 0).html, /^<figure class="dflow-dg dg-fl dg-wide"/, 'a flow of five participants is replaced in print, as before');
+
+      // (13) The CLI: the options, their refusals, and a note's options run as given.
+      const cli = join(tempRoot, 'p116-cli');
+      const tallLc = ['### LC-01: tall', '', '| State | Means |', '|---|---|', ...Array.from({ length: 12 }, (_, i) => `| \`S${i + 1}\` | m |`), '',
+        '| From | Trigger | To | Guard | Evidence |', '|---|---|---|---|---|',
+        ...['人工建立', '匯入建立', '外部事件建立'].map((t) => `| \`[*]\` | ${t} | \`S1\` | BR-010 | code - x (2026-10-19) |`),
+        ...Array.from({ length: 11 }, (_, i) => `| \`S${i + 1}\` | 承辦送出申請<br>主管完成覆核 | \`S${i + 2}\` | BR-001<br>BR-002 | inferred - x (2026-10-19) |`), ''].join('\n');
+      const smallLc = ['### LC-02: small', '', '| State | Means |', '|---|---|', '| `A` | m |', '| `B` | m |', '',
+        '| From | Trigger | To |', '|---|---|---|', '| `A` | 送出 | `B` |', '| `A` | 補件送出 | `B` |', ''].join('\n');
+      const source = [tallLc, smallLc, flowRows(10, '申請識別碼<br>明細項目', '記錄收件')].join('\n');
+      await writeFixture(join(cli, 'dflow/specs/domain/analysis.md'), source);
+      await writeFixture(join(cli, 'dflow/specs/domain/copy.md'), source);
+      const notesOf = (run) => [...run.stdout.matchAll(/^ {2}not drawn: domain\/analysis\.md ([A-Z]{2}-\d+) — (.*)$/gm)].map((m) => [m[1], m[2]]);
+      const optionsIn = (reason) => /加上 (.*) 後重新執行 dflow render/.exec(reason)[1].split(' ');
+      const first = runRenderCli(cli, ['--out', 'html-1']);
+      assert.equal(first.code, 0, first.stderr);
+      assert.match(first.stdout, /diagrams: 1 drawn, 2 not drawn/);
+      const [lcNote, flNote] = notesOf(first);
+      assert.equal(lcNote[0], 'LC-01');
+      assert.match(lcNote[1], /^排版需要寬 \d+、高 (\d+)；目前上限為寬 1024、高 1600。請保留原本的來源與輸出選項，加上 --diagram-max-height \1 後重新執行 dflow render；段高較大的位置：/);
+      assert.equal(flNote[0], 'FL-01');
+      assert.deepEqual(optionsIn(flNote[1]), ['--diagram-max-height', '1600'], 'the flow is asked 1600, not its own height');
+      const page1 = await readOut(join(cli, 'html-1/domain/analysis.html'));
+      const unescapeHtml = (s) => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&');
+      assert.deepEqual([...page1.matchAll(/<p class="dflow-dg-notice">([A-Z]{2}-\d+) 沒有畫成圖：(.*)。<\/p>/g)].map((m) => [m[1], unescapeHtml(m[2])]), [lcNote, flNote],
+        'the page note and the stdout line give the same reason');
+      // Follow the flow's options: the flow draws, the small lifecycle still
+      // draws, the tall one still needs more.
+      const second = runRenderCli(cli, ['--out', 'html-1', ...optionsIn(flNote[1])]);
+      assert.equal(second.code, 0, second.stderr);
+      assert.match(second.stdout, /diagrams: 2 drawn, 1 not drawn/);
+      assert.deepEqual(notesOf(second).map((n) => n[0]), ['LC-01'], 'following the flow note stops no other diagram');
+      // Follow the lifecycle's: every diagram draws, at the size its note stated.
+      const third = runRenderCli(cli, ['--out', 'html-1', ...optionsIn(lcNote[1])]);
+      assert.equal(third.code, 0, third.stderr);
+      assert.match(third.stdout, /diagrams: 3 drawn, 0 not drawn/);
+      const page3 = await readOut(join(cli, 'html-1/domain/analysis.html'));
+      const lc01 = /<figure class="dflow-dg dg-lc[^"]*" data-entry="LC-01">[\s\S]*?<\/figure>/.exec(page3)[0];
+      assert.deepEqual(sizeOf(lc01).map(String), /排版需要寬 (\d+)、高 (\d+)/.exec(lcNote[1]).slice(1), 'drawn at the size the note stated');
+      checkInvariants(lc01, 'lc', 'the tall lifecycle through the CLI');
+      // The cards around the diagrams are the copy's, byte for byte.
+      const copy3 = await readOut(join(cli, 'html-1/domain/copy.html'));
+      const bodyOf = (html) => html.slice(html.indexOf('<main>'), html.indexOf('<p class="foot">')).replace(/<p class="crumb">.*<\/p>\n/, '');
+      const withoutDiagrams = (html) => html.replace(/<figure class="dflow-dg [\s\S]*?<\/figure>\n/g, '').replace(/<p class="dflow-dg-notice">.*<\/p>\n/g, '');
+      assert.equal(withoutDiagrams(bodyOf(page3)), bodyOf(copy3), 'shared lines change nothing around the diagrams');
+      // A width given stays stated; =value works; the last value is used.
+      const widthGiven = runRenderCli(cli, ['--out', 'html-1', '--diagram-max-width=1100']);
+      assert.equal(widthGiven.code, 0, widthGiven.stderr);
+      assert.match(notesOf(widthGiven)[0][1], /；目前上限為寬 1100、高 1600。/, 'the limit given is the one stated');
+      const repeated = runRenderCli(cli, ['--out', 'html-1', '--diagram-max-height', '1000', `--diagram-max-height=${optionsIn(lcNote[1])[1]}`]);
+      assert.equal(repeated.code, 0, repeated.stderr);
+      assert.match(repeated.stdout, /diagrams: 3 drawn, 0 not drawn/, 'the last of repeated values is used');
+      assert.equal(runRenderCli(cli, ['--out', 'html-1', `--diagram-max-height=${Number.MAX_SAFE_INTEGER}`]).code, 0, 'the largest safe integer is a value');
+      // Refusals exit 1 before any output is written.
+      const expected = (name, value) => `Invalid value for ${name}: ${value} (expected a positive decimal integer from 1 to 9007199254740991)\n`;
+      for (const value of ['0', '-5', '1.5', '+1600', '01600', '1600px', ' 1600', '1600 ', '1e3', 'Infinity', 'NaN', '0x10', '9007199254740992', '١٦٠٠']) {
+        for (const name of ['--diagram-max-height', '--diagram-max-width']) {
+          for (const args of [[name, value], [`${name}=${value}`]]) {
+            const run = runRenderCli(cli, ['--out', 'never', ...args]);
+            assert.deepEqual([run.code, run.stderr], [1, expected(name, value)], `${args.join(' ')} is refused`);
+          }
+        }
+      }
+      for (const args of [
+        ['--out', 'never', '--diagram-max-height'], ['--diagram-max-height', '--out', 'never'], ['--out', 'never', '--diagram-max-width='],
+        ['--diagram-max-width', '--diagram-max-height', '1800', '--out', 'never']
+      ]) {
+        const run = runRenderCli(cli, args);
+        assert.equal(run.code, 1, `${args.join(' ')}: a missing value exits 1`);
+        assert.match(run.stderr, /^Missing value for render option: --diagram-max-(height|width)\n$/);
+      }
+      const invalidFirst = runRenderCli(cli, ['--out', 'never', '--diagram-max-height', '1.5', '--diagram-max-height', '1800']);
+      assert.deepEqual([invalidFirst.code, invalidFirst.stderr], [1, expected('--diagram-max-height', '1.5')], 'a later valid value does not hide an earlier invalid one');
+      assert.equal(await exists(join(cli, 'never')), false, 'no refused run created its output directory');
+      // In one process, a later run is not drawn under an earlier run's limits.
+      const sink = () => { const out = []; return { write: (s) => { out.push(s); return true; }, text: () => out.join('') }; };
+      const [o1, e1, o2, e2] = [sink(), sink(), sink(), sink()];
+      assert.equal(await render.runRender({ cwd: cli, args: ['--out', 'html-2', ...optionsIn(lcNote[1])], stdout: o1, stderr: e1 }), 0, e1.text());
+      assert.equal(await render.runRender({ cwd: cli, args: ['--out', 'html-2'], stdout: o2, stderr: e2 }), 0, e2.text());
+      assert.match(o1.text(), /diagrams: 3 drawn, 0 not drawn/);
+      assert.match(o2.text(), /diagrams: 1 drawn, 2 not drawn/, 'the second run is drawn under the defaults again');
     }
   }
 

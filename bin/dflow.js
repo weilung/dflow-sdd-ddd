@@ -67,6 +67,7 @@ unedited Dflow shim is still regenerated in place, as before.)
 function printRenderHelp() {
   process.stdout.write(`Usage:
   dflow render [--src <dir>] [--out <dir>] [--title <text>] [--table-view <cards|table>]
+               [--diagram-max-height <pixels>] [--diagram-max-width <pixels>]
 
 Renders the Markdown specs tree into a mirrored static HTML tree for human
 reading (record tables read as cards or as a table, with a switch on each
@@ -91,6 +92,18 @@ Options:
                   remember a reader's choice. A table with an id or name
                   attribute written inside a cell is rendered in the
                   starting form only, without a switch.
+  --diagram-max-height <pixels>
+                  Maximum natural diagram height for every lifecycle and
+                  flow in this run (defaults: lifecycle 1600, flow 960).
+  --diagram-max-width <pixels>
+                  Maximum natural lifecycle width for every page in this
+                  run (default: 1024). Flows have no width limit and are
+                  unaffected by this option.
+                  Both size options take a positive decimal integer from
+                  1 to 9007199254740991, in CSS pixels at natural size;
+                  --name=value also works. Invalid values exit 1 before
+                  any output is written. If repeated, the last value is
+                  used; every supplied value must be valid.
 
 Tables: render checks each table at the top level of a page for two ways a
 Markdown table goes wrong without an error, and lists what it finds;
@@ -129,23 +142,33 @@ the diagrams line with its file, entry id and reason; so does a subsection
 that keeps a placeholder row from the template beside rows you filled in.
 A subsection with no table, or left exactly as the template has it, is
 skipped without a note. What can be drawn:
-  lifecycle  at most 12 states and 20 transitions, 864 wide and 960 tall;
-             each State cell holds one value, and no two rows hold the
-             same one; each From and To cell holds one value: a row of the
-             state table, or [*] for the entity not existing yet (From) or
-             any more (To), drawn as a start and an end point that count
-             toward the height but not as states; Trigger is not empty; a
-             state that no transition has in From or To is listed under
-             the diagram instead of drawn, and does not count toward the
-             state or height limits; the other states are placed in
-             state-table order, and the arrows must fit: at most 4 routing
-             lanes on either side, 6 arrow ends on one side of a state or
-             point, 4 crossings in all and 2 on one arrow
-  flow       at most 8 participants and 10 steps, 960 tall (no width
-             limit: a wide flow scrolls sideways on screen, and the print
-             version draws a flow of at most 4 participants); each From and
-             To cell holds one value; Handed over is not empty; a # column,
-             when there is one, counts 1, 2, 3 in row order
+  lifecycle  at most 12 drawn states and 20 transition rows; by default
+             1024 wide and 1600 tall. Each State cell holds one value, and
+             no two rows hold the same one; each From and To cell holds one
+             value: a row of the state table, or [*] for the entity not
+             existing yet (From) or any more (To), drawn as a start and an
+             end point that count toward the height but not as states;
+             Trigger is not empty; a state that no transition has in From
+             or To is listed under the diagram instead of drawn, and does
+             not count toward the state or height limits; the other states
+             are placed in state-table order. Rows with the same From and
+             To after reading the cells share one arrow, labelled with
+             their row numbers. Every row keeps its own Trigger and Guard
+             beside the diagram, and a row whose Evidence type is inferred
+             or assumed keeps its own tag there; the cards and tables are
+             unchanged. Routing limits count the shared arrows, while the
+             transition limit counts all rows: at most 4 routing lanes on
+             either side, 6 arrow ends on one side of a state or point, 4
+             crossings in all and 2 on one arrow. The print version draws a
+             lifecycle of at most 864 wide and 960 tall at natural size and
+             prints a one-line note for a larger one; the size options do
+             not change this.
+  flow       at most 8 participants and 10 steps, by default 960 tall
+             (no width limit: a wide flow scrolls sideways on screen, and
+             the print version draws a flow of at most 4 participants);
+             each From and To cell holds one value; Handed over is not
+             empty; a # column, when there is one, counts 1, 2, 3 in row
+             order
   both       a name drawn in the diagram (a state or a participant) at
              most 64 characters on 2 lines; Trigger, Guard, Handed over and
              State change each at most 8 values and 256 characters, and one
@@ -153,10 +176,27 @@ skipped without a note. What can be drawn:
              them may be (when more would be, the note names each one and
              the lines it takes); no right-to-left text in any of these. A
              state listed under the diagram has none of these limits. Means
-             and Evidence have no limit, and Means is not drawn; an
-             Evidence whose first word is inferred or assumed makes the
-             arrow dashed and adds a one-row tag with that word, which
-             counts toward the height
+             and Evidence have no limit, and Means is not drawn; a row
+             whose Evidence's first word is inferred or assumed gets a
+             one-row tag with that word, which counts toward the height.
+             For a lifecycle, an arrow is dashed when any row it represents
+             has an Evidence whose first word is inferred or assumed. Each
+             such row keeps a tag with its own type; a shared dashed arrow
+             can also include other types. For a flow, each row keeps its
+             own arrow, dashed when its Evidence's first word is inferred
+             or assumed. A solid arrow does not mean that its evidence has
+             been verified.
+
+When size is the only reason a diagram is not drawn, its page note and
+stdout give the needed natural size and the option values to draw it. A
+suggested height is never below either kind's current height limit, so
+following it does not stop another diagram in the run from being drawn.
+Use those options with the same source and output arguments. Size options
+do not relax the state, row, routing, text or overlap checks: a diagram
+refused for its routing, an overlap, a name on too many lines or too many
+cells cut short says that increasing the size limits will not draw it,
+whether or not it is also over them; keep the full table and read the
+cards or table below.
 
 The output directory is owned by dflow render: every rendered file embeds a
 generated-by marker, and a .dflow-render-manifest.json ledger tracks the

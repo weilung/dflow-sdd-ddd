@@ -45,7 +45,7 @@ A deviation is removed at `/dflow:finish-feature`'s closeout Step 3 and nowhere 
 
 ## The diagrams draw only the tables
 
-`dflow render` draws state and flow diagrams from the tables in `analysis.md`: the Trigger is the observed action, and the Guard is the rule that decides it. A diagram marks no transition as breaking a rule — the deviation is in the text beside the diagram. Someone who sees only the diagram (a screenshot, say) will take every drawn transition as permitted. To tell whether a transition follows the rule, read the whole page.
+`dflow render` draws state and flow diagrams from the tables in `analysis.md`: the Trigger is the observed action, and the Guard is the rule that decides it. A diagram marks no transition as breaking a rule — the deviation is in the text beside the diagram. Someone who sees only the diagram (a screenshot, say) will take every drawn transition as permitted. To tell whether a transition follows the rule, read the whole page. In a lifecycle, rows with the same From and To share one arrow, but that arrow is not one action or one condition: every row keeps its own Trigger and Guard beside the diagram, and a deviation is still judged row by row from the table.
 
 ## Upgrading existing documents
 

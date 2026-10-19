@@ -128,6 +128,9 @@ Markdown-based 的 workflow 材料加一個 scaffolding CLI，能與任何可讀
 
 `render` 畫的狀態圖與流程圖照 `analysis.md` 的表格畫，不標出哪一條轉移違反規則；一條確認的規則程式還沒照著做時，
 偏離記在圖旁邊的文字裡，見[確認的規則與程式不一致時](confirmed-rule-vs-code.md)。
+生命週期裡 From、To 相同的幾列，圖上共用一條線、標出各列的列號，每一列的說明仍分開寫。
+一張圖只因為太大而沒畫時，頁面與命令列會寫出它需要的寬、高，以及重跑時要加的 `--diagram-max-height` 或 `--diagram-max-width`；
+預設上限與完整規則見 `dflow render --help`，已知限制見[`analysis.md` 的已知限制](analysis-limitations.md)。
 
 `render` 產生的頁面上，Dflow 自己加的說明與操作文字（卡片與表格的切換、展開全文、目錄與圖的說明、各種提醒）只有中文，
 不看 `_conventions.md` 的 Prose Language；命令列印的原因與修法也是，檔名、行號與編號照樣看得懂。文件本身的內容照原文顯示。

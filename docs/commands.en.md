@@ -150,6 +150,12 @@ templates, are in [Checking the closeout commit](closeout-check.en.md).
 transition as breaking a rule; when the code does not follow a confirmed rule yet, the deviation
 is recorded in the text beside the diagram — see
 [When a confirmed rule and the code disagree](confirmed-rule-vs-code.en.md).
+In a lifecycle, rows with the same From and To share one arrow labelled with their row numbers,
+and each row keeps its own text. When a diagram is not drawn only because it is too large, its
+page and the command give the width and height it needs and the `--diagram-max-height` or
+`--diagram-max-width` to re-run with; the default limits and the full rules are in
+`dflow render --help`, and the known limitations in
+[Known limits of `analysis.md`](analysis-limitations.en.md).
 
 On the pages `render` produces, the captions and controls Dflow adds (the cards | table switch,
 the expand toggle, the directory and diagram captions, every notice) are in Traditional Chinese

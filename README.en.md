@@ -161,10 +161,16 @@ turns that one into a table (easier when you compare across rows;
 does not remember a switch), AI-facing comment markers become badges,
 gherkin blocks get keyword highlighting, and in-tree links are rewritten to
 the matching HTML pages; the filled lifecycle and flow tables in
-`analysis.md` are also drawn as diagrams above their tables (one that cannot
-be drawn gets a one-line note on its page instead, and the command lists each
-such diagram with its file, entry id and reason; what can be drawn is in
-`dflow render --help`). When a table is cut by a blank line or a comment, or
+`analysis.md` are also drawn as diagrams above their tables; in a lifecycle,
+rows with the same From and To share one arrow labelled with their row
+numbers, and every row keeps its own Trigger and Guard beside the diagram
+(one that cannot be drawn gets a one-line note on its page instead, and the
+command lists each such diagram with its file, entry id and reason; one that
+is only too large is told the size it needs and the option to re-run with,
+such as `dflow render --diagram-max-height 1800`, and the table stays as it
+is, with no row to remove or merge for the diagram; what can be drawn is in
+`dflow render --help`, and the known limitations are in
+[`docs/analysis-limitations.en.md`](docs/analysis-limitations.en.md)). When a table is cut by a blank line or a comment, or
 a row has more cells than the header and the extra cells hold text (usually a
 `|` in a cell not written as `\|`), the page carries a one-line notice there,
 and the command lists each one with its file, line and how to fix it; what is
