@@ -6,12 +6,31 @@
 
 ---
 
-## Unreleased
+## 0.17.0 — 2026-10-20 — brownfield baseline 盤點這條路與延後回答、確認的規則與程式不一致的記法、`analysis.md` 的角色與生命週期寫法、`dflow render` 的表格檢查與生命週期圖、外部系統的位置、使用回報、給採用者的附加許可
 
-> **目前投影版號：`0.16.14`**（**未發布到 npm**；npm latest 仍是 `0.16.0`）。
-> 下面十九段都在這一版裡，每段標題標出它第一次投影的版號。
+**Proposals**：PROPOSAL-106（baseline 盤點這條路）、PROPOSAL-107（確認的規則與程式不一致時怎麼記、修好後誰收掉）、PROPOSAL-108（`dflow render` 的多欄表在卡片與表格之間切換）、PROPOSAL-109（Function / Role Index 寫得出各角色能做的事）、PROPOSAL-110（生命週期的新建與刪除、沒有轉移的值、寫不出原樣的值）、PROPOSAL-111（偏離紀錄接上誰確認的、baseline 盤點的 `Last updated`）、PROPOSAL-112（`dflow render` 提醒壞掉的 Markdown 表格）、PROPOSAL-113（使用回報）、PROPOSAL-114（給採用者的附加許可、名稱條款與原始檔告示）、PROPOSAL-115（baseline 盤點的 6.2 題目延後回答）、PROPOSAL-116（生命週期圖的尺寸與共用線）、PROPOSAL-117（外部系統記在 `context-map.md` 新的一節 External Systems）
 
-### 外部系統記在 `context-map.md` 新的一節 External Systems（PROPOSAL-117，dist issue #17 第 22 條）——`0.16.14`
+### 從 `0.16.0` 升上來
+
+照 [`docs/upgrading.md`](docs/upgrading.md) 升級：先升 CLI，在專案根目錄跑 `dflow configure-agents`，再跑 `dflow doctor`。這一版另外要注意：
+
+1. **正在跑的 flow，先用你現在這一版收完，再升級。**
+2. **好幾支範本升了形狀號碼**，`dflow doctor` 會對照舊範本寫的文件提示；其中幾項附了遷移句，照遷移句做，不套那一類的預設做法（見 [`docs/upgrading.md`](docs/upgrading.md) 的「自帶遷移句的變更」）：
+   - 兩軌 `rules.md`、`behavior.md`、`tech-debt.md`、`lightweight-spec.md` 升到形狀 2（PROPOSAL-107）：`rules.md` 新欄 `Known deviations` 既有的列填 `—`（不是 `{TBD}`），`behavior.md` 的 Purpose 換成新句；另兩支只改了說明與註解。
+   - 兩軌 `analysis.md` 升到形狀 2（PROPOSAL-109、PROPOSAL-110 與 #17 的說明修正）：新欄 `Role-specific actions`、兩段註解換成範本的；**為了讓圖畫得出來而從狀態表拿掉的值要放回去**，連同表後的 `Evidence:` 那一行。
+   - brownfield `behavior.md` 升到形狀 3、`_index.md` 升到形狀 4（PROPOSAL-115）：換掉說明；既有的 `draft` 照樣有效，不要從文字猜它的依據。
+   - 兩軌 `context-map.md` 升到形狀 2（PROPOSAL-117）：記在別處的外部系統搬進新的一節 External Systems，每一個值都搬過來、不推；沒有外部系統的只加表頭。
+3. **guide 與 Git 原則的可刷新區有新內容**：`AI-AGENT-GUIDE.md` 的 `guide-canonical` 區（兩軌：PROPOSAL-107、PROPOSAL-117；brownfield 另有 PROPOSAL-106、PROPOSAL-115），`Git-principles-*.md` 的 § 2（兩軌：workflow 之外的 commit）與 § 4（brownfield：合併訊息的 `BC:` 可以列多個、baseline 計數）。帶著 marker 的檔，再跑一次 `dflow configure-agents` 即取得；marker 之前的檔，要先在互動模式採用 marker（見 [`docs/upgrading.md`](docs/upgrading.md)）。
+4. **你自己的文件，doctor 不提示、要不要改由你決定**：`rules.md` Status Legend 的 `deprecated` 那一列可以刪；照範本檔名存成 `context-definition.md`、又沒有形狀標記的 context 文件，改名成 `context.md` doctor 才看得到；`_overview.md` 指向 External Systems 的那一句，只有之後才建的 `_overview.md` 拿得到。
+5. **團隊裡每個人都升 CLI。** `dflow render` 跟著裝的 CLI 走：`0.16.0` 的 CLI 讀到生命週期 From 或 To 的 `[*]`，會說它不在狀態表裡、不畫那張圖；新選項 `--table-view`、`--diagram-max-height`、`--diagram-max-width`，表格檢查與待確認紀錄的標示，舊 CLI 都沒有。多欄表的 HTML 有卡片與表格兩份，輸出會變大（實際的 specs 量到約大兩成）。
+6. **授權**：再跑一次 `dflow configure-agents`，workflow bundle 就補上 `LICENSE`，flow 檔與空白範本也帶入告示；三項附加許可對已經在用 0.9.0～0.16.7 的專案不必升級就適用。
+7. 其餘各項都沒有遷移動作。dist 投影過的 `0.16.1`–`0.16.14` 都在這一版裡；下面每一段標題後面的版號，是它第一次投影的版號。
+
+**驗證**：發布前 `scripts/check-repo-consistency.sh` 全數通過（含 `npm test` 十四支與 `npm pack --dry-run`）。
+
+### 各項變更
+
+#### 外部系統記在 `context-map.md` 新的一節 External Systems（PROPOSAL-117，dist issue #17 第 22 條）——`0.16.14`
 
 **來源**：dist issue #17 第 22 條——盤點時一個名詞的兩種代號分別來自兩個外部系統（本系統即時呼叫的 API、每年轉檔進來的資料），範本沒有地方寫外部系統；很多 context 共用的外部系統，也不知道要掛在哪個 context 下。
 
@@ -23,7 +42,7 @@
 - **既有專案**：兩軌 `context-map.md` 範本升到形狀 2，已經有 `context-map.md` 的專案，`dflow doctor` 印一次遷移句：把檔裡記在別處的外部系統（上面兩張表的一列、Relationships 的一端、Integration Notes 的一行）一種交換寫成一列，每一個值都搬過來；舊紀錄沒給的值寫 `—`、不推，問開發者，沒答的記進 Open Questions；已經有自己的 External Systems 一節的，照意思對欄、不換表頭；拿掉或改寫任何東西之前，先給開發者看新的列與每個舊值搬到哪裡；分不清是外部系統還是本系統的 context 時問開發者；沒有外部系統的只加表頭。Brownfield 的 `context-map.md` 仍是需要時才建。
 - 教材：greenfield 的 Identity 改記在 External Systems（員工 ID、主管階層兩種交換），brownfield 的 `context-map.md` 加上只有表頭的這一節。
 
-### Brownfield baseline 盤點：合回之後不開 host 回答延後的題目（PROPOSAL-115 第二段）——`0.16.13`
+#### Brownfield baseline 盤點：合回之後不開 host 回答延後的題目（PROPOSAL-115 第二段）——`0.16.13`
 
 **來源**：dist issue #23 的第四點——盤點收尾之後回來答幾題，只能另開一次盤點（兩次 checkpoint 加上 host 的管理），不然就得回頭改已完成的紀錄。
 
@@ -37,7 +56,7 @@
 - **`dflow render` 讀紀錄**：行首的關鍵字與題號要在同一行，才當成待確認紀錄的候選；紀錄那一行有 Tab，或在有表格的段落裡寫在表格之前（`analysis.md` 的 HS 表格；`models.md` 的 Entities、Value Objects、Domain Services、Repository Interfaces 一律在表格之後），改報成讀不準、不給標示；讀不準的提示在巢狀的引用與清單裡也指到原文那一行。
 - 範本形狀不變，`dflow doctor` 不印新的遷移句；Greenfield 不變。怎麼用與仍然存在的風險見 [`docs/baseline-deferred-confirmation.md`](docs/baseline-deferred-confirmation.md)（[English](docs/baseline-deferred-confirmation.en.md)）。
 
-### Brownfield baseline 盤點：6.2 的題目可以延後回答、還沒確認的規則寫出依據、`dflow render` 標出待確認的紀錄（PROPOSAL-115 第一段）——`0.16.12`
+#### Brownfield baseline 盤點：6.2 的題目可以延後回答、還沒確認的規則寫出依據、`dflow render` 標出待確認的紀錄（PROPOSAL-115 第一段）——`0.16.12`
 
 **來源**：dist issue #23——在一個練習專案試用 `0.16.7`，一個 context 盤點出 19 條規則、24 個名詞、17 筆技術債，6.2 只能逐題等開發者回答；AI 先擬好、還沒確認的答案也沒有固定的地方記。
 
@@ -50,7 +69,7 @@
 - **既有專案**：brownfield 範本 `behavior.md` 升到形狀 3、`_index.md` 升到形狀 4，`dflow doctor` 印出遷移句：換掉 `behavior.md` 的 Purpose 與 Maintenance 說明、比對 `_index.md` Current BR Snapshot 的說明；既有的 `draft` 照樣有效，不要從文字猜它的依據。Greenfield 不變。
 - 怎麼用、五個地方怎麼讀、做了之後仍然存在的風險見 [`docs/baseline-deferred-confirmation.md`](docs/baseline-deferred-confirmation.md)（[English](docs/baseline-deferred-confirmation.en.md)）。
 
-### `dflow render` 的生命週期圖：預設尺寸放大、超過時說要多大與怎麼重跑、From 與 To 相同的列共用一條線（PROPOSAL-116）——`0.16.11`
+#### `dflow render` 的生命週期圖：預設尺寸放大、超過時說要多大與怎麼重跑、From 與 To 相同的列共用一條線（PROPOSAL-116）——`0.16.11`
 
 **來源**：落地專案升級到 `0.16.7` 時回報——9 個狀態、12 條轉移的生命週期，加上新建那一列就超過 960 高、不畫圖，作者只好把新建與刪除寫回表下；三種新建方式畫成三條線，起點拉成膠囊，看起來像三個起點。
 
@@ -62,7 +81,7 @@
 - 已知限制（共用的虛線怎麼讀、列號多時圖變寬、字寬是估計的、起點仍可能是膠囊、舊版 CLI 不認得新選項等）見 [`docs/analysis-limitations.md`](docs/analysis-limitations.md)（[English](docs/analysis-limitations.en.md)）。
 - **既有專案**：範本、形狀號碼與 flow 檔都沒變，不必改任何文件；升級 CLI 後重跑 `dflow render` 即可。
 
-### 落地專案升級到 `0.16.7` 時回報的小修——`0.16.10`
+#### 落地專案升級到 `0.16.7` 時回報的小修——`0.16.10`
 
 **來源**：落地專案從 `0.16.3` 升級到 `0.16.7` 時記下的觀察。
 
@@ -80,7 +99,7 @@
 - **CHANGELOG 補上 PROPOSAL-080**：`0.15.0` 那一段原本漏了它（PR review 碰到高風險的建模改動時，回頭讀 DDD 指引）。
 - **既有專案**：跑一次 `dflow configure-agents` 換上新的 flow 檔；範本與形狀號碼沒變，不必改任何文件。
 
-### `dflow init` 的兩個提醒：既有的 ASP.NET Core 專案不再被提示成 Greenfield；入口檔被 git 忽略時說明影響（dist #21、#22）——`0.16.9`
+#### `dflow init` 的兩個提醒：既有的 ASP.NET Core 專案不再被提示成 Greenfield；入口檔被 git 忽略時說明影響（dist #21、#22）——`0.16.9`
 
 **來源**：在一個既有的 ASP.NET Core 練習專案試用 `0.16.7` 時回報的兩件事（dist issue #21、#22）。
 
@@ -96,7 +115,7 @@
   改印一則「沒辦法確認」的提醒，附上自己確認的指令與同樣的做法。
 - **既有專案**：只改 `init`／`configure-agents` 印的提醒，不改任何寫出的檔，升級不必做什麼。
 
-### 授權：給採用者的附加許可、名稱條款與原始檔告示（PROPOSAL-114）——`0.16.8`
+#### 授權：給採用者的附加許可、名稱條款與原始檔告示（PROPOSAL-114）——`0.16.8`
 
 **來源**：採用者需要知道用 Dflow 開發專案不必公開自己的程式，照範本寫的文件與 `dflow render` 畫出的網頁可以怎麼用，以及專案裡的 Dflow 檔如何隨專案交付。
 
@@ -111,7 +130,7 @@
   單獨複製一支檔案時，告示雖附有來源與條款位置，仍不保證當地找得到 `LICENSE`。
   較早版本的附加許可只對版權人自己擁有的部分有效；目前只有維護者一人貢獻。
 
-### 「使用回報」：一段時間的多條觀察分次交回，第 1 次用新表單、之後接在同一個 issue 的留言（PROPOSAL-113）——`0.16.7`
+#### 「使用回報」：一段時間的多條觀察分次交回，第 1 次用新表單、之後接在同一個 issue 的留言（PROPOSAL-113）——`0.16.7`
 
 **來源**：落地專案借用 Workflow change request 開 issue，十天內交回四次使用回報，每次都要自己想格式、硬填那張表單的必填欄；
 feedback flow 只會「一個問題對一張表單」，跨次的編號、補充前面某一條、後面幾次怎麼交，都沒有說法。
@@ -127,7 +146,7 @@ feedback flow 只會「一個問題對一張表單」，跨次的編號、補充
 - 分次交回怎麼運作與三項已知限制（每一項會出什麼錯、為什麼不防、誰承擔、什麼時候重看）寫在 [`docs/commands.md`](docs/commands.md)
   的「使用回報」（英文版 `commands.en.md`）。
 
-### `dflow render` 提醒壞掉的 Markdown 表格：命令列逐處列出，頁面上也標（PROPOSAL-112）——`0.16.7`
+#### `dflow render` 提醒壞掉的 Markdown 表格：命令列逐處列出，頁面上也標（PROPOSAL-112）——`0.16.7`
 
 **來源**：落地專案的技術債表有 84 列，中間三處空行把表格切斷，頁面上只排出前 33 列；dev 自己公開的 tutorial 也有一處格子裡的 `|`
 沒有跳脫，GitHub 上就是壞的。這兩種壞法都不會有錯誤訊息，原本也沒有任何檢查抓得到。
@@ -148,7 +167,7 @@ feedback flow 只會「一個問題對一張表單」，跨次的編號、補充
 - 查什麼、查到之後怎麼修、不查的 9 種情況（每一項會出什麼錯、為什麼不防、誰承擔、什麼時候重看）寫在新頁
   [`docs/render-table-checks.md`](docs/render-table-checks.md)（英文版 `render-table-checks.en.md`）。
 
-### 「確認的規則與程式不一致」那份說明的補充（dist issue #17 第 4 次回報第 8 部分；②⑦ 是 PROPOSAL-111）——`0.16.6`
+#### 「確認的規則與程式不一致」那份說明的補充（dist issue #17 第 4 次回報第 8 部分；②⑦ 是 PROPOSAL-111）——`0.16.6`
 
 - **舊記法的偏離怎麼轉**（①⑤）：`confirmed-rule-vs-code.md` 的 § Scope and recording 新增一小節「A deviation recorded the old way」。
   原本就記著這個偏離的那一列技術債，直接改成記它，名稱沿用原來的——技術債名稱的格式只用在新建的列（名稱建立之後就不改，
@@ -171,7 +190,7 @@ feedback flow 只會「一個問題對一張表單」，跨次的編號、補充
   `behavior.md`、`analysis.md` 兩列與舊記法那一條跟著改，「做了之後仍然存在的風險」多了上面 ②⑦ 的兩項。brownfield tutorial 的
   baseline 盤點篇（walkthrough 03）講「技術債列不另記誰確認的」那一段，例外改成兩處。
 
-### `analysis.md` 生命週期的新建與刪除、沒有轉移的值、寫不出原樣的值；`dflow render` 畫不出圖時點名是哪幾格（PROPOSAL-110）——`0.16.5`
+#### `analysis.md` 生命週期的新建與刪除、沒有轉移的值、寫不出原樣的值；`dflow render` 畫不出圖時點名是哪幾格（PROPOSAL-110）——`0.16.5`
 
 **來源**：落地專案的使用回報（dist issue #17 第 8、9 條，與第 3 次回報的補充）：建立一筆資料的那一步在轉移表沒有寫法；
 為了讓 `dflow render` 畫得出圖，只出現在舊資料裡的值被拿出狀態表；空字串這類值怎麼寫沒有說法；圖畫不出來時，說明只寫「有 N 格要節略」，不說是哪幾格。
@@ -196,7 +215,7 @@ feedback flow 只會「一個問題對一張表單」，跨次的編號、補充
 - **已知限制**（10 項：每一項會出什麼錯、為什麼不防、誰承擔、什麼時候重看）寫在新頁
   [`docs/analysis-limitations.md`](docs/analysis-limitations.md)（英文版 `analysis-limitations.en.md`）。
 
-### `analysis.md` 的 Function / Role Index 寫得出各角色能做的事（PROPOSAL-109）——`0.16.5`
+#### `analysis.md` 的 Function / Role Index 寫得出各角色能做的事（PROPOSAL-109）——`0.16.5`
 
 **來源**：落地專案做完整選單盤點時（dist issue #17 第 4 次回報補充第 19 條、第 21 條後半），同一個功能有多個角色、各角色能做的事不同，
 `analysis.md` 的 Function / Role Index 沒有寫法，讀者會以為列出的角色都能做同樣的事；找不到負責的 context 時，Bounded Context 欄也沒說怎麼寫。
@@ -220,7 +239,7 @@ feedback flow 只會「一個問題對一張表單」，跨次的編號、補充
   `dflow doctor` 不看格子內容、升級前寫的多角色列是「還沒查」）：每一項會出什麼錯、為什麼不防、誰承擔、什麼時候重看，寫在
   [`docs/analysis-limitations.md`](docs/analysis-limitations.md)（英文版 `analysis-limitations.en.md`）。
 
-### 落地專案第 4 次回報的小修（dist issue #17）——`0.16.5`
+#### 落地專案第 4 次回報的小修（dist issue #17）——`0.16.5`
 
 - **brownfield 的合併訊息範本補上 baseline 計數**（#17 第 23 條）：`Git-principles-gitflow.md`、`Git-principles-trunk.md`
   § 4 的 `Lightweight Changes:` 改成 `{n_t2} T2 + {n_t3} T3 + {n_baseline} baseline`，與收尾 Integration Summary 的欄位一致。
@@ -228,7 +247,7 @@ feedback flow 只會「一個問題對一張表單」，跨次的編號、補充
   既有專案：§ 4 在 Git-principles 的 canonical 區裡，跑 `dflow configure-agents` 就會更新；在那之前 `dflow doctor`
   會提示 canonical 區與套件不同。
 
-### `analysis.md` 的說明一次讀得懂、`rules.md` 的狀態說明與 flow 一致（dist issue #17 第 2、17、18 條）——`0.16.5`
+#### `analysis.md` 的說明一次讀得懂、`rules.md` 的狀態說明與 flow 一致（dist issue #17 第 2、17、18 條）——`0.16.5`
 
 - **狀態欄位歸哪個 context**（`analysis.md` 檔頭的 `Placement`）：看哪個 context 的領域模型有這個欄位——那個 context 的 `models.md`
   定義、或將來會定義的 entity 的屬性——**不看值存在哪一張資料表**。原本寫「whose entity stores it」，「stores」可以讀成資料表（#17 第 17 條）。
@@ -245,7 +264,7 @@ feedback flow 只會「一個問題對一張表單」，跨次的編號、補充
   Legend 還有 `deprecated` 的可以刪掉那一列；有規則標成 `deprecated` 的，可以照收尾的做法刪掉那一列與 `behavior.md` 的段落（歷史在 git），
   或保留專案自己的寫法。
 
-### `dflow render` 的多欄表可以在卡片與表格之間切換（PROPOSAL-108）——`0.16.4`
+#### `dflow render` 的多欄表可以在卡片與表格之間切換（PROPOSAL-108）——`0.16.4`
 
 **來源**：用 `dflow render` 轉需要並排比較的材料（例如對照表）時，多欄表一律變成卡片，跨列比較就看不出來了。
 
@@ -267,7 +286,7 @@ feedback flow 只會「一個問題對一張表單」，跨次的編號、補充
 - 每張多欄表的 HTML 有兩份，輸出會變大：幾份實際的 specs 量到約大兩成，表格占的比例越高增加越多
   （整頁都是長表格時可能接近一倍）。
 
-### 確認的規則與程式不一致時怎麼記、修好後誰收掉（PROPOSAL-107，dist issue #17 第 16 條）——`0.16.3`
+#### 確認的規則與程式不一致時怎麼記、修好後誰收掉（PROPOSAL-107，dist issue #17 第 16 條）——`0.16.3`
 
 **來源**：dist issue #17 第 16 條——開發者確認了一條規則、程式卻沒照著做、這次先不修時，各份文件該記什麼。
 兩軌都受影響。
@@ -321,7 +340,7 @@ feedback flow 只會「一個問題對一張表單」，跨次的編號、補充
   那一列的移除排進還在進行的 `SPEC-20260505-002`，狀態是 `planned`。兩軌 walkthrough 補上偏離的記法、baseline 盤點
   第 4 題「程式做錯了」那種答法、收尾 Step 3 的訊號與技術債對帳，greenfield 另有一段清掉偏離的假設示例。
 
-### baseline 盤點這條路（PROPOSAL-106，dist issue #18）——`0.16.2`
+#### baseline 盤點這條路（PROPOSAL-106，dist issue #18）——`0.16.2`
 
 **來源**：dist issue #17 的第 3、4、10、12、13、14 條與第 19 條的一半（追蹤 issue 是 #18）。
 只影響 brownfield（greenfield 沒有 baseline capture）。
@@ -370,7 +389,7 @@ feedback flow 只會「一個問題對一張表單」，跨次的編號、補充
 - **tutorial**：brownfield walkthrough 03、07 補上 Step 6 的逐題確認與 Goals & Scope 的確認行，兩個範例 host 的
   `_index.md` 跟著補。
 
-### `0.16.1` 之後的小修——`0.16.2`
+#### `0.16.1` 之後的小修——`0.16.2`
 
 **來源**：`0.16.1` 那一批的收工審查留下的幾條小問題，每條只有一種修法。沒有提案。
 
@@ -386,7 +405,7 @@ feedback flow 只會「一個問題對一張表單」，跨次的編號、補充
 - **測試**：釘住 `configure-agents` 的三件事——內容沒變的 skill 與指令檔標成 `skip … already current`；只差換行字元或
   結尾換行的 skill 與指令檔仍是 `update`、寫回產生的內容；合併用的 snippet 每次都寫出，不會被標成 skip。
 
-### 落地專案回報的小修正（dist issue #17）——`0.16.1`
+#### 落地專案回報的小修正（dist issue #17）——`0.16.1`
 
 **來源**：dist issue #17（一個 brownfield 專案升級到 `0.16.0` 之後的使用回報）裡只有一種修法的幾條，以及同一次升級時
 `dflow configure-agents` 的輸出問題。沒有提案。

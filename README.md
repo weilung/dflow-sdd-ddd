@@ -303,7 +303,7 @@ issue 與 pull request 指引見 [CONTRIBUTING.md](CONTRIBUTING.md)。Pull reque
 
 ## 狀態
 
-Dflow 目前以 `dflow-sdd-ddd` 名稱發佈於 npm。最新發佈版本為 `0.16.0`，提供：
+Dflow 目前以 `dflow-sdd-ddd` 名稱發佈於 npm。最新發佈版本為 `0.17.0`，提供：
 
 - 專案 scaffolding 與升級：`dflow init`（初始化）、`dflow configure-agents`（idempotent 升級重投影）、`dflow doctor`（唯讀健康檢查與漂移偵測）、`dflow render`（specs → 人類可讀 HTML）
 - 收尾歸檔的機械檢查：`dflow check-closeout`（以結束碼當閘，由團隊自己接到 pre-commit hook 或 CI；接法見 [`docs/closeout-check.md`](docs/closeout-check.md)）
@@ -312,7 +312,7 @@ Dflow 目前以 `dflow-sdd-ddd` 名稱發佈於 npm。最新發佈版本為 `0.1
 - Greenfield / Brownfield 劇情教學與規格範例：**在 source repository，不在 npm 套件裡**（tarball 不含 `tutorial/`）——見 [`tutorial/`](https://github.com/weilung/dflow-sdd-ddd/tree/main/tutorial)
 - 僅驗證的 CI workflow（不執行 publish）：**在 source repository，不在 npm 套件裡**
 
-GitHub 上的 source 可能包含 `0.16.0` 之後尚未發佈的 repo 變更。完整 release history 見 [CHANGELOG.md](CHANGELOG.md)。
+GitHub 上的 source 可能包含 `0.17.0` 之後尚未發佈的 repo 變更。完整 release history 見 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 授權
 
