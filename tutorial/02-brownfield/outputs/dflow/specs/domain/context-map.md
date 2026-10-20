@@ -1,4 +1,4 @@
-<!-- dflow-shape: brownfield/context-map.md 1 — keep this line: dflow doctor reads it -->
+<!-- dflow-shape: brownfield/context-map.md 2 — keep this line: dflow doctor reads it -->
 <!-- Seeded by Dflow. -->
 <!-- Formatting convention: keep table cells concise. When one cell holds multiple short items (invariants, rules, steps), separate them with <br> so each renders on its own line - never chain them into one line with ；/; separators. Long narrative detail does not belong in a table cell: keep the cell to a concise summary and put extended detail in an existing section of this document when one fits, or give each item its own row. -->
 
@@ -30,6 +30,13 @@
 | Inventory | Order | Supplier | Stored Procedures | Order 需要可售量或預留結果，但不應擁有完整庫存計算。 |
 | Order | Shipment | Upstream / Downstream | Shared database tables + Web Service | 訂單成立後觸發出貨流程；目前耦合方式待確認。 |
 | Order | Invoice | Upstream / Downstream | Shared database tables / nightly jobs | 發票資料通常基於訂單與出貨結果產生。 |
+
+## External Systems
+
+| External System | Data Exchanged | Direction | Mechanism | Timing | Used By | Notes |
+|---|---|---|---|---|---|---|
+
+> **External System** — a system this project does not build or deploy (another team's service, a vendor or government API, a database or file another system owns) that one of this system's bounded contexts exchanges data with. Write one row per exchange: a different direction, mechanism or timing is another row, while one exchange takes one row however many contexts use it — list every one of them in Used By. Every row names at least one context in Used By, so a change to a row is a change to those contexts; an integration no context uses (logging, monitoring, deployment tooling) is not recorded here. Direction is the way the business data moves, seen from this system; which side starts the exchange goes in Mechanism. Keep external systems out of the tables above: they name only this system's bounded contexts.
 
 ## Integration Notes
 

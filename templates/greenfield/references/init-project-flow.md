@@ -525,7 +525,7 @@ still in them:
 > "A few files still have `{placeholder}` tokens that need your input:
 >  - `dflow/specs/shared/_overview.md`: the Business Domain and Technical
 >    Architecture fields (e.g. primary domain, stakeholders, user scale, stack)
->  - `dflow/specs/domain/context-map.md`: context list and relationships
+>  - `dflow/specs/domain/context-map.md`: context list, relationships and external systems
 >
 >  These are fine to leave for now; fill them in during your next
 >  review pass."

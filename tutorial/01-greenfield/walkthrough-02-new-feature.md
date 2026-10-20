@@ -219,7 +219,10 @@ core。費用申報的規則就是我們跟其他公司不一樣的地方，
 
 ⚠ 這正是 flow 說「**若 `Subdomain Type` 欄不存在，補上這一欄、並保留既有每一列的
 內容**」的情境。`outputs/` 樹裡那份 `context-map.md` 就是補完之後的樣子——
-`Expense` 記 `core`，而外部的 `Identity` 記 `generic`（公司 SSO 提供，本系統不建模）。
+`Expense` 記 `core`。`Identity` 是公司 SSO 提供的外部系統，不是本系統要建的
+context，所以不在 Contexts 表，記在 `## External Systems`：它的能力是 `generic`
+（買現成的、本系統不建模），寫在那一列的 Notes。`Subdomain Type` 欄只給本系統自己建的
+context；`generic` 的能力可以直接用外部現成的，Identity 就是這種情況。
 
 這裡的價值不是「選了 Expense 這個名字」。價值在於 Dflow 把 boundary decision
 外顯出來，讓 Alice 可以拒絕、修正或延後。AI 不會偷偷把主管審核、財務匯款、

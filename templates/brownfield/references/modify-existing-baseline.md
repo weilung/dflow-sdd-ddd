@@ -58,11 +58,13 @@ developer (Step 1.5 does not run for a capture).
   check (`references/finish-feature-minimal-host.md`) blocks a BC-layer
   document the row does not declare.
 - **`context-map.md`** records how two contexts integrate: which one is
-  upstream, and what data passes between them. To write it, declare it in the
-  `Tier = baseline` row. Brownfield `init` does not create it: create it from
-  `templates/context-map.md` the first time there is something to record. The
-  declaration admits the file, not particular rows: which relationships the
-  capture changed is for its scope and for review to hold.
+  upstream, and what data passes between them; its External Systems section
+  records each exchange the captured area's contexts have with an external
+  system. To write it, declare it in the `Tier = baseline` row. Brownfield
+  `init` does not create it: create it from `templates/context-map.md` the
+  first time there is something to record. The declaration admits the file,
+  not particular rows: which relationships the capture changed is for its
+  scope and for review to hold.
 - **Another context's documents.** When the capture also writes another
   bounded context's documents — aligning a term across contexts, say — declare
   them in the `Tier = baseline` row before checkpoint 1. A capture carries no

@@ -44,6 +44,7 @@ progressively extract domain logic and prepare for the target architecture
 | Delivery / entrypoint | {Framework} |
 | Auth | {e.g. session auth, OAuth/OIDC, API key, internal SSO} |
 | Hosting | {e.g. on-prem VM, container platform, managed app platform} |
+| External systems | Listed in `dflow/specs/domain/context-map.md` § External Systems |
 
 ### Code Layout (High Level)
 

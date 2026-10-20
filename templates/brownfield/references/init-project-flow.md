@@ -305,7 +305,8 @@ skip, and wait for developer confirmation:
 >   bounded context is established.
 > - No `dflow/specs/domain/context-map.md`. Brownfield track treats BCs as
 >   emergent from domain extraction; this file becomes relevant later,
->   typically when 2+ contexts coexist.
+>   typically when 2+ contexts coexist or the first external system is
+>   recorded.
 > - No `dflow/specs/domain/analysis.md` and no
 >   `dflow/specs/domain/{context}/analysis.md`. Each is created the first time
 >   one of these turns up and belongs there — an ordered cross-context flow
@@ -449,7 +450,7 @@ Init complete. Summary:
     - dflow/specs/domain/{context}/behavior.md — created by /dflow:new-feature
       Step 8.3 or P007a baseline capture
     - dflow/specs/domain/context-map.md — created organically when you have
-      ≥2 bounded contexts
+      ≥2 bounded contexts or an external system to record
     - dflow/specs/domain/{context}/analysis.md — needs a real bounded context
     - dflow/specs/domain/analysis.md — created the first time a session records a
       cross-context flow, role reach, or other knowledge no single context owns

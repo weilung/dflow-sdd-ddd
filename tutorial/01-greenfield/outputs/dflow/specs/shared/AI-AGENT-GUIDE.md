@@ -63,6 +63,7 @@ Dflow-owned project documents live under `dflow/specs/`.
 | System overview | `dflow/specs/shared/_overview.md` |
 | Domain glossary | `dflow/specs/domain/glossary.md` |
 | Context map | `dflow/specs/domain/context-map.md` |
+| External systems | `dflow/specs/domain/context-map.md` § External Systems |
 | Domain analysis (cross-context) | `dflow/specs/domain/analysis.md` |
 | Domain analysis (per context) | `dflow/specs/domain/{context}/analysis.md` |
 | Active feature specs | `dflow/specs/features/active/` |

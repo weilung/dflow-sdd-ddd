@@ -806,6 +806,11 @@ const LIFECYCLES_MIGRATION = "analysis.md, Lifecycles comment: replace this sect
 // as a confirmed rule, or a follow-up inherit a draft row into its Snapshot.
 const DRAFT_BASIS_MIGRATION = "behavior.md, Purpose and Maintenance notes: replace these notes with the current brownfield template's. Existing draft scenarios and observations remain valid; do not infer their basis or confirmation from their text. Add Draft basis only when a capture next writes or substantively revises that draft BR, using references/modify-existing-baseline.md § Draft basis and current observations.";
 const SNAPSHOT_DRAFT_MIGRATION = "_index.md, Current BR Snapshot notes: compare this section's notes with the current brownfield template's and apply references/modify-existing-follow-up.md when inheriting rules. Do not rewrite existing Snapshot rows or completed records as a shape migration; resolve a draft or confirmation conflict through the running workflow before syncing it.";
+// PROPOSAL-117: the default for an added section adds it empty, which would leave
+// each external system where the file recorded it before — a row of the tables
+// above, one end of a Relationships row, an Integration Notes line — with nothing
+// saying to carry its values over, or not to infer the ones the old record lacks.
+const EXTERNAL_SYSTEMS_MIGRATION = "context-map.md, External Systems: add the section from the current template, after Relationships. For each external system this file records elsewhere - as a row of the tables above, as one end of a Relationships row, or in Integration Notes - write a row there for each way it exchanges data, and carry every value those places held into it: the contexts that use it, and how, into Used By; any other value (a Subdomain Type, an owner, a code area, a published language, an ACL location, event names, notes) into the matching cell or Notes, or into an Integration Notes line that names the external system and the context it belongs to. Do not fill a cell by inference: write `—` for a value the old record does not give, and when it does not say which data moves by which mechanism or when, keep what it says in one row; ask the developer, and record what they leave unanswered in Open Questions. If the file already has an External Systems section, match each of its columns to the template's by meaning, not by position, and move a column the template has no place for into Notes. Show the developer the new rows and where each old value went before you remove or rewrite anything; until they answer, remove and rewrite nothing. When it is unclear whether an entry is an external system or one of this system's contexts, ask the developer. When the file records none, add the table header only.";
 {
   const expected = ['greenfield', 'brownfield'].flatMap((t) => [
     [`${t}/rules.md`, 2, (c) => c.kind === 'added' && c.item[0] === 'column' && c.item[5] === 'Known deviations', RULES_MIGRATION],
@@ -813,7 +818,8 @@ const SNAPSHOT_DRAFT_MIGRATION = "_index.md, Current BR Snapshot notes: compare 
     [`${t}/analysis.md`, 2, (c) => c.kind === 'added' && c.item[0] === 'column' && c.item[5] === 'Role-specific actions', ANALYSIS_MIGRATION],
     [`${t}/analysis.md`, 2, (c) => c.kind === 'reworded' && c.from[0] === 'comment' && c.from[1] === '' && c.from[2] === '', ANALYSIS_TOP_MIGRATION],
     [`${t}/analysis.md`, 2, (c) => c.kind === 'reworded' && c.from[0] === 'comment' && c.from[1] === 'Lifecycles', LIFECYCLES_MIGRATION],
-    [`${t}/analysis.md`, 2, (c) => c.kind === 'reworded' && c.from[0] === 'comment' && c.from[1] === 'Function / Role Index', ANALYSIS_INDEX_MIGRATION]
+    [`${t}/analysis.md`, 2, (c) => c.kind === 'reworded' && c.from[0] === 'comment' && c.from[1] === 'Function / Role Index', ANALYSIS_INDEX_MIGRATION],
+    [`${t}/context-map.md`, 2, (c) => c.kind === 'added' && c.item[0] === 'h2' && c.item[1] === 'External Systems', EXTERNAL_SYSTEMS_MIGRATION]
   ]).concat([
     ['brownfield/behavior.md', 3, (c) => c.kind === 'reworded' && c.from[0] === 'note' && c.from[1] === '' && c.from[2] === '', DRAFT_BASIS_MIGRATION],
     ['brownfield/_index.md', 4, (c) => c.kind === 'reworded' && c.from[0] === 'note' && c.from[1] === 'Current BR Snapshot', SNAPSHOT_DRAFT_MIGRATION]
@@ -855,6 +861,15 @@ const SNAPSHOT_DRAFT_MIGRATION = "_index.md, Current BR Snapshot notes: compare 
   assert.ok(LIFECYCLES_MIGRATION.includes('and do not guess'), 'the Lifecycles migration rebuilds a forgotten list from its source instead of guessing');
   assert.ok(LIFECYCLES_MIGRATION.includes('A state written `[*]` that is a stored value gets a name instead'), 'the Lifecycles migration renames a stored `[*]` before `[*]` starts meaning create or delete');
   assert.ok(LIFECYCLES_MIGRATION.includes('Other lifecycles stay valid as they are'), 'the Lifecycles migration does not ask for every lifecycle to be rewritten at once');
+  // External Systems (PROPOSAL-117 (B)): every old value keeps a place, a cell the
+  // old record does not give is never inferred, an existing section is matched by
+  // meaning instead of having its header replaced, and nothing is removed or
+  // rewritten before the developer has seen where each value went.
+  assert.ok(EXTERNAL_SYSTEMS_MIGRATION.includes('carry every value those places held into it'), 'the External Systems migration keeps every old value');
+  assert.ok(EXTERNAL_SYSTEMS_MIGRATION.includes('Do not fill a cell by inference'), 'the External Systems migration never infers a value the old record does not give');
+  assert.ok(EXTERNAL_SYSTEMS_MIGRATION.includes('by meaning, not by position'), 'an existing External Systems section is matched column by column, not given the template header');
+  assert.ok(EXTERNAL_SYSTEMS_MIGRATION.includes('until they answer, remove and rewrite nothing'), 'nothing is removed or rewritten before the developer has seen the mapping');
+  assert.ok(EXTERNAL_SYSTEMS_MIGRATION.includes('When the file records none, add the table header only.'), 'a file with no external system gets the header only');
   // shape 2 is unpublished: its Lifecycles change is the one PROPOSAL-110
   // reworded again, not a third shape (user 2026-10-09).
   for (const t of ['greenfield', 'brownfield']) {
@@ -1320,6 +1335,16 @@ for (const [edition, track] of [['1', 'greenfield'], ['2', 'brownfield']]) {
     `${track}: the analysis.md Function / Role Index comment is followed by its migration\n${analysisGroup}`);
   assert.ok(analysisGroup.includes(`(migration: ${ANALYSIS_MIGRATION})`), `${track}: the column keeps its own migration beside the comments' ones\n${analysisGroup}`);
 
+  // context-map.md 1 → 2 (PROPOSAL-117): the External Systems section is followed
+  // by its migration; the section's columns and note are listed without one.
+  const m = await newProject(edition);
+  await put(m, 'domain/context-map.md', await older(m, 'context-map.md'));
+  const mapGroup = olderGroup(findingOf(await doctorAt(m), /^\[info\] 1 spec doc\(s\) were written against an older template shape$/).detail, `${track}/context-map.md 1 → 2`);
+  assert.ok(mapGroup.includes(`\`## External Systems\` (migration: ${EXTERNAL_SYSTEMS_MIGRATION})`),
+    `${track}: the External Systems section is followed by its migration\n${mapGroup}`);
+  assert.equal(mapGroup.split('(migration:').length - 1, 1, `${track}: only the section carries a migration, not its columns or note\n${mapGroup}`);
+  assert.ok(mapGroup.includes('the `>` notes under `## External Systems` added'), `${track}: the section's note is listed as added\n${mapGroup}`);
+
   // Only changes without a migration: the action is the one above without its lead.
   const q = await newProject(edition);
   await put(q, debtPath, await older(q, 'tech-debt.md'));
@@ -1357,6 +1382,21 @@ for (const [edition, track] of [['1', 'greenfield'], ['2', 'brownfield']]) {
   await put(v, 'domain/a/rules-old.md', damaged);
   const alone = findingOf(await doctorAt(v), /^\[uncertain\] 1 spec doc\(s\) have a shape marker doctor cannot read/);
   assert.ok(!alone.action.includes(MIGRATION_NOTE), `${track}: with only a doc doctor cannot match, no migration is printed\n${alone.action}`);
+}
+// The tutorials' context-map.md (PROPOSAL-117 (F)): migrated with the shipped
+// sentence, so each carries the template's current number and doctor says nothing
+// about it once placed where the flows put it.
+for (const [edition, track, tutorial] of [['1', 'greenfield', '01-greenfield'], ['2', 'brownfield', '02-brownfield']]) {
+  const fixture = await readFile(join(repoRoot, `tutorial/${tutorial}/outputs/dflow/specs/domain/context-map.md`), 'utf8');
+  const marker = doctorChecks.readShapeMarker(fixture);
+  const latest = registry.templates[`${track}/context-map.md`].shapes.length;
+  assert.equal(marker.state, 'ok', `${tutorial}: the tutorial context-map.md carries one readable marker`);
+  assert.equal(marker.number, latest, `${tutorial}: the tutorial context-map.md is at the current shape ${latest}`);
+  assert.ok(doctorChecks.extractShapeSkeleton(fixture).some((item) => item[0] === 'h2' && item[1] === 'External Systems'), `${tutorial}: the tutorial context-map.md has the External Systems section`);
+  const p = await newProject(edition);
+  await put(p, 'domain/context-map.md', fixture);
+  const out = await doctorAt(p);
+  assert.match(out, CLEAN, `${tutorial}: doctor is silent with the tutorial context-map.md in place\n${out}`);
 }
 {
   // A project that does not say which track it uses: both tracks' templates

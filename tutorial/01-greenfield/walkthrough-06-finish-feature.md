@@ -434,7 +434,7 @@ Step 3 其他 BC layer checks：
 - behavior.md：骨架已在 new-feature Step 3 建好，但只涵蓋當時存在的 BR-001~004。
   BR-005~007 的 anchor 要在這裡補建，七條的 scenario 內容也在這裡補上；
   萬一檔案不存在，從 `templates/behavior.md` 建立
-- context-map.md：Identity external relationship 已存在；Reimbursement 仍是 future context，不更新
+- context-map.md：External Systems 裡 Identity 的兩列（員工 ID、主管階層）已存在；Reimbursement 仍是 future context，不更新
 - glossary.md：ApprovalReason 已包含 2026-04-30 bilingual length wording，不更新
 - architecture/tech-debt.md：Unicode 字元計數策略那一列見下面的技術債對帳；
   Follow-up Notes 補 related-feature：SPEC-20260428-001 (completed 2026-05-07)

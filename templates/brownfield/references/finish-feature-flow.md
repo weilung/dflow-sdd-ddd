@@ -420,6 +420,12 @@ context's and the domain-root one — each created from `templates/analysis.md`
 the first time there is something to record) — these may have been touched per
 phase already; this is the closeout sweep.
 
+Then update `context-map.md` § External Systems for each exchange between a
+context and an external system that this feature added, changed or removed, as
+its specs and its diff show (create the file from `templates/context-map.md` the
+first time there is something to record). The brownfield per-change sweeps do
+not carry this item: record it here.
+
 **→ Step Gate: Step 3 → Step 4**
 
 > "BC `{context}` synced — `rules.md` updated ({n_added} added,
@@ -554,9 +560,10 @@ Then, in this order:
    instruction, not from a list kept somewhere else:
    **(a)** whatever Step 3 wrote (`rules.md`, `behavior.md`, `models.md`,
    `analysis.md`, `glossary.md`, `domain/analysis.md`,
-   `migration/tech-debt.md`) — a no-BC host skips the BC-scoped sync, so this
-   half holds only what Step 3's debt reconciliation wrote; a baseline host's
-   Step 3 writes nothing; **and**
+   `migration/tech-debt.md`, and `context-map.md` when it updated External
+   Systems) — a no-BC host skips the BC-scoped sync, so this half holds only
+   what Step 3's debt reconciliation wrote; a baseline host's Step 3 writes
+   nothing; **and**
    **(b)** the **documentation-sweep step of the flow that produced *this
    change*** — take the paths from that step, not from a list kept here. A
    commit may already have carried them — `modify-existing-flow.md`'s
@@ -596,9 +603,10 @@ Then, in this order:
    to. **Do not sync any other system-level current state**". The external
    writes its own steps call for are those two paths and, on an
    Aggregate-emergence escalation, the `models.md` row its Step 2 marks; the
-   set above already carries all three. The one file outside it is
-   `context-map.md`: `ddd-modeling-guide.md`, which its Step 2 sends it to,
-   records there a choice to model deeper — stage it too when a phase did.
+   set above already carries all three. `context-map.md` is in that set only
+   when Step 3 updated its External Systems section; `ddd-modeling-guide.md`,
+   which its Step 2 sends it to, can also record there a choice to model
+   deeper — stage it too when a phase did.
    On a **minimal host** that set is exactly what allow-list member (iii) of
    `references/finish-feature-minimal-host.md`'s uncommitted-source check
    admitted. On a **phase-bearing** host there is **no allow-list at all** —

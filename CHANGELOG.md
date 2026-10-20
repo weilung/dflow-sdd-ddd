@@ -8,8 +8,20 @@
 
 ## Unreleased
 
-> **目前投影版號：`0.16.13`**（**未發布到 npm**；npm latest 仍是 `0.16.0`）。
-> 下面十八段都在這一版裡，每段標題標出它第一次投影的版號。
+> **目前投影版號：`0.16.14`**（**未發布到 npm**；npm latest 仍是 `0.16.0`）。
+> 下面十九段都在這一版裡，每段標題標出它第一次投影的版號。
+
+### 外部系統記在 `context-map.md` 新的一節 External Systems（PROPOSAL-117，dist issue #17 第 22 條）——`0.16.14`
+
+**來源**：dist issue #17 第 22 條——盤點時一個名詞的兩種代號分別來自兩個外部系統（本系統即時呼叫的 API、每年轉檔進來的資料），範本沒有地方寫外部系統；很多 context 共用的外部系統，也不知道要掛在哪個 context 下。
+
+- **新的一節**：兩軌 `context-map.md` 在 Relationships 之後加 `## External Systems`，七欄：External System、Data Exchanged、Direction（`in`／`out`／`both`：業務資料移動的方向，從本系統看）、Mechanism（含哪一邊發起）、Timing、Used By、Notes。一列一種交換：方向、方式、時機任一不同就另寫一列；同一種交換不論幾個 context 用，都寫在同一列的 Used By，每個 context 怎麼用它（ACL、Conformist……）寫在名字後面。外部系統不寫進 Context List／Contexts 與 Relationships：那兩張表只寫本系統的 bounded context。
+- **每一列至少一個 context**：動一列就是動那幾個 context 的事，所以 no-BC 的變更照舊不碰 `context-map.md`，收尾與 PR review 的 no-BC 檢查都不變。沒有任何 context 用到的純技術整合（記錄 log、監控、部署工具）不記在這裡，Dflow 不規定它們放哪裡。
+- **誰更新它**：Greenfield 跟著現有的三處同步一起更新（`/dflow:new-feature` Step 8、`/dflow:modify-existing` 5.3、`/dflow:finish-feature` Step 3）。Brownfield 在 baseline 盤點時記下盤點區塊的外部交換，`/dflow:finish-feature` 收尾時照這次 feature 的 spec 與 diff 補上新增、改了或拿掉的交換（`context-map.md` 進收尾 commit；第一次有東西要記時才建檔）；`/dflow:modify-existing`、`/dflow:new-feature` 平常的同步不多一項。所以 Brownfield 一次修改或一個 phase 改了外部交換之後、收尾之前，這一節還是舊的；換了 session 才收尾時，spec 沒寫到、diff 也看不出來的交換會漏記。
+- **盤點收尾的 `BC:` 欄**：從 External Systems 那一列的 Used By 推出 context，外部系統本身不算進去。
+- **指標**：兩軌 `AI-AGENT-GUIDE.md` § Source of Truth 加一列 External systems（`dflow configure-agents` 只更新 marker 完好的 guide）；`ddd-modeling-guide.md` 的關係表之後寫明 B 是外部系統時記在 External Systems。兩軌 `_overview.md` 範本也加一個指標，但**只有之後才建的 `_overview.md` 拿得到**：它是使用者文件，建了之後不再投影；既有的 `_overview.md` 靠 guide 與範本本身找到位置。
+- **既有專案**：兩軌 `context-map.md` 範本升到形狀 2，已經有 `context-map.md` 的專案，`dflow doctor` 印一次遷移句：把檔裡記在別處的外部系統（上面兩張表的一列、Relationships 的一端、Integration Notes 的一行）一種交換寫成一列，每一個值都搬過來；舊紀錄沒給的值寫 `—`、不推，問開發者，沒答的記進 Open Questions；已經有自己的 External Systems 一節的，照意思對欄、不換表頭；拿掉或改寫任何東西之前，先給開發者看新的列與每個舊值搬到哪裡；分不清是外部系統還是本系統的 context 時問開發者；沒有外部系統的只加表頭。Brownfield 的 `context-map.md` 仍是需要時才建。
+- 教材：greenfield 的 Identity 改記在 External Systems（員工 ID、主管階層兩種交換），brownfield 的 `context-map.md` 加上只有表頭的這一節。
 
 ### Brownfield baseline 盤點：合回之後不開 host 回答延後的題目（PROPOSAL-115 第二段）——`0.16.13`
 

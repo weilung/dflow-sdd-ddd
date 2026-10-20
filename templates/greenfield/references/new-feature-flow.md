@@ -190,7 +190,7 @@ If foundational domain docs are missing, create them from templates before writi
 - `dflow/specs/domain/{context}/rules.md` → `templates/rules.md`
 - `dflow/specs/domain/{context}/behavior.md` → `templates/behavior.md` — at this step create only the skeleton + one section anchor per `BR-*`; the Given/When/Then scenarios are merged in later at Step 8.3 (finish-feature), not now
 - `dflow/specs/domain/{context}/events.md` (when Domain Events are involved) → `templates/events.md`
-- `dflow/specs/domain/context-map.md` (when cross-context relationships are involved) → `templates/context-map.md`
+- `dflow/specs/domain/context-map.md` (when cross-context relationships, or a context's exchange with an external system, are involved) → `templates/context-map.md`
 
 **→ Step Gate: Step 3 → Step 3.5**
 
@@ -513,7 +513,7 @@ Before you change or delete a `rules.md` row, `behavior.md` section or `analysis
 - [ ] `behavior.md` draft cleanup — if the spec was abandoned mid-way, keep the `## 提案中變更` section's history or explicitly REMOVE it
 - [ ] `analysis.md`, at either of its two paths — re-check every entry this feature recorded before building: an entry for what the feature was to add or change against what was built (corrected where the build differs, removed where nothing was built for it), and an entry for something already in the system against the system as it now stands (corrected where this feature changed it, never removed because this feature built nothing for it). Read the entries in the file, not in a diff: a checkpoint may already have committed them.
 - [ ] `dflow/specs/domain/{context}/events.md` — Domain Events updated
-- [ ] `dflow/specs/domain/context-map.md` — updated if cross-context interaction was added or changed
+- [ ] `dflow/specs/domain/context-map.md` — updated if cross-context interaction, or a context's exchange with an external system (§ External Systems), was added or changed
 - [ ] `dflow/specs/architecture/tech-debt.md` — tech debt discovered during implementation recorded
 
 ### 8.4 Phase completion and handoff

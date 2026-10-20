@@ -128,7 +128,8 @@ If only one BC exists at adoption time, that is fine — the map grows.}
   [`dflow/specs/domain/{context-b}/`](../domain/{context-b}/).
 
 Full context relationships (upstream / downstream, shared kernel,
-anti-corruption layer) are documented in
+anti-corruption layer) and the external systems the contexts exchange data
+with are documented in
 [`dflow/specs/domain/context-map.md`](../domain/context-map.md).
 
 ---

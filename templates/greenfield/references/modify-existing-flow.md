@@ -463,7 +463,7 @@ If baseline domain docs are missing **for a change that does touch a bounded con
 - `dflow/specs/domain/{context}/rules.md` → `templates/rules.md`
 - `dflow/specs/domain/{context}/behavior.md` → `templates/behavior.md`
 - `dflow/specs/domain/{context}/events.md` → `templates/events.md`
-- `dflow/specs/domain/context-map.md` (when cross-context mapping is needed) → `templates/context-map.md`
+- `dflow/specs/domain/context-map.md` (when cross-context mapping, or a context's exchange with an external system, is needed) → `templates/context-map.md`
 - `dflow/specs/architecture/tech-debt.md` (if missing) → `templates/tech-debt.md`
 
 ### Delta Spec Format (for modifications)
@@ -667,7 +667,7 @@ Ask these one-by-one.
       - Promote any Activity 3 (Spec Writing) draft sections (from B3 mid-sync) to formal sections
       - Update the corresponding `rules.md` anchor's `last-updated` date (B4)
 - [ ] `behavior.md` draft cleanup — if the Delta was abandoned mid-way, keep the `## 提案中變更` section's history or explicitly REMOVE it
-- [ ] `dflow/specs/domain/context-map.md` — updated if cross-context interaction changed
+- [ ] `dflow/specs/domain/context-map.md` — updated if cross-context interaction, or a context's exchange with an external system (§ External Systems), changed
 - [ ] `dflow/specs/architecture/tech-debt.md` — findings recorded
 
 ### 5.4 Archival

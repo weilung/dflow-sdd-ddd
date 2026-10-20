@@ -770,6 +770,10 @@ Document in `dflow/specs/domain/context-map.md`:
 | Two contexts have no compelling reason to integrate | Separate Ways | Shipping vs Marketing each keep their own product fields |
 | Integrating with an unmodeled legacy region | Big Ball of Mud (+ ACL) | a new Order context wrapping a legacy accounting module |
 
+When B is an external system — one this project does not build or deploy —
+record the exchange in `context-map.md` § External Systems, not in
+§ Relationships, with the pattern each context uses in that row's Used By.
+
 The less-obvious three — when to reach for them:
 
 - **Separate Ways** — when integration cost > duplication cost **and** the "shared"

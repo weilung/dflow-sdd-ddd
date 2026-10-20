@@ -1,4 +1,4 @@
-<!-- dflow-shape: brownfield/context-map.md 1 — keep this line: dflow doctor reads it -->
+<!-- dflow-shape: brownfield/context-map.md 2 — keep this line: dflow doctor reads it -->
 <!-- This template is part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE in the Dflow package, or dflow/specs/shared/dflow-workflows/LICENSE in a project. Documents written from it are yours: do not copy this line into them. -->
 <!-- Seeded by Dflow. -->
 <!-- Formatting convention: keep table cells concise. When one cell holds multiple short items (invariants, rules, steps), separate them with <br> so each renders on its own line - never chain them into one line with ；/; separators. Long narrative detail does not belong in a table cell: keep the cell to a concise summary and put extended detail in an existing section of this document when one fits, or give each item its own row. -->
@@ -26,6 +26,14 @@
 | Source Context | Target Context | Relationship Type | Integration Mechanism | Notes |
 |---|---|---|---|---|
 | {Source} | {Target} | {Customer/Supplier, Conformist, ACL, Shared Kernel, Separate Ways, Big Ball of Mud (BBoM), OHS, etc.} | {DB table, service call, file, manual process} | {optional notes} |
+
+## External Systems
+
+| External System | Data Exchanged | Direction | Mechanism | Timing | Used By | Notes |
+|---|---|---|---|---|---|---|
+| {system name} | {what passes between the two systems} | in / out / both | {API call, file transfer, shared database, message queue, manual process; which side starts it} | {on each request, nightly, yearly, on demand} | {each context that uses this exchange, and how: ACL, Conformist, ...} | {owner or contact; where the integration code lives; any value no other cell holds} |
+
+> **External System** — a system this project does not build or deploy (another team's service, a vendor or government API, a database or file another system owns) that one of this system's bounded contexts exchanges data with. Write one row per exchange: a different direction, mechanism or timing is another row, while one exchange takes one row however many contexts use it — list every one of them in Used By. Every row names at least one context in Used By, so a change to a row is a change to those contexts; an integration no context uses (logging, monitoring, deployment tooling) is not recorded here. Direction is the way the business data moves, seen from this system; which side starts the exchange goes in Mechanism. Keep external systems out of the tables above: they name only this system's bounded contexts.
 
 ## Integration Notes
 

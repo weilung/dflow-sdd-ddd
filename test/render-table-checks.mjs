@@ -150,6 +150,14 @@ try {
     // a table cut into pieces: each next piece compared with the same table
     assert.deepEqual(found(md('| A | B |', '|---|---|', '| 1 | 2 |', '', '| 3 | 4 |', 'Evidence: x', '', '| 5 | 6 |', '', '| 7 | 8 | 9 |')),
       ['cut 4-4 -> 5-5', 'cut 7-7 -> 8-8']);
+    // PROPOSAL-117: a context-map.md that records no external system keeps the
+    // External Systems table as its header only, then the section's note. That is
+    // not a problem; a section with rows is checked like any other table.
+    const externalSystems = ['## External Systems', '', '| External System | Data Exchanged | Direction | Mechanism | Timing | Used By | Notes |', '|---|---|---|---|---|---|---|'];
+    const after = ['', '> **External System** — a note.', '', '## Integration Notes', '', '- a note'];
+    assert.deepEqual(found(md(...externalSystems, ...after)), [], 'a header-only External Systems table, then its note, is not a problem');
+    assert.deepEqual(found(md(...externalSystems, '| Billing | invoices | out | file | nightly | Order | — |', '', '| Billing | refunds | in | API | on demand | Order | — |', ...after)),
+      ['cut 6-6 -> 7-7'], 'an External Systems table with rows is checked: a blank line between rows is a cut');
   }
 
   // --- (3) extra cells ---

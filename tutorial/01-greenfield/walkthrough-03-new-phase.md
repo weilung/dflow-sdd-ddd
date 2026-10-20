@@ -272,7 +272,8 @@ Dflow:
 Identity 變得更相關，
 因為 Application 層需要知道 Approver 是誰、是否能審這張單。
 但 Domain 層只持 ID，不建模組織階層。
-context-map.md 可以更新成 Expense 參照 external Identity。
+Identity 是外部系統，context-map.md 的 External Systems 記下 Expense 與它的
+兩種交換：SSO 帶進來的員工 ID、Application 層查的主管階層。
 ```
 
 Data structure impact：
@@ -302,7 +303,7 @@ Dflow:
 - 誰碰得到：主管——待審清單、核准、退回三個功能。
   核准與退回誰能按，由 BR-005 決定，所以那一格只寫引用：domain/Expense/rules.md BR-005。
   → dflow/specs/domain/analysis.md 的 FN-03～FN-05。
-- 跨 context 的有序流程：沒有。Identity 那一段是查詢關係，上一題已經交給 context-map.md。
+- 跨 context 的有序流程：沒有。Identity 那一段是查詢關係，上一題已經交給 context-map.md 的 External Systems。
 - 算出來、不是存下來的數字：沒有新的。
 ```
 
@@ -904,7 +905,7 @@ docs 已同步、feature 目錄位於 `completed/`。但在 `/dflow:new-phase` �
 | 修改 | [`outputs/dflow/specs/domain/Expense/rules.md`](outputs/dflow/specs/domain/Expense/rules.md) | MODIFIED BR-002，ADDED BR-005~007。 |
 | 修改 | [`outputs/dflow/specs/domain/Expense/events.md`](outputs/dflow/specs/domain/Expense/events.md) | ExpenseReportApproved / ExpenseReportRejected。 |
 | 修改 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) | Approver、ApprovalDecision、ApprovalReason。 |
-| 修改 | [`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md) | Expense 對 Identity 的 external reference。 |
+| 修改 | [`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md) | External Systems 記下 Expense 與 Identity 的兩種交換（員工 ID、主管階層）。 |
 | 修改 | [`outputs/dflow/specs/domain/Expense/analysis.md`](outputs/dflow/specs/domain/Expense/analysis.md) | Step 2 當場記：LC-01 加上 Approved / Rejected 與三條轉移、新增 MX-01（SubmitAttemptNo）；Step 6 對照做出來的複核後，Evidence 換成 `code`。 |
 | 修改 | [`outputs/dflow/specs/domain/analysis.md`](outputs/dflow/specs/domain/analysis.md) | Step 2 當場記主管的三個功能（FN-03～FN-05；核准與退回的 Roles 引 `domain/Expense/rules.md BR-005`）；Step 6 補上 Entry point。 |
 | 本步驟不動 | `outputs/dflow/specs/domain/Expense/behavior.md` | phase 2 當下 Given/When/Then 仍由 phase spec 承載（Step 8.3 才 merge），**骨架則在 walkthrough 02 的 Step 3 就已建立**、且只涵蓋 BR-001~004。outputs 樹裡那一份是 closeout 之後填滿七條 BR 的最終狀態。 |
@@ -916,7 +917,7 @@ docs 已同步、feature 目錄位於 `completed/`。但在 `/dflow:new-phase` �
 | Greenfield track | 同一 feature 從 phase 1 MVP 延伸到 phase 2 supervisor approval，乾淨建立 DDD model。 |
 | Spec-first development | phase 2 spec / Delta / aggregate design 先落地，再進 Step 6 implementation。 |
 | Hybrid workflow control | Dflow 在 phase slug、phase spec draft、`_index.md` refresh、開始 implementation、完成 phase 前都設 step gate。 |
-| DDD semantic backbone | ApprovalDecision 的 Aggregate 身分、Expense BC 歸屬、Identity external reference 都被顯式記錄。 |
+| DDD semantic backbone | ApprovalDecision 的 Aggregate 身分、Expense BC 歸屬、與外部系統 Identity 的交換都被顯式記錄。 |
 | 三層文件分工 | phase spec 管 phase delta，feature `_index.md` 管 current snapshot，`rules.md`／`behavior.md` 這類 domain docs 等 finish-feature 才升級成 BC current model；`analysis.md` 則在 Step 2 當場記、Step 6 複核。 |
 | Drift verification readiness | BR Delta、events、implementation tasks、test strategy 都能直接支援後續 PR review。 |
 

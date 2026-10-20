@@ -404,6 +404,8 @@ For `events.md`:
 For `context-map.md`:
 - Update if any cross-context interaction was added, changed, or removed
   across the feature
+- Update § External Systems if the feature added, changed, or removed a
+  context's exchange with an external system
 
 This is the **mechanical input that `/dflow:verify` later uses** for the
 rules.md ↔ behavior.md drift check (see `references/drift-verification.md`).
