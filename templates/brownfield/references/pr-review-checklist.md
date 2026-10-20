@@ -61,6 +61,13 @@ the change is a follow-up on a completed feature. Send it there rather
 than inventing a home by hand."
 ```
 
+A PR that only answers questions a closed baseline capture deferred — its
+commit message names that capture's SPEC-ID and question ids `{SPEC-ID}/QNN`,
+and it opens no host — is the no-host route of
+`references/modify-existing-baseline-confirmation.md`. It needs no host: review
+it against that file's § What this change may touch and § Check before the
+commit. The host items of § Spec Compliance do not apply to it.
+
 ## Spec Compliance
 
 Per-feature checks:
@@ -330,7 +337,9 @@ behaviour or a decision without changing output, it is observation-only
 and tier-exempt — it is captured in whichever Domain documents it
 actually wrote (there is no fixed list) and stops there. It needs no host
 when it is an analysis.md record made with no workflow running and
-committed on its own, or a capture about no bounded context at all; any
+committed on its own, a capture about no bounded context at all, or an
+answer to questions a closed baseline capture deferred (/dflow:modify-existing
+applies those with no host); any
 other capture with no active feature to attach it to gets a baseline
 minimal host, whose Tier = baseline row declares the documents it wrote —
 not a spec. Otherwise: if it belongs to a feature

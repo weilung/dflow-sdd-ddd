@@ -38,7 +38,7 @@ It does not re-read hosts archived before the change, with one exception: `--sta
 
 Nor does it judge closeout Step 3's debt reconciliation: whether a deviation between a confirmed rule and the code was fixed, whether its records should go, and which debt rows to set `done` are decided by the AI from the evidence and your confirmation — the CLI guarantees none of it. Passing does not mean a deviation was fixed, or that every record that should have gone is gone. How that step works, and what it does not cover: [When a confirmed rule and the code disagree](confirmed-rule-vs-code.en.md).
 
-Nor does it know about the questions a baseline capture deferred: passing does not mean they were answered, or that any rule is confirmed — how deferred questions and their answers are recorded: [Brownfield baseline capture: answering 6.2's questions later](baseline-deferred-confirmation.en.md).
+Nor does it know about the questions a baseline capture deferred: passing does not mean they were answered, or that any rule is confirmed — how deferred questions and their answers are recorded: [Brownfield baseline capture: answering 6.2's questions later](baseline-deferred-confirmation.en.md). The documentation commit that answers them with no host after the capture merged archives no feature directory, so `--range` reports nothing to check, and `--staged` at most re-checks the host `HEAD` just archived (which still has to pass); exit code `0` then proves neither that an answer was applied right nor that the business confirmed anything.
 
 **Passing does not mean the closeout is clean.** It means the parts a machine can judge are consistent.
 

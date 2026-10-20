@@ -80,13 +80,27 @@ const behaviorPage = (...blocks) => `# Billing — Behavior\n\n## Receipts\n\n##
   assert.ok(p.html.includes('<a href="#submission-entry-observation">Submission entry observation</a>'), 'the observation link is kept');
 }
 // Every place a question record may sit.
-for (const [fileName, heading] of [
+const MODEL_TABLE = '| Entity | Description |\n|---|---|\n| Invoice | A bill for one period |';
+const HS_TABLE = '| ID | Hotspot | Evidence |\n|---|---|---|\n| HS-01 | Invoice totals | code - InvoiceService (2026-10-16) |';
+for (const [fileName, heading, before] of [
   ['glossary.md', 'Open Questions'], ['context-map.md', 'Open Questions'], ['analysis.md', 'Open Questions and Hotspots'],
-  ['models.md', 'Entities'], ['models.md', 'Code Mapping Notes'], ['tech-debt.md', 'Follow-up Notes']
+  ['analysis.md', 'Open Questions and Hotspots', HS_TABLE], ['models.md', 'Entities', MODEL_TABLE],
+  ['models.md', 'Context', 'Invoice is billed once a month.'], ['models.md', 'Code Mapping Notes'], ['tech-debt.md', 'Follow-up Notes']
 ]) {
-  const p = page(fileName, `# Doc\n\n## ${heading}\n\n${QUESTION}\n\n${DEFERRED}\n`);
+  const p = page(fileName, `# Doc\n\n## ${heading}\n\n${before ? `${before}\n\n` : ''}${QUESTION}\n\n${DEFERRED}\n`);
   assert.deepEqual(p.recordProblems, [], `${fileName} § ${heading} holds question records`);
   assert.equal(p.records.length, 2);
+}
+// After the table: in a section that holds one, and in models.md's four table sections always.
+for (const [fileName, source, why] of [
+  ['analysis.md', `# A\n\n## Open Questions and Hotspots\n\n${QUESTION}\n\n${DEFERRED}\n\n${HS_TABLE}\n`, 'before the section\'s question table'],
+  ['models.md', `# M\n\n## Entities\n\n${QUESTION}\n\n${DEFERRED}\n\n${MODEL_TABLE}\n`, 'before the table that holds the model'],
+  ['models.md', `# M\n\n## Entities\n\n${MODEL_TABLE}\n\n## Value Objects\n\n${QUESTION}\n\n${DEFERRED}\n`, 'in a table section with no table of its own']
+]) {
+  const p = page(fileName, source);
+  assert.deepEqual(p.recordProblems.map((x) => x.reason), ['table', 'table'], `${fileName}: ${why}`);
+  assert.deepEqual(badges(p.html), [], `${fileName}: ${why} gets no badge`);
+  assert.ok(notices(p.html)[0].includes('這一筆要放在表格之後'), 'the notice says where the record goes');
 }
 
 // --- a page with no record renders exactly as before --------------------------
@@ -145,6 +159,15 @@ assert.deepEqual(page('rules.md', rulesPage(`${QUESTION}\n\n  ${DEFERRED}`)).rec
   [['Question', 'form'], ['Deferred confirmation', 'form']]);
 // One record per paragraph: two lines with no blank line between them.
 reportedAs('rules.md', rulesPage(QUESTION, `${DEFERRED}\n${PROVISIONAL}`), 'lines');
+// A tab anywhere in a record line, also where Markdown turns it into the one space the format has
+// (here, after a separator inside the list item).
+reportedAs('rules.md', rulesPage(QUESTION.replace(' — target:', ' —\ttarget:')), 'tab');
+reportedAs('rules.md', rulesPage(QUESTION.replace('asks: Is an', 'asks: Is\tan')), 'tab');
+reportedAs('rules.md', rulesPage(QUESTION, DEFERRED.replace('scope: Business', 'scope:\tBusiness')), 'tab');
+assert.deepEqual(page('rules.md', rulesPage(`${QUESTION}   `)).recordProblems, [], 'spaces at the end of a Question line are not part of it');
+// A line before it in the same list item that Markdown rewrote (a tab): the notice still names the record's line.
+assert.equal(reportedAs('rules.md', rulesPage(`- Intro:\tfoo\n  ${DECISION.slice(2)}`), 'lines').recordProblems[0].line, 10,
+  'the line of the Decision, not of the rewritten line before it');
 // Place: outside the section, in a document that holds none, a Draft basis out of its BR section.
 reportedAs('rules.md', `# Business Rules\n\n## Rule Index\n\n${QUESTION}\n`, 'place');
 reportedAs('behavior.md', behaviorPage(BASIS).replace('## Receipts', `## Receipts\n\n${QUESTION}`), 'place');
@@ -203,6 +226,23 @@ assert.deepEqual(page('rules.md', rulesPage(`${QUESTION}\n- another bullet`, DEF
   const twice = page('rules.md', rulesPage(QUESTION, QUESTION));
   const lines = twice.recordProblems.map((x) => x.line);
   assert.equal(new Set(lines).size, 2, `each copy names its own line: ${lines}`);
+}
+// A paragraph of several quoted lines that holds the same text earlier does not
+// take a later record's place: the notice names the record's own line. A keyword
+// with its question id on another line of the paragraph is ordinary text.
+{
+  const quoted = page('rules.md', rulesPage(`> Intro: ${DECISION.slice(2)}\n> another line\n>\n${DECISION}`));
+  assert.deepEqual(quoted.recordProblems.map((x) => [x.keyword, x.reason, x.line]), [['Decision', 'form', 12]],
+    'the record in the second paragraph of the quote is reported on its own line');
+  const apart = page('rules.md', rulesPage(`Decision: ordinary prose.\nSee ${Q} for context.`));
+  assert.deepEqual(apart.recordProblems, [], 'a keyword and a question id on different lines of a paragraph are ordinary text');
+  const wrapped = page('rules.md', rulesPage(DECISION.replace(' — answer:', '\n> — answer:')));
+  assert.deepEqual(wrapped.recordProblems.map((x) => [x.reason, x.line]), [['lines', 9]], 'a record whose own line holds the id is still read when it wraps');
+  // Three levels of quote markers in front of 150 lines: a record's line is
+  // counted, not taken from an offset in text with its markers removed.
+  const deep = [...Array(150).fill('> > > x'), `> > > Intro: ${DECISION.slice(2)}`, '> > > another line', '> > >', `> > ${DECISION}`].join('\n');
+  assert.deepEqual(page('rules.md', rulesPage(deep)).recordProblems.map((x) => [x.keyword, x.reason, x.line]), [['Decision', 'form', 162]],
+    'the record after a long nested quote is reported on its own line');
 }
 // Escaped backticks or an escaped comment opener are text: the question id behind them is read.
 for (const [name, line] of [

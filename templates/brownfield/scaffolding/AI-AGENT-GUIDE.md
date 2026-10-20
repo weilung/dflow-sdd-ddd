@@ -156,6 +156,12 @@ at `dflow/specs/shared/dflow-workflows/`):
 - **"Dflow seems wrong" / "this template is confusing"** (or you notice Dflow
   guidance drift) → suggest `/dflow:report-dflow-feedback`; never submit
   anything upstream automatically.
+- **"Let's answer the questions SPEC-… deferred" / answering questions a
+  baseline capture left pending (ids `{SPEC-ID}/QNN`)** → suggest
+  `/dflow:modify-existing`. This is not a new baseline capture: once that
+  capture is closed, the questions are answered with no host and one
+  documentation commit (`references/modify-existing-baseline-confirmation.md`);
+  while it is still open, its own workflow answers them.
 - **Anything else code-related** → run it through § Ceremony Scaling's ordered
   cascade rather than a business-logic yes/no. Only the cascade's step 2 sends
   work outside Dflow, and it is narrower than "not business logic": a display

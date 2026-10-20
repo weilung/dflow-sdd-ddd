@@ -27,8 +27,9 @@ ceremony cascade 判定，不是由你選了哪個指令決定。所以這兩個
 
 Brownfield 的 `/dflow:modify-existing` 也用來做 baseline 盤點（把既有系統現在的行為記進文件、不改程式）。
 盤點的 Step 6.2 要你逐題確認；你不在或題目很多時，可以明說把指定的題目延後，之後在盤點收尾前、或另開一次
-普通的盤點再答——見 [Brownfield baseline 盤點：延後回答 6.2 的題目](baseline-deferred-confirmation.md)。
-延後不是確認，其他 Step Gate 也照舊要你在場。
+普通的盤點再答；盤點合回之後，也可以用同一個指令不開 host、直接回答它延後的題目，最後是一顆文件 commit
+——見 [Brownfield baseline 盤點：延後回答 6.2 的題目](baseline-deferred-confirmation.md)。
+延後不是確認，其他 Step Gate 也照舊要你在場；`/dflow:verify` 照舊只做一致性檢查，不負責確認。
 
 ### Feature 內指令（限 active feature）
 

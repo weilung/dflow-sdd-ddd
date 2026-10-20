@@ -20,6 +20,7 @@ const RUN_TIMEOUT_MS = 30000;
 // carry it, and the brownfield bundle must carry and list it.
 const BROWNFIELD_ONLY_BRANCH_FILES = [
   'references/modify-existing-baseline.md',
+  'references/modify-existing-baseline-confirmation.md',
   'references/finish-feature-baseline.md',
 ];
 

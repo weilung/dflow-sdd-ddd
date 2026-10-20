@@ -34,6 +34,20 @@ This step has two parallel concerns:
 
 **Part A — Determine the Ceremony Tier (T1 / T2 / T3 / below workflow)**
 
+**First — answering questions a baseline capture deferred.** When the developer
+explicitly asks to answer questions an earlier baseline capture deferred —
+question ids `{SPEC-ID}/QNN` (`references/modify-existing-baseline.md`
+§ Deferred confirmation records) — do not classify that answering and do not
+run Part B for it. It is not a baseline capture, and it is not a skipped Step
+1.6 or 1.7: it opens no host and leaves this workflow as one documentation
+change that answers those questions and nothing else. When the same request
+also asks for other work — capturing more, or a change — split it before you
+go on: tell the developer that this route answers only the questions and that
+the rest is a request of its own, which starts this Step 1 again. Ask which to
+do first, and drop neither part.
+
+**Open `references/modify-existing-baseline-confirmation.md` and follow it there.**
+
 The tier has **one source**: `AI-AGENT-GUIDE.md` § Ceremony Scaling — the
 ordered cascade, steps 0–4, where **the first step that matches wins**. **Open
 that section and classify from it before going further.** Do not classify from

@@ -679,6 +679,60 @@ assert.ok(projected.startsWith(`${init.WORKFLOW_BUNDLE_GENERATED_MARKER}\n`) && 
   expectBlocked(await runCheck(repo.project, ['--range', 'main..feature']), '--range, a directory never in active/', 'SPEC-20260928-702-direct', [/\[uncertain\] .*SPEC-20260928-702-direct\/ is new, but was never in /]);
 }
 
+// PROPOSAL-115 stage 2: a closed baseline capture's deferred questions answered
+// with no host (`references/modify-existing-baseline-confirmation.md`). Only the
+// CLI's boundary is tested here: the documentation commit archives nothing, so a
+// range finds nothing to check — exit 0 says nothing about the answers. While the
+// capture's closeout is still HEAD, `--staged` re-checks that host, and it still
+// passes. Recording the answers as a host created straight in completed/ — the
+// single-commit host this route does not have — stays uncertain.
+{
+  const host = 'SPEC-20260511-001-shipment-baseline';
+  const rulesFile = join('dflow', 'specs', 'domain', 'Shipment', 'rules.md');
+  const pending = [
+    '# Shipment rules',
+    '',
+    '| BR-ID | Rule summary | Behavior anchor | Status | Last updated | Known deviations |',
+    '|---|---|---|---|---|---|',
+    '| BR-001 | Free shipping from a subtotal of 1,000 | [BR-001](./behavior.md#br-001-free-shipping-threshold) | draft | 2026-05-11 | — |',
+    '',
+    '## Open Questions',
+    '',
+    '- Question: SPEC-20260511-001/Q01 — target: domain/Shipment/rules.md BR-001 — asks: Is the threshold the order subtotal?',
+    '',
+    '> Deferred confirmation: SPEC-20260511-001/Q01 — state: pending — scope: Business rules — assigned to: Operations — authorized by: Bob (2026-05-11)',
+    ''
+  ].join('\n');
+  const applied = pending.replace('| draft | 2026-05-11 |', '| active | 2026-05-25 |');
+  const answered = applied.slice(0, applied.indexOf('- Question:'));
+  assert.ok(answered.includes('| active | 2026-05-25 |') && !answered.includes('SPEC-20260511-001/Q01'), 'fixture: the answer applied and its records removed');
+  const repo = await newRepo('no-host-answers');
+  commitAll(repo, 'init');
+  git(repo.dir, 'switch', '-q', '-c', `feature/${host}`);
+  await writeHost(repo, host, { edition: 'brownfield' });
+  await mkdir(join(repo.project, 'dflow', 'specs', 'domain', 'Shipment'), { recursive: true });
+  await writeFile(join(repo.project, rulesFile), pending);
+  commitAll(repo, `[${host.slice(0, 17)}] spec-baseline`);
+  await closeOut(repo, host);
+  git(repo.dir, 'commit', '-q', '-m', `[${host.slice(0, 17)}] closeout`);
+  git(repo.dir, 'switch', '-q', 'main');
+  git(repo.dir, 'merge', '-q', '--ff-only', `feature/${host}`);
+  git(repo.dir, 'switch', '-q', '-c', 'docs/answer-q01');
+  await writeFile(join(repo.project, rulesFile), answered);
+  git(repo.project, 'add', '--', rulesFile);
+  expectPass(await runCheck(repo.project), 'no-host answers staged while the capture\'s closeout is HEAD', [host]);
+  git(repo.dir, 'commit', '-q', '-m', 'docs: answer SPEC-20260511-001/Q01');
+  expectNothing(await runCheck(repo.project, ['--range', 'main..docs/answer-q01']), '--range over the no-host answer commit');
+  expectNothing(await runCheck(repo.project), 'nothing staged after the no-host answer commit');
+  git(repo.dir, 'switch', '-q', '-c', 'single-commit-host', 'main');
+  const made = join(repo.project, FEATURES, 'completed', 'SPEC-20260525-001-answers');
+  await mkdir(made, { recursive: true });
+  await writeFile(join(made, '_index.md'), withLogRow(flipped(await template('brownfield', '_index.md'), 'single-commit host'), ROW, 'single-commit host'));
+  await writeFile(join(repo.project, rulesFile), answered);
+  commitAll(repo, '[SPEC-20260525-001] answers recorded as a host made in completed/');
+  expectBlocked(await runCheck(repo.project, ['--range', 'main..single-commit-host']), '--range, the answers recorded as a single-commit host', 'SPEC-20260525-001-answers', [unplacedPattern('SPEC-20260525-001-answers')]);
+}
+
 // --- (4) the pre-commit hook template ---------------------------------------------
 
 // The script is read out of the docs, so what is tested is what adopters copy.

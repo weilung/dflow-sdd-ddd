@@ -8,8 +8,22 @@
 
 ## Unreleased
 
-> **目前投影版號：`0.16.12`**（**未發布到 npm**；npm latest 仍是 `0.16.0`）。
-> 下面十七段都在這一版裡，每段標題標出它第一次投影的版號。
+> **目前投影版號：`0.16.13`**（**未發布到 npm**；npm latest 仍是 `0.16.0`）。
+> 下面十八段都在這一版裡，每段標題標出它第一次投影的版號。
+
+### Brownfield baseline 盤點：合回之後不開 host 回答延後的題目（PROPOSAL-115 第二段）——`0.16.13`
+
+**來源**：dist issue #23 的第四點——盤點收尾之後回來答幾題，只能另開一次盤點（兩次 checkpoint 加上 host 的管理），不然就得回頭改已完成的紀錄。
+
+- **不開 host 回答**：盤點收尾、合回整合分支之後，開發者明確要求回答它延後的題目（指名 SPEC-ID 與題號，或那次盤點全部還在等的題目）時，`/dflow:modify-existing` 不分 tier、不開 host、不配新的 SPEC-ID，照新的 brownfield 分支檔 `references/modify-existing-baseline-confirmation.md` 做，最後是一顆文件 commit。不新增指令；`/dflow:verify` 照舊只做一致性檢查。
+- **開始之前**：盤點還沒收尾，在那次盤點自己的 workflow 裡答；收尾了還沒合回，先合回。不接手正在跑的 workflow：碰到同一條規則或同一份文件時列出重疊，問開發者先完成哪一個。
+- **分支**：gitflow 從含有盤點的整合分支開一個專案允許的文件分支，照 PR 合回同一個分支；trunk 照專案對文件 commit 的規矩；專案沒有慣例時問開發者。Dflow 不訂分支名稱，也不復活盤點的 feature 分支。
+- **先重新查依據，只動答案需要的地方**：盤點之後 BR 改了名、規則的意思變了、入口搬了、題目指的東西不見了，或已經有別的答案時，問的是現在的內容。能動的範圍從選定的題目推導：題目紀錄、它們解決的 `draft` 規則與情境、現況段落與 Evidence、名詞／模型／context／技術債的描述、答案直接需要的偏離紀錄。不做新的盤點、不改程式、不改 `active` 規則的意思、不寫進已完成的 host、不把偏離的技術債標成已修。
+- **套用與出處**：答案照第一段的表套用，文件跟當場在 6.2 確認一字不差，只有確認出處那幾格寫 `confirmed by {role} - version history ({date})`（`analysis.md` 條目的 Evidence、`glossary.md` 名詞的 Notes、偏離技術債的 `Rule evidence`；確認程式現況的，在原本的證據後面接上 `; confirmed by {role} - version history ({date})`）。誰在哪天怎麼答、原本的題號寫在 commit message；主旨照專案自己的慣例，不用 `[SPEC-ID]`。
+- **commit 之前的檢查**：每一處改動都對得到一個答案；受影響的 context 跑 verify 的 BR-ID 與 anchor 檢查；`dflow render`、`dflow doctor`、`dflow check-closeout`（這顆 commit 不歸檔 host，結束碼 `0` 不證明答案套用對了）；已完成的 host、Checkpoint Log 與程式都沒動。commit 不等於 merge：確認規則不代表可以開 PR、merge 或 push。
+- **PR review**：只回答延後題目、沒有 host 的 PR，照新分支檔的範圍與檢查審，不套 host 的那幾項。
+- **`dflow render` 讀紀錄**：行首的關鍵字與題號要在同一行，才當成待確認紀錄的候選；紀錄那一行有 Tab，或在有表格的段落裡寫在表格之前（`analysis.md` 的 HS 表格；`models.md` 的 Entities、Value Objects、Domain Services、Repository Interfaces 一律在表格之後），改報成讀不準、不給標示；讀不準的提示在巢狀的引用與清單裡也指到原文那一行。
+- 範本形狀不變，`dflow doctor` 不印新的遷移句；Greenfield 不變。怎麼用與仍然存在的風險見 [`docs/baseline-deferred-confirmation.md`](docs/baseline-deferred-confirmation.md)（[English](docs/baseline-deferred-confirmation.en.md)）。
 
 ### Brownfield baseline 盤點：6.2 的題目可以延後回答、還沒確認的規則寫出依據、`dflow render` 標出待確認的紀錄（PROPOSAL-115 第一段）——`0.16.12`
 
@@ -18,7 +32,7 @@
 - **6.2 的題目可以延後**：開發者明確授權（指名題目或整次盤點）時，AI 先把題目整理成一份分組的清單給開發者一次看，延後的題目照固定格式記在答案會改到的文件裡。沒有回答、人不在、一句「繼續」都不是授權，也都不是確認；其他 Step Gate、commit 與 merge 權限、兩次 checkpoint 都照舊要人在場。host 的 Goals & Scope 只記真的取得的確認。
 - **還沒確認的規則寫出依據**：盤點寫的 BR 到 6.2 結束還是 `draft` 時，`behavior.md` 那個 BR 的標題下多一行 `> Draft basis:`，寫它從哪裡讀來（`code`、`data`、`document`、`inferred`、`assumed`）；推論來的另有一段沒有 BR-ID 的「現在怎麼做」。`code` 只表示列出的入口直接做了這個檢查，不是確認了業務規則。
 - **待確認的題目**：`Question`、`Deferred confirmation`、`Provisional`（AI 的暫定答案，不是確認）、`Decision`（答覆記下了、還不能套用）四種紀錄，放在答案會改到的那份文件（`rules.md`、`glossary.md`、`context-map.md` 的 Open Questions，`analysis.md` 的 Open Questions and Hotspots，`models.md` 的表格之後，`tech-debt.md` 的 Follow-up Notes）。題號是盤點 host 的 SPEC-ID 加 `/QNN`，永不重用。
-- **答完套用之後不留痕跡**：答案能套用時，同一次修改拿掉那一題的整筆紀錄與 `Draft basis`，文件跟當場確認一字不差；答案怎麼來的寫在 commit message。盤點收尾之前答，照那個 host 的 checkpoint 規矩；收尾之後，另開一次普通的 baseline 盤點來答。不開 host、直接回答既有清單的那條路還沒有提供。
+- **答完套用之後不留痕跡**：答案能套用時，同一次修改拿掉那一題的整筆紀錄與 `Draft basis`，文件跟當場確認一字不差；答案怎麼來的寫在 commit message。盤點收尾之前答，照那個 host 的 checkpoint 規矩；收尾之後，另開一次普通的 baseline 盤點來答。不開 host、直接回答既有清單的那條路是第二段（上一段）。
 - **follow-up 不繼承 `draft`**：follow-up host 的 Current BR Snapshot 只繼承 `active` 的規則；依賴、改寫或確認一條帶 `Draft basis` 的 `draft` 規則之前，各個 flow 先照 baseline 分支檔的規定處理它的依據與題目。
 - **`dflow render`**：格式完全正確的紀錄在那一行前面加標示（「待確認題目」「待確認」「AI 暫定・不是確認」「答覆已記錄・尚未套用」「draft 依據・未確認」），頁首一行摘要；標示只代表讀到格式，沒有任何一種表示「已確認」。開頭是那幾個關鍵字、帶著題號、卻不完全照格式的行，原文照留、不加標示，頁面與命令列（`confirmation records:` 底下）寫出檔名、行號、哪裡不對、預期的格式與處理方式；轉換照常完成，結束碼不變。沒有題號的行、程式碼、註解、行內程式碼不讀。
 - **既有專案**：brownfield 範本 `behavior.md` 升到形狀 3、`_index.md` 升到形狀 4，`dflow doctor` 印出遷移句：換掉 `behavior.md` 的 Purpose 與 Maintenance 說明、比對 `_index.md` Current BR Snapshot 的說明；既有的 `draft` 照樣有效，不要從文字猜它的依據。Greenfield 不變。

@@ -146,6 +146,7 @@ Greenfield 的主要讀法是從 feature phase 長出 domain model。Brownfield 
 | baseline-capture row | 這次沒有改 code，但有新增系統知識。 |
 | `draft` BR 標題下的 `> Draft basis:` | 這條候選規則從哪裡讀來（`code`、`inferred`……），**還沒確認**；`inferred` 的另有一段沒有 BR-ID 的「現在怎麼做」。 |
 | `Question:` 與緊接的 `Deferred confirmation:`／`Provisional:`／`Decision:` | 還在等答案的題目。`Provisional` 是 AI 的暫定答案、不是確認；`Decision` 是答覆記下了、但還不能套用。答完套用之後整筆拿掉，文件只剩答案。 |
+| 出處寫 `confirmed by {role} - version history ({date})` 的確認 | 盤點合回之後、不開 host 取得的確認，不在任何 Goals & Scope 裡。誰在哪天怎麼答、原本的題號，看寫下這一格的那顆 commit（那份檔的 `git log`）。 |
 | Status 與 `Resolved by:` / disposition note | 這個 tech debt 已經由哪一份 spec 還清（`done`，收尾 Step 3 對證據寫下 `Resolved by:`）、已排進哪個 feature（`planned`），或仍需追蹤（`open`）。 |
 
 Brownfield 最重要的紀律是：

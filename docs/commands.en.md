@@ -32,9 +32,12 @@ of these two has no consequence.
 In brownfield, `/dflow:modify-existing` also runs a baseline capture (recording what an
 existing system does now, without changing code). The capture's Step 6.2 asks you to
 confirm each item; when you are away or there are many, you can explicitly defer named
-questions and answer them before the capture closes, or in a later ordinary capture — see
+questions and answer them before the capture closes, or in a later ordinary capture; once
+the capture has merged, the same command can also answer its deferred questions with no
+host, in one documentation commit — see
 [Brownfield baseline capture: answering 6.2's questions later](baseline-deferred-confirmation.en.md).
-Deferring is not confirming, and every other Step Gate still needs you.
+Deferring is not confirming, and every other Step Gate still needs you; `/dflow:verify`
+still only checks consistency and confirms nothing.
 
 ### Feature-internal commands (active feature only)
 

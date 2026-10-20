@@ -26,10 +26,10 @@
 ## 什麼時候會記
 
 - 只在**你確認了規則、也決定延後修**的時候。AI 不會因為讀了程式就宣稱某條規則已經確認；確認不了的，照舊記成 `draft` 與待決問題。
-- 只在當下的工作本來就能改那個 context 的文件時：宣告了那個 bounded context 的變更，或 flow 允許的觀察紀錄（brownfield 是 baseline 盤點，greenfield 是 `/dflow:modify-existing` 的觀察紀錄）。T3、或沒有宣告 bounded context 的變更不寫——AI 會告訴你它看到什麼、還有什麼沒記。
+- 只在當下的工作本來就能改那個 context 的文件時：宣告了那個 bounded context 的變更，或 flow 允許的觀察紀錄（brownfield 是 baseline 盤點，以及盤點合回之後不開 host 回答它延後的題目；greenfield 是 `/dflow:modify-existing` 的觀察紀錄）。T3、或沒有宣告 bounded context 的變更不寫——AI 會告訴你它看到什麼、還有什麼沒記。
 - flow 進行中確認的，先在 spec 記那一行延後紀錄；`rules.md`、`behavior.md` 與技術債，在那個 flow 寫這些文件的那一步補上。`/dflow:new-phase` 不寫這些文件，所以留到收尾補。
 - 驗證與 PR review 碰到帶著延後紀錄的 spec：把那一個偏離當成已知的例外，並引用那一列技術債。但這份 spec 自己要加、要改或要修那個行為時——它的 Delta、它新加的規則、family (e) 要修的缺陷，或修那個偏離的任務——就不算例外：延後紀錄寫下之後不再改，這份 spec 後來決定修它，照樣要修到。其他沒做到的地方照樣不過。
-- brownfield baseline 盤點留下的 `draft` 規則不是確認的規則：它的情境是候選，程式現況另寫成沒有 BR-ID 的段落，確認之前兩者的差異不算偏離。你確認了規則、也決定延後修時，那段現況才轉成這裡的偏離紀錄（見 [Brownfield baseline 盤點：延後回答 6.2 的題目](baseline-deferred-confirmation.md)）。
+- brownfield baseline 盤點留下的 `draft` 規則不是確認的規則：它的情境是候選，程式現況另寫成沒有 BR-ID 的段落，確認之前兩者的差異不算偏離。你確認了規則、也決定延後修時，那段現況才轉成這裡的偏離紀錄（見 [Brownfield baseline 盤點：延後回答 6.2 的題目](baseline-deferred-confirmation.md)）。盤點合回之後不開 host 確認的，技術債的 `Rule evidence` 寫 `confirmed by {role} - version history ({date})`，確認程式現況的在原本的證據後面接上 `; confirmed by {role} - version history ({date})`。
 - 用舊方式記的偏離（例如寫成 edge case）不會自動轉換：之後的工作碰到那條規則、你也確認它是延後修的缺陷時，AI 才改成這個記法。原本就有的那一列技術債直接改成記這個偏離，名稱沿用原來的。你若說那個情況其實沒有確認過的規則，它就不是偏離：AI 把程式現況改記成不帶規則編號的觀察，還沒定的照待決問題處理。
 
 ## 修好之後誰收掉

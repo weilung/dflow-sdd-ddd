@@ -207,7 +207,9 @@ be answered later.
   status, then offer checkpoint 1 and closeout as usual. An answer given after
   checkpoint 1 follows the host's own checkpoint contract, and a change to the
   capture's documents never rides the closeout commit. After the capture
-  closes, a later capture answers it (§ Where confirmations are recorded).
+  closes, a later capture answers it, or, once the capture has merged,
+  `references/modify-existing-baseline-confirmation.md` answers it with no host
+  (§ Where confirmations are recorded).
 - Deferring replaces only answering the named 6.2 questions now. It does not
   lift a Step Gate, the branch gate, the commit policy, merge or push
   permission, or the two checkpoints. A completed host means only that the
@@ -226,7 +228,8 @@ be answered later.
   state or a list of pending questions. An answer to a deferred question is
   recorded in the host where it was given — the capture that deferred it while
   that host is open, or a later capture — under that host's SPEC-ID, never the
-  SPEC-ID in the question's id.
+  SPEC-ID in the question's id. One given with no host is recorded as **An
+  answer with no host** below says.
 - **`analysis.md`.** A confirmed entry's Evidence reads
   `confirmed by {role} - {SPEC-ID} Goals & Scope ({date})`. Cite the host by
   SPEC-ID, never by path. An `assumed` entry's question row becomes a resolved
@@ -247,6 +250,18 @@ be answered later.
   `confirmed by {role} - {SPEC-ID} Goals & Scope ({date})` there, pointing to
   that line, and do not repeat what was confirmed. The other is what
   **`Known deviation` records** appends to its `Code evidence`.
+- **An answer with no host.** An answer that
+  `references/modify-existing-baseline-confirmation.md` applies has no host and
+  no Goals & Scope to cite. Where the bullets above write
+  `confirmed by {role} - {SPEC-ID} Goals & Scope ({date})` — an `analysis.md`
+  entry's Evidence, a `glossary.md` term's Notes, the `Rule evidence` line of a
+  confirmed-rule deviation's debt row — write
+  `confirmed by {role} - version history ({date})`. To the evidence of an
+  observation it confirms, append `; confirmed by {role} - version history ({date})`
+  in every record that carries it, keeping the evidence before it.
+  `version history` means the commit that writes the cell. The form names no
+  host, no question id and no Decision, and it never cites the capture's Goals
+  & Scope. Every other answer is recorded in a host.
 - **Resume Pointer.** Current Progress stays a one- or two-sentence cursor and
   carries no confirmation. Add no section to `_index.md`.
 
@@ -534,7 +549,8 @@ this order, each only when it applies:
 
 The answer decides what the documents become. A host records the confirmation
 as § Where confirmations are recorded says; the documents must end exactly as
-they would have if the developer had given the same answer at 6.2.
+they would have if the developer had given the same answer at 6.2. An answer
+applied with no host differs only in the cells that section gives it.
 
 | The developer's answer | What the documents become | What it does not mean |
 |---|---|---|

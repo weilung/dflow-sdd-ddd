@@ -682,7 +682,53 @@ SPEC-20260511-001/Q02: rejected by 營運 (2026-05-25) — BR-002 removed; the o
 之後若又要問 `SPEC-20260511-001` 的新題，編號從版本歷史裡用過的最大號往上加（Q03 在 checkpoint 1 的 commit message 裡）：
 下一題是 Q04，不是 Q01。
 
-> 不開 host、直接回答既有清單的那條路還沒有提供；目前盤點收尾之後，就是像這樣另開一次普通的盤點。
+### 另一種答法：合回之後不開 host
+
+上面是另開一次盤點（`SPEC-20260525-001`）來答。`SPEC-20260511-001` 已經收尾、合回 `develop`，
+而 Bob 這次只是要把營運的答覆寫回去、不盤點新的東西，所以也可以不開 host：
+
+```text
+Bob:
+/dflow:modify-existing SPEC-20260511-001 的 Q01、Q02 營運回覆了，幫我寫回去。
+```
+
+`/dflow:modify-existing` 看出這是「回答一次盤點延後的題目」：不分 tier、不開 host、不配新的 SPEC-ID，
+改照 workflow bundle 的 `references/modify-existing-baseline-confirmation.md` 做。
+
+1. **先查條件**：`SPEC-20260511-001-shipment-fee-baseline` 已經在 `completed/`，也已經合回 `develop`；
+   沒有正在進行的 feature 在改 `Shipment` 的 BR-001、BR-002。
+2. **開分支**：專案沒有文件分支的慣例，AI 問 Bob；Bob 說從 `develop` 開 `docs/shipment-q01-q02`，
+   照 PR 合回 `develop`。Dflow 不訂分支名稱，也不會復活盤點那條 `feature/` 分支。
+3. **重新查依據**：`CheckoutService.CalculateShipping()` 仍然是 `subtotal >= 1000`；`OrderEdit.aspx` 與
+   `btnSave_Click` 都沒改過。依據沒變，題目照原樣問。
+4. **列出題目、取得答案**：Q01、Q02 連同題號、問什麼、Q02 的暫定答案一起列給 Bob；
+   營運的答覆跟上面那次一樣。
+5. **套用**：跟上面那次一樣——BR-001 改 `active`、`Last updated` 寫 2026-05-25，拿掉它的 `Draft basis`
+   與 Q01 的整筆紀錄；BR-002 那一列、情境段、`Draft basis` 與 Q02 的整筆紀錄拿掉，
+   「Shipping method edit observation」留著。`Shipment/rules.md` 與 `Shipment/behavior.md` 跟另開一次盤點的
+   結果一字不差：規則與情境本來就不寫確認附註，所以這兩份連出處那幾格都沒有差別。
+6. **檢查**：每一處改動都對得到 Q01 或 Q02；`Shipment` 跑 `/dflow:verify` 的 BR-ID 與 anchor 檢查；
+   `dflow render` 不再標出這兩題；`dflow check-closeout --staged` 回報沒有要檢查的（這顆 commit 不歸檔任何 host；
+   但 `develop` 的 HEAD 若剛好就是那次盤點收尾的 commit——例如 fast-forward 合回——它會重查那個 host，那個 host 照樣要通過）；
+   PR 上 CI 跑 `--range develop..docs/shipment-q01-q02` 也回報沒有要檢查的；結束碼 `0` 不證明答案套用對了；
+   `completed/` 裡那次盤點與程式都沒動。
+
+沒有 host，所以也沒有 Goals & Scope 那一行：誰在哪天怎麼答、原本的題號，全部寫在這一顆文件 commit 的 message。
+它不屬於任何 host，主旨照專案自己的慣例，不用 `[SPEC-ID]`：
+
+```text
+docs: answer SPEC-20260511-001/Q01, Q02 (Shipment free shipping, shipping method)
+
+SPEC-20260511-001/Q01: accepted by 營運 (2026-05-25), relayed by Bob — BR-001 active
+SPEC-20260511-001/Q02: rejected by 營運 (2026-05-25) — BR-002 removed; the observation stays
+```
+
+答的如果是 `analysis.md` 的 `inferred` 條目、名詞，或確認偏離的程式現況，那幾格的出處就寫
+`confirmed by 營運 - version history (2026-05-25)`（程式現況是在原本的證據後面接上
+`; confirmed by 營運 - version history (2026-05-25)`）：讀的人打開那一格的版本歷史，就是這顆 commit。
+
+commit 之後照 PR 合回 `develop`；確認規則不代表可以 merge 或 push，AI 不會自己做。
+
 > 延後與答題的完整說明見 [`docs/baseline-deferred-confirmation.md`](../../docs/baseline-deferred-confirmation.md)。
 
 ## 本步驟的文件地圖
