@@ -277,6 +277,18 @@ touches — inherited from `rules.md` when a follow-up opened, or set by the
 feature's own spec. Decide by whether the capture changes that rule's meaning:
 its text, or the outcome of one of its scenarios.
 
+A BR this feature's own specs added or changed reaches `rules.md` only at
+`/dflow:finish-feature` Step 3, which writes it from the Snapshot; until then
+its `rules.md` row is missing, or still states the rule from before this
+feature. Judge its meaning against its Snapshot row, and never add or rewrite
+its `rules.md` row: "This is the rule" leaves `rules.md` as it is and lands
+only in its Goals & Scope line. Everything else lands as the bullets below say
+— what they write in `behavior.md` and `analysis.md` is written now, and
+closeout keeps it — with two differences: for the `## Open Questions` item,
+create `rules.md` from `templates/rules.md` if it does not exist yet; and leave
+the BR's `Known deviations` cell to that Step 3, which links the debt Item the
+capture's Goals & Scope line names when it writes the row.
+
 - **The meaning stays** — another scenario, more evidence, another source
   page. Write it as usual, confirm it in 6.2, and declare it in the row as
   usual.

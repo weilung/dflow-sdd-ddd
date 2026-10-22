@@ -93,6 +93,12 @@ For each Bounded Context:
       - behavior.md → templates/behavior.md
       Or run the completion flow to populate it from existing completed specs
   ```
+  When an unfinished feature under `dflow/specs/features/active/` works in
+  this context, also name it and say that its rules reach these files only at
+  its `/dflow:finish-feature`, so it may account for the missing file — not
+  that it does: a settled file may have been lost too, so check the history
+  before restoring or recreating one. Do not suggest creating the files to
+  hold that feature's rules.
 - Also locate the **optional** hygiene inputs for this BC — `events.md` and
   `models.md`. They feed the non-blocking hygiene checks (Core-Specific Notes /
   Model Catalog Notes). If either is absent, **skip its hygiene check silently** —

@@ -95,7 +95,12 @@ AI must locate the target feature and load its current state:
      `AI-AGENT-GUIDE.md` § Status / Control Commands): list other unfinished
      features in `active/` and any feature / bugfix branches whose work is
      not visible on this branch — if the incoming phase scope overlaps one
-     of them, surface it before writing the phase-spec.
+     of them, surface it before writing the phase-spec. For each unfinished
+     feature the scan lists that works in the same bounded context as this
+     work, also read its `_index.md` Current BR Snapshot: those rules reach
+     the context's `rules.md` only at that feature's `/dflow:finish-feature`.
+     A rule this work would add or change that one of them already adds or
+     changes is an overlap: surface it and wait for the developer.
 
 5. **Branch gate — ensure you are on this feature's branch (before any commit)**
 
@@ -128,11 +133,19 @@ Walk the developer through what the new phase covers:
    or a question whose id reads `{SPEC-ID}/QNN`, apply
    `references/modify-existing-baseline.md` § Preserve pending confirmations.
 3. **Any Domain concepts introduced or changed?** New Entities / Value
-   Objects / Services touching `src/Domain/{context}/`? If this phase is an
+   Objects / Services touching `src/Domain/{context}/`? Record what this phase
+   adds or changes in the Domain Concepts table of the phase-spec Step 4
+   writes, not in `glossary.md` or `models.md`: `/dflow:finish-feature` Step 3
+   writes them. Do this even where the project's `_conventions.md` says to
+   add a new term to `glossary.md` before using it in a spec: while this
+   feature carries phase-specs, the term goes in the phase-spec's Domain
+   Concepts table, and `/dflow:finish-feature` Step 3 adds it to
+   `glossary.md`. If this phase is an
    **Aggregate-emergence escalation** (handed off from `/dflow:modify-existing`),
    record the candidate Aggregate Root, the invariants it protects, and what
-   must change atomically — marking the Aggregate Root on its `models.md`
-   Entity row (no separate Aggregates section). For how to model it (invariant
+   must change atomically in that Domain Concepts table — the `models.md`
+   Entity row that marks the Aggregate Root (no separate Aggregates section)
+   is written at `/dflow:finish-feature` Step 3. For how to model it (invariant
    classification, set-based / uniqueness rules, aggregate sizing), read
    `references/ddd-modeling-guide.md` (its **Edition note** maps recording
    surfaces to brownfield's `models.md` / `rules.md`). If the phase **extends

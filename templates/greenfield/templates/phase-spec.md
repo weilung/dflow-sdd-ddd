@@ -63,7 +63,7 @@ Template note (for AI):
 |---|---|---|
 | {Name} | Aggregate Root / Entity / Value Object / Domain Service | 角色 |
 
-更新檢查：
+收尾時（`/dflow:finish-feature` Step 3）依本表更新：
 - [ ] `dflow/specs/domain/glossary.md` — 新術語
 - [ ] `dflow/specs/domain/{context}/models.md` — 模型定義
 - [ ] `dflow/specs/domain/{context}/events.md` — Domain Events

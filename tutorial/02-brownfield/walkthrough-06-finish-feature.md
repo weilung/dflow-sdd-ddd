@@ -28,7 +28,7 @@ bug，而是把 `SPEC-20260430-001-order-discount-calculation` 這個第一個 O
 |---|---|
 | feature 什麼時候可以 finish？ | phase 1、baseline capture、BUG-001、regression verification 都已穩定後才 closeout。 |
 | finish-feature 會不會改所有 Order BC 文件？ | 會 sync BC layer，但只 reconcile SPEC-001 owned BR-001~004。 |
-| 同一個 BC 還有 active feature 怎麼辦？ | BR-005~008 保留給 SPEC-002，不因 SPEC-001 closeout 被刪除或 finalization。 |
+| 同一個 BC 還有 active feature 怎麼辦？ | SPEC-002 的 BR-005~008 只在它自己的 `_index.md`；SPEC-001 收尾只寫自己的 BR-001~004，不碰它們。 |
 | completed feature 還能不能追加 T2 / T3？ | 不能。完成後是 frozen history；未來改動走 follow-up feature。 |
 | closeout summary 應該寫什麼？ | 規範的 `Format:` 只有 Feature Goal、Change Scope（`BC` / `Phase Count` / `Lightweight Changes`）、`Related BR-IDs`、Phase List、Next Steps。本篇另外示範團隊自加的補充段落（Domain extraction、tech debt、future considerations）——那些**不在**規範 Format 裡。 |
 
@@ -196,25 +196,24 @@ _index.md Current BR Snapshot 是 SPEC-001 的 feature-level truth。
 Dflow:
 Driftcheck result:
 
-- BR-001~004 all exist in dflow/specs/domain/Order/rules.md
-- BR-001~004 all have scenario sections in dflow/specs/domain/Order/behavior.md
-- behavior.md 保留段 3 的 Confirmed across pages (baseline-capture 2026-05-04)，
-  沒有在 BUG-001 closeout 時刪掉歷史
-- Order Aggregate Root、OrderLine Entity、Money / Quantity / DiscountRate VO、
-  DiscountPolicy Domain Service all exist in models.md
+- Current BR Snapshot 的 BR-001~004 與 phase spec 的 Business Rules 對得上；
+  BUG-001 沒有 BR delta，baseline row 沒有 spec 檔，都不改 Snapshot
+- Order 還沒有 rules.md、models.md：BR-001~004 與 Order、OrderLine、Money、Quantity、
+  DiscountRate、DiscountPolicy 都還在 phase spec 與 Snapshot，Step 3 第一次把它們寫進 Order BC
+- behavior.md 是 05-04 盤點建的，只有 Confirmed across pages (baseline-capture 2026-05-04) 一段；
+  BUG-001 沒有動它
 - tech-debt.md rounding inconsistency entry 仍是 open；BUG-001 的 related_tech_debt 指名它，
   Step 3 的技術債對帳會對證據判它
 - tech-debt.md isVip multiplier 0.93 entry 是 planned：清理排在 SPEC-002 phase 1，
   SPEC-001 的 spec 沒有連到它，不是 SPEC-001 closeout scope
-- rules.md also contains BR-005~008。
-  這些屬於 in-progress SPEC-20260505-002，不是本次 finish target
+- features/active/ 還有 SPEC-20260505-002。它的 BR-005~008 只在它自己的 Snapshot，
+  不在 Order BC 的文件裡，也不是本次 finish target
 ```
 
 這是本篇第一個 key lesson：**finish-feature 要檢查整個 feature trail，
 但不能因此接管其他 active feature。**
 
-`rules.md` 裡看到 BR-005~008，不代表 SPEC-001 要管它們。它只代表 Order BC 正在有第二個
-active feature 演進。
+SPEC-002 也在 Order context 裡演進，但它的規則還沒收尾，不在系統層；SPEC-001 收尾只處理自己的那四條。
 
 Dflow 停下來：
 
@@ -318,7 +317,9 @@ Dflow:
 Step 3 — 先收集 debt 訊號：
 
 - phase spec 與 BUG-001 指名的 BR：BR-001～004。
-  四列在 rules.md 的 Known deviations 都是 —，沒有訊號。
+  Order 還沒有 rules.md，沒有 Known deviations 可讀，沒有訊號。
+- 05-04 盤點在 Goals & Scope 記的確認行，沒有點名偏離的技術債
+  （Bob 對 BR-004 答的是「這就是規則」）→ 沒有訊號。
 - 這些 spec 連到的技術債：BUG-001 的 related_tech_debt 指名
   「OrderList / OrderEntry / OrderDetail rounding 策略不一致」→ 有訊號。
 - 沒有 Deferred deviation 行。
@@ -326,8 +327,8 @@ Step 3 — 先收集 debt 訊號：
 有訊號，所以照 confirmed-rule-vs-code.md § Closeout reconciliation 先認出候選：
 rounding 那一列。BC sync 做完、進 Step 4 之前，再對證據判它。
 
-同步前的檢查：這次要改寫的 BR-002～004 那幾列，Known deviations 都是 —；
-behavior.md 要動的段落也沒有 > Known deviation: 行 → 直接同步，不讀保留程序。
+同步前的檢查：rules.md 這次從範本新建，沒有既有的列；behavior.md 裡既有的只有
+盤點那兩段，這次不改寫，也沒有 > Known deviation: 行 → 直接同步，不讀保留程序。
 ```
 
 ⚠ **訊號只看這個 host 的 spec。** isVip 那一列與「Order 折扣規則分散在多個頁面」那一列，
@@ -351,13 +352,12 @@ finish-feature 不能把整個 rules.md 當成單一 feature 的私有檔案。
 現況是：
 
 - SPEC-001 _index.md Current BR Snapshot contains BR-001~004。
-- Order BC rules.md 已含 BR-001~008。
-- BR-001~004 由 SPEC-001 owned。
-- BR-005~008 由 in-progress SPEC-002 owned。
+- Order BC 還沒有 rules.md：SPEC-001 是 Order 第一個收尾的 feature。
+- BR-005~008 只在 in-progress SPEC-002 的 _index.md，不在 Order BC 的文件裡。
 
-所以 Step 3 sync 動作只 reconcile BR-001~004。
-BR-005~008 保留不動，
-不能因為 SPEC-001 closeout 就刪掉、重排或改 wording。
+所以 Step 3 從範本建立 rules.md，寫進 BR-001~004。
+SPEC-002 的 BR-005~008 不寫、不搬，
+等 SPEC-002 自己收尾時再加進來。
 ```
 
 Bob 確認他的理解：
@@ -366,7 +366,8 @@ Bob 確認他的理解：
 Bob:
 也就是 rules.md 是 Order BC 的 cumulative state，
 不是 SPEC-001 的私有 snapshot。
-SPEC-001 finish 時只同步自己那四條。
+SPEC-001 finish 時只同步自己那四條，
+SPEC-002 收尾時再加它的四條。
 ```
 
 Dflow 回答：
@@ -376,10 +377,11 @@ Dflow:
 對。這是 cross-feature reconciliation 的規則：
 
 - Single feature _index.md = feature-level current state。
-- dflow/specs/domain/Order/rules.md = BC-level cumulative state。
+- dflow/specs/domain/Order/rules.md = BC-level cumulative state，
+  只放收尾過的 feature 定案的規則。
 - finish-feature 只把本次 completed feature 的 owned BR reconcile 到 BC layer。
-- 其他 active feature 的 BR 保留，
-  因為它們代表 Order BC 目前正在演進的 in-progress state。
+- 還沒收尾的 feature 的 BR 不在 rules.md，在它自己的 _index.md；
+  它收尾時再寫進來，而且只動它自己的 BR，不覆寫已經在 rules.md 的。
 ```
 
 這是本篇第二個 key lesson：**BC docs 是 cumulative truth，不是 feature 私有檔。**
@@ -392,17 +394,17 @@ Dflow 的 sync result：
 Dflow:
 本案 sync result：
 
-- BR-001：already exists；wording matches SPEC-001 snapshot
-- BR-002：already exists；補齊 price multiplier 0.9，對齊 SPEC-001 snapshot
-- BR-003：already exists；補齊 price multiplier 0.95，對齊 SPEC-001 snapshot
-- BR-004：already exists；補齊 total discount rate formula，對齊 SPEC-001 snapshot
-- BR-005~008：not touched；仍 owned by SPEC-002
+- rules.md 不存在 → 從 templates/rules.md 建立
+- BR-001~004：還不在 rules.md → 照 SPEC-001 snapshot 新增
+  （BR-002、BR-003 帶 price multiplier，BR-004 帶 total discount rate formula），
+  Last updated 2026-05-12
+- BR-005~008：不寫；它們還在 SPEC-002 的 snapshot
 ```
 
 ⚠ **接下來這兩段 `Lifecycle` 是 Bob 團隊自訂的，Dflow 不會產生。** `rules.md` /
 `behavior.md` 範本裡沒有 `Lifecycle` 段，`finish-feature-flow.md` Step 3 也沒有要求
 建立它——Step 3 對 `rules.md` 的規定只有「增 / 改 / 刪 BR 段」與「更新 Rule Index 的
-`Last updated`」。留在本篇是因為多 feature 並存時，「哪些 BR 還屬於別的 active feature」
+`Last updated`」。留在本篇是因為多 feature 並存時，「別的 active feature 的規則在哪裡」
 確實需要一個記錄面；**但這一步要團隊自己補**。
 
 `rules.md` 完整文件範例包含團隊自加的 Lifecycle：
@@ -411,15 +413,15 @@ Dflow:
 ## Lifecycle
 
 - BR-001~004 finalized as of 2026-05-12 from `SPEC-20260430-001-order-discount-calculation` completion.
-- BR-005~008 are owned by `SPEC-20260505-002-vip-discount-policy` and remain active while that feature is still in progress.
-- 多 feature 並存於 Order BC 時，`rules.md` 是 cross-feature cumulative state；`/dflow:finish-feature` 只 reconcile 本次 completed feature owned BR，不覆寫其他 active feature 的 BR。
+- `SPEC-20260505-002-vip-discount-policy` is still in progress; its BR-005~008 are in its own `_index.md` and reach this file only at its `/dflow:finish-feature`.
+- 多 feature 並存於 Order BC 時，`rules.md` 只放收尾過的 feature 定案的規則；`/dflow:finish-feature` 只 reconcile 本次 completed feature owned BR，不覆寫其他 feature 已經寫進來的 BR。
 ```
 
 完整文件範例：
 [`outputs/dflow/specs/domain/Order/rules.md`](outputs/dflow/specs/domain/Order/rules.md)
 
-這個 Lifecycle note 的價值很高——未來 reviewer 看見 BR-005~008 仍在 `rules.md` 時，
-不會誤以為 SPEC-001 closeout 漏了它們；它們只是屬於另一個 active feature。
+這個 Lifecycle note 的價值很高——未來 reviewer 在 `rules.md` 找不到 VIP 規則時，
+知道它們還在 SPEC-002 的 `_index.md`，不會誤以為誰漏寫了。
 **價值高不等於 Dflow 會做**：這是團隊自己維護的一段，closeout 時要記得手動更新。
 
 ### `behavior.md` lifecycle note
@@ -438,14 +440,23 @@ Dflow 回：
 Dflow:
 會保留。
 
-- BR-001~004 phase 1 scenarios already exist。
-- 段 3 Confirmed across pages (baseline-capture 2026-05-04)
-  保留作 accepted cross-page behavior history。
+- behavior.md 是 05-04 盤點建的，目前只有 Confirmed across pages 一段。
+- BR-001~004 的情境這次從 phase 1 的 Behavior Scenarios 寫進來（Order Discount Calculation 一節）；
+  沒有別的 spec 改過它們，照 phase 1 的寫。
+- 段 3 Confirmed across pages (baseline-capture 2026-05-04) 沒有 spec 改到，照原樣保留，
+  作為 accepted cross-page behavior history。
 - 新增 lifecycle note，說明 BR-001~004 由 SPEC-001 completion finalized。
-- BR-005~008 的 VIP behavior sections 保留，
-  因為 Order BC 文件是 cumulative，
-  但它們仍由 SPEC-002 owned，未由本次 closeout finalized。
+- SPEC-002 的 VIP 情境不寫進來：它們還在 SPEC-002 的 phase spec。
+
+同步後的兩項檢查：
+- behavior.md 每條還在的 BR（BR-001~004）都有 section anchor，沒有已移除 BR 的段落 ✓
+- 這一步寫的 BR-001~004，rules.md 的 Last updated 都是 2026-05-12 ✓
+
+這一步寫進 behavior.md 的是 Order Discount Calculation 一節的四段（BR-001~004），
+請看有沒有表達原本的意思；要改，在歸檔之前改。
 ```
+
+Bob 看過四段，確認沒問題。
 
 `behavior.md` 完整文件範例 lifecycle note：
 
@@ -454,7 +465,7 @@ Dflow:
 
 - BR-001~004 finalized on 2026-05-12 by `SPEC-20260430-001-order-discount-calculation` completion.
 - Baseline-capture scenarios remain here as accepted cross-page behavior history; do not delete them during SPEC-001 archive.
-- BR-005~008 remain owned by in-progress `SPEC-20260505-002-vip-discount-policy`; their behavior sections stay in this cumulative Order BC document but are not finalized by SPEC-001 closeout.
+- `SPEC-20260505-002-vip-discount-policy` is still in progress; its VIP scenarios are in its phase spec and reach this file only at its `/dflow:finish-feature`.
 ```
 
 完整文件範例：
@@ -464,6 +475,24 @@ Dflow:
 
 Baseline-capture row 沒有獨立 spec file，但它的 confirmed behavior 已經被 system-level
 `behavior.md` 接住，closeout 時要確認它還在。
+
+### `models.md`、`glossary.md`、`context-map.md`
+
+規則與情境之外，這個 feature 的模型、術語與 context 之間的關係，也是這一步第一次寫進 Order BC：
+
+```text
+Dflow:
+Step 3 其他 BC layer 文件：
+
+- models.md：不存在 → 從範本建立，依 phase spec 的 Domain Concepts 寫
+  Order Aggregate Root、OrderLine Entity、Money / Quantity / DiscountRate VO、
+  DiscountPolicy Domain Service
+- glossary.md：依 Domain Concepts 補上這個 feature 的術語（DiscountPolicy、CustomerTier 等）
+- context-map.md：§ Relationships 寫進這個 feature 加的關係——Customer、Inventory 供應 Order，
+  Order 往下游接 Shipment、Invoice（brownfield 的 per-change sweep 不帶這一項，由收尾寫）；
+  § External Systems 沒有要記的交換
+- SPEC-002 的 Domain Concepts 記的 ContractValidUntil、VIP 等，不寫：等它自己收尾
+```
 
 ### 技術債對帳（BC sync 之後、Step 4 之前）
 
@@ -493,7 +522,7 @@ Resolved deviations: none; debt done: OrderList / OrderEntry / OrderDetail round
 由收尾對著測試結果與實作位置確認之後才設——見
 [walkthrough 05](walkthrough-05-bug-fix.md) 的 Step 5。
 
-closeout sweep 的 tech-debt 項另外照實記下這次對其他列看到的事：
+收尾複核技術債時，另外照實記下這次對其他列看到的事：
 
 ```text
 Dflow:
@@ -521,15 +550,14 @@ Dflow:
 三個已知頁面 display contract 統一了，但其他 Order 頁面仍可能還有未抽離的邏輯，所以那一列保持 open
 ——收尾只把有證據證明已經還清的那一列設成 `done`。
 
-### `analysis.md`：收尾 sweep 與落地複核
+### `analysis.md`：收尾時的落地複核
 
-closeout sweep 也涵蓋 `analysis.md`——`finish-feature-flow.md` Step 3 那一句帶的是
-`new-feature-flow.md` Step 8.3 的同一組項目，其中一項是落地複核：這個 feature **動手之前**記下的條目，
-照實際做出來的對一次。
+`finish-feature-flow.md` Step 3 也複核 `analysis.md`：它是做的時候寫的，收尾時對照整個 feature 的淨結果再看一次。
+其中一項是落地複核：這個 feature **動手之前**記下的條目，照實際做出來的對一次。
 
 ```text
 Dflow:
-Step 3 analysis.md sweep（兩個落點）：
+Step 3 analysis.md 複核（兩個落點）：
 
 - domain/Order/analysis.md——逐條讀檔案本身，不讀 diff
   （RM-01 是 04-30 寫的，中間隔了好幾個 checkpoint，看 diff 會以為沒東西要複核）：
@@ -766,7 +794,7 @@ Goals & Scope，不是改寫成 Aggregate / VO 清單。抽出來的 Domain mode
 `First Seen (phase)` 都是 `phase-1`，沒有一列是 `inherited from rules.md`，所以是
 `ADDED: BR-001…BR-004 / MODIFIED: none`。
 
-Step 3 印的「already exists；補齊 price multiplier」講的是 `rules.md` 那一邊的動作，
+Step 3 印的「照 SPEC-001 snapshot 新增」講的是 `rules.md` 那一邊的動作，
 跟這一欄是兩件事。
 
 還有一欄是 brownfield 特有的：`Lightweight Changes` 的計數多了
@@ -899,12 +927,13 @@ Order BC 整體 modernization 還有很長的路，
 | 修改 | [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md) | completed status（只翻 `status`）、Resume Pointer 終局狀態、Checkpoint Log 的 closeout 列、Lightweight Changes 回填的兩個 `Commit` 格。⚠ Integration Summary **不寫進檔案**，見 Step 5。 |
 | 保留 | [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/phase-spec-2026-04-30-baseline-and-fix.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/phase-spec-2026-04-30-baseline-and-fix.md) | phase 1 frozen history；closeout 不重寫 inline phase content。 |
 | 保留 | [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/BUG-001-rounding-inconsistency.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/BUG-001-rounding-inconsistency.md) | BUG-001 frozen history；closeout 只在 `_index.md` 彙整。 |
-| 修改 | [`outputs/dflow/specs/domain/Order/rules.md`](outputs/dflow/specs/domain/Order/rules.md) | BR-001~004 finalized lifecycle note；BR-005~008 preserved for active SPEC-002。 |
-| 修改 | [`outputs/dflow/specs/domain/Order/behavior.md`](outputs/dflow/specs/domain/Order/behavior.md) | baseline-capture behavior 保留；BR-005~008 behavior 保留但未由 SPEC-001 finalized。 |
+| 新建 | [`outputs/dflow/specs/domain/Order/rules.md`](outputs/dflow/specs/domain/Order/rules.md) | 照 SPEC-001 snapshot 寫進 BR-001~004，加上團隊自加的 Lifecycle note。SPEC-002 的 BR-005~008 還在它自己的 `_index.md`，不在這裡。 |
+| 新建 | [`outputs/dflow/specs/domain/Order/models.md`](outputs/dflow/specs/domain/Order/models.md) | 依 phase spec 的 Domain Concepts 寫 Order、OrderLine、Money、Quantity、DiscountRate、DiscountPolicy。 |
+| 修改 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) / [`context-map.md`](outputs/dflow/specs/domain/context-map.md) | 這個 feature 的術語；Order 與 Customer、Inventory、Shipment、Invoice 的 Relationships。 |
+| 修改 | [`outputs/dflow/specs/domain/Order/behavior.md`](outputs/dflow/specs/domain/Order/behavior.md) | 寫進 BR-001~004 的情境（Order Discount Calculation 一節）；05-04 盤點的跨頁情境照原樣保留。 |
 | 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | 技術債對帳把 rounding debt 設成 `done`（附 `Resolved by:`）；multi-page discount debt 仍 open、補一句進度；isVip 仍 `planned`；其餘 brownfield debt 照舊。 |
 | 故意不改 | [`outputs/dflow/specs/features/active/SPEC-20260505-002-vip-discount-policy/_index.md`](outputs/dflow/specs/features/active/SPEC-20260505-002-vip-discount-policy/_index.md) | SPEC-002 仍 active，不在本 closeout scope。 |
-| 故意不改 | `outputs/dflow/specs/domain/Order/context.md` / `models.md` | closeout 沒有新增 Domain model 或 context boundary。 |
-| 故意不改 | `outputs/dflow/specs/domain/glossary.md` / `context-map.md` | closeout 沒有新增 ubiquitous language 或 BC relationship。 |
+| 故意不改 | `outputs/dflow/specs/domain/Order/context.md` | closeout 沒有改 context boundary。 |
 
 ## 本篇展示的 Dflow 能力
 
@@ -922,8 +951,8 @@ Order BC 整體 modernization 還有很長的路，
 | 風險 | 沒有 Dflow 時的常見狀況 | 本篇如何降低 |
 |---|---|---|
 | feature 永遠 active | phase 做完、bug 修完後沒人 closeout，下一個人不知道狀態。 | `_index.md` status completed，Resume Pointer 改成 closeout state。 |
-| active feature 互相污染 | finish SPEC-001 時順手改掉或歸檔 SPEC-002。 | Step 3 / Step 4 明確 preserve BR-005~008 與 active SPEC-002。 |
-| BC docs 被單一 feature 覆寫 | 用 SPEC-001 snapshot 重寫整個 `rules.md`，刪掉 BR-005~008。 | 只 reconcile owned BR-001~004，`rules.md` 保持 cumulative state。 |
+| active feature 互相污染 | finish SPEC-001 時順手改掉或歸檔 SPEC-002。 | Step 3 只寫 SPEC-001 的 BR-001~004；SPEC-002 的規則不在系統層，目錄留在 `active/`。 |
+| BC docs 被單一 feature 覆寫 | 收尾時用自己的 snapshot 重寫整個 `rules.md`，蓋掉別的 feature 已經寫進來的 BR。 | 只 reconcile owned BR，`rules.md` 保持 cumulative state；SPEC-002 收尾時同樣只加它自己的。 |
 | baseline history 遺失 | archive 時刪掉 baseline-capture confirmed behavior。 | driftcheck 確認 `behavior.md` baseline-capture section 保留。 |
 | completed feature 繼續被追加 | 後續小修直接塞回 completed directory。 | Outstanding section 明示未來變更走 follow-up feature。 |
 

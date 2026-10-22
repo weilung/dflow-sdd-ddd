@@ -321,7 +321,7 @@ Step 3 最後一組問題：
    phase 1 沒有要跟其他 context 一步一步交手的地方。
 2. 這個 feature 帶進來的狀態欄位：ExpenseReport.Status。
    phase 1 只有 Draft → Submitted，員工送出時轉；
-   准不准轉，看這一步寫進 rules.md 的 BR-001（至少一個 ExpenseItem，就是上面的 INV-01）。
+   准不准轉，看這一次要定的 BR-001（至少一個 ExpenseItem，就是上面的 INV-01；收尾時才寫進 rules.md）。
 3. 算出來、不是存下來的數字：ExpenseReportSubmitted 帶的 TotalAmount——
    送出當下所有費用項金額的加總，不另外存欄位。
 4. 誰碰得到這個 feature：員工（你在 Step 1 說的：內部所有會出差或有零星公務支出的員工），
@@ -436,18 +436,18 @@ resume 時該接哪裡，都靠它：
 | 新建 BC context | `dflow/specs/domain/Expense/context.md` | Expense BC 的職責與邊界 |
 | 修改 context map | `dflow/specs/domain/context-map.md` | 記錄 Expense 的 Subdomain Type（`core`） |
 
-**Step 3 的產物**（domain modeling 時，foundational 文件缺哪份就從範本建哪份；兩支 `analysis.md` 不在那張清單上，是第一次有東西要記時才建）：
+**Step 3 的產物**（domain modeling 時只寫兩支 `analysis.md`，第一次有東西要記時才建）：
 
 | 類型 | Path | 用途 |
 |---|---|---|
-| 新建 model catalog | `dflow/specs/domain/Expense/models.md` | Aggregate、Entity、VO、Repository |
-| 新建 rules index | `dflow/specs/domain/Expense/rules.md` | BR-ID 索引；最後一欄 `Known deviations` 記延後修的偏離，新建的列都填 `—` |
-| 新建 behavior（骨架） | `dflow/specs/domain/Expense/behavior.md` | 每條 BR 一個 anchor，場景 Step 8.3 才 merge（見下一段） |
-| 新建 event catalog | `dflow/specs/domain/Expense/events.md` | Domain Event catalog |
 | 新建 context 層分析 | `dflow/specs/domain/Expense/analysis.md` | LC-01（ExpenseReport.Status：Draft → Submitted）、RM-01（送出總額）；見上面 Step 3 最後一組問題 |
 | 新建 domain 根分析 | `dflow/specs/domain/analysis.md` | Function / Role Index：員工的兩個功能；Open Questions and Hotspots：資料範圍待答（HS-01） |
-| 修改 glossary | `dflow/specs/domain/glossary.md` | 加入 ExpenseReport 等術語 |
-| （同上）context map | `dflow/specs/domain/context-map.md` | 它同時列在 Step 3 的 foundational 清單裡：**Step 2 寫的是 Subdomain Type，Step 3 負責「不存在就建」**。同一個檔被兩步碰到，不是矛盾。 |
+
+這一步找到的 Aggregate、Value Object、Domain Event、術語與業務規則，**不寫進**
+`models.md`、`events.md`、`glossary.md`、`rules.md`、`behavior.md`：它們先記在 Step 4 的
+phase-spec（Domain Concepts、Domain Events、Business Rules、Behavior Scenarios）與
+`_index.md` 的 Current BR Snapshot，等 `/dflow:finish-feature` Step 3 依整個 feature
+最後的樣子一次寫進系統層（walkthrough 06）。
 
 **Step 4 的產物**（feature directory 本身）：
 
@@ -461,19 +461,19 @@ resume 時該接哪裡，都靠它：
 「Before I create the feature directory or branch…」，而同一份 flow 的 Step 2 與 Step 3
 各自明列了上面那些**已經**要建的文件。逐份文件的歸屬照上表讀。
 
-`behavior.md` 這一份比較特別，Dflow 會說明它**現在只建骨架**：
+`rules.md` 與 `behavior.md` 這一步都不碰，Dflow 會說明原因：
 
 ```text
 Dflow:
-建 dflow/specs/domain/Expense/behavior.md，但這一步只放骨架：
-每一條 BR-* 一個 section anchor，先不寫 Given/When/Then。
-場景會在完成 checklist 的 Step 8.3（finish-feature）從 phase-spec merge 進來。
+這次的 BR 與它們的 Given/When/Then 先寫在 phase-spec，
+_index.md 的 Current BR Snapshot 記目前的規則；
+rules.md、behavior.md 要到 /dflow:finish-feature 收尾時才一次寫進去。
 ```
 
-這個說明對讀者很重要，而且**容易被反向記錯**：不是「先不要建」，而是
-「**先建骨架、內容晚點填**」。差別在於 `rules.md` 的 Rule Index 有一個
-`Behavior anchor` 欄，它從第一天就要指得到東西——骨架先在，anchor 才不會斷。
-（規範出處：`new-feature-flow.md` Step 3 的 foundational-docs 清單。）
+這個說明對讀者很重要：feature 常要來回好幾個 phase 才定案，**系統層只放定案的規則**。
+做到一半放棄的 feature 不會在 `rules.md` 留下沒定案的規則；之後的 phase 改了規則，
+收尾時也是依最後的樣子寫，不會停在第一輪。進行中的規則要看 `_index.md`。
+（規範出處：`new-feature-flow.md` Step 3 與 § 8.3 開頭。）
 
 ## 文件片段 1 — `_index.md` 當下長什麼樣
 
@@ -649,8 +649,10 @@ ExpenseReport (Aggregate Root)
 
 ## 文件片段 4 — System-level domain docs 開始長出來
 
-Feature spec 是短期執行文件；domain docs 是長期 system state。Dflow 在 Step 4
-同時建立第一個 BC 的 system-level 文件，讓未來 feature 不必重新猜。
+Feature spec 是短期執行文件；domain docs 是長期 system state。這一步當場寫的只有
+Step 2 的 `context.md` 與 Step 3 的兩支 `analysis.md`；下面的 `models.md`、`events.md`
+是 walkthrough 06 收尾時寫進去的樣子，放在這裡對照——這一步它們的內容住在 phase-spec 的
+Domain Concepts 與 Domain Events 表。
 
 ### `domain/Expense/context.md`
 
@@ -682,6 +684,8 @@ Feature spec 是短期執行文件；domain docs 是長期 system state。Dflow 
 
 ### `domain/Expense/models.md`
 
+（收尾時寫進去的樣子。）
+
 ```markdown
 # Domain Models
 
@@ -711,6 +715,8 @@ Feature spec 是短期執行文件；domain docs 是長期 system state。Dflow 
 [`outputs/dflow/specs/domain/Expense/models.md`](outputs/dflow/specs/domain/Expense/models.md)
 
 ### `domain/Expense/events.md`
+
+（收尾時寫進去的樣子。）
 
 ```markdown
 # Domain Events
@@ -972,16 +978,16 @@ closeout 時 Active Workflow 會被設回 `none`——那就是 completed fixtur
 | 新建 | [`outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/phase-spec-2026-04-28-mvp.md`](outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/phase-spec-2026-04-28-mvp.md) | Problem、behavior scenarios、BR、edge cases、implementation tasks。 |
 | 新建 | [`outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/aggregate-design.md`](outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/aggregate-design.md) | Invariants、state transition methods、design decisions。 |
 | 新建 | [`outputs/dflow/specs/domain/Expense/context.md`](outputs/dflow/specs/domain/Expense/context.md) | Expense BC 的職責、邊界、out-of-scope。 |
-| 新建 | [`outputs/dflow/specs/domain/Expense/models.md`](outputs/dflow/specs/domain/Expense/models.md) | Aggregate、Entity、VO、repository interface。 |
-| 新建 | [`outputs/dflow/specs/domain/Expense/rules.md`](outputs/dflow/specs/domain/Expense/rules.md) | BR-ID index。 |
-| 新建 | [`outputs/dflow/specs/domain/Expense/events.md`](outputs/dflow/specs/domain/Expense/events.md) | ExpenseReportSubmitted event catalog。 |
+| 收尾時新建 | [`outputs/dflow/specs/domain/Expense/models.md`](outputs/dflow/specs/domain/Expense/models.md) | Aggregate、Entity、VO、repository interface。這一步在 phase-spec 的 Domain Concepts 表。 |
+| 收尾時新建 | [`outputs/dflow/specs/domain/Expense/rules.md`](outputs/dflow/specs/domain/Expense/rules.md) | BR-ID index。這一步在 phase-spec 的 Business Rules 與 `_index.md` 的 Current BR Snapshot。 |
+| 收尾時新建 | [`outputs/dflow/specs/domain/Expense/events.md`](outputs/dflow/specs/domain/Expense/events.md) | ExpenseReportSubmitted event catalog。這一步在 phase-spec 的 Domain Events 表。 |
 | 新建 | [`outputs/dflow/specs/domain/Expense/analysis.md`](outputs/dflow/specs/domain/Expense/analysis.md) | Step 3 記下 LC-01（ExpenseReport.Status：Draft → Submitted）與 RM-01（送出總額）。⚠ outputs 那一份是最終狀態：多了 phase 2 的轉移與 MX-01，Evidence 也已換成複核過的 `code`。 |
 | 新建 | [`outputs/dflow/specs/domain/analysis.md`](outputs/dflow/specs/domain/analysis.md) | Step 3 在 Function / Role Index 記下員工的兩個功能（FN-01、FN-02），並把沒有答案的資料範圍記成 HS-01。⚠ outputs 那一份多了 phase 2 主管的三個功能，Entry point 已補上，FN-01 也已照實際做法改名。 |
-| 修改 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) | ExpenseReport、ExpenseItem、Approver、Reimbursement 等 ubiquitous language。 |
+| 收尾時修改 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) | ExpenseReport、ExpenseItem、Approver、Reimbursement 等 ubiquitous language。這一步在 phase-spec 的 Domain Concepts 表。 |
 | 修改 | [`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md) | Expense BC 加入 context map。 |
-| 新建（骨架） | `dflow/specs/domain/Expense/behavior.md` | Step 3 建骨架：每條 BR 一個 anchor；Given/When/Then 到 Step 8.3 / finish-feature 才從 phase spec merge。⚠ `outputs/` 樹裡那一份是 **closeout 之後填滿的最終狀態**（七條 BR 都有場景），不是本步驟當下這份只涵蓋 BR-001~004 的骨架。 |
+| 收尾時新建 | `dflow/specs/domain/Expense/behavior.md` | 這一步不建：Given/When/Then 在 phase-spec 的 Behavior Scenarios，`/dflow:finish-feature` Step 3 才寫進來（walkthrough 06）。`outputs/` 樹裡那一份是 closeout 之後的最終狀態（七條 BR 都有場景）。 |
 
-上表連到完整文件範例；本篇重點是 step 02 如何建立這些文件的第一個可審視版本。
+上表連到完整文件範例（`outputs/` 是整個教材跑完的最終狀態）；標「收尾時」的那幾份，這一步只在 phase-spec 與 `_index.md` 裡。
 
 ## 本篇展示的 Dflow 能力
 

@@ -73,6 +73,12 @@ git branch --all --list '*feature/*' --list '*bugfix/*'
   developer to decide — continue there / integrate it first / treat as
   related / unrelated — **before creating any new directory, spec, or
   branch**. Only stale (completed here) branches are non-blocking.
+- For each unfinished feature the scan lists that works in the same bounded
+  context as this work, also read its `_index.md` Current BR Snapshot: those
+  rules reach the context's `rules.md` only at that feature's
+  `/dflow:finish-feature`. A rule this work would add or change that one of
+  them already adds or changes is an overlap: surface it and wait for the
+  developer.
 
 **→ Transition (step-internal)**: Step 1 complete. Announce "Step 1 complete (intake). Entering Step 2: Identify the Bounded Context." and continue.
 
@@ -184,13 +190,7 @@ Before changing an `analysis.md` entry that holds a `> Known deviation:` line, a
 
 Domain events keep their definitions and payloads in `events.md`; name them in the flow here instead of restating them.
 
-If foundational domain docs are missing, create them from templates before writing content:
-- `dflow/specs/domain/glossary.md` → `templates/glossary.md`
-- `dflow/specs/domain/{context}/models.md` → `templates/models.md`
-- `dflow/specs/domain/{context}/rules.md` → `templates/rules.md`
-- `dflow/specs/domain/{context}/behavior.md` → `templates/behavior.md` — at this step create only the skeleton + one section anchor per `BR-*`; the Given/When/Then scenarios are merged in later at Step 8.3 (finish-feature), not now
-- `dflow/specs/domain/{context}/events.md` (when Domain Events are involved) → `templates/events.md`
-- `dflow/specs/domain/context-map.md` (when cross-context relationships, or a context's exchange with an external system, are involved) → `templates/context-map.md`
+What this feature adds to or changes in the domain — terms, models, Domain Events, relationships between contexts — goes into the phase-spec Step 4 writes, not into `glossary.md`, `models.md`, `rules.md`, `behavior.md`, `events.md` or `context-map.md`: `/dflow:finish-feature` Step 3 writes those from the feature's net result. Do this even where the project's `_conventions.md` says to add a new term to `glossary.md` before using it in a spec: while this feature carries phase-specs, the term goes in the phase-spec's Domain Concepts table, and `/dflow:finish-feature` Step 3 adds it to `glossary.md`.
 
 **→ Step Gate: Step 3 → Step 3.5**
 
@@ -454,7 +454,7 @@ During implementation, continuously verify:
 **→ Step Gate: Step 7 → Step 8**
 
 Announce to developer:
-> "Implementation appears complete across all four layers. Ready to run the completion checklist (verify against spec, update domain docs + context-map, ensure test coverage, complete the phase)? `/dflow:next` to proceed."
+> "Implementation appears complete across all four layers. Ready to run the completion checklist (verify against spec, ensure test coverage, complete the phase)? `/dflow:next` to proceed."
 
 > Commit checkpoint (T1 milestone 2 of 3): offer to commit the implementation, then record the result in the `_index.md` Checkpoint Log. Milestone 3 (closeout) is the `/dflow:finish-feature` checkpoint.
 
@@ -468,7 +468,7 @@ Triggered by the Step 7 → Step 8 Step Gate. AI runs the completion checklist i
 
 When this work's spec carries a `Deferred deviation` line, apply `references/confirmed-rule-vs-code.md` § Scope and recording to the items here that require a BR, its scenarios or its invariants to be implemented.
 
-AI reports `✓` / `✗` for every item before touching docs. Items marked *(post-8.3)* are re-verified after the documentation merge in 8.3 lands:
+AI reports `✓` / `✗` for every item before touching docs:
 
 - [ ] `Implementation Tasks` section: all tasks checked, or unchecked items explicitly labelled as follow-up (linked to spec / tech-debt entry)
 - [ ] Every `Given/When/Then` scenario in the spec is covered by implementation or tests
@@ -478,8 +478,6 @@ AI reports `✓` / `✗` for every item before touching docs. Items marked *(pos
 - [ ] Domain layer/package has **no** external package-manager dependencies beyond the language/runtime baseline
 - [ ] Aggregate invariants still hold after the change (all state changes go through methods, no public setters)
 - [ ] ORM / persistence mapping is kept outside Domain entities (no persistence attributes/annotations on Domain entities)
-- [ ] *(post-8.3)* `dflow/specs/domain/{context}/behavior.md` contains a section anchor for every `BR-*` introduced by this spec (mechanical input for `/dflow:verify`)
-- [ ] *(post-8.3)* for **every `BR-*` this spec introduced or changed**, that rule's row in `dflow/specs/domain/{context}/rules.md` carries a `Last updated` not earlier than this spec's `created` date (mechanical drift guard). ⚠ Quantified per-BR on purpose, like the item above: a T1 may legitimately introduce **no** BR (§ Ceremony Scaling step 0 admits it), and this then passes vacuously rather than blocking. `rules.md` has no document-level `last-updated` — it is a column in the Rule Index, which is what 8.3 sub-step B4 updates.
 
 If any item fails, report the gap and pause — don't proceed to 8.2.
 
@@ -491,29 +489,21 @@ AI lists findings one at a time and waits for the developer to confirm each:
 - [ ] Are the edge case handling decisions appropriate? (AI lists EC → handling; developer judges)
 - [ ] Are Domain Event payloads and handler placements (same-context sync vs cross-context async) correct? (AI lists; developer confirms)
 - [ ] Did we miss any tech debt worth recording?
-- [ ] Do the scenarios merged into `behavior.md` (incl. Aggregate transitions + Events) faithfully express the intended behavior? (AI lists merged anchors; developer judges)
 - [ ] Should the `Implementation Tasks` section in the spec be collapsed / removed now that it's complete? (team convention — developer decides)
 
-Ask these one-by-one; do not dump all six at once.
+Ask these one-by-one; do not dump all five at once.
 
 ### 8.3 Documentation updates
 
 > **Table-cell formatting**: keep table cells concise — separate multiple short items with `<br>` (never chain them into one line with ；/; separators), and move long narrative detail out of the cell into a document section (full convention: the formatting comment at each spec doc's head).
 
-Before you change or delete a `rules.md` row, `behavior.md` section or `analysis.md` entry below that carries a deviation record — a `Known deviations` cell that is neither `—` nor empty, or a `> Known deviation:` line — apply `references/confirmed-rule-vs-code.md` § Preserve during merge.
+This step writes only what describes the system as built: `analysis.md`, at either of its two paths, and the tech-debt file. It does **not** write `glossary.md`, `models.md`, `rules.md`, `behavior.md`, `events.md` or `context-map.md`: this feature's changes to them stay in its phase-specs and `_index.md` until `/dflow:finish-feature` Step 3 writes them from the feature's net result, once for every phase.
 
-- [ ] `dflow/specs/domain/glossary.md` — new terms added
+Before changing an `analysis.md` entry that holds a `> Known deviation:` line, apply `references/confirmed-rule-vs-code.md` § Preserve during merge.
+
 - [ ] `dflow/specs/domain/analysis.md` — ordered cross-context flows, role reach, or anything else no one context owns, that this feature introduced, found or altered; any spot this feature worked around pending a domain decision, in those or in unrecorded knowledge that belongs here; and any open row there this feature settled (created from `templates/analysis.md` the first time there is something to record)
-- [ ] `dflow/specs/domain/{context}/models.md` — model definitions updated
 - [ ] `dflow/specs/domain/{context}/analysis.md` — lifecycles, derived figures or mechanisms no single rule explains this feature introduced, found or altered, in the owning context's copy, which may not be this host's; any spot this feature worked around pending a domain decision, in those or in a rule or unrecorded knowledge that belongs there; and any open row there this feature settled (created from `templates/analysis.md` the first time there is something to record) — including the lifecycle any `aggregate-design.md` worksheet recorded as State Transition Methods: that worksheet freezes with the feature directory, this file does not
-- [ ] `dflow/specs/domain/{context}/rules.md` — business rules updated
-- [ ] `dflow/specs/domain/{context}/behavior.md` — merge completed spec's Given/When/Then scenarios (incl. Aggregate transitions + Events) into consolidated behavior. Sub-steps:
-      - Promote any Activity 3 (Spec Writing) draft sections (from B3 mid-sync) to formal sections
-      - Update the corresponding `rules.md` anchor's `last-updated` date (B4)
-- [ ] `behavior.md` draft cleanup — if the spec was abandoned mid-way, keep the `## 提案中變更` section's history or explicitly REMOVE it
 - [ ] `analysis.md`, at either of its two paths — re-check every entry this feature recorded before building: an entry for what the feature was to add or change against what was built (corrected where the build differs, removed where nothing was built for it), and an entry for something already in the system against the system as it now stands (corrected where this feature changed it, never removed because this feature built nothing for it). Read the entries in the file, not in a diff: a checkpoint may already have committed them.
-- [ ] `dflow/specs/domain/{context}/events.md` — Domain Events updated
-- [ ] `dflow/specs/domain/context-map.md` — updated if cross-context interaction, or a context's exchange with an external system (§ External Systems), was added or changed
 - [ ] `dflow/specs/architecture/tech-debt.md` — tech debt discovered during implementation recorded
 
 ### 8.4 Phase completion and handoff
@@ -553,7 +543,7 @@ stands, without re-deriving it from the phase-specs.
 
 `Implementation Tasks` is not on this list: 8.1 verified it, and 8.2 may have
 collapsed or removed it by team convention. BC document sync is not on it
-either: 8.3 did it.
+either: `/dflow:finish-feature` Step 3 does it, once for every phase.
 
 **Hand off:**
 

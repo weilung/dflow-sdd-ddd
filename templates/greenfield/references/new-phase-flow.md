@@ -93,12 +93,20 @@ AI must locate the target feature and load its current state:
      particular)
    - Cross-reference the bounded context's `dflow/specs/domain/{context}/rules.md`
      and `behavior.md` if the new phase is likely to touch system-level
-     state (BC-level current state lives there, not in `_index.md`)
+     state (BC-level current state lives there, not in `_index.md`). A
+     context this feature created may have neither file before the
+     feature's closeout: that is not a missing file — its rules are in this
+     feature's Current BR Snapshot.
    - Run the in-flight overlap scan (classification and dedup rules in
      `AI-AGENT-GUIDE.md` § Status / Control Commands): list other unfinished
      features in `active/` and any feature / bugfix branches whose work is
      not visible on this branch — if the incoming phase scope overlaps one
-     of them, surface it before writing the phase-spec.
+     of them, surface it before writing the phase-spec. For each unfinished
+     feature the scan lists that works in the same bounded context as this
+     work, also read its `_index.md` Current BR Snapshot: those rules reach
+     the context's `rules.md` only at that feature's `/dflow:finish-feature`.
+     A rule this work would add or change that one of them already adds or
+     changes is an overlap: surface it and wait for the developer.
 
 5. **Branch gate — ensure you are on this feature's branch (before any commit)**
 
@@ -135,7 +143,14 @@ Walk the developer through what the new phase covers:
    If the phase **extends an existing Aggregate**, apply the established-model
    re-read from `references/ddd-modeling-guide.md` § "Revising an Established
    Model" (match recorded re-evaluation conditions; record proceed / split /
-   rename in the phase-spec).
+   rename in the phase-spec). Record what this phase adds or changes in the
+   phase-spec Step 4 writes — its Domain Concepts and Domain Events tables —
+   not in `glossary.md`, `models.md` or `events.md`: `/dflow:finish-feature`
+   Step 3 writes them. Do this even where the project's `_conventions.md`
+   says to add a new term to `glossary.md` before using it in a spec: while
+   this feature carries phase-specs, the term goes in the phase-spec's Domain
+   Concepts table, and `/dflow:finish-feature` Step 3 adds it to
+   `glossary.md`.
 4. **Cross-context impact?** Does this phase introduce / change Domain
    Events that other contexts consume? (If yes, plan for `context-map.md`
    updates at finish-feature time.)

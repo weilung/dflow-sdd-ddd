@@ -33,9 +33,11 @@ touches and read them all.
 - [ ] State in one sentence: "This PR intends to {change} because
       {reason}." (If you can't, pause and ask the author.)
 - [ ] Cross-reference `dflow/specs/domain/{context}/behavior.md` if it exists
-      — confirm the Delta has been reflected or is scheduled to be
-      (draft vs finalized; finalisation usually happens at
-      `/dflow:finish-feature` time)
+      — when the PR carries the closeout commit, confirm the Delta is
+      reflected there. For a feature that carries phase-specs and has not
+      closed out yet, its changes are only in its phase-specs, the
+      lightweight specs it hosts and `_index.md`: do not expect
+      `behavior.md` to show them
 - [ ] Only then proceed to the code-review sections below
 
 If the PR records its change in neither a spec nor an `_index.md` row (a T3
@@ -383,7 +385,9 @@ A DDD / domain-correctness blocker must state:
 - the code boundary or enforcement needed to restore the guarantee;
 - the existing durable surfaces that must change, as applicable — the spec,
   `aggregate-design.md`, domain `context-map.md` / `events.md` / `behavior.md`,
-  or `architecture/tech-debt.md`;
+  or `architecture/tech-debt.md` — for a feature that carries phase-specs and
+  has not closed out yet, its spec in place of the domain documents, which
+  `/dflow:finish-feature` writes from it;
 - the automated tests or observable evidence that re-verify the guarantee; and
 - that the unimplemented guarantee must not remain marked `completed` before
   re-review.
@@ -435,6 +439,11 @@ instead, writing the owner, known risk and exit criteria in the debt row's
 - [ ] **No business logic** — not even validation beyond format checking
 
 ## Cross-Cutting
+
+For a feature that carries phase-specs and has not closed out yet, read the
+checks below that name `glossary.md` or `events.md` against its phase-specs'
+Domain Concepts and Domain Events tables and the lightweight specs it hosts
+instead: `/dflow:finish-feature` writes those documents.
 
 - [ ] **Glossary consistency** — any new business concept added to `glossary.md`?
 - [ ] **Naming matches the Ubiquitous Language** — for each **domain-facing** type

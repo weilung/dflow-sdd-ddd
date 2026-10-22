@@ -8,8 +8,36 @@
 
 ## Unreleased
 
-> **目前投影版號：`0.17.1`**（**未發布到 npm**；npm latest 仍是 `0.17.0`）。
-> 下面一段在這一版裡，段標題標出它第一次投影的版號。
+> **目前投影版號：`0.17.2`**（**未發布到 npm**；npm latest 仍是 `0.17.0`）。
+> 下面兩段都在這一版裡，段標題標出各自第一次投影的版號。
+
+### 系統層只在收尾寫入：帶 phase-spec 的 feature，變更在收尾前只留在 feature 目錄（PROPOSAL-118，dist issue #25）——`0.17.2`
+
+**來源**：dist issue #25——一個 feature 來回好幾輪才定案時，系統層停在第一個 phase 的版本，直到收尾；第一個 phase 之後放棄的 feature，系統層留著沒定案的規則；每個 phase 都合回 `main` 的專案，後面幾個 phase 不更新系統層。
+
+- **收尾時寫**（兩軌一樣）：帶 phase-spec 的 feature，規則與情境、模型、術語、事件、context 之間的關係，只在 `/dflow:finish-feature` Step 3 依整個 feature 的淨結果寫進系統層。
+  `/dflow:new-feature` Step 3 不再建 `glossary.md`、`models.md`、`rules.md`、`behavior.md`（greenfield 另有 `events.md`、`context-map.md`）的骨架，新概念記在 phase-spec 的 Domain Concepts 表；
+  § 8.3 只寫 `analysis.md` 與技術債；§ 8.1 的兩項檢查與 § 8.2 問 `behavior.md` 情境的那一題搬到收尾。`/dflow:new-phase` 本來就這樣做；brownfield 的 Aggregate-emergence 也改記在 phase-spec。
+- **收尾怎麼寫 `behavior.md`**：沒有 spec 動過的 BR 段照舊留著；動過的依序套用每一份動過它的 spec 記的變化，保留沒有 spec 改到的情境（包括 baseline 記的）；RENAMED 改段名；分不出兩份 spec 的先後就問開發者。
+  同步之後自己查兩項（每條還在的 BR 都有 anchor、這次寫的 BR `Last updated` 是今天），gate 時列出寫進 `behavior.md` 的段落請開發者判斷。brownfield 收尾另外寫 `context-map.md` 的 Relationships。
+- **掛在這種 feature 底下的 T2**（`/dflow:modify-existing`）：只寫 `analysis.md` 與技術債，其餘留給收尾；Step 2 也不先建那幾份檔。minimal host、沒有 context 的 host、brownfield baseline 盤點、T3 照舊。
+- **掛在這種 feature 底下的 brownfield 盤點**：照舊當場寫；碰到這個 feature 自己加或改、收尾前還沒進 `rules.md` 的 BR，意思照 `_index.md` 的 Current BR Snapshot 判斷，不替它加或改 `rules.md` 那一列，「這就是規則」只記在 host 的 Goals & Scope；情境、技術債與偏離行照常寫，`Known deviations` 那一格由收尾寫那一列時補上。
+- **照舊當場寫的**：`analysis.md`（每個 phase 做完照舊複核）、技術債、feature 落腳的 context（new-feature Step 2）、自己一個 host 的變更、沒有 context 的 host 上 lightweight 變更寫的全域文件（帶 phase-spec 的這種 host，phase-spec 記的術語由收尾寫進 `glossary.md`）。
+- **進行中的規則看得到**：`/dflow:new-feature`、`/dflow:new-phase`、`/dflow:modify-existing` 開頭的掃描，讀同一個 context 進行中 feature 的 Current BR Snapshot，要加或改的規則別的 feature 已經在改，就停下來讓開發者決定。
+  `/dflow:verify` 缺檔照樣報，另外點名落在這個 context 的進行中 feature（可能是原因，不斷言）。PR 檢查的術語、事件、模型、規則幾項，對還沒收尾的 feature 改看它的 phase-spec 與掛在底下的 lightweight spec。
+- **順手修掉**：`behavior.md` 的草稿段從來沒有產出端，兩軌四支 flow 裡「草稿段轉正」與「`## 提案中變更` 清理」兩句拿掉；兩軌 `init-project-flow.md` 說 `behavior.md` 由 new-feature Step 8.3 建立，改成收尾或自己一個 host 的 `/dflow:modify-existing`。
+- 兩軌 `AI-AGENT-GUIDE.md`、鷹架（`_conventions.md`、greenfield `_overview.md` 與 Trunk 範本）、phase-spec 範本、共用的 `ddd-modeling-guide.md` 與 `confirmed-rule-vs-code.md` 的說法跟上；新的設計理由 `R-FF-SYNC-01`。
+- 已知限制（每個 phase 都合回 `main` 時 `main` 的 `rules.md` 看不到進行中的規則，等七項）寫在 [`docs/system-layer-at-closeout.md`](docs/system-layer-at-closeout.md)；README 兩語的文件模型那一段補兩句。
+- 教材：兩軌 walkthrough 照新的寫入時間把時間線重走一遍。greenfield 02～06：新 context 在收尾前沒有 `rules.md`、`behavior.md`、`models.md`、`events.md`，掛在 feature 底下的 T2 與 BUG-001 只寫 `analysis.md` 與技術債，收尾第一次寫系統層、`behavior.md` 依序套用各份 spec 的變化。brownfield 01～06：SPEC-001 收尾前 Order 沒有 `rules.md`；05-04 的盤點建立 `behavior.md` 寫跨頁情境、不替 BR-004 加 `rules.md` 那一列；SPEC-002 開頭的掃描讀到 SPEC-001 的 Snapshot，把 BR-004 的累積順序當成重疊先問。
+  `outputs/`：brownfield 還在 Step 6 的 SPEC-20260505-002 寫進系統層的部分拿掉（`Order` 的 `rules.md`、`behavior.md`、`models.md` 與 `glossary.md`、`context-map.md` 裡它加或改的；留在它的 phase-spec 與 `_index.md`，`analysis.md` 照留）；兩軌收尾寫的 BR `Last updated` 改成收尾那天；`behavior.md` 與進行中的 `_index.md` 照 doctor 的遷移換形狀；guide 副本與鷹架裡還是範本原文的那幾段照新範本。
+
+**既有專案（升級時注意）**：
+
+1. 收尾之前，新 feature 的規則只在它的 `_index.md`；每個 phase 都合回 `main` 的專案，要等收尾才在 `rules.md` 看到。第一個 phase 已經寫進系統層的進行中 feature，收尾時 Step 3 依淨結果再寫一次，結果相同。
+2. `behavior.md`（greenfield 形狀 3、brownfield 形狀 4）與 `_index.md`（greenfield 形狀 4、brownfield 形狀 5）升號：`dflow doctor` 對每一份 `behavior.md` 與進行中 feature 的 `_index.md` 提示一次，只換開頭說明寫入時間的那一句，其餘（包括專案自己加的句子與翻譯）照留，改之前先給開發者看新舊兩句。
+3. 鷹架是專案自己的檔，不會自動更新：兩軌 `_conventions.md` § Glossary Consistency 第 2 項，greenfield `_conventions.md` 的 § DDD Modeling Depth 與 § DDD-specific spec conventions 的 Domain Events 那一項，greenfield `_overview.md` 的 Ubiquitous Language，還是舊說法（先加進 glossary、Step 8.3 寫 `events.md`）。
+   flow 照新的時間做，而且明寫 `_conventions.md` 叫人先加 glossary 也一樣先記在 phase-spec；文件要不要改，照 [`docs/upgrading.md`](docs/upgrading.md) 的 fresh-init 對照判斷。
+   greenfield `Git-principles-trunk.md` 加的那一個子句在 marker 區域裡，`dflow configure-agents` 會一起更新 marker 完好的檔。
 
 ### 延後題目的清單、題號與粒度；`/dflow:verify` 的說明；`git mv` 的理由（dist issue #24 第 2、3、6、7 條，#26、#27）——`0.17.1`
 

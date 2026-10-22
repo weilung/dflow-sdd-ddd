@@ -142,6 +142,12 @@ Step 2 happens at this step's closing transition.
    awaiting integration, or unknown — or an unfinished feature — semantically
    overlaps this change, surface it and wait for the developer to decide
    before creating anything new (stale branches are non-blocking).
+   For each unfinished feature the scan lists that works in the same bounded
+   context as this work, also read its `_index.md` Current BR Snapshot: those
+   rules reach the context's `rules.md` only at that feature's
+   `/dflow:finish-feature`. A rule this work would add or change that one of
+   them already adds or changes is an overlap: surface it and wait for the
+   developer.
    **Exception — an already-merged T2 / T3 emergency fix** (the callout
    below): run the scan, but a surfaced overlap is **information, not a
    blocker**. The fix is already on the mainline, so no unmerged feature branch
@@ -457,7 +463,7 @@ If no documentation exists, capture current behavior BEFORE changing — use the
 > as Step 5.3's tier-conditional note: state the verdict, do not manufacture
 > the artifact an item names.
 
-If baseline domain docs are missing **for a change that does touch a bounded context**, create them from templates before filling content:
+If baseline domain docs are missing **for a change that does touch a bounded context**, create them from templates before filling content — except that a T2 lightweight-spec on a BC-bearing host that is not a minimal host creates only the tech-debt file here: Step 5.3 leaves the others to `/dflow:finish-feature`, which creates the ones it writes:
 - `dflow/specs/domain/glossary.md` → `templates/glossary.md`
 - `dflow/specs/domain/{context}/models.md` → `templates/models.md`
 - `dflow/specs/domain/{context}/rules.md` → `templates/rules.md`
@@ -623,7 +629,7 @@ Triggered by the Step 4 → Step 5 Step Gate. AI runs the completion checklist i
 
 When this work's spec carries a `Deferred deviation` line, apply `references/confirmed-rule-vs-code.md` § Scope and recording to the items here that require a BR, its scenarios or its invariants to be implemented.
 
-Items marked *(post-5.3)* are re-verified after the documentation merge in 5.3 lands:
+Items marked *(post-5.3)* are re-verified after the documentation merge in 5.3 lands. For a change 5.3 leaves to `/dflow:finish-feature` (a T2 lightweight-spec on a BC-bearing host that is not a minimal host), they are N/A here:
 
 - [ ] Every ADDED / MODIFIED / REMOVED / RENAMED entry in the Delta section is covered by implementation or tests
 - [ ] **No-BR family evidence** — when the spec's Behavior Delta is a `BR:` / `BR Delta:` none line instead of delta entries, verify *that family's* evidence is present and substantive: (a) `Output Footprint`; (b) `Contract Delta` + `**Downstream consumers**`; (c) `Operational Rationale` + `**Trace**`; (d) `Performance Delta` + `**SLA / resource context**`; (e) `Governing BR-IDs` + root cause + a regression check; (f) `Change Rationale` with `**Before**` / `**After**` + `**Regression**`. For such a spec the **BR-derived** items in this checklist are **N/A** — say so explicitly rather than passing them on an empty delta set, and never add a BR or a `behavior.md` anchor just to make an item pass. Domain documents are **not** automatically N/A: judge each from the actual change (a family (b) event-field addition still updates `events.md`). When a change matches more than one family (an operational refactor that also shifts SLA), **every** matching family's evidence must be present — one BR line, all matching evidence sections. A spec written in the classic BR-delta form, or a bug spec written with the older single `BR:` line, is accepted as-is
@@ -644,7 +650,7 @@ If any item fails, report the gap and pause — don't proceed to 5.2.
 - [ ] Is the Aggregate boundary still correct after this change (especially for MODIFIED / RENAMED entries)?
 - [ ] Are Domain Event payloads and handler placements still correct?
 - [ ] Did we miss any tech debt worth recording?
-- [ ] Do the scenarios merged into `behavior.md` (incl. Aggregate transitions + Events) faithfully express the Delta's final-state behavior? (AI lists updated anchors; developer judges)
+- [ ] Unless 5.3 leaves this change to `/dflow:finish-feature`: do the scenarios merged into `behavior.md` (incl. Aggregate transitions + Events) faithfully express the Delta's final-state behavior? (AI lists updated anchors; developer judges)
 - [ ] Should the `Implementation Tasks` section in the spec be collapsed / removed now that it's complete? (team convention — developer decides; applies to both phase-spec and lightweight-spec)
 
 Ask these one-by-one.
@@ -656,6 +662,7 @@ Ask these one-by-one.
 - [ ] Update or create the feature / bug spec; set `status: completed` — **T3: N/A** (no spec file exists; the `_index.md` inline row is the record, and the host's own status is not touched)
 - [ ] **BC-bearing T2, on every host** — refresh the host `_index.md` Current BR Snapshot from this spec's final delta (`templates/_index.md` regenerates it when a T2 lightweight-spec is finalized; on a minimal host this is the refresh Step 1.7 places before checkpoint 1). A spec with no BR delta leaves the Snapshot as it is. N/A for a no-BC T2 and a T3
 - [ ] The items below are the Domain sweep — **N/A for a T3**. For a **no-BC change** (one whose host Goals & Scope says it touches no bounded context) the **BC-scoped** items are N/A — everything under `dflow/specs/domain/{context}/` plus `context-map.md`: there is no `{context}` to sweep, and inventing one plants the fiction Step 2's no-BC guard refuses. The **global** documents are *not* covered by that: `glossary.md`, `domain/analysis.md` and `architecture/tech-debt.md` belong to no bounded context, and a no-BC operational T2 can genuinely rename a term, change which roles reach a function, or discover architecture debt — judge those three from the actual change, as always. For a no-BR family T2 only the *BR-derived* items are N/A; run each remaining item where this change actually touches that document (an added event field still lands in `events.md`).
+      **A T2 lightweight-spec on a BC-bearing host that is not a minimal host** (its Phase Specs table has a row, or a `phase-spec-*` file exists) is part of that feature: write only `analysis.md`, at either of its two paths, and the tech-debt file here. Leave `glossary.md`, `models.md`, `rules.md`, `behavior.md`, `events.md` and `context-map.md` to `/dflow:finish-feature` Step 3, which reads this spec's recorded delta; for this change, 5.1's *(post-5.3)* items and 5.2's `behavior.md` question are N/A here and run at that step. Every other change — on a minimal host, on a no-BC host, a T3 — runs the items below as written.
       Before you change or delete a `rules.md` row, `behavior.md` section or `analysis.md` entry below that carries a deviation record — a `Known deviations` cell that is neither `—` nor empty, or a `> Known deviation:` line — apply `references/confirmed-rule-vs-code.md` § Preserve during merge.
 - [ ] `dflow/specs/domain/{context}/models.md` — Aggregate structure updates
 - [ ] `dflow/specs/domain/{context}/analysis.md` — lifecycles, derived figures or mechanisms no single rule explains this change found or altered, in the owning context's copy, which may not be this host's; any spot this change worked around pending a domain decision, in those or in a rule or unrecorded knowledge that belongs there; and any open row there this change settled (created from `templates/analysis.md` the first time there is something to record; N/A when there is none)
@@ -663,10 +670,8 @@ Ask these one-by-one.
 - [ ] `dflow/specs/domain/{context}/events.md` — Domain Event updates
 - [ ] `dflow/specs/domain/glossary.md` — new / renamed terms (mirror any RENAMED delta entries here)
 - [ ] `dflow/specs/domain/analysis.md` — ordered cross-context flows, role reach, or anything else no one context owns, that this change found or altered; any spot this change worked around pending a domain decision, in those or in unrecorded knowledge that belongs here; and any open row there this change settled (created from `templates/analysis.md` the first time there is something to record; N/A when there is none)
-- [ ] `dflow/specs/domain/{context}/behavior.md` — update scenarios to reflect Delta result (merge final state, not Delta markup). Sub-steps:
-      - Promote any Activity 3 (Spec Writing) draft sections (from B3 mid-sync) to formal sections
+- [ ] `dflow/specs/domain/{context}/behavior.md` — update scenarios to reflect Delta result (merge final state, not Delta markup). Sub-step:
       - Update the corresponding `rules.md` anchor's `last-updated` date (B4)
-- [ ] `behavior.md` draft cleanup — if the Delta was abandoned mid-way, keep the `## 提案中變更` section's history or explicitly REMOVE it
 - [ ] `dflow/specs/domain/context-map.md` — updated if cross-context interaction, or a context's exchange with an external system (§ External Systems), changed
 - [ ] `dflow/specs/architecture/tech-debt.md` — findings recorded
 

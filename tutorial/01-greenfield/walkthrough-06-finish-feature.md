@@ -158,16 +158,13 @@ Dflow 接著做 closeout driftcheck：
 Dflow:
 Driftcheck result：
 
-- BR Snapshot BR-001..BR-007 all exist in dflow/specs/domain/Expense/rules.md
-- BR-002 的 phase-2 modification 在 rules.md 有保留歷史註記
-- BR-007 的 2026-04-30 lightweight modification 在 rules.md 有保留歷史註記
-- ApprovalDecision Aggregate 已存在於 models.md
-- ExpenseReportApproved / ExpenseReportRejected 已存在於 events.md
-- ⚠ dflow/specs/domain/Expense/behavior.md 只有 new-feature Step 3 建的骨架，
-  而那時只存在 BR-001~004，所以檔內也只有這四個 anchor、還沒有場景。
-  BR-005~007 是 phase 2 新增的，而 new-phase 不同步 behavior.md，anchor 還沒建
-  → Step 3 的 BC sync 要補建 BR-005~007 的 anchor，並把 Given/When/Then
-    場景補進全部七個
+- Current BR Snapshot 的 BR-001..BR-007 與各份 spec 的 Delta 對得上：
+  BR-002 是 phase 2 MODIFIED，BR-005..BR-007 是 phase 2 ADDED，
+  BR-007 另有 2026-04-30 lightweight 的 MODIFIED
+- dflow/specs/domain/Expense/ 現在只有 context.md 與 analysis.md：
+  rules.md、behavior.md、models.md、events.md 都還沒有。
+  這個 feature 的規則、情境、模型與事件都在它的 phase spec、lightweight spec 與 Snapshot，
+  Step 3 是第一次、也是唯一一次把它們寫進 Expense
 - Unicode character counting strategy under i18n tech debt 仍是 open
   （BUG-001 連到它；Step 3 的技術債對帳會判它）
 - Minor drift：phase 2 spec 裡的 Open Question「要不要支援批次 Approve」沒有明示移到哪裡
@@ -282,7 +279,7 @@ Dflow:
 Step 3 — 先收集 debt 訊號：
 
 - 兩份 phase spec、approval-reason lightweight 與 BUG-001 指名的 BR：BR-001～007。
-  七列在 rules.md 的 Known deviations 都是 —，沒有訊號。
+  Expense 還沒有 rules.md，沒有 Known deviations 可讀，沒有訊號。
 - 這些 spec 連到的技術債：BUG-001 的 Tech Debt Discovered 連到
   architecture/tech-debt.md 的 Unicode 字元計數策略那一列 → 有訊號。
 - 沒有 Deferred deviation 行。
@@ -290,8 +287,8 @@ Step 3 — 先收集 debt 訊號：
 有訊號：照 confirmed-rule-vs-code.md § Closeout reconciliation 先認出候選，
 BC sync 做完、進 Step 4 之前再對證據判它。
 
-同步前的檢查：這次要改寫的列與段落（BR-003、BR-004 收斂 wording；behavior.md 補七條情境）
-都沒有偏離紀錄——Known deviations 是 —，也沒有 > Known deviation: 行 → 直接同步，不讀保留程序。
+同步前的檢查：rules.md、behavior.md 這次從範本新建，沒有既有的列與段落要改寫，
+也就沒有偏離紀錄要保留 → 直接同步，不讀保留程序。
 ```
 
 一個 host 的 spec 什麼都沒指名、也沒連到任何技術債時，這一段只印一行
@@ -336,34 +333,31 @@ Dflow 的 sync summary：
 Dflow:
 Expense BC sync result：
 
-- BR-001：already exists；wording matches snapshot
-- BR-002：already exists；wording matches snapshot；保留 phase-2 MODIFIED
-- BR-003：already exists；收斂成 snapshot wording
-- BR-004：already exists；收斂成 snapshot wording
-- BR-005：already exists；wording matches snapshot；保留 phase-2 ADDED
-- BR-006：already exists；wording matches snapshot；保留 phase-2 ADDED
-- BR-007：already exists；wording matches snapshot；保留 phase-2 ADDED 與 2026-04-30 lightweight MODIFIED
+- rules.md 不存在 → 從 templates/rules.md 建立
+- BR-001～007：都還不在 rules.md → 照 Snapshot 新增，Last updated 2026-05-07
+  （BR-002 標 phase-2 MODIFIED；BR-005～007 標 phase-2 ADDED；
+  BR-007 另標 2026-04-30 lightweight MODIFIED）
 ```
 
-Alice 擔心 BR-003 / BR-004 原本 rules.md 有更多 implementation detail：
+Alice 想確認 BR-007 寫進去的是哪一版：
 
 ```text
 Alice:
-BR-003 和 BR-004 原本 rules.md 多寫一點實作細節，
-刪掉會不會丟資訊？
+BR-007 在 phase 2 寫的是至少 10 字元，
+04-30 那份 T2 才改成雙語。rules.md 寫哪一個？
 ```
 
 Dflow 解釋：
 
 ```text
 Dflow:
-刪的是 system-level rule summary 的多餘 detail，不是刪 history。
+寫雙語那一個。rules.md 照 _index.md Current BR Snapshot 寫，
+Snapshot 是整個 feature 最後的樣子；04-30 那次 T2 當場就把那一列改掉了。
+10 字元那一版沒有消失：它在 phase 2 的 phase spec，
+以及 T2 lightweight spec 的 Before。系統層只放定案的那一個。
 
-rules.md 的 Rule Index 要跟 _index.md Current BR Snapshot 完全一致，
-因為 finish-feature 後它是跨 feature 的 BR index。
-更細的 Given/When/Then、MVP validation behavior 和 warning text
-不應塞在 summary 欄；那類內容應在 behavior scenarios、
-phase-spec history 或 implementation tests 裡。
+如果第一個 phase 做完就寫 rules.md，這裡看到的會是 phase 1 那一版，
+之後兩次修改都要等收尾才趕上——這正是系統層只在收尾寫的理由。
 ```
 
 完整文件範例：
@@ -374,17 +368,19 @@ Rule Index 的 final state：
 ```markdown
 | BR-ID | Rule summary | Behavior anchor | Aggregate | Status | Last updated | Known deviations |
 |---|---|---|---|---|---|---|
-| BR-001 | 提交 ExpenseReport 時必須至少含 1 個 ExpenseItem，否則拒絕。 | [BR-001](./behavior.md#br-001-submit-requires-at-least-one-item) | ExpenseReport | active | 2026-04-28 | — |
-| BR-002 | ExpenseReport 提交成功後狀態變為 Submitted，不可再被編輯；唯一例外是被 Reject 後可重新編輯並再次 Submit（會建立新的 ApprovalDecision）。 | [BR-002](./behavior.md#br-002-submitted-report-is-immutable-except-rejected-rework) | ExpenseReport | active | 2026-04-29 | — |
-| BR-003 | ExpenseItem 的 Money.Amount 必須 > 0。 | [BR-003](./behavior.md#br-003-item-amount-must-be-positive) | ExpenseReport | active | 2026-04-28 | — |
-| BR-004 | 同一 ExpenseReport 內，相同 ReceiptReference 不允許重複加入。 | [BR-004](./behavior.md#br-004-duplicate-receipt-rejected) | ExpenseReport | active | 2026-04-28 | — |
-| BR-005 | 主管不可審核自己提交的 ExpenseReport；SubmitterId != ApproverId 必須由 Domain 層強制。 | [BR-005](./behavior.md#br-005-approver-cannot-approve-own-report) | ApprovalDecision | active | 2026-04-29 | — |
-| BR-006 | 只有 Status = Submitted 的 ExpenseReport 能被 Approve / Reject；其他狀態一律 raise DomainException。 | [BR-006](./behavior.md#br-006-only-submitted-report-can-be-approved-or-rejected) | ExpenseReport | active | 2026-04-29 | — |
-| BR-007 | Reject 必須附註原因；ApprovalReason 至少 5 個中文字或至少 10 個英數字，否則 raise DomainException；空白不計，半形 / 全形視覺等價，emoji 算字。 | [BR-007](./behavior.md#br-007-reject-requires-reason) | ApprovalDecision | active | 2026-04-30 | — |
+| BR-001 | 提交 ExpenseReport 時必須至少含 1 個 ExpenseItem，否則拒絕。 | [BR-001](./behavior.md#br-001-submit-requires-at-least-one-item) | ExpenseReport | active | 2026-05-07 | — |
+| BR-002 | ExpenseReport 提交成功後狀態變為 Submitted，不可再被編輯；唯一例外是被 Reject 後可重新編輯並再次 Submit（會建立新的 ApprovalDecision）。 | [BR-002](./behavior.md#br-002-submitted-report-is-immutable-except-rejected-rework) | ExpenseReport | active | 2026-05-07 | — |
+| BR-003 | ExpenseItem 的 Money.Amount 必須 > 0。 | [BR-003](./behavior.md#br-003-item-amount-must-be-positive) | ExpenseReport | active | 2026-05-07 | — |
+| BR-004 | 同一 ExpenseReport 內，相同 ReceiptReference 不允許重複加入。 | [BR-004](./behavior.md#br-004-duplicate-receipt-rejected) | ExpenseReport | active | 2026-05-07 | — |
+| BR-005 | 主管不可審核自己提交的 ExpenseReport；SubmitterId != ApproverId 必須由 Domain 層強制。 | [BR-005](./behavior.md#br-005-approver-cannot-approve-own-report) | ApprovalDecision | active | 2026-05-07 | — |
+| BR-006 | 只有 Status = Submitted 的 ExpenseReport 能被 Approve / Reject；其他狀態一律 raise DomainException。 | [BR-006](./behavior.md#br-006-only-submitted-report-can-be-approved-or-rejected) | ExpenseReport | active | 2026-05-07 | — |
+| BR-007 | Reject 必須附註原因；ApprovalReason 至少 5 個中文字或至少 10 個英數字，否則 raise DomainException；空白不計，半形 / 全形視覺等價，emoji 算字。 | [BR-007](./behavior.md#br-007-reject-requires-reason) | ApprovalDecision | active | 2026-05-07 | — |
 ```
 
-最後一欄 `Known deviations` 七列都是 `—`：sync 只改規則欄，這一欄不是 Snapshot 的一部分，
-同步不會清空它、也不會從 Snapshot 帶值進來。
+`Last updated` 七列都是今天：這一步新增的每一條都設成寫入那一天，不是它在 spec 裡第一次出現的日期——
+哪一條從哪個 phase 來，看下面團隊自加的 Lifecycle 表與 completed feature 裡的 Snapshot。
+最後一欄 `Known deviations` 七列都是 `—`：這個 feature 沒有延後修的偏離，新增的列照
+§ Scope and recording 給 `—`。`—` 只表示沒有用這個格式記下偏離，不表示有人查過程式。
 
 ## Step 3 — Lifecycle section（Alice 團隊自訂，**不是 Dflow 產生的**）
 
@@ -422,23 +418,25 @@ Lifecycle table：
 
 ## Step 3 — 其他 BC layer checks
 
-Dflow 也檢查其他 living docs：
+Dflow 接著寫其他 living docs：
 
 ```text
 Dflow:
-Step 3 其他 BC layer checks：
+Step 3 其他 BC layer 文件：
 
-- models.md：ApprovalDecision Aggregate 已存在；ApprovalReason 的門檻同步成
-  2026-04-30 lightweight 之後的雙語條文（closeout sweep 明文包含 models.md）
-- events.md：ExpenseReportSubmitted / Approved / Rejected 都存在
-- behavior.md：骨架已在 new-feature Step 3 建好，但只涵蓋當時存在的 BR-001~004。
-  BR-005~007 的 anchor 要在這裡補建，七條的 scenario 內容也在這裡補上；
-  萬一檔案不存在，從 `templates/behavior.md` 建立
-- context-map.md：External Systems 裡 Identity 的兩列（員工 ID、主管階層）已存在；Reimbursement 仍是 future context，不更新
-- glossary.md：ApprovalReason 已包含 2026-04-30 bilingual length wording，不更新
+- models.md：不存在 → 從範本建立，依 phase 1、phase 2 的 Domain Concepts 表寫
+  ExpenseReport、ExpenseItem、Money、ApprovalDecision、ApprovalReason 等；
+  ApprovalReason 的門檻照 2026-04-30 lightweight 之後的雙語條文
+- events.md：不存在 → 從範本建立，依兩份 phase spec 的 Domain Events 表寫
+  ExpenseReportSubmitted / Approved / Rejected
+- behavior.md：不存在 → 從範本建立，七條 BR 各一段（見下面 behavior.md 那一節）
+- context-map.md：External Systems 寫進 phase 2 記下的 Identity 兩種交換（員工 ID、主管階層）；
+  Reimbursement 仍是 future context，不寫
+- glossary.md：依 Domain Concepts 表加進 ExpenseReport、ExpenseItem、Approver、ApprovalReason 等術語；
+  ApprovalReason 照 2026-04-30 的雙語門檻
 - architecture/tech-debt.md：Unicode 字元計數策略那一列見下面的技術債對帳；
   Follow-up Notes 補 related-feature：SPEC-20260428-001 (completed 2026-05-07)
-- analysis.md（兩支；closeout sweep 帶的是 new-feature Step 8.3 的同一組項目）：
+- analysis.md（兩支；做的時候已經寫了，這裡對照整個 feature 的淨結果複核）：
   - domain/Expense/analysis.md：new-feature Step 3 記下、還沒對照過程式的
     LC-01 Draft → Submitted 與 RM-01，對照 ExpenseReport.Submit() 都一致，
     Evidence 改成 code（2026-05-07）。
@@ -452,8 +450,8 @@ Step 3 其他 BC layer checks：
     Data scope 那兩格仍然沒有人答過，照舊留白；HS-01 仍然 open。
 ```
 
-⚠ **這一項讀的是檔案本身，不是 diff。** Step 8.3 的複核項寫明「Read the entries in the file,
-not in a diff: a checkpoint may already have committed them」——LC-01、RM-01、FN-01、FN-02
+⚠ **這一項讀的是檔案本身，不是 diff。** new-feature § 8.3 的複核項寫明「Read the entries in the file,
+not in a diff: a checkpoint may already have committed them」，收尾的複核是同一個道理——LC-01、RM-01、FN-01、FN-02
 是 2026-04-28 寫下的，中間隔了好幾個 checkpoint，看 diff 很可能以為沒有東西要複核。
 它對照的是**動手之前記下的條目**：計畫會變（FN-01 就是例子），複核把條目改成實際做出來的樣子。
 
@@ -483,32 +481,45 @@ Resolved deviations: none; debt done: none; retained: Unicode i18n 下的字元�
 BUG-001 修了 reject reason truncation，但更廣泛的 Unicode counting policy 不因 feature closeout
 而自動消失。收尾只把**有證據證明這個 feature 還清**的技術債設成 `done`；連到它、但沒有還它，就照原樣留著。
 
-### `behavior.md` lifecycle note
+### `behavior.md`：收尾時第一次寫
 
-`behavior.md` 的**骨架**在 walkthrough 02 的 new-feature Step 3 就建好了——但只涵蓋
-**當時存在的 BR-001~004**，每條一個 anchor。BR-005~007 是 walkthrough 03 的 phase 2
-才新增的，而 `new-phase-flow.md` 明寫 phase 不同步 `rules.md`／`behavior.md`（「The bounded
-context's `rules.md` / `behavior.md` / `events.md` … remain `/dflow:finish-feature`
-responsibilities」；`analysis.md` 則不同，Step 2 會當場寫，見
-[walkthrough 03](walkthrough-03-new-phase.md)），所以**它們的 anchor 要等這次 closeout 才會出現**。
-從 walkthrough 02 到 05，**場景**則一律留在 phase spec 裡
-（見 [walkthrough 03 的文件表](walkthrough-03-new-phase.md)）。**到了 closeout，要求就變了。**
-`finish-feature-flow.md` 的 BC sync 明文規定：
+從 walkthrough 02 到 05，`behavior.md` 一直不存在：new-feature Step 3 不建骨架，§ 8.3、
+new-phase 與掛在 feature 底下的 T2 也都不寫它（`new-feature-flow.md` § 8.3 開頭：「It does
+**not** write `glossary.md`, `models.md`, `rules.md`, `behavior.md`, `events.md` or
+`context-map.md`」）。情境一直住在各份 spec 裡。**到了 closeout，`finish-feature-flow.md`
+Step 3 從範本建立它**，每條還在的 BR 依序套用動過它的 spec 記的變化：
 
-> For every BR-ID still active after this feature, ensure
-> `dflow/specs/domain/{context}/behavior.md` has a scenario section (anchor)
-> matching the BR-ID
+> If one did, apply each such spec's recorded change to the section in order — the first
+> phase-spec's Behavior Scenarios, a later phase-spec's Delta entry, a hosted
+> lightweight-spec's Behavior Delta — merging the final state, not the Delta markup
 
-而且同一段還說：檔案不存在時，**只要這次 sync 會寫進去就從 template 建立它**
-（在正常流程裡骨架早就在了，這句是防漏的）。BR-001~BR-007 在 closeout 後全部仍
-active，所以跑完這次 closeout，`dflow/specs/domain/Expense/behavior.md` 會**對七條 BR
-各有一段填好內容的 scenario**——不是這時才第一次出現，而是骨架被填滿。
+本案七條這樣寫：
+
+| BR | 依序套用 |
+|---|---|
+| BR-001、BR-003、BR-004 | phase 1 的 Behavior Scenarios |
+| BR-002 | phase 1 的情境，再套 phase 2 Delta 的 MODIFIED（被 Reject 後可重新編輯並再次 Submit） |
+| BR-005、BR-006 | phase 2 的 Behavior Scenarios |
+| BR-007 | phase 2 的情境（至少 10 字元），再套 04-30 lightweight 的 Behavior Delta（雙語門檻）；寫進來的是最後的樣子，不帶 Delta 標記 |
+
+BUG-001 是 family (e)，沒有 BR delta，也沒有改到哪一段情境，所以不動任何一段。
+
+同步之後、gate 之前，Dflow 自己查兩項並回報，再把寫進去的段落交給 Alice 看：
+
+```text
+Dflow:
+- behavior.md 每條還在的 BR（BR-001～007）都有一段 anchor，
+  沒有已移除的 BR 留著段落 ✓
+- 這一步寫的七條，rules.md 的 Last updated 都是 2026-05-07 ✓
+
+這一步寫進 behavior.md 的是 BR-001～007 七段。
+請看一下有沒有表達原本的意思；要改，在歸檔之前改。
+```
+
+Alice 特別看了 BR-007 那一段：寫的是雙語門檻，沒有留下 10 字元的舊情境。
 
 `outputs/dflow/specs/domain/Expense/behavior.md` 就是跑完這一步之後的樣子：七條 BR
-各一段 scenario，anchor 與 `rules.md` 的 `Behavior anchor` 欄一一對應。它跟這棵樹裡
-其他文件一樣是**最終狀態**，所以你在那裡看到的是**填滿之後**的版本，不是 walkthrough 02
-當下那份只有 BR-001~004 的骨架——這個「outputs 是最終狀態、內嵌片段是當步狀態」的差別，
-每一篇開頭都提醒過。
+各一段 scenario，anchor 與 `rules.md` 的 `Behavior anchor` 欄一一對應。
 
 之後 `/dflow:verify` 會拿 `rules.md` ↔ `behavior.md` 做 drift check，用的正是這組對應。
 
@@ -735,8 +746,8 @@ snapshot 七列的 `First Seen (phase)` 全是 `phase-1 (mvp)` 或
 「繼承來的規則」保留的那個值）。也就是說這份紀錄自己說：這七條都是本 feature 引入的。
 因此是 `ADDED: BR-001…BR-007 / MODIFIED: none`。
 
-⚠ **不要拿上面 Step 3 的 sync 結果來反推這一欄。** Step 3 印的「BR-003 already
-exists；收斂成 snapshot wording」講的是 `rules.md` 那邊的動作，而 Step 3→4 gate 的
+⚠ **不要拿上面 Step 3 的 sync 結果來反推這一欄。** Step 3 印的「BR-001～007 照 Snapshot
+新增」講的是 `rules.md` 那邊的動作，而 Step 3→4 gate 的
 `{n_added} added, {n_modified} modified` 也是 sync 的計數——**那些跟這一欄是兩件事，
 flow 特地寫了一句話來擋這個誤讀**。
 
@@ -860,9 +871,12 @@ new-phase 和 modify-existing 是「繼續這個 active feature」。finish-feat
 |---|---|---|
 | 移動 | [`outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/`](outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/) | Feature 從 active archive 到 completed 後的完整目錄。 |
 | 修改 | [`outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/_index.md) | completed status（只翻 `status`）、Resume Pointer 終局狀態、Checkpoint Log 的 closeout 列、Lightweight Changes 回填的 `Commit` 格。⚠ Integration Summary **不寫進檔案**，見 Step 5。 |
-| 修改 | [`outputs/dflow/specs/domain/Expense/rules.md`](outputs/dflow/specs/domain/Expense/rules.md) | BC-level Rule Index 與 Lifecycle section，從 feature snapshot finalize。 |
-| 修改 | [`outputs/dflow/specs/domain/Expense/analysis.md`](outputs/dflow/specs/domain/Expense/analysis.md) | closeout sweep：LC-01 的 Draft → Submitted 與 RM-01 對照程式複核，Evidence 換成 `code`。 |
-| 修改 | [`outputs/dflow/specs/domain/analysis.md`](outputs/dflow/specs/domain/analysis.md) | closeout sweep：FN-01、FN-02 補上 Entry point，FN-01 照實際做法改名。 |
+| 新建 | [`outputs/dflow/specs/domain/Expense/rules.md`](outputs/dflow/specs/domain/Expense/rules.md) | BC-level Rule Index（照 feature snapshot 新增七條），加上團隊自加的 Lifecycle section。 |
+| 新建 | [`outputs/dflow/specs/domain/Expense/behavior.md`](outputs/dflow/specs/domain/Expense/behavior.md) | 七條 BR 各一段情境，依序套用 phase 1、phase 2 與 04-30 lightweight 記的變化。 |
+| 新建 | [`outputs/dflow/specs/domain/Expense/models.md`](outputs/dflow/specs/domain/Expense/models.md) / [`events.md`](outputs/dflow/specs/domain/Expense/events.md) | 依兩份 phase spec 的 Domain Concepts、Domain Events 表寫。 |
+| 修改 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) / [`context-map.md`](outputs/dflow/specs/domain/context-map.md) | 這個 feature 的術語；Identity 那兩種交換寫進 External Systems。 |
+| 修改 | [`outputs/dflow/specs/domain/Expense/analysis.md`](outputs/dflow/specs/domain/Expense/analysis.md) | 收尾複核：LC-01 的 Draft → Submitted 與 RM-01 對照程式複核，Evidence 換成 `code`。 |
+| 修改 | [`outputs/dflow/specs/domain/analysis.md`](outputs/dflow/specs/domain/analysis.md) | 收尾複核：FN-01、FN-02 補上 Entry point，FN-01 照實際做法改名。 |
 | 修改 | [`outputs/dflow/specs/architecture/tech-debt.md`](outputs/dflow/specs/architecture/tech-debt.md) | 技術債對帳判 Unicode counting debt 沒有還清，保持 open；補 related completed feature context。 |
 | 故意不改 | `outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/phase-spec-*.md` | phase specs 保留 frozen history，不在 closeout 重寫。 |
 | 故意不改 | `outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/lightweight-*.md` | T2 modify spec 保留 frozen history。 |
@@ -916,7 +930,8 @@ Finish-feature 的價值，是把「做完了」從口頭狀態轉成 repo 內�
 
 - `/dflow:finish-feature` 是 feature lifecycle endpoint，不是 next phase 入口。
 - Closeout 先 validate phase / lightweight / bug specs，再 status flip。
-- Feature-level Current BR Snapshot 必須 reconcile 到 BC-level `rules.md`。
+- Feature-level Current BR Snapshot 必須 reconcile 到 BC-level `rules.md`；帶 phase-spec 的 feature，
+  這一步是它的規則、情境、模型、術語與事件第一次、也是唯一一次寫進系統層。
 - Step 3 先看這個 host 的 spec 有沒有技術債訊號；有才對帳。連到、但這個 feature 沒有還清的技術債照原樣留著，
   有證據證明還清的才設成 `done`。
 - 真實專案 archive feature directory 應使用 `git mv`。

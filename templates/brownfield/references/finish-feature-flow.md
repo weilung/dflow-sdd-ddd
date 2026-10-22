@@ -25,12 +25,11 @@ state, archives the feature directory, and emits a Git-strategy-neutral
   you can always decline. The commit marker mode is read from `_conventions.md`
   § AI Commit Policy. This replaces Dflow's earlier "the AI never commits"
   stance — the AI helps at natural checkpoints, you keep the final say.
-- The BC-layer sync in Step 3 **reuses the existing documentation-sync
-  mechanism** from `new-feature-flow` (§ 8.3) and `modify-existing-flow`
-  (Step 6.3) — it does not introduce a new sync flow. § 8.3 and Step 6.3
-  sync when the work they record completes; Step 3 runs the same mechanism
-  once more at feature closeout, with the `_index.md` Current BR Snapshot as
-  input.
+- On a host that carries phase-specs, the BC-layer sync in Step 3 is the
+  only step that writes this feature's changes into the bounded context: no
+  phase wrote them, and a T2 hosted here left them too. A minimal host's
+  change was written at its checkpoint 1; for it, read Step 3 as
+  `references/finish-feature-minimal-host.md` § Step 3 says.
 
 **Step Gates** in this flow (stop-and-confirm before proceeding):
 - Step 1 → Step 2 (validation passed → flip status)
@@ -278,7 +277,9 @@ convention for this position.
 Before the host-shape branch, collect this host's debt signals: each BR-ID
 named in its phase specs or hosted lightweight specs whose `rules.md` row has a
 `Known deviations` cell that is neither `—` nor empty, and each technical-debt
-item those specs link or name in a `Deferred deviation` line. A host with no
+item those specs link or name in a `Deferred deviation` line. A debt Item that
+a baseline capture's Goals & Scope line on this host names for a deviation from
+a BR on the Current BR Snapshot is a signal too. A host with no
 spec file — T3 rows only, or a baseline capture only — has no signal. With no
 signal, skip the debt reconciliation and report
 "Debt reconciliation: no signal". With a signal, identify candidates now using
@@ -301,7 +302,11 @@ host may still touch a real BC, or none at all:
   baseline capture is **(iii)**, not this case.)
 - **(ii) no-BC** — the host touched **no** bounded context at all (a display
   T3, an appearance sweep). **Skip the BC-scoped sync**; the debt
-  reconciliation above still applies within this host's permitted scope. Do
+  reconciliation above still applies within this host's permitted scope. On a
+  host that carries phase-specs, still write `glossary.md`, which belongs to no
+  bounded context and which no phase wrote: add, change or rename the terms its
+  phase-specs' Domain Concepts tables record, as the net result of every spec
+  in this host — a T2 hosted here has already written its own terms. Do
   **not** create `rules.md` / `behavior.md`, and do not invent a BC to sync
   into. Its Integration Summary sets the field that **reports a sync** — `BC` — to
   `none`. **`Related BR-IDs` is not one of those**: it reports what this
@@ -320,12 +325,11 @@ host may still touch a real BC, or none at all:
   `references/finish-feature-minimal-host.md`'s `baseline only` check blocks a
   `spec-baseline` host that carries anything beyond its capture.
 
-For a **BC-bearing host (case i only)**, continue with the sync. This step **reuses the
-existing sync mechanism** from `new-feature-flow`
-Step 8.3 (`dflow/specs/domain/{context}/rules.md` + `behavior.md` updates). The
-input is the feature's `_index.md` Current BR Snapshot table; the output
-is the BC's `rules.md` and `behavior.md` updated to reflect the
-feature's net effect.
+For a **BC-bearing host (case i only)**, continue with the sync. On a host that
+carries phase-specs this is the only step that writes this feature's changes
+into the bounded context: no phase wrote them, and a T2 hosted here left them
+too. The input is the feature's `_index.md` Current BR Snapshot table; the
+output is the BC's documents updated to the feature's net effect.
 
 **Minimal host — sync input.** A minimal host reads "phase-spec" differently
 here, and a phase-bearing host must not apply that reading. The rule is
@@ -356,6 +360,8 @@ does for a no-BC host. Creating one anyway plants the same fiction the no-BC
 guard refuses:
 - `dflow/specs/domain/{context}/rules.md` → `templates/rules.md`
 - `dflow/specs/domain/{context}/behavior.md` → `templates/behavior.md`
+- `dflow/specs/domain/{context}/models.md` → `templates/models.md`
+- `dflow/specs/domain/glossary.md` → `templates/glossary.md`
 
 > **Table-cell formatting**: keep table cells concise — separate multiple short items with `<br>` (never chain them into one line with ；/; separators), and move long narrative detail out of the cell into a document section (full convention: the formatting comment at each spec doc's head).
 
@@ -392,9 +398,17 @@ exactly what the REMOVED branch needs:
 
 For `behavior.md`:
 
-- For every BR-ID still active after this feature, ensure
-  `dflow/specs/domain/{context}/behavior.md` has a scenario section (anchor)
-  matching the BR-ID
+- For every BR-ID still active after this feature: if no spec in this host
+  added, modified or renamed it, leave its section in
+  `dflow/specs/domain/{context}/behavior.md` as it is. If one did, apply each
+  such spec's recorded change to the section in order — the first
+  phase-spec's Behavior Scenarios, a later phase-spec's Delta entry, a hosted
+  lightweight-spec's Behavior Delta — merging the final state, not the Delta
+  markup, and keeping every scenario no spec changed, including the ones a
+  baseline capture recorded. A RENAMED entry renames the section and keeps
+  its scenarios. When the host's record does not show which of two specs that
+  changed the same rule came later, ask the developer which text is current
+  instead of choosing
 - For REMOVED BR-IDs, delete the corresponding scenario section from
   `behavior.md`
 
@@ -413,18 +427,26 @@ recorded delta the same way** — on any host shape, for the reason above.
 > between Snapshot and the phase-specs, fix `_index.md` first, then re-run
 > `/dflow:finish-feature`.
 
-Also update `migration/tech-debt.md` / `models.md` / `glossary.md` /
-`analysis.md` as discovered during the feature (the same items listed in
-`new-feature-flow.md` Step 8.3; `analysis.md` is two files — the owning
-context's and the domain-root one — each created from `templates/analysis.md`
-the first time there is something to record) — these may have been touched per
-phase already; this is the closeout sweep.
+Also write `models.md` and `glossary.md` from each phase-spec's Domain
+Concepts table and the hosted lightweight-specs' recorded deltas (a RENAMED
+rule's term is handled above). `analysis.md` — two files, the owning context's
+and the domain-root one, each created from `templates/analysis.md` the first
+time there is something to record — and `migration/tech-debt.md` were written
+as the work happened: re-check them here against the feature's net result.
 
-Then update `context-map.md` § External Systems for each exchange between a
-context and an external system that this feature added, changed or removed, as
-its specs and its diff show (create the file from `templates/context-map.md` the
-first time there is something to record). The brownfield per-change sweeps do
-not carry this item: record it here.
+Then update `context-map.md`: § Relationships for each relationship between
+contexts that this feature added, changed or removed, and § External Systems
+for each exchange between a context and an external system that this feature
+added, changed or removed, as its specs and its diff show (create the file
+from `templates/context-map.md` the first time there is something to record).
+The brownfield per-change sweeps do not carry this item: record it here.
+
+Then check, and report ✓ / ✗ before the step gate: `behavior.md` has a
+section anchor for every BR-ID still active in the Current BR Snapshot and none
+for a removed one; every BR-ID this step added, modified or renamed carries
+today's `Last updated`. At the step gate, list the `behavior.md` sections this
+step wrote and ask the developer whether they express the intended behavior;
+correct them before archiving.
 
 **→ Step Gate: Step 3 → Step 4**
 
@@ -560,10 +582,10 @@ Then, in this order:
    instruction, not from a list kept somewhere else:
    **(a)** whatever Step 3 wrote (`rules.md`, `behavior.md`, `models.md`,
    `analysis.md`, `glossary.md`, `domain/analysis.md`,
-   `migration/tech-debt.md`, and `context-map.md` when it updated External
-   Systems) — a no-BC host skips the BC-scoped sync, so this half holds only
-   what Step 3's debt reconciliation wrote; a baseline host's Step 3 writes
-   nothing; **and**
+   `migration/tech-debt.md`, and `context-map.md` when it updated
+   Relationships or External Systems) — a no-BC host skips the BC-scoped sync, so this half holds only
+   what Step 3's debt reconciliation wrote, plus `glossary.md` on a host that
+   carries phase-specs; a baseline host's Step 3 writes nothing; **and**
    **(b)** the **documentation-sweep step of the flow that produced *this
    change*** — take the paths from that step, not from a list kept here. A
    commit may already have carried them — `modify-existing-flow.md`'s
@@ -591,9 +613,11 @@ Then, in this order:
    A **phase-spec** has three possible producers — `/dflow:new-feature`,
    `/dflow:new-phase`, or `modify-existing-flow.md` Step 1.6 / 6.4 routing into
    the new-feature machinery — and **you do not have to tell them apart**:
-   § 8.3 and Step 6.3 enumerate the same external paths, and `/dflow:new-phase`
-   has no sweep at all, so every branch yields that same set or a part of it,
-   save one file the next paragraph names.
+   § 8.3 carries only `analysis.md` and the tech-debt file, Step 6.3 carries
+   the whole set (a T2 on a host that carries phase-specs carries only § 8.3's
+   part of it), and `/dflow:new-phase` has no sweep at all, so every branch
+   yields Step 6.3's set or a part of it, save one file the next paragraph
+   names.
    ⚠ **`/dflow:new-phase` has no sweep and is deliberately absent here.**
    `new-phase-flow.md` Step 7 updates the phase-spec and this host's own tables,
    and says so in as many words — "System-level domain docs, migration debt
@@ -601,10 +625,9 @@ Then, in this order:
    `/dflow:finish-feature` responsibilities; Step 2 records into
    `analysis.md` directly, at whichever of its two paths the entry belongs
    to. **Do not sync any other system-level current state**". The external
-   writes its own steps call for are those two paths and, on an
-   Aggregate-emergence escalation, the `models.md` row its Step 2 marks; the
-   set above already carries all three. `context-map.md` is in that set only
-   when Step 3 updated its External Systems section; `ddd-modeling-guide.md`,
+   writes its own steps call for are those two paths; the set above already
+   carries both. `context-map.md` is in that set only when Step 3 updated its
+   Relationships or External Systems section; `ddd-modeling-guide.md`,
    which its Step 2 sends it to, can also record there a choice to model
    deeper — stage it too when a phase did.
    On a **minimal host** that set is exactly what allow-list member (iii) of

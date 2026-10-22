@@ -299,17 +299,19 @@ Dflow 進入 Step 2：
 Dflow:
 Step 2 我會先讀現有文件，不直接改程式：
 
-- _index.md
+- _index.md（Current BR Snapshot）
 - lightweight-2026-04-30-approval-reason-bilingual-length.md
 - aggregate-design.md
-- dflow/specs/domain/Expense/rules.md
 - dflow/specs/architecture/tech-debt.md
+
+SPEC-20260428-001 還沒收尾，Expense 還沒有 rules.md：
+它的規則看 _index.md 的 Current BR Snapshot。
 ```
 
 Dflow 讀到 baseline：
 
 ```text
-- BR-007 source-of-truth 已是 bilingual length rule：
+- BR-007 在 Current BR Snapshot 已是 bilingual length rule：
   至少 5 個中文字或至少 10 個英數字，
   空白不計，半形 / 全形視覺等價，emoji 算字。
 
@@ -323,7 +325,7 @@ Dflow 讀到 baseline：
 
 這是本篇第三個 lesson：**先讀 baseline，才能知道 bug 是 implementation mismatch。**
 
-如果 Dflow 沒讀 04 的 lightweight spec 和 `rules.md`，它可能會把 Carol 的回報誤判成
+如果 Dflow 沒讀 04 的 lightweight spec 和 Current BR Snapshot，它可能會把 Carol 的回報誤判成
 「BR-007 還需要調整」。讀完 baseline 後，結論變得清楚：BR-007 已經允許這個輸入，bug 在
 Unicode handling。
 
@@ -618,8 +620,9 @@ Governing BR-IDs: BR-007
 
 BR-007 是一條確認的規則，程式這次沒照它做——正是「確認的規則、程式沒照做」的情況。但這次就修，
 所以不用另外記偏離。如果 Alice 決定先不修，才要照[〈確認的規則與程式不一致時〉](../../docs/confirmed-rule-vs-code.md)
-記下來：`rules.md` 那一列的 `Known deviations` 連到一列技術債、`behavior.md` 的 BR-007 段落加一行
-`> Known deviation:`，spec 記一行 `> Deferred deviation:`，修好之後由收尾 Step 3 收掉。
+記下來：spec 記一行 `> Deferred deviation:`、技術債記一列。`rules.md` 那一列的 `Known deviations`
+與 `behavior.md` BR-007 段落的 `> Known deviation:` 行，要等收尾 Step 3 寫出那一列與那一段時才補——
+這時兩者都還沒有，不為了放偏離紀錄先建。修好之後，同樣由收尾 Step 3 收掉。
 
 接著的 before / after 描述的是實作行為，不是 BR delta：
 
@@ -760,7 +763,7 @@ BUG-001 只修 reject reason truncation 與 Domain malformed-input handling。
 | 修改 | [`outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/_index.md) | Lightweight Changes row；Current BR Snapshot intentionally unchanged note。 |
 | 修改 | [`outputs/dflow/specs/architecture/tech-debt.md`](outputs/dflow/specs/architecture/tech-debt.md) | Unicode character counting strategy under i18n 的 follow-up debt。 |
 | 故意不改 | `outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/aggregate-design.md` | `ApprovalReason` VO 結構不變，只補 implementation guard。 |
-| 故意不改 | `outputs/dflow/specs/domain/Expense/rules.md` | BR-007 wording 不變，沒有 BR-008。 |
+| 這一步還沒有 | `outputs/dflow/specs/domain/Expense/rules.md` | 收尾時才寫；BUG-001 也沒有 BR delta（BR-007 wording 不變，沒有 BR-008）。 |
 | 故意不改 | `outputs/dflow/specs/domain/Expense/{models,events,context}.md` | 沒有新 model、event、BC 或資料結構。 |
 | 故意不改 | `outputs/dflow/specs/domain/{glossary,context-map}.md` | 沒有新 ubiquitous language term 或 context relationship。 |
 

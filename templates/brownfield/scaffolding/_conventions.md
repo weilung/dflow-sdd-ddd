@@ -145,7 +145,10 @@ All business terms in spec documents must use names defined in
 `dflow/specs/domain/glossary.md`. When a new term appears:
 
 1. Check glossary first
-2. If missing, add it **before** using the term in a spec
+2. If missing, record it in the spec before using it — in a phase-spec, its
+   Domain Concepts table; the flow adds it to `glossary.md` when the work
+   closes out (for a feature that carries phase-specs, at
+   `/dflow:finish-feature`)
 3. Cross-reference the BC the term belongs to
 
 This rule is enforced by the Dflow skill during `/dflow:new-feature`

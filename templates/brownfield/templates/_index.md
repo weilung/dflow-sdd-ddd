@@ -6,7 +6,7 @@ created: {YYYY-MM-DD}
 branch: feature/{SPEC-ID}-{slug}
 # follow-up-of: {原 SPEC-ID}    # 選用：本 feature 為某個已 completed feature 的 follow-up 時填入
 ---
-<!-- dflow-shape: brownfield/_index.md 4 — keep this line: dflow doctor reads it -->
+<!-- dflow-shape: brownfield/_index.md 5 — keep this line: dflow doctor reads it -->
 <!-- This template is part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE in the Dflow package, or dflow/specs/shared/dflow-workflows/LICENSE in a project. Documents written from it are yours: do not copy this line into them. -->
 
 <!--
@@ -86,7 +86,8 @@ Template note (for AI):
 >
 > 歷史由各 phase-spec 的「Delta from prior phases」段串接閱讀；feature
 > 完成時 `/dflow:finish-feature` 把本表推進到對應 BC 的 `rules.md` /
-> `behavior.md`（延續 Step 8.3 既有 sync 機制）。
+> `behavior.md`。帶 phase-spec 的 feature 只在這一步寫進 BC，在那之前
+> 只在本表與各 phase-spec。
 >
 > ⚠ **這張表在範本裡是空的（只有表頭），那是對的 —— 不要為了讓它看起來有東西而造一列。**
 > 只有這個 host 真的帶著 BR delta 時才會有列（`/dflow:new-feature` 會拿第一個 phase

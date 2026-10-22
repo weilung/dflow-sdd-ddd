@@ -284,7 +284,7 @@ dflow/specs/
 ## Core Rules
 
 1. Spec before code: meaningful behavior changes need a spec or lightweight bug spec before implementation.
-2. Keep domain language explicit: update glossary, rules, models, and behavior snapshots when domain meaning changes.
+2. Keep domain language explicit: update glossary, rules, models, and behavior snapshots when domain meaning changes — for a feature that carries phase-specs, at `/dflow:finish-feature`, from what its phase-specs recorded.
 3. Keep phase delta, feature snapshot, and system state separate.
 4. Check drift before calling work complete.
 5. Follow `dflow/specs/shared/_conventions.md`, especially `## Prose Language`.
@@ -380,7 +380,7 @@ swallow the trivial and below-workflow cases):
 
 | Tier | Output | Command / Trigger |
 |---|---|---|
-| **T1 Heavy** | Independent `phase-spec-YYYY-MM-DD-{slug}.md` in the feature directory + `_index.md` Phase Specs row + refresh BR Snapshot. For a new Aggregate / BC also create an `aggregate-design.md` from `templates/aggregate-design.md` **in the feature directory** (working worksheet; durable summary stays in `models.md`) + update `context-map.md` + `events.md`. | `/dflow:new-feature` / `/dflow:new-phase` — also where a `/dflow:modify-existing` or `/dflow:bug-fix` request goes when the cascade lands it at T1 |
+| **T1 Heavy** | Independent `phase-spec-YYYY-MM-DD-{slug}.md` in the feature directory + `_index.md` Phase Specs row + refresh BR Snapshot. For a new Aggregate / BC also create an `aggregate-design.md` from `templates/aggregate-design.md` **in the feature directory** (working worksheet; durable summary stays in `models.md`) + update `context-map.md` + `events.md` — these three are written at `/dflow:finish-feature`. | `/dflow:new-feature` / `/dflow:new-phase` — also where a `/dflow:modify-existing` or `/dflow:bug-fix` request goes when the cascade lands it at T1 |
 | **T2 Light** | Independent `lightweight-YYYY-MM-DD-{slug}.md` (or `BUG-{NUMBER}-{slug}.md`) inside the feature directory + `_index.md` Lightweight Changes row (outbound link) + refresh BR Snapshot. Confirm the fix lands in the correct architectural layer. | `/dflow:modify-existing` or `/dflow:bug-fix` — the usual landing for a functional defect |
 | **T3 Trivial** | **Inline row in the host `_index.md` Lightweight Changes only** (no independent spec file) | `/dflow:modify-existing` or `/dflow:bug-fix` (`_index`-only branch — e.g. a defect that is only a display-text typo) |
 
@@ -400,8 +400,8 @@ tracked class below workflow.
 
 **DDD Modeling Depth (still informs T1 scope)**:
 
-- New Aggregate / BC → **Full**: create an `aggregate-design.md` from `templates/aggregate-design.md` in the feature directory (durable summary stays in `models.md`), update `context-map.md`, define Domain Events in `events.md`
-- Feature within an existing BC → **Standard**: confirm Aggregate ownership, update `models.md` and `rules.md`
+- New Aggregate / BC → **Full**: create an `aggregate-design.md` from `templates/aggregate-design.md` in the feature directory (durable summary stays in `models.md`), update `context-map.md`, define Domain Events in `events.md` — `models.md`, `context-map.md` and `events.md` are written at `/dflow:finish-feature`
+- Feature within an existing BC → **Standard**: confirm Aggregate ownership, update `models.md` and `rules.md` (written at `/dflow:finish-feature`)
 - T2 / T3 → confirm the fix lands in the correct architectural layer; no design-level updates required
 
 ## Behavior Source of Truth (rules.md + behavior.md)

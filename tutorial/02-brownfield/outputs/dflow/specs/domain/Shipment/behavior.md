@@ -1,4 +1,4 @@
-<!-- dflow-shape: brownfield/behavior.md 3 — keep this line: dflow doctor reads it -->
+<!-- dflow-shape: brownfield/behavior.md 4 — keep this line: dflow doctor reads it -->
 # Shipment — Behavior
 
 <!-- Formatting convention: keep table cells concise. Separate multiple short items with <br> - never chain them into one line with ；/; separators. Long narrative detail belongs in a document section, not in a table cell. -->

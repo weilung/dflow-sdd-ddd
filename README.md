@@ -211,6 +211,8 @@ tier 不是每次都 user 決定 — `/dflow:new-feature` 與 `/dflow:new-phase`
 
 Dflow 用 `_index.md` 解決這三點：Current BR Snapshot 每完成一個 phase 就 regenerate、Resume Pointer 寫接續指引、整個 feature 目錄是自然的歸檔單位。`/dflow:finish-feature` 收尾時，把 `_index.md` 的 BR Snapshot reconcile 到 `rules.md` / `behavior.md`（feature 層晉升到 system 層），然後 `git mv` 整個 feature 目錄到 `completed/`。
 
+進行中的 feature，規則只在它的 `_index.md` 與各份 phase-spec，收尾之前不會出現在 System State；每個 phase 都合回 `main` 的專案也一樣。哪些文件照舊當場寫、進行中的規則在哪裡看、接受的風險，見[系統層在收尾時寫入](docs/system-layer-at-closeout.md)。
+
 ### completed feature 是凍結歷史
 
 當 `/dflow:finish-feature` 把 feature 目錄 `git mv` 到 `completed/` 後，**該 feature 不接受任何直接寫入**，無論是新 phase-spec、lightweight-spec、還是 `_index.md` inline 一行（唯一 sanctioned 例外：Follow-up Tracking 段的 derived metadata——有 follow-up feature 連回時，其 reverse-link 列由 `in-progress` 翻 `completed`；specs、BR Snapshot、inline change history 仍凍結）。如果之後要再改它，必須建一個 follow-up feature：新 feature 目錄、新 SPEC-ID、`_index.md` 用 `follow-up-of: {原 SPEC-ID}` metadata 連回原 feature。

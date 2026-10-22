@@ -25,12 +25,11 @@ state, archives the feature directory, and emits a Git-strategy-neutral
   you can always decline. The commit marker mode is read from `_conventions.md`
   § AI Commit Policy. This replaces Dflow's earlier "the AI never commits"
   stance — the AI helps at natural checkpoints, you keep the final say.
-- The BC-layer sync in Step 3 **reuses the existing documentation-sync
-  mechanism** from `new-feature-flow` (§ 8.3) and `modify-existing-flow`
-  (Step 5.3) — it does not introduce a new sync flow. § 8.3 and Step 5.3
-  sync when the work they record completes; Step 3 runs the same mechanism
-  once more at feature closeout, with the `_index.md` Current BR Snapshot as
-  input.
+- On a host that carries phase-specs, the BC-layer sync in Step 3 is the
+  only step that writes this feature's changes into the bounded context: no
+  phase wrote them, and a T2 hosted here left them too. A minimal host's
+  change was written at its checkpoint 1; for it, read Step 3 as
+  `references/finish-feature-minimal-host.md` § Step 3 says.
 
 **Step Gates** in this flow (stop-and-confirm before proceeding):
 - Step 1 → Step 2 (validation passed → flip status)
@@ -310,7 +309,11 @@ host may still touch a real BC, or none at all:
   half that was only ever written there.
 - **(ii) no-BC** — the host touched **no** bounded context at all (a display
   T3, an appearance sweep). **Skip the BC-scoped sync**; the debt
-  reconciliation above still applies within this host's permitted scope. Do
+  reconciliation above still applies within this host's permitted scope. On a
+  host that carries phase-specs, still write `glossary.md`, which belongs to no
+  bounded context and which no phase wrote: add, change or rename the terms its
+  phase-specs' Domain Concepts tables record, as the net result of every spec
+  in this host — a T2 hosted here has already written its own terms. Do
   **not** create `rules.md` / `behavior.md` / `events.md`, and do not invent a
   BC to sync into. Its Integration Summary sets the fields that **report a sync** to `none` —
   `BC`, `Aggregates affected`, `Domain Events Changes`. **`Related BR-IDs` is
@@ -319,13 +322,11 @@ host may still touch a real BC, or none at all:
   block is the authority on the shape; do not flatten it to "all BR fields are
   none" here.
 
-For a **BC-bearing** host, continue with the sync. This step **reuses the
-existing sync mechanism** from `new-feature-flow`
-Step 8.3 / `modify-existing-flow` Step 5.3 (`dflow/specs/domain/{context}/rules.md`
-+ `behavior.md` + `events.md` + `context-map.md` updates). The input is
-the feature's `_index.md` Current BR Snapshot table; the output is the
-BC's `rules.md` / `behavior.md` updated to reflect the feature's net
-effect.
+For a **BC-bearing** host, continue with the sync. On a host that carries
+phase-specs this is the only step that writes this feature's changes into the
+bounded context: no phase wrote them, and a T2 hosted here left them too. The
+input is the feature's `_index.md` Current BR Snapshot table; the output is
+the BC's documents updated to the feature's net effect.
 
 **Minimal host — sync input.** A minimal host reads "phase-spec" differently
 here, and a phase-bearing host must not apply that reading. The rule is
@@ -354,6 +355,8 @@ guard refuses:
 - `dflow/specs/domain/{context}/rules.md` → `templates/rules.md`
 - `dflow/specs/domain/{context}/behavior.md` → `templates/behavior.md`
 - `dflow/specs/domain/{context}/events.md` → `templates/events.md`
+- `dflow/specs/domain/{context}/models.md` → `templates/models.md`
+- `dflow/specs/domain/glossary.md` → `templates/glossary.md`
 
 > **Table-cell formatting**: keep table cells concise — separate multiple short items with `<br>` (never chain them into one line with ；/; separators), and move long narrative detail out of the cell into a document section (full convention: the formatting comment at each spec doc's head).
 
@@ -386,10 +389,17 @@ exactly what the REMOVED branch needs:
 
 For `behavior.md`:
 
-- For every BR-ID still active after this feature, ensure
-  `dflow/specs/domain/{context}/behavior.md` has a scenario section (anchor)
-  matching the BR-ID; the scenario should include Aggregate state
-  transitions and Domain Events as appropriate
+- For every BR-ID still active after this feature: if no spec in this host
+  added, modified or renamed it, leave its section in
+  `dflow/specs/domain/{context}/behavior.md` as it is. If one did, apply each
+  such spec's recorded change to the section in order — the first
+  phase-spec's Behavior Scenarios, a later phase-spec's Delta entry, a hosted
+  lightweight-spec's Behavior Delta — merging the final state, not the Delta
+  markup, and keeping every scenario no spec changed. A RENAMED entry renames
+  the section and keeps its scenarios. When the host's record does not show
+  which of two specs that changed the same rule came later, ask the developer
+  which text is current instead of choosing. The scenarios include Aggregate
+  state transitions and Domain Events as appropriate
 - For REMOVED BR-IDs, delete the corresponding scenario section from
   `behavior.md`
 
@@ -422,12 +432,20 @@ recorded delta the same way** — on any host shape, for the reason above.
 > between Snapshot and the phase-specs, fix `_index.md` first, then re-run
 > `/dflow:finish-feature`.
 
-Also update `architecture/tech-debt.md` / `models.md` / `glossary.md` /
-`analysis.md` as discovered during the feature (the same items listed in
-`new-feature-flow.md` Step 8.3; `analysis.md` is two files — the owning
-context's and the domain-root one — each created from `templates/analysis.md`
-the first time there is something to record) — these may have been touched per
-phase already; this is the closeout sweep.
+Also write `models.md` and `glossary.md` from each phase-spec's Domain
+Concepts table and the hosted lightweight-specs' recorded deltas (a RENAMED
+rule's term is handled above). `analysis.md` — two files, the owning context's
+and the domain-root one, each created from `templates/analysis.md` the first
+time there is something to record — and `architecture/tech-debt.md` were
+written as the work happened: re-check them here against the feature's net
+result.
+
+Then check, and report ✓ / ✗ before the step gate: `behavior.md` has a
+section anchor for every BR-ID still active in the Current BR Snapshot and none
+for a removed one; every BR-ID this step added, modified or renamed carries
+today's `Last updated`. At the step gate, list the `behavior.md` sections this
+step wrote and ask the developer whether they express the intended behavior;
+correct them before archiving.
 
 **→ Step Gate: Step 3 → Step 4**
 
@@ -561,7 +579,7 @@ Then, in this order:
    `models.md`, `analysis.md`, `context-map.md`, `glossary.md`,
    `domain/analysis.md`, `architecture/tech-debt.md`) — a no-BC host skips the
    BC-scoped sync, so this half holds only what Step 3's debt reconciliation
-   wrote; **and**
+   wrote, plus `glossary.md` on a host that carries phase-specs; **and**
    **(b)** the **documentation-sweep step of the flow that produced *this
    change*** — take the paths from that step, not from a list kept here. A
    commit may already have carried them — `modify-existing-flow.md`'s
@@ -589,8 +607,10 @@ Then, in this order:
    A **phase-spec** has three possible producers — `/dflow:new-feature`,
    `/dflow:new-phase`, or `modify-existing-flow.md` Step 1.6 / 5.4 routing into
    the new-feature machinery — and **you do not have to tell them apart**:
-   § 8.3 and Step 5.3 enumerate the same external paths, and `/dflow:new-phase`
-   has no sweep at all, so every branch yields that same set or a part of it.
+   § 8.3 carries only `analysis.md` and the tech-debt file, Step 5.3 carries
+   the whole set (a T2 on a host that carries phase-specs carries only § 8.3's
+   part of it), and `/dflow:new-phase` has no sweep at all, so every branch
+   yields Step 5.3's set or a part of it.
    ⚠ **`/dflow:new-phase` has no sweep and is deliberately absent here.**
    `new-phase-flow.md` Step 7 updates the phase-spec and this host's own tables,
    and says so in as many words — "The bounded context's `rules.md` /

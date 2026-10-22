@@ -806,6 +806,13 @@ const LIFECYCLES_MIGRATION = "analysis.md, Lifecycles comment: replace this sect
 // as a confirmed rule, or a follow-up inherit a draft row into its Snapshot.
 const DRAFT_BASIS_MIGRATION = "behavior.md, Purpose and Maintenance notes: replace these notes with the current brownfield template's. Existing draft scenarios and observations remain valid; do not infer their basis or confirmation from their text. Add Draft basis only when a capture next writes or substantively revises that draft BR, using references/modify-existing-baseline.md § Draft basis and current observations.";
 const SNAPSHOT_DRAFT_MIGRATION = "_index.md, Current BR Snapshot notes: compare this section's notes with the current brownfield template's and apply references/modify-existing-follow-up.md when inheriting rules. Do not rewrite existing Snapshot rows or completed records as a shape migration; resolve a draft or confirmation conflict through the running workflow before syncing it.";
+// PROPOSAL-118: the default for a note or comment says keeping yours is fine,
+// which would leave a doc saying it is written at Step 8.3 while that step now
+// writes nothing there. Each sentence changes only the sentence about when the
+// file is written and keeps the rest, the project's additions included.
+const BEHAVIOR_TIMING_MIGRATION = "behavior.md, Maintenance in the head note: where it says the file is updated during Step 8.3, say instead that /dflow:finish-feature Step 3 updates it for a feature that carries phase-specs, and /dflow:modify-existing for a lightweight change on a host of its own. Keep the rest of the note as it is, including anything the project added, and show the developer the old and new sentence before writing.";
+const INDEX_TIMING_GF_MIGRATION = "_index.md, Sync to BC layer in the head comment: where it says the sync continues the Step 8.3 / Step 5.3 sync mechanism, say instead that for a feature that carries phase-specs /dflow:finish-feature is the only step that writes the feature's changes into the bounded context, and until then they are in the Current BR Snapshot and the phase-specs. Keep the rest of the comment as it is, including anything the project added, and show the developer the old and new sentence before writing.";
+const INDEX_TIMING_BF_MIGRATION = "_index.md, Current BR Snapshot note: where it says the table is pushed into rules.md / behavior.md continuing the Step 8.3 sync mechanism, say instead that a feature that carries phase-specs writes into the bounded context only at /dflow:finish-feature, and until then its rules are only in this table and the phase-specs. Keep the rest of the note as it is, including anything the project added, and show the developer the old and new sentence before writing.";
 // PROPOSAL-117: the default for an added section adds it empty, which would leave
 // each external system where the file recorded it before — a row of the tables
 // above, one end of a Relationships row, an Integration Notes line — with nothing
@@ -822,7 +829,11 @@ const EXTERNAL_SYSTEMS_MIGRATION = "context-map.md, External Systems: add the se
     [`${t}/context-map.md`, 2, (c) => c.kind === 'added' && c.item[0] === 'h2' && c.item[1] === 'External Systems', EXTERNAL_SYSTEMS_MIGRATION]
   ]).concat([
     ['brownfield/behavior.md', 3, (c) => c.kind === 'reworded' && c.from[0] === 'note' && c.from[1] === '' && c.from[2] === '', DRAFT_BASIS_MIGRATION],
-    ['brownfield/_index.md', 4, (c) => c.kind === 'reworded' && c.from[0] === 'note' && c.from[1] === 'Current BR Snapshot', SNAPSHOT_DRAFT_MIGRATION]
+    ['brownfield/_index.md', 4, (c) => c.kind === 'reworded' && c.from[0] === 'note' && c.from[1] === 'Current BR Snapshot', SNAPSHOT_DRAFT_MIGRATION],
+    ['greenfield/behavior.md', 3, (c) => c.kind === 'reworded' && c.from[0] === 'note' && c.from[1] === '' && c.from[2] === '', BEHAVIOR_TIMING_MIGRATION],
+    ['brownfield/behavior.md', 4, (c) => c.kind === 'reworded' && c.from[0] === 'note' && c.from[1] === '' && c.from[2] === '', BEHAVIOR_TIMING_MIGRATION],
+    ['greenfield/_index.md', 4, (c) => c.kind === 'reworded' && c.from[0] === 'comment' && c.from[1] === '' && c.from[2] === '', INDEX_TIMING_GF_MIGRATION],
+    ['brownfield/_index.md', 5, (c) => c.kind === 'reworded' && c.from[0] === 'note' && c.from[1] === 'Current BR Snapshot', INDEX_TIMING_BF_MIGRATION]
   ]);
   const registered = [];
   for (const [key, e] of Object.entries(registry.templates)) {
@@ -839,6 +850,12 @@ const EXTERNAL_SYSTEMS_MIGRATION = "context-map.md, External Systems: add the se
     const change = registry.templates[key].shapes[number - 1].changes.find(match);
     assert.ok(change, `${key} shape ${number}: the change that needs a migration is registered`);
     assert.equal(change.migration, sentence, `${key} shape ${number}: the migration is the approved sentence`);
+  }
+  // PROPOSAL-118 (F7): a timing migration rewrites one sentence, never the whole
+  // note, and shows that sentence before writing.
+  for (const m of [BEHAVIOR_TIMING_MIGRATION, INDEX_TIMING_GF_MIGRATION, INDEX_TIMING_BF_MIGRATION]) {
+    assert.ok(m.includes('Keep the rest of the') && m.includes('including anything the project added'), `a PROPOSAL-118 timing migration keeps the rest, the project's additions included: ${m}`);
+    assert.ok(m.includes('show the developer the old and new sentence before writing'), `a PROPOSAL-118 timing migration shows the old and new sentence first: ${m}`);
   }
   // Only for a doc that is adding the column: a doc that already has it keeps its values.
   assert.ok(RULES_MIGRATION.includes('when you add this column'), 'the rules.md migration governs adding the column, never values already in it');

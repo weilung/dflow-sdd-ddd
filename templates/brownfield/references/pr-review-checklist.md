@@ -380,7 +380,10 @@ For every matched risk, record one disposition in the review:
   role is sound and when to revisit it. For such an exception, the rationale
   must already exist or be added to the appropriate Aggregate / Domain Service
   row and Notes in `models.md`; when it protects an invariant, update the
-  related `rules.md` entry too. The PR conversation points to that decision and
+  related `rules.md` entry too. For a feature that carries phase-specs and has
+  not closed out yet, add it to the spec of the change under review instead
+  (its phase-spec, or the lightweight spec it hosts): `/dflow:finish-feature`
+  writes it into those rows. The PR conversation points to that decision and
   is not its only home. This disposition evaluates the rationale's adequacy,
   not only its existence: it must explain how it answers every matched risk.
   For a match involving an external provider / service fact, acknowledge that
@@ -406,7 +409,9 @@ A DDD / domain-correctness blocker must state:
 - the code boundary or enforcement needed to restore the guarantee;
 - the existing durable surfaces that must change, as applicable — the spec,
   domain `models.md` / `rules.md` / `context.md` / `context-map.md` /
-  `behavior.md`, or `migration/tech-debt.md`;
+  `behavior.md`, or `migration/tech-debt.md` — for a feature that carries
+  phase-specs and has not closed out yet, its spec in place of the domain
+  documents, which `/dflow:finish-feature` writes from it;
 - the automated tests or observable evidence that re-verify the guarantee; and
 - that the unimplemented guarantee must not remain marked `completed` before
   re-review.
@@ -479,6 +484,11 @@ for later?"
 
 ## Glossary Consistency
 
+For a feature that carries phase-specs and has not closed out yet, read the
+checks below that name `glossary.md` against its phase-specs' Domain Concepts
+tables and the lightweight specs it hosts instead: `/dflow:finish-feature`
+writes `glossary.md`.
+
 - [ ] **New terms documented** — Any new business concept added to glossary.md?
 - [ ] **Naming matches the Ubiquitous Language** — for each **domain-facing**
       class / method / variable the diff introduces (skip DTO / test / framework
@@ -496,6 +506,11 @@ uses '報銷 (Expense Claim)'. Should we align the naming?"
 ```
 
 ## Domain Documentation Updates
+
+For a feature that carries phase-specs and has not closed out yet, read the
+`models.md` and `rules.md` checks below against its phase-specs, the
+lightweight specs it hosts and its `_index.md` Current BR Snapshot instead:
+`/dflow:finish-feature` writes those documents.
 
 - [ ] **models.md updated** — New entities/VOs/services documented?
 - [ ] **rules.md updated** — New or changed business rules recorded?

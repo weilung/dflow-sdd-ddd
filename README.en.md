@@ -303,6 +303,8 @@ In practice a feature branch usually goes through several propose → implement 
 
 Dflow solves these with `_index.md`: the Current BR Snapshot regenerates after each completed phase, the Resume Pointer carries continuation instructions, and the whole feature directory is the natural archival unit. At `/dflow:finish-feature`, Dflow reconciles the BR Snapshot into `rules.md` / `behavior.md` (promoting the feature layer into the system layer) and then `git mv`s the whole feature directory to `completed/`.
 
+While a feature is in progress, its rules are only in its `_index.md` and its phase-specs; they do not appear in System State before closeout, even in a project that merges every phase to `main`. Which documents are still written as the work happens, where to see the rules in progress, and the accepted risks: [The System Layer Is Written at Closeout](docs/system-layer-at-closeout.en.md).
+
 ### Completed features are frozen history
 
 Once `/dflow:finish-feature` moves a feature directory into `completed/`, **no direct writes are allowed** — not new phase-specs, not lightweight-specs, not even inline rows in `_index.md` (the one sanctioned exception: the Follow-up Tracking section's derived metadata — when a follow-up feature links back, its reverse-link row flips from `in-progress` to `completed`; specs, the BR Snapshot, and inline change history stay frozen). To change anything later, you build a **follow-up feature**: a new feature directory with a fresh SPEC-ID and `follow-up-of: {original SPEC-ID}` metadata pointing back to the original.

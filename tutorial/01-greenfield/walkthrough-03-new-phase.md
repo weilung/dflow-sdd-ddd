@@ -122,9 +122,6 @@ dflow/specs/features/active/SPEC-20260428-001-employee-submit-expense/_index.md
 dflow/specs/features/active/SPEC-20260428-001-employee-submit-expense/phase-spec-2026-04-28-mvp.md
 dflow/specs/features/active/SPEC-20260428-001-employee-submit-expense/aggregate-design.md
 dflow/specs/domain/Expense/context.md
-dflow/specs/domain/Expense/models.md
-dflow/specs/domain/Expense/rules.md
-dflow/specs/domain/Expense/events.md
 dflow/specs/domain/Expense/analysis.md
 dflow/specs/domain/glossary.md
 dflow/specs/domain/context-map.md
@@ -140,6 +137,8 @@ Dflow:
 - Bounded Context：Expense
 - phase 1 Aggregate：ExpenseReport
 - Current BR Snapshot：4 條 BR（BR-001..004）
+- Expense 是這個 feature 建的 context，收尾前還沒有 rules.md、behavior.md、
+  models.md、events.md：那不是缺檔，phase 1 的規則在 Current BR Snapshot
 - phase 1 open question：
   Approval 要拆獨立 BC，還是留在 Expense BC 內當另一個 Aggregate
 - 最新 Resume Pointer：phase 1 已完成，下一步 `/dflow:new-phase`
@@ -272,8 +271,9 @@ Dflow:
 Identity 變得更相關，
 因為 Application 層需要知道 Approver 是誰、是否能審這張單。
 但 Domain 層只持 ID，不建模組織階層。
-Identity 是外部系統，context-map.md 的 External Systems 記下 Expense 與它的
-兩種交換：SSO 帶進來的員工 ID、Application 層查的主管階層。
+Identity 是外部系統。Expense 與它的兩種交換——SSO 帶進來的員工 ID、
+Application 層查的主管階層——先寫在這份 phase-spec，
+收尾時由 /dflow:finish-feature 記進 context-map.md 的 External Systems。
 ```
 
 Data structure impact：
@@ -901,14 +901,14 @@ docs 已同步、feature 目錄位於 `completed/`。但在 `/dflow:new-phase` �
 | 修改 | [`outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/_index.md) | Phase Specs 第 2 列與 regenerated Current BR Snapshot。 |
 | 修改 | [`outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/aggregate-design.md`](outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/aggregate-design.md) | `ApprovalDecision` Aggregate、ExpenseReport 狀態機、SubmitAttemptNo、設計決策。 |
 | 修改 | [`outputs/dflow/specs/domain/Expense/context.md`](outputs/dflow/specs/domain/Expense/context.md) | Approval 留在 Expense BC，不拆獨立 Approval BC。 |
-| 修改 | [`outputs/dflow/specs/domain/Expense/models.md`](outputs/dflow/specs/domain/Expense/models.md) | ApprovalDecision、ApprovalReason、ExpenseReportStatus、ApprovalDecisionType。 |
-| 修改 | [`outputs/dflow/specs/domain/Expense/rules.md`](outputs/dflow/specs/domain/Expense/rules.md) | MODIFIED BR-002，ADDED BR-005~007。 |
-| 修改 | [`outputs/dflow/specs/domain/Expense/events.md`](outputs/dflow/specs/domain/Expense/events.md) | ExpenseReportApproved / ExpenseReportRejected。 |
-| 修改 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) | Approver、ApprovalDecision、ApprovalReason。 |
-| 修改 | [`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md) | External Systems 記下 Expense 與 Identity 的兩種交換（員工 ID、主管階層）。 |
+| 收尾時寫 | [`outputs/dflow/specs/domain/Expense/models.md`](outputs/dflow/specs/domain/Expense/models.md) | ApprovalDecision、ApprovalReason、ExpenseReportStatus、ApprovalDecisionType。這一步在 phase spec 的 Domain Concepts 表，walkthrough 06 收尾時寫進來。 |
+| 收尾時寫 | [`outputs/dflow/specs/domain/Expense/rules.md`](outputs/dflow/specs/domain/Expense/rules.md) | MODIFIED BR-002，ADDED BR-005~007。這一步在 phase spec 的 Delta 與 `_index.md` 的 Current BR Snapshot。 |
+| 收尾時寫 | [`outputs/dflow/specs/domain/Expense/events.md`](outputs/dflow/specs/domain/Expense/events.md) | ExpenseReportApproved / ExpenseReportRejected。這一步在 phase spec 的 Domain Events 表。 |
+| 收尾時寫 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) | Approver、ApprovalDecision、ApprovalReason。這一步在 phase spec 的 Domain Concepts 表。 |
+| 本步驟不動 | [`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md) | Expense 與 Identity 的兩種交換（員工 ID、主管階層）這一步寫在 phase spec；outputs 那一份的 External Systems 是 walkthrough 06 收尾時寫進去的。 |
 | 修改 | [`outputs/dflow/specs/domain/Expense/analysis.md`](outputs/dflow/specs/domain/Expense/analysis.md) | Step 2 當場記：LC-01 加上 Approved / Rejected 與三條轉移、新增 MX-01（SubmitAttemptNo）；Step 6 對照做出來的複核後，Evidence 換成 `code`。 |
 | 修改 | [`outputs/dflow/specs/domain/analysis.md`](outputs/dflow/specs/domain/analysis.md) | Step 2 當場記主管的三個功能（FN-03～FN-05；核准與退回的 Roles 引 `domain/Expense/rules.md BR-005`）；Step 6 補上 Entry point。 |
-| 本步驟不動 | `outputs/dflow/specs/domain/Expense/behavior.md` | phase 2 當下 Given/When/Then 仍由 phase spec 承載（Step 8.3 才 merge），**骨架則在 walkthrough 02 的 Step 3 就已建立**、且只涵蓋 BR-001~004。outputs 樹裡那一份是 closeout 之後填滿七條 BR 的最終狀態。 |
+| 本步驟不動 | `outputs/dflow/specs/domain/Expense/behavior.md` | phase 2 當下這份檔還不存在：兩個 phase 的 Given/When/Then 都在各自的 phase spec，`/dflow:finish-feature` Step 3 才依序寫進來（walkthrough 06）。outputs 樹裡那一份是 closeout 之後七條 BR 的最終狀態。 |
 
 ## 本篇展示的 Dflow 能力
 
@@ -960,9 +960,8 @@ New-phase 的價值是讓同一個 feature 可以自然長大，但每次長大�
 - BC-level living docs（rules、models、events、glossary、context-map）等 `/dflow:finish-feature` 才同步。
 - `analysis.md` 不等收尾：Step 2 當場記（狀態怎麼轉、沒有單一規則講得完的機制、誰碰得到什麼），
   Step 6 對照做出來的複核；收尾時 sweep 再維護一次。
-- Behavior **scenarios** 在 phase 2 當下仍由 phase spec 承載，Step 8.3 才 merge 進
-  `behavior.md`；但 `behavior.md` 的**骨架**在 new-feature Step 3 就該建好了
-  （`new-feature-flow.md` Step 3），不是延後建立。
+- Behavior **scenarios** 在 phase 2 當下仍由 phase spec 承載；`behavior.md` 連骨架都還沒有，
+  `/dflow:finish-feature` Step 3 才依序把兩個 phase 的情境寫進去（`finish-feature-flow.md` Step 3）。
 
 ## 下一個 walkthrough
 

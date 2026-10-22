@@ -284,18 +284,21 @@ Dflow 先讀現有文件：
 Dflow:
 Step 2 我會先讀現有文件，不直接改程式：
 
-- SPEC-20260430-001-order-discount-calculation/_index.md
-- phase-spec-2026-04-30-baseline-and-fix.md
-- dflow/specs/domain/Order/rules.md
-- dflow/specs/domain/Order/models.md
+- SPEC-20260430-001-order-discount-calculation/_index.md（Current BR Snapshot）
+- phase-spec-2026-04-30-baseline-and-fix.md（Business Rules、Domain Concepts）
 - dflow/specs/migration/tech-debt.md
+
+SPEC-001 還沒收尾，Order 還沒有 rules.md、models.md：
+它的規則看 Current BR Snapshot，模型看 phase spec 的 Domain Concepts。
+開頭的掃描也讀了還沒收尾的 SPEC-002 的 Snapshot：
+它的 BR-005~008 只加 VIP 路徑，沒有碰 BR-001~004。
 ```
 
 讀到的 baseline：
 
 ```text
 Dflow:
-- BR-001~004 已描述 pre-discount total、滿額折扣、
+- BR-001~004（SPEC-001 的 Snapshot）已描述 pre-discount total、滿額折扣、
   Senior 折扣與 compound discount accumulation。
 - Money VO 已存在，負責表示 amount + currency；
   目前 rounding 延續 OrderEntry 既有規則。
@@ -394,7 +397,7 @@ Dflow:
    避免 WebForms page 各自 round。
 
 所以寫在 BUG-001 的 Implementation Tasks，
-不寫進 BR-001~004，也不更新 dflow/specs/domain/Order/models.md。
+不寫進 BR-001~004，也不改 Money 的模型定義（收尾時寫進 models.md 的那一份）。
 
 如果未來要討論多幣別、locale-specific formatter 或 invoice rounding，
 那才是新的 scope 或 tech-debt。
@@ -697,10 +700,10 @@ Dflow:
 故意不改：
 
 - 不動 SPEC-20260505-002 directory，避免污染 VIP feature scope。
-- 不改 dflow/specs/domain/Order/{rules,context,behavior,glossary}.md，
-  因為 BR 與 Domain 概念不變。
-- 不改 dflow/specs/domain/Order/models.md，
-  因為 Money 結構不變，加 method 是 implementation detail。
+- 不改 dflow/specs/domain/Order/{context,behavior}.md，也不改 glossary.md，
+  因為 BR 與 Domain 概念不變。rules.md、models.md 這時還沒有：
+  這筆 T2 掛在還沒收尾的 SPEC-001 底下，6.3 本來就只寫 analysis.md 與技術債，
+  規則與模型留給 SPEC-001 收尾——何況這次 BR 不變，Money 結構也不變（加 method 是 implementation detail）。
 - 不改 dflow/specs/domain/{glossary,context-map}.md。
 - 不改 dflow/specs/domain/Order/analysis.md。6.3 的那一項照這次的實際改動判：
   RM-01、RM-02 記的是數字在哪裡產出、怎麼算，這次只改顯示精度，
@@ -727,8 +730,8 @@ Dflow:
 | 修改 | [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md) | Lightweight Changes row、BR Snapshot intentionally unchanged note、後續 closeout integration summary。 |
 | 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | rounding inconsistency 那一列連回 BUG-001（status 仍是 `open`，收尾 Step 3 才設 `done`）。 |
 | 故意不改 | `SPEC-20260505-002-vip-discount-policy/` | rounding bug 不屬 VIP policy scope。 |
-| 故意不改 | `outputs/dflow/specs/domain/Order/rules.md` | 沒有 ADDED / MODIFIED / REMOVED / RENAMED BR。 |
-| 故意不改 | `outputs/dflow/specs/domain/Order/models.md` | `Money` equality components / invariant 不變；`ToDisplay()` 是 implementation contract。 |
+| 這一步還沒有 | `outputs/dflow/specs/domain/Order/rules.md` | SPEC-001 收尾才寫；這次也沒有 ADDED / MODIFIED / REMOVED / RENAMED BR。 |
+| 這一步還沒有 | `outputs/dflow/specs/domain/Order/models.md` | SPEC-001 收尾才寫；`Money` equality components / invariant 也不變，`ToDisplay()` 是 implementation contract。 |
 | 故意不改 | `outputs/dflow/specs/domain/Order/context.md` / `behavior.md` / `glossary.md` | 沒有新增 Domain concept 或 accepted behavior section。 |
 
 上表連到完整文件範例；本篇只關注 BUG-001 建立與 SPEC-001 active 時的 lightweight update。

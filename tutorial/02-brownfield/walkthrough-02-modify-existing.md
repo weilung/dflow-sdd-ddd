@@ -293,8 +293,9 @@ Dflow 的回答：
 Dflow:
 我建議分兩層記錄：
 
-- rules.md、behavior.md 與 feature 的 Current BR Snapshot 寫業務期望的 current behavior，
-  也就是客訴確認後要成為 source of truth 的規則。
+- feature 的 Current BR Snapshot 與 phase-spec 的 Business Rules、Behavior Scenarios
+  寫業務期望的 current behavior，也就是客訴確認後要成為 source of truth 的規則；
+  收尾時 /dflow:finish-feature 再把它們寫進 rules.md、behavior.md。
 
 - phase-spec 的 Behavior Scenarios 保留一個 Baseline Contrast Scenario，
   明確寫「既有 Code-Behind 實際算出 NT$54,000，
@@ -320,7 +321,7 @@ Baseline capture 不是照抄 legacy code。它要分辨：
 
 | 類型 | 寫在哪裡 |
 |---|---|
-| 業務確認後的正確規則 | `rules.md`、`behavior.md`、Current BR Snapshot |
+| 業務確認後的正確規則 | Current BR Snapshot 與 phase spec（收尾時寫進 `rules.md`、`behavior.md`） |
 | 既有錯誤實作的重現結果 | phase spec 的 Baseline Contrast Scenario |
 | 為什麼這樣取捨 | Open Questions / Implementation Notes |
 
@@ -330,12 +331,15 @@ Dflow 在這裡的價值，就是把 legacy observation 和 business truth 分�
 這次的 bug 在同一個 feature 裡就修，所以 phase spec 的 Baseline Contrast Scenario 就夠了。
 **如果 Bob 決定這次不修**——規則確認了，程式先照舊——差異要記成**偏離**，四份文件各記一部分：
 
-| 文件 | 記什麼 |
-|---|---|
-| `rules.md` | BR-004 那一列照樣寫確認的規則；最後一欄 `Known deviations` 連到記這個偏離的那一列技術債（沒有偏離的列是 `—`）。 |
-| `behavior.md` | BR-004 的 Given/When/Then 只寫規則；標題底下另起一行 `> Known deviation:`，寫觀察到程式怎麼算、證據、技術債連結。 |
-| `migration/tech-debt.md` | 一列，名稱像 `Order BR-004: Senior 折扣沒有累積`：哪條規則、確認的規則摘要、程式現況、規則與程式各自的證據、為什麼延後。 |
-| 這次的 spec | 標題底下記一行 `> Deferred deviation:`，驗證時把這一個偏離當成已知例外。 |
+| 文件 | 記什麼 | 什麼時候寫 |
+|---|---|---|
+| 這次的 spec | 標題底下記一行 `> Deferred deviation:`，驗證時把這一個偏離當成已知例外。 | 當場 |
+| `migration/tech-debt.md` | 一列，名稱像 `Order BR-004: Senior 折扣沒有累積`：哪條規則、確認的規則摘要、程式現況、規則與程式各自的證據、為什麼延後。 | 當場 |
+| `rules.md` | BR-004 那一列照樣寫確認的規則；最後一欄 `Known deviations` 連到記這個偏離的那一列技術債（沒有偏離的列是 `—`）。 | 收尾寫出那一列時 |
+| `behavior.md` | BR-004 的 Given/When/Then 只寫規則；標題底下另起一行 `> Known deviation:`，寫觀察到程式怎麼算、證據、技術債連結。 | 收尾寫出那一段時 |
+
+這個 feature 還沒收尾之前，`rules.md` 與 `behavior.md` 都還沒有 BR-004，不為了放偏離紀錄先建它們；
+收尾 Step 3 寫出 BR-004 的那一列與那一段之後，再照技術債對帳補上這兩處。
 
 `behavior.md` 那一行長這樣（假設的寫法，本篇實際上沒有延後）：
 
@@ -374,8 +378,8 @@ INV-03: DiscountRate 必須在 [0.0, 1.0]
 INV-04: 多折扣用乘法累積，不用簡單相減或遺漏某個折扣
 ```
 
-跟 Greenfield 不同，這裡沒有 `aggregate-design.md`。Brownfield track 以 `models.md`
-和 phase spec 記錄抽離出來的 model，避免在第一個修改點就建立過重的設計文件。
+跟 Greenfield 不同，這裡沒有 `aggregate-design.md`。Brownfield track 以 phase spec 的
+Domain Concepts 記錄抽離出來的 model（收尾時寫進 `models.md`），避免在第一個修改點就建立過重的設計文件。
 
 Step 3 另外四題問的是**系統層知識**——沒有任何單一 context 文件收得下的東西
 （`new-feature-flow.md` Step 3 的 `What are the states/statuses?`、
@@ -391,7 +395,8 @@ Dflow:
 - 訂單折扣後金額。這個 feature 做完之後，btnSubmit_Click 提交時呼叫 DiscountPolicy：
   折扣後金額 = 折扣前總額 ×（1 − 總折扣率），
   折扣前總額照 BR-001，總折扣率照 BR-002～BR-004
-  （這四條寫進 rules.md，Step 4 的 phase-spec 會列同一張表；analysis.md 只引編號）。
+  （這四條先記在 Step 4 的 phase-spec 與 _index.md 的 Current BR Snapshot，
+  收尾時才寫進 rules.md；analysis.md 只引編號）。
 - 存下來的只有 GrossAmount（折扣前總額）與 NetAmount（折扣後金額），總折扣率本身不存。
 - 算它的是 Order，所以記進 dflow/specs/domain/Order/analysis.md 的 RM-01。
   這支檔還不存在；這是第一次有東西要記，所以從 templates/analysis.md 建。
@@ -700,19 +705,21 @@ Order BC 負責接單流程中的訂單主體、訂單明細、金額計算與�
 完整文件範例：
 [`outputs/dflow/specs/domain/Order/context.md`](outputs/dflow/specs/domain/Order/context.md)
 
-## 文件片段 2 — `domain/Order/rules.md`
+## 文件片段 2 — `domain/Order/rules.md`（收尾時寫進去的樣子）
 
-`rules.md` 把折扣規則變成 BR-ID index：
+這一步還沒有 `rules.md`：BR-001～004 在 Step 4 的 Current BR Snapshot 與 phase spec 的
+Business Rules。walkthrough 06 收尾時，`/dflow:finish-feature` Step 3 照 Snapshot 建立 `rules.md`，
+把折扣規則變成 BR-ID index：
 
 ```markdown
 # Business Rules
 
 | BR-ID | Rule summary | Behavior anchor | Status | Last updated | Known deviations |
 |---|---|---|---|---|---|
-| BR-001 | 訂單折扣前總金額等於所有 OrderLine.UnitPrice * Quantity 的加總。 | [BR-001](./behavior.md#br-001-pre-discount-total) | active | 2026-04-30 | — |
-| BR-002 | 訂單折扣前總金額大於或等於 NT$50,000 時，套用滿額折扣率 10% off。 | [BR-002](./behavior.md#br-002-full-threshold-discount) | active | 2026-04-30 | — |
-| BR-003 | CustomerTier = 'Senior' 的老客戶可額外套用客戶等級折扣率 5% off。 | [BR-003](./behavior.md#br-003-senior-customer-discount) | active | 2026-04-30 | — |
-| BR-004 | 多個折扣率以乘法累積，順序為先套滿額折扣、再套客戶等級折扣。 | [BR-004](./behavior.md#br-004-compound-discount-accumulation) | active | 2026-04-30 | — |
+| BR-001 | 訂單折扣前總金額等於所有 `OrderLine.UnitPrice * Quantity` 的加總。 | [BR-001](./behavior.md#br-001-pre-discount-total) | active | 2026-05-12 | — |
+| BR-002 | 訂單折扣前總金額大於或等於 NT$50,000 時，套用滿額折扣率 10% off（price multiplier 0.9）。 | [BR-002](./behavior.md#br-002-full-threshold-discount) | active | 2026-05-12 | — |
+| BR-003 | `CustomerTier = 'Senior'` 的老客戶可額外套用客戶等級折扣率 5% off（price multiplier 0.95）。 | [BR-003](./behavior.md#br-003-senior-customer-discount) | active | 2026-05-12 | — |
+| BR-004 | 多個折扣率以乘法累積，順序為先套滿額折扣、再套客戶等級折扣；總折扣率 = `1 - (1 - 滿額折扣率) * (1 - 客戶等級折扣率)`。 | [BR-004](./behavior.md#br-004-compound-discount-accumulation) | active | 2026-05-12 | — |
 ```
 
 最後一欄 `Known deviations` 四列都是 `—`：累積公式這次就修，沒有延後的偏離。`—` 只表示沒有用這個格式記下偏離，
@@ -721,8 +728,8 @@ Order BC 負責接單流程中的訂單主體、訂單明細、金額計算與�
 完整文件範例：
 [`outputs/dflow/specs/domain/Order/rules.md`](outputs/dflow/specs/domain/Order/rules.md)
 
-補充：完整文件範例還包含後續 `SPEC-20260505-002` 加入的 VIP discount BR-005~008。
-本篇 step 02 當下只建立 BR-001~004。
+`rules.md` 只放收尾過的 feature 定案的規則。後來的 `SPEC-20260505-002`（walkthrough 04）在本教材結束時
+還沒收尾，所以它的 BR-005～008 不在完整文件範例裡，只在它自己的 `_index.md` 與 phase spec。
 
 ## 文件片段 3 — `migration/tech-debt.md`
 
@@ -797,17 +804,17 @@ Evidence: document - `SPEC-20260430-001` 的 `phase-spec-2026-04-30-baseline-and
 | 新建 | [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md) | Feature dashboard、BR snapshot、scope boundary、resume pointer。 |
 | 新建 | [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/phase-spec-2026-04-30-baseline-and-fix.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/phase-spec-2026-04-30-baseline-and-fix.md) | Baseline contrast、behavior scenarios、BR、implementation tasks。 |
 | 新建 | [`outputs/dflow/specs/domain/Order/context.md`](outputs/dflow/specs/domain/Order/context.md) | Order BC responsibilities、scope、out-of-scope。 |
-| 新建 | [`outputs/dflow/specs/domain/Order/models.md`](outputs/dflow/specs/domain/Order/models.md) | Order、OrderLine、Money、Quantity、DiscountRate、DiscountPolicy。 |
-| 新建 | [`outputs/dflow/specs/domain/Order/rules.md`](outputs/dflow/specs/domain/Order/rules.md) | BR-001~004 的 rule index。 |
-| 新建（骨架） | [`outputs/dflow/specs/domain/Order/behavior.md`](outputs/dflow/specs/domain/Order/behavior.md) | 為 BR-001~004 各加一個 section anchor。折扣行為的 Given/When/Then 要到 closeout 才從 phase spec merge 進來；`outputs/` 樹是最終狀態，所以你在那裡看到的是已填滿的版本。 |
+| 收尾時寫 | [`outputs/dflow/specs/domain/Order/models.md`](outputs/dflow/specs/domain/Order/models.md) | Order、OrderLine、Money、Quantity、DiscountRate、DiscountPolicy。這一步在 phase spec 的 Domain Concepts 表。 |
+| 收尾時寫 | [`outputs/dflow/specs/domain/Order/rules.md`](outputs/dflow/specs/domain/Order/rules.md) | BR-001~004 的 rule index。這一步在 phase spec 的 Business Rules 與 `_index.md` 的 Current BR Snapshot。 |
+| 這一步不建 | [`outputs/dflow/specs/domain/Order/behavior.md`](outputs/dflow/specs/domain/Order/behavior.md) | 折扣行為的 Given/When/Then 在 phase spec 的 Behavior Scenarios。walkthrough 03 的盤點第一次建這份檔（跨頁情境），walkthrough 06 收尾時寫進 BR-001~004 的情境；`outputs/` 樹是最終狀態。 |
 | 新建 | [`outputs/dflow/specs/domain/Order/analysis.md`](outputs/dflow/specs/domain/Order/analysis.md) | RM-01：折扣後金額在哪裡算、計入哪些折扣、存下什麼（Step 3 第一次有東西要記時從範本建）。`outputs/` 是最終狀態，你在那裡還會看到後續補上的 RM-02、HS-01，以及 RM-01 的 VIP 那一段。 |
-| 修改 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) | Order / OrderLine / DiscountPolicy 等 ubiquitous language。 |
-| 新建 | [`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md) | Order 與 Customer / Inventory / Shipment / Invoice 的邊界。⚠ Brownfield 的 init **不建**這一份（BC 由抽離過程浮現），所以它是在本篇確認 Order BC 時才第一次建立。 |
+| 收尾時寫 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) | Order / OrderLine / DiscountPolicy 等 ubiquitous language。這一步在 phase spec 的 Domain Concepts 表。 |
+| 新建 | [`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md) | Step 2 建立，記下 Order 與它的 Subdomain Type。Order 與 Customer / Inventory / Shipment / Invoice 的關係這一步記在 phase spec，walkthrough 06 收尾時寫進 Relationships。⚠ Brownfield 的 init **不建**這一份（BC 由抽離過程浮現），所以它是在本篇確認 Order BC 時才第一次建立。 |
 | 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | 本次不擴張的頁面與剩餘 Code-Behind debt。 |
 | 故意不建 | `events.md` | 本 phase 不引入 Domain Events。 |
-| 故意不建 | `aggregate-design.md` | Brownfield step 以 phase spec + models.md 承載抽離設計。 |
+| 故意不建 | `aggregate-design.md` | Brownfield 以 phase spec（收尾後是 models.md）承載抽離設計。 |
 
-上表連到完整文件範例；本篇關注的是 step 02 建立這些文件的第一個版本。
+上表連到完整文件範例（`outputs/` 是整個教材跑完的最終狀態）；標「收尾時寫」的那幾份，這一步只在 phase spec 與 `_index.md` 裡。
 
 ## 本篇展示的 Dflow 能力
 

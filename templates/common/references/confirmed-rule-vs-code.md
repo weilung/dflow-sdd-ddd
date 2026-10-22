@@ -193,7 +193,8 @@ When this work's document sweep writes that context's `rules.md`, add the rule
 there as `active`, with its `Known deviations` cell, its `behavior.md` section
 and its debt row, and set `Last updated` to the day it is written. When the
 sweep cannot add it — a T3 change, a change that declares no bounded context,
-another context's `rules.md`, or a step that only syncs `rules.md` from the
+another context's `rules.md`, a sweep that leaves `rules.md` to
+`/dflow:finish-feature`, or a step that only syncs `rules.md` from the
 Snapshot — handle it as § When this applies says. This limit is on adding a
 row: filling the deviation column of a row that already exists is allowed,
 because the column is outside the Snapshot.

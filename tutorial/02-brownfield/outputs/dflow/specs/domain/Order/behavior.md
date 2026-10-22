@@ -1,4 +1,4 @@
-<!-- dflow-shape: brownfield/behavior.md 3 — keep this line: dflow doctor reads it -->
+<!-- dflow-shape: brownfield/behavior.md 4 — keep this line: dflow doctor reads it -->
 # Order — Behavior Specification
 
 > **Purpose**: Order context 現行規則的情境與觀察，彙整在本檔。
@@ -7,7 +7,8 @@
 > `draft` BR 的情境是候選規則，不是確認過的規則：它的 `> Draft basis:` 行寫候選從哪裡來，
 > 沒有 BR-ID 的段落寫系統現在怎麼做。
 >
-> **Maintenance**: AI 在 completion flow（Step 8.3 / Step 6.3）更新本檔。
+> **Maintenance**: AI 在本檔記錄的工作收尾時更新本檔——帶 phase-spec 的 feature 在
+> `/dflow:finish-feature` Step 3，自己一個 host 的 lightweight 變更在 `/dflow:modify-existing` Step 6.3。
 > feature completed 時，將 Given/When/Then scenarios merge 到這裡。
 > behavior modified 時，用 Delta result 更新對應 section；不要保留 Delta markup。
 > 取代或刪除帶 `> Known deviation:` 行的 section 時，套用
@@ -71,7 +72,7 @@ And 兩個頁面預期都反映 BR-004 compound discount accumulation
 
 - BR-001~004 finalized on 2026-05-12 by `SPEC-20260430-001-order-discount-calculation` completion.
 - Baseline-capture scenarios remain here as accepted cross-page behavior history; do not delete them during SPEC-001 archive.
-- BR-005~008 remain owned by in-progress `SPEC-20260505-002-vip-discount-policy`; their behavior sections stay in this cumulative Order BC document but are not finalized by SPEC-001 closeout.
+- `SPEC-20260505-002-vip-discount-policy` is still in progress; its VIP scenarios are in its phase spec and reach this file only at its `/dflow:finish-feature`.
 
 #### Edge cases
 
@@ -79,31 +80,6 @@ And 兩個頁面預期都反映 BR-004 compound discount accumulation
 - EC-002: Given OrderLine 有 zero 或 negative UnitPrice When 建立 OrderLine Then 拒絕 construction。
 - EC-003: Given DiscountRate 超出 `[0.0, 1.0]` When 建立 DiscountRate Then 拒絕 construction。
 - EC-004: Given order total 剛好 NT$50,000 When DiscountPolicy evaluates it Then 套用 full-threshold discount。
-
-## VIP Discount Policy
-
-> ⚠ **這一節目前只有骨架。** `SPEC-20260505-002-vip-discount-policy` 的 phase 1 仍在
-> implementation，尚未跑 `/dflow:finish-feature`。依 `new-feature-flow.md`，這一步只建
-> 「每條 `BR-*` 一個 section anchor」的骨架，Given/When/Then 要到 Step 8.3 / closeout
-> 才從 phase spec merge 進來。**本檔彙整的是現行規則的情境**，而 VIP 規則尚未
-> 落地，所以場景還不能寫在這裡——它們現在住在
-> `features/active/SPEC-20260505-002-vip-discount-policy/` 的 phase spec 裡。
-
-### BR-005: VIP contract-valid discount
-
-_(scenario pending — merges at finish-feature)_
-
-### BR-006: Expired VIP contract fallback
-
-_(scenario pending — merges at finish-feature)_
-
-### BR-007: VIP discount stacking order
-
-_(scenario pending — merges at finish-feature)_
-
-### BR-008: VIP and Senior can stack
-
-_(scenario pending — merges at finish-feature)_
 
 ---
 

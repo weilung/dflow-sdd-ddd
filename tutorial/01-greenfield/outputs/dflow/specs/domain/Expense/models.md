@@ -10,7 +10,7 @@
 
 - **Bounded Context**: Expense
 - **Source Code Area**: `src/ExpenseTracker.Domain/Expense/`
-- **Last Updated**: 2026-04-30
+- **Last Updated**: 2026-05-07
 
 ## Aggregates
 

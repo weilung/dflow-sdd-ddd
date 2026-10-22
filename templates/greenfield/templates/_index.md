@@ -6,7 +6,7 @@ created: {YYYY-MM-DD}
 branch: feature/{SPEC-ID}-{slug}
 # follow-up-of: {原 SPEC-ID}    # 選用：本 feature 為某個已 completed feature 的 follow-up 時填入
 ---
-<!-- dflow-shape: greenfield/_index.md 3 — keep this line: dflow doctor reads it -->
+<!-- dflow-shape: greenfield/_index.md 4 — keep this line: dflow doctor reads it -->
 <!-- This template is part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE in the Dflow package, or dflow/specs/shared/dflow-workflows/LICENSE in a project. Documents written from it are yours: do not copy this line into them. -->
 
 <!--
@@ -35,9 +35,10 @@ Template note (for AI):
 
   Sync to BC layer:
     - At /dflow:finish-feature, BR Snapshot is reconciled with the bounded
-      context's `dflow/specs/domain/{context}/rules.md` and `behavior.md`
-      (continues the existing Step 8.3 / Step 5.3 sync mechanism — no new
-      flow is introduced).
+      context's `dflow/specs/domain/{context}/rules.md` and `behavior.md`.
+      For a feature that carries phase-specs, that is the only step that
+      writes the feature's changes into the bounded context; until then
+      they are in this table and the phase-specs.
     - rules.md is the SYSTEM-LEVEL truth across features; _index.md is the
       FEATURE-LEVEL aggregation. Both can co-exist; on conflict, finish-feature
       reconciles them and rules.md wins as the system truth.

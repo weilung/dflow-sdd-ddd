@@ -489,7 +489,7 @@ Dflow:
 |---|---|
 | 不建 `lightweight-spec` | baseline capture、observation-only，無 implementation。 |
 | 不建新 `phase-spec` | 沒有新 implementation slice。 |
-| 不更新 `rules.md` | 沒有新增或修改 BR。 |
+| 不更新 `rules.md` | 沒有新增或修改 BR。BR-004 那一列這時也還沒有：它在 SPEC-001 的 Current BR Snapshot，收尾才寫。 |
 | 不改 code | Bob 明確要求 baseline-only。 |
 | 不跑 tests | 沒有 implementation。 |
 
@@ -500,7 +500,9 @@ Baseline-only path 仍然會寫文件，但只寫該寫的文件。baseline 沒�
 
 ### `behavior.md` 新增 confirmed-across-pages
 
-這次 capture 新增的重點片段：
+Order 這時還沒有 `behavior.md`：BR-001～004 的情境還在 SPEC-001 的 phase spec，收尾時才寫進來。
+這次是第一次有東西要寫進這份檔，所以盤點從範本建立它（只建它要寫的檔），並在 baseline 那一列註明。
+這次 capture 寫進的重點片段：
 
 ```markdown
 ## Confirmed across pages (baseline-capture 2026-05-04)
@@ -527,8 +529,9 @@ And 兩個頁面預期都反映 BR-004 compound discount accumulation
 完整文件範例：
 [`outputs/dflow/specs/domain/Order/behavior.md`](outputs/dflow/specs/domain/Order/behavior.md)
 
-補充：完整文件範例還包含後續 `SPEC-20260505-002` 的 VIP discount behavior。
-本篇 baseline capture 當下只新增 `Confirmed across pages` 區塊。
+補充：完整文件範例裡的 `Order Discount Calculation` 一節（BR-001～004 的情境）是
+[walkthrough 06](walkthrough-06-finish-feature.md) 收尾時寫進來的；本篇 baseline capture 當下，
+檔裡只有 `Confirmed across pages` 區塊。
 
 ### `tech-debt.md` 新增 buggy / unknown items
 
@@ -679,29 +682,34 @@ Bob: 對。
    沒有。
 ```
 
-**第 4 題有一個 baseline 才有的判斷：BR-004 在這個 host 的 Current BR Snapshot 上。**
+**第 4 題有一個 baseline 才有的判斷：BR-004 在這個 host 的 Current BR Snapshot 上，`rules.md` 卻還沒有它。**
 `SPEC-20260430-001` 的 Snapshot 帶著 BR-001～004——它們是這個 feature 自己的 phase-spec
-定下的規則。盤點碰到 Snapshot 帶著的 BR，要看它改不改那條規則的意思：
+定下的規則，要等這個 feature 收尾（[walkthrough 06](walkthrough-06-finish-feature.md)）才寫進
+`Order/rules.md`；05-04 這時，Order 連 `rules.md` 都還沒有。盤點碰到這種 BR，意思照 Snapshot 那一列判斷，
+而且**不替它加 `rules.md` 那一列**——那一列是 SPEC-001 收尾要寫的，盤點先寫，等於讓這個 feature 的規則
+提早進了系統層。接著看它改不改那條規則的意思：
 
 - 這次替 BR-004 補的是兩段跨頁情境與出處頁面，規則文字與情境的結果都沒變——**不改意思**，
-  照常寫，`rules.md` 那一列維持 `active`、文字不動。
+  情境照常寫進 `behavior.md`，收尾時會保留它們；Bob 答「這就是規則」，只在 Goals & Scope 記一行，`rules.md` 不動。
 - 如果 Bob 確認的是「BR-004 其實應該是另一個算法」，那就**要改意思**：這次盤點不改，
-  `rules.md` 那一列與它的情境都留著，把確認的內容記成 `Order/rules.md` 的
-  `## Open Questions` 一項（BR-ID、確認的規則、哪個 host 的 Snapshot 帶著它、誰在哪一天確認），
-  Goals & Scope 記一行並告訴 Bob，交給之後改這條 BR 的變更走 spec 流程。
-  盤點自己改掉它，收尾同步會拿 Snapshot 上的舊文字把 `rules.md` 寫回去。
+  把確認的內容記成 `Order/rules.md` 的 `## Open Questions` 一項（BR-ID、確認的規則、哪個 host 的 Snapshot 帶著它、
+  誰在哪一天確認）——`rules.md` 還不存在，就為這一項從範本建立它，並在 baseline 那一列註明——
+  Goals & Scope 記一行並告訴 Bob，交給之後改這條 BR 的變更（SPEC-001 的下一個 phase 也算）走 spec 流程。
+  盤點自己把確認的規則寫進 `rules.md`，收尾同步會拿 Snapshot 上的舊文字把它寫回去。
 
 第 4 題的第二種答法這次沒有發生：「**程式做錯了，規則就是 BR-004 寫的那樣；這次不修**」。盤點不改任何程式，
-所以這種確認的修正一定是延後的，照[〈確認的規則與程式不一致時〉](../../docs/confirmed-rule-vs-code.md)的記法記：
-`rules.md` 那一列最後一欄 `Known deviations` 連到一列技術債，`behavior.md` 在 BR-004 標題下記一行
-`> Known deviation:`（觀察到程式怎麼做、證據、技術債連結），受影響的 `analysis.md` 條目旁也記一行；
-Goals & Scope 那一行寫這條 BR（含 context）、確認了什麼與技術債的 Item 名稱。
+所以這種確認的修正一定是延後的，照[〈確認的規則與程式不一致時〉](../../docs/confirmed-rule-vs-code.md)的記法記，
+只是寫的時間分兩段：技術債那一列、這次寫的 BR-004 情境標題下那一行 `> Known deviation:`（觀察到程式怎麼做、
+證據、技術債連結）、受影響的 `analysis.md` 條目旁那一行，都現在寫；Goals & Scope 那一行寫這條 BR（含 context）、
+確認了什麼與技術債的 Item 名稱。`rules.md` 那一列最後一欄 `Known deviations`，要等 SPEC-001 收尾寫出那一列時，
+由收尾 Step 3 照 Goals & Scope 點名的技術債補上。
 這幾處偏離紀錄都是 **metadata**：不進 Current BR Snapshot，也不改規則文字。所以 BR-004 雖然在 Snapshot 上，
-只要確認的規則就是那一列寫的，它們照常寫——不改 BR-004 的意思。確認的規則會改掉 BR-004 的意思時，
+只要確認的規則就是 Snapshot 那一列寫的，它們照常寫——不改 BR-004 的意思。確認的規則會改掉 BR-004 的意思時，
 照上面第二點進 `## Open Questions`；技術債那一列照樣現在就寫，`Known deviations` 那一格與就地的偏離行，
 等之後改這條 BR 的變更改了規則再補——在那之前，它們只能指向還沒改的舊文字。
 
-第三種答法這次也沒有發生：「**我也確認不了**」。那時 `rules.md` 那一列是 `draft`。`draft` 可以留在文件裡，
+第三種答法這次也沒有發生：「**我也確認不了**」。它用在盤點自己從程式讀出、還沒有任何 spec 定過的規則：
+那時這次寫的 `rules.md` 那一列是 `draft`。`draft` 可以留在文件裡，
 但它不會因為程式讀得到、或之後有人照著它做就自己變成 `active`——只有開發者確認才算。這次盤點寫的 BR
 到 6.2 結束還是 `draft` 時，`behavior.md` 那個 BR 的標題下多一行 `> Draft basis:`，寫它是從哪裡讀來的，
 題目照固定格式記在 `rules.md` 的 `## Open Questions`。Bob 那天若不在、明說把題目延後，也是同樣的記法；
@@ -723,7 +731,8 @@ Goals & Scope 那一行寫這條 BR（含 context）、確認了什麼與技術�
 - **沒有題目可問的，不記行。** 第 3、6、7、8 題這次沒有東西要確認，Goals & Scope 就不為它們寫一行。
 - **確認不寫進 Resume Pointer，也不另開段落。** Resume Pointer 的 Current Progress 維持一兩句的游標；
   `_index.md` 沒有記決定的段落，也不為它新增一段。
-- **`rules.md` 與 `tech-debt.md` 不另外記誰確認的。** `rules.md` 的 `active` 本身就是確認；要查 BR-004
+- **`rules.md` 與 `tech-debt.md` 不另外記誰確認的。** `rules.md` 的 `active` 本身就是確認（BR-004 那一列
+  要等 SPEC-001 收尾才寫）；要查 BR-004
   或那兩列技術債是誰確認的，看 Goals & Scope 裡寫了它的那一行。例外是記確認規則偏離的那種技術債列
   （上面第 4 題第二種答法），有兩處各自指回 Goals & Scope 裡對應的那一行、不重抄確認了什麼：`Rule evidence`
   寫 `confirmed by {role} - SPEC-20260430-001 Goals & Scope ({date})`，指的是確認規則的那一行；6.2 若也確認了
@@ -744,13 +753,13 @@ Step 6 跑完，checkpoint 才在 6.5 提出。這次的 commit 是 `c58d213`：
 
 | 狀態 | Path | 讀者看什麼 |
 |---|---|---|
-| 修改 | [`outputs/dflow/specs/domain/Order/behavior.md`](outputs/dflow/specs/domain/Order/behavior.md) | `Confirmed across pages` 區塊，記錄 OrderList / OrderDetail 對 BR-004 的確認。 |
+| 新建 | [`outputs/dflow/specs/domain/Order/behavior.md`](outputs/dflow/specs/domain/Order/behavior.md) | 第一次有東西要寫，從範本建立：`Confirmed across pages` 區塊，記錄 OrderList / OrderDetail 對 BR-004 的確認。BR-001～004 自己的情境收尾時才寫進來。 |
 | 修改 | [`outputs/dflow/specs/domain/Order/analysis.md`](outputs/dflow/specs/domain/Order/analysis.md) | 新增 RM-02（兩頁折扣後金額的產出點）與 HS-01（`isVip * 0.93` 熱點，當時 open）；RM-01 補一句指向 RM-02。 |
 | 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | rounding inconsistency 與 `isVip` multiplier 來源不明。 |
 | 修改 | [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md) | baseline-capture row、Goals & Scope 末尾的 6.2 確認行，與後續 resume context。 |
 | 故意不建 | `lightweight-*.md` | baseline capture（observation-only），不建立 lightweight spec。 |
 | 故意不建 | `phase-spec-*.md` | 沒有新的 implementation slice。 |
-| 故意不改 | `rules.md` | 沒有新增或修改 accepted BR。 |
+| 故意不建 | `rules.md` | 沒有新增或修改 accepted BR；BR-001～004 在 SPEC-001 的 Current BR Snapshot，收尾才寫。 |
 | 故意不改 | `models.md` / `context.md` | 沒有新增 Domain structure。 |
 
 ## 本篇展示的 Dflow 能力

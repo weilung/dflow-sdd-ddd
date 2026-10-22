@@ -152,7 +152,8 @@ to the following design habits. Expand / adapt each to this project:
   `Microsoft.EntityFrameworkCore`.
 - **Ubiquitous Language** — Class / method / variable names come from
   `dflow/specs/domain/glossary.md`. When business language evolves, the
-  glossary moves first, code follows.
+  spec names the term first, code follows, and the term reaches the
+  glossary when the work closes out.
 - **Pragmatic First** — We do not gold-plate. If a feature needs a
   quick fix, record the debt in `dflow/specs/architecture/tech-debt.md` and
   ship.

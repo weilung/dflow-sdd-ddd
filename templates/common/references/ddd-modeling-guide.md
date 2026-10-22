@@ -19,6 +19,13 @@ use this guide to walk them through DDD tactical patterns.
 >   § Follow-up Notes and/or the target-architecture strategy section of
 >   `_overview.md`.
 >
+> **When the bounded context's documents are written.** While a feature that
+> carries phase-specs is in progress, record in its phase-spec what this guide
+> would put in `models.md`, `rules.md`, `behavior.md`, `events.md` or
+> `context-map.md`: `/dflow:finish-feature` Step 3 writes it into those
+> documents. A baseline capture and a change on a host of its own write them
+> directly.
+>
 > The tactical patterns themselves are identical across editions; only the
 > recording surface differs.
 
@@ -756,6 +763,10 @@ quarantine, not silently accepted. What you drop is *re-running the creation
 workflow and its side effects* — not *integrity*.
 
 ## Bounded Context Relationships
+
+While a feature that carries phase-specs is in progress, its relationships go
+in its phase-spec first: the note at the top of this guide says when they
+reach `context-map.md`.
 
 If `dflow/specs/domain/context-map.md` does not exist yet, create it from `templates/context-map.md` before documenting relationships.
 

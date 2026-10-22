@@ -64,7 +64,7 @@ Template note (for AI):
 |---|---|---|
 | {ConceptName} | Entity / Value Object / Domain Service | 簡述角色 |
 
-如有新概念，先更新：
+收尾時（`/dflow:finish-feature` Step 3）依本表更新：
 - [ ] `dflow/specs/domain/glossary.md` — 新增術語
 - [ ] `dflow/specs/domain/{context}/models.md` — 新增模型定義
 

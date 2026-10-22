@@ -306,9 +306,10 @@ Order 是最可能先處理的候選，但 init 仍不建立 `dflow/specs/domain
 - tech debt disposition
 
 因此 Dflow 只先建立 `glossary.md` 與 `migration/tech-debt.md`。真正的
-`Order/context.md`、`Order/models.md`、`Order/rules.md`、`Order/behavior.md`、`Order/analysis.md` 會在
+`Order/context.md`、`Order/models.md`、`Order/rules.md`、`Order/behavior.md`、`Order/analysis.md` 會從
 [〈Walkthrough 02 — `/dflow:modify-existing` 從 WebForms 抽出第一段 Order Domain logic〉](walkthrough-02-modify-existing.md)
-和後續 baseline-capture 中由具體 evidence 推出。
+開始由具體 evidence 推出：`context.md` 與 `analysis.md` 在 walkthrough 02 當場寫，baseline-capture 寫它盤點到的，
+規則、情境與模型則等第一個 feature 在 walkthrough 06 收尾時寫進來。
 
 ## Step 5 — Results and next step
 

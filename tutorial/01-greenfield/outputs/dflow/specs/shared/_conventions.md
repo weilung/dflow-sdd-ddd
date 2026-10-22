@@ -108,8 +108,9 @@ Project-specific guidance when filling these templates:
   Event? Query? ACL?).
 - **Domain Events documentation**: events belong in
   `dflow/specs/domain/{context}/events.md`. When a phase-spec introduces or
-  modifies an event, update `events.md` during Step 8.3 sync — do not
-  only update it in the feature-level spec.
+  modifies an event, record it in that phase-spec's Domain Events table;
+  `/dflow:finish-feature` Step 3 writes it into `events.md`, so the
+  feature-level spec is not its only home.
 - **Aggregate state transitions**: for phase-specs that change
   Aggregate state, include explicit "state-before → state-after"
   descriptions (Mermaid state diagram or Given / When / Then + "And
@@ -163,9 +164,11 @@ and it is how the two drift apart.
 Dflow further distinguishes:
 
 - **Full** (new Aggregate / new BC): use `templates/aggregate-design.md`
-  + update `context-map.md` + define events in `events.md`
+  + update `context-map.md` + define events in `events.md` (both written at
+  `/dflow:finish-feature`)
 - **Standard** (feature within existing BC, existing Aggregate):
-  confirm Aggregate ownership + update `models.md` / `rules.md`
+  confirm Aggregate ownership + update `models.md` / `rules.md` (written at
+  `/dflow:finish-feature`)
 - **T2 / T3**: confirm the fix lands in the correct layer; no
   design-level updates required
 
@@ -179,7 +182,10 @@ All business terms in spec documents must use names defined in
 `dflow/specs/domain/glossary.md`. When a new term appears:
 
 1. Check glossary first
-2. If missing, add it **before** using the term in a spec
+2. If missing, record it in the spec before using it — in a phase-spec, its
+   Domain Concepts table; the flow adds it to `glossary.md` when the work
+   closes out (for a feature that carries phase-specs, at
+   `/dflow:finish-feature`)
 3. Cross-reference the BC the term belongs to
 4. If the term maps to a code construct (Aggregate / VO / Event), add
    the `Code Mapping` column value

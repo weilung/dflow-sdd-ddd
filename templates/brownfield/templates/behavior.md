@@ -1,4 +1,4 @@
-<!-- dflow-shape: brownfield/behavior.md 3 — keep this line: dflow doctor reads it -->
+<!-- dflow-shape: brownfield/behavior.md 4 — keep this line: dflow doctor reads it -->
 <!-- This template is part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE in the Dflow package, or dflow/specs/shared/dflow-workflows/LICENSE in a project. Documents written from it are yours: do not copy this line into them. -->
 # {Bounded Context} — Behavior Specification
 
@@ -10,7 +10,9 @@
 > `> Draft basis:` line says where the candidate came from, and a passage without
 > a BR-ID says what the system does now.
 >
-> **Maintenance**: AI updates this file during the completion flow (Step 8.3 / Step 6.3).
+> **Maintenance**: AI updates this file when the work it records closes out —
+> `/dflow:finish-feature` Step 3 for a feature that carries phase-specs,
+> `/dflow:modify-existing` Step 6.3 for a lightweight change on a host of its own.
 > When a feature is completed, merge its Given/When/Then scenarios here.
 > When behavior is modified, update the corresponding section using the Delta result
 > (not the Delta markup — merge the final state).

@@ -17,7 +17,7 @@ phase 1 提交與 phase 2 主管審核後，試用者提出一個小而真實的
 - BR-007 如何用 Delta format 記錄 Before / After / Reason
 - `_index.md` Current BR Snapshot 什麼時候 regenerate
 - 小規則修正如何仍然保持 DDD 邊界與 implementation tasks
-- 為什麼 `models.md` / `context.md` 這類摘要文件可以故意不動，避免 scope 擴張
+- 為什麼掛在還沒收尾的 feature 底下的 T2，不當場寫 `rules.md`、`behavior.md` 與 glossary
 
 閱讀提示：本篇會連到完整文件範例（目前存放在本 tutorial 的 `outputs/` 目錄）。這些範例代表 Greenfield 劇情跑完後的
 最終狀態；本步驟當下，feature 仍位於 `features/active/`，並在後續 closeout 後移到
@@ -33,7 +33,7 @@ completed snapshot 的完整讀法，再讀
 | T2 Light 會不會太輕，導致規則沒被記錄？ | T2 仍有獨立 lightweight spec、Behavior Delta、implementation tasks、文件同步點。 |
 | BR Snapshot 是 append 還是 regenerate？ | 有 BR wording delta 時 regenerate `_index.md` Current BR Snapshot，歷史留在 lightweight spec。 |
 | DDD 邊界怎麼守？ | Aggregate、Domain Event、資料結構不變；只有既有 Value Object 驗證規則改變。 |
-| 哪些文件應該同步？ | 更新 lightweight spec、feature `_index.md`、`rules.md`、`aggregate-design.md`、glossary；摘要文件不必全面追文案。 |
+| 哪些文件應該同步？ | 當場更新 lightweight spec、feature `_index.md`、`aggregate-design.md`；這筆變更掛在還沒收尾的 feature 底下，`rules.md`、`behavior.md`、glossary 等收尾時一起寫。 |
 
 ## 前情提要
 
@@ -241,14 +241,17 @@ Step 2 我會讀現有文件，先確認 baseline 已經有被記錄，
 不直接改程式。
 
 需要對照：
-- _index.md
+- _index.md（Current BR Snapshot）
 - phase-spec-2026-04-29-supervisor-approval.md
-- dflow/specs/domain/Expense/rules.md
 - aggregate-design.md
-- dflow/specs/domain/glossary.md
+
+Expense 是這個 feature 建的 context，而這個 feature 還沒收尾，
+所以 rules.md、behavior.md、glossary 還沒有這些規則與術語：
+規則看 _index.md 的 Current BR Snapshot，
+ApprovalReason 的定義看 phase 2 phase-spec 的 Domain Concepts。
 ```
 
-Dflow 讀到當下 BR-007：
+Dflow 讀到當下 BR-007（Current BR Snapshot 那一列）：
 
 ```text
 Reject 必須附註原因；
@@ -386,8 +389,8 @@ Domain Events、DB schema 都不變，因此不需要升級成 T1。
 `### What system-level knowledge did this change depend on?`：這次改動**依賴**生命週期裡
 「退回」那一步，卻**不必動**它。
 原因在 walkthrough 02 就埋下了：`analysis.md` 引一條規則只寫 BR-ID（範本頂端的
-`Referring to a rule`），門檻這種規則內容只住在 `rules.md`。規則改了，改 `rules.md` 一處
-就好，`analysis.md` 那一格不會因此過期。
+`Referring to a rule`），門檻這種規則內容只住在規則那一邊——收尾之前是 `_index.md` 的
+Current BR Snapshot，收尾之後是 `rules.md`。規則改了，改那一處就好，`analysis.md` 那一格不會因此過期。
 
 ## Step 3 — Implementation tasks 保持短，但不可消失
 
@@ -400,7 +403,7 @@ Dflow 產生 T2 implementation tasks：
 - [ ] TEST-3: 混合輸入，任一門檻滿足即 pass
 - [ ] TEST-4: emoji、空白、半全形 case
 - [ ] INFRA-1: 確認無 DB schema / migration
-- [ ] DOC-1: 更新 _index.md、rules.md、aggregate-design.md、glossary
+- [ ] DOC-1: 更新 _index.md、aggregate-design.md（rules.md、behavior.md、glossary 由收尾寫）
 ```
 
 Dflow 也補上 guard：
@@ -478,11 +481,11 @@ Step 5 — Update Documentation。
    - BR-007 Current Rule 改成 bilingual length wording。
    - BR-007 Last Updated 改成 lightweight-2026-04-30。
    - Resume Pointer 指向這份 lightweight spec 的實作。
-3. 更新 living docs 的 source-of-truth wording：
-   - rules.md（改 BR-007 那一列之前先看它有沒有偏離紀錄：
-     Known deviations 是 —，也沒有 > Known deviation: 行 → 照常改，不讀保留程序）
-   - aggregate-design.md
-   - glossary
+3. 更新 aggregate-design.md（feature 目錄裡的設計，當場改）。
+   rules.md、behavior.md、glossary 這一步不寫：這筆 T2 掛在帶 phase-spec、
+   還沒收尾的 SPEC-001 底下，5.3 只寫 analysis.md 與技術債；
+   BR-007 的 MODIFIED 由 /dflow:finish-feature Step 3 讀這份 spec 的 Delta 寫進去。
+   5.1 的兩項 (post-5.3) 與 5.2 問 behavior.md 情境的那一題，也留到收尾。
 4. Step 5.4 T2 Archival：
    - 不建新 phase-spec。
    - 不 move lightweight spec。
@@ -494,29 +497,33 @@ Alice 問一個常見 review 問題：
 
 ```text
 Alice:
-models.md 和 context.md 要不要也改？
-我記得裡面有 ApprovalReason 的摘要。
+rules.md 不改的話，這幾天有人讀 Expense 的規則，
+會不會看到舊的 10 字元？
 ```
 
-Dflow 建議保持小：
+Dflow 說明：
 
 ```text
 Dflow:
-這段我建議不動 models.md / context.md / events.md。
-理由是這次沒有新的 model、BC、event 或資料結構；
-source-of-truth 的 BR wording 放在 rules.md，
-VO 設計細節放在 aggregate-design.md，
-團隊詞彙放在 glossary.md。
+不會。Expense 現在還沒有 rules.md：這個 feature 的 BR-001～007
+在收尾之前只在 _index.md 的 Current BR Snapshot，
+剛才 BR-007 那一列已經改成雙語門檻。
+別的 feature 或變更要動 Expense 時，開頭的掃描會讀這個 feature 的 Snapshot，
+讀到的就是新的門檻。收尾時 rules.md 依 Snapshot 一次寫齊，
+不會停在 phase 2 那一版。
+
+models.md、events.md 也一樣等收尾；context.md 是 walkthrough 02 Step 2 寫的
+BC 概覽，這次沒有新的 model、BC、event 或資料結構，不動。
 
 analysis.md 兩支在 5.3 都記 N/A：Step 3 查過，這次依賴的 LC-01 那一列
 已經記著、不用改，也沒有新找到要記的生命週期、衍生數字、機制或角色觸及。
 ```
 
-這是本篇第五個 lesson：**同步文件不是把所有摘要都逐字改到一致。**
+這是本篇第五個 lesson：**掛在還沒收尾的 feature 底下的 T2，是那個 feature 的一部分。**
 
-真正的 source of truth 要更新；摘要文件若只是高層概覽，可以避免在 T2 中擴張 scope。
-讀完整文件範例時會看到 `models.md` / `context.md` 仍保留 phase 2 的簡短摘要，這是本段
-刻意保守的結果，不是 walkthrough 漏連。
+它改的規則先進 `_index.md` 的 Current BR Snapshot，跟 phase 改的規則一起在收尾時寫進系統層；
+當場寫的只有記錄系統現在樣子的 `analysis.md` 與技術債。同一個 feature 裡，不會出現 T2 改的規則
+先進 `rules.md`、phase 改的規則晚進去的情況。
 
 ## 文件片段 1 — Lightweight spec 的 Problem
 
@@ -635,13 +642,16 @@ Current BR Snapshot 中 BR-007 被 regenerate 成新 current state：
 
 ## 文件片段 5 — `rules.md`、`aggregate-design.md`、glossary 的分工
 
-`rules.md` 是 BC-level BR source of truth：
+這一步當場改的只有 `aggregate-design.md`。`rules.md` 與 glossary 的片段是 walkthrough 06
+收尾時依 Current BR Snapshot 與這份 spec 的 Delta 寫進去的樣子，放在這裡對照分工。
+
+`rules.md` 是 BC-level BR source of truth（收尾時寫進去的樣子）：
 
 ```markdown
 | BR-007 <!-- phase-2 ADDED --> <!-- 2026-04-30 lightweight MODIFIED --> |
 Reject 必須附註原因；ApprovalReason 至少 5 個中文字或至少 10 個英數字，
 否則 raise DomainException；空白不計，半形 / 全形視覺等價，emoji 算字。 |
-ApprovalDecision | active | 2026-04-30 | — |
+ApprovalDecision | active | 2026-05-07 | — |
 ```
 
 完整文件範例：
@@ -659,7 +669,7 @@ ApprovalReason 至少 5 個中文字或至少 10 個英數字，
 完整文件範例：
 [`outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/aggregate-design.md`](outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/aggregate-design.md)
 
-glossary 更新團隊語言：
+glossary 的團隊語言（收尾時寫進去的樣子）：
 
 ```markdown
 | ApprovalReason <!-- phase-2 ADDED --> <!-- 2026-04-30 lightweight MODIFIED --> |
@@ -679,11 +689,11 @@ Expense |
 | 新建 | [`outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/lightweight-2026-04-30-approval-reason-bilingual-length.md`](outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/lightweight-2026-04-30-approval-reason-bilingual-length.md) | T2 lightweight spec：Problem、BR-007 Delta、Fix Approach、implementation tasks、resolved questions。 |
 | 修改 | [`outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/_index.md) | Lightweight Changes row 與 regenerated Current BR Snapshot。 |
 | 修改 | [`outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/aggregate-design.md`](outputs/dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/aggregate-design.md) | `ApprovalReason` validation wording 與 `Reject()` precondition。 |
-| 修改 | [`outputs/dflow/specs/domain/Expense/rules.md`](outputs/dflow/specs/domain/Expense/rules.md) | BR-007 source-of-truth wording 與 `2026-04-30 lightweight MODIFIED` 標記。 |
-| 修改 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) | `ApprovalReason` term 的團隊語言同步。 |
-| 故意不改 | `outputs/dflow/specs/domain/Expense/models.md` | 沒有新 model 或資料結構；完整文件範例仍保留 phase 2 摘要文字。 |
+| 收尾時寫 | [`outputs/dflow/specs/domain/Expense/rules.md`](outputs/dflow/specs/domain/Expense/rules.md) | BR-007 source-of-truth wording 與 `2026-04-30 lightweight MODIFIED` 標記。這一步在 `_index.md` 的 Current BR Snapshot 與這份 spec 的 Delta。 |
+| 收尾時寫 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) | `ApprovalReason` term 的團隊語言。這一步在這份 spec。 |
+| 收尾時寫 | `outputs/dflow/specs/domain/Expense/behavior.md` | BR-007 的情境套用這份 spec 的 Behavior Delta（walkthrough 06）。 |
+| 這一步還沒有 | `outputs/dflow/specs/domain/Expense/models.md` / `events.md` | 收尾時才寫；這次也沒有新 model、Domain Event 或資料結構。 |
 | 故意不改 | `outputs/dflow/specs/domain/Expense/context.md` | BC overview 不因 T2 wording delta 全面重寫。 |
-| 故意不改 | `outputs/dflow/specs/domain/Expense/events.md` | 沒有新 Domain Event，也沒有 event payload 變更。 |
 | 故意不建 | `phase-spec-2026-04-30-*.md` | 這是 T2 Light，不是 new phase。 |
 
 上表連到完整文件範例；本篇只關注 2026-04-30 這個 T2 modify-existing step。
@@ -695,7 +705,7 @@ Expense |
 | Hybrid workflow control | Dflow 沒照 Alice 的直覺直接改 code，而是先判斷 T2、host feature、affected layer。 |
 | Spec-first development | lightweight spec 與 BR Delta 先落地；implementation tasks 保持 unchecked。 |
 | DDD semantic backbone | `ApprovalReason` 被視為 Value Object invariant，不是 UI-only 字數限制。 |
-| 三層文件分工 | lightweight spec 管 delta，`_index.md` 管 current snapshot，`rules.md` / aggregate design 管 system state。 |
+| 三層文件分工 | lightweight spec 管 delta，`_index.md` 管 current snapshot，`rules.md` 管收尾後的 system state，aggregate design 管 feature 內的設計。 |
 | Drift verification readiness | BR-007 Before / After、edge cases、tests 都能支援後續 PR review 或 `/dflow:verify`。 |
 
 ## 這一段帶來的實際好處
@@ -703,7 +713,7 @@ Expense |
 | 風險 | 沒有 Dflow 時的常見狀況 | 本篇如何降低 |
 |---|---|---|
 | 小改沒留下決策脈絡 | Code diff 顯示 helper 改了，但看不出中文主管回饋與 BR-007 delta。 | lightweight spec 寫 Problem、Before / After / Reason。 |
-| AI 下一次仍用舊規則 | `_index.md` 或 `rules.md` 未更新，後續生成仍依 10 字元。 | Current BR Snapshot 與 rules.md 都同步成 bilingual rule。 |
+| AI 下一次仍用舊規則 | `_index.md` 或 `rules.md` 未更新，後續生成仍依 10 字元。 | Current BR Snapshot 當場改成 bilingual rule；別的工作開頭的掃描讀它，收尾時 `rules.md` 依它寫。 |
 | 字元邊界各自實作 | emoji、空白、全形英數沒有共同規格。 | Fix Approach 與 Open Questions 決議明確寫出。 |
 | scope 膨脹成 i18n 專案 | 小規則修正被拉到 locale policy、字元集服務、跨 BC 設計。 | Dflow 明確排除 broader i18n / multi-locale policy。 |
 | new-phase 被濫用 | 每個小調整都建立 phase spec，feature history 變重。 | T2 lightweight spec 承接修改，不建新 phase。 |
@@ -734,7 +744,7 @@ phase ceremony 壓垮。
 - BR-007 是 MODIFIED，不是新增 BR；Before / After / Reason 要寫在 lightweight spec。
 - 有 BR wording delta 時，`_index.md` Current BR Snapshot 要 regenerate 成 current state。
 - `ApprovalReason` 的雙語長度規則屬於 Domain Value Object validation，不只是前端 counter。
-- 摘要文件可以故意不動；source-of-truth 文件要更新，避免 T2 擴張成全面文案同步。
+- 掛在還沒收尾的 feature 底下的 T2，規則、情境與術語跟著 feature 在收尾時寫進系統層；當場只寫 `analysis.md` 與技術債。
 
 ## 下一個 walkthrough
 

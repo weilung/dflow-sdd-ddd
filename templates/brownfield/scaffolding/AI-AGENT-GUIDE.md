@@ -357,7 +357,7 @@ dflow/specs/
 ## Core Rules
 
 1. Spec before code: meaningful behavior changes need a spec or lightweight bug spec before implementation.
-2. Keep domain language explicit: update glossary, rules, models, and behavior snapshots when domain meaning changes.
+2. Keep domain language explicit: update glossary, rules, models, and behavior snapshots when domain meaning changes — for a feature that carries phase-specs, at `/dflow:finish-feature`, from what its phase-specs recorded.
 3. Keep phase delta, feature snapshot, and system state separate.
 4. Check drift before calling work complete.
 5. Follow `dflow/specs/shared/_conventions.md`, especially `## Prose Language`.
@@ -540,8 +540,8 @@ during the completion checklist, not via template section markers.
 ### Activity 2: Domain Analysis (Where does it live?)
 - Which Bounded Context does this belong to? (Check dflow/specs/domain/)
 - What domain concepts are involved? (Entities, Value Objects, Services)
-- Are there new terms? → Update glossary.md
-- Are there new or changed business rules? → Document in rules.md
+- Are there new terms? → Record them in the spec; the flow says when they reach `glossary.md`
+- Are there new or changed business rules? → Record them in the spec; the flow says when they reach `rules.md`
 
 ### Activity 3: Spec Writing (Document before coding)
 - Write the spec using the template (see `templates/phase-spec.md`)
@@ -557,7 +557,7 @@ during the completion checklist, not via template section markers.
 - Did we discover scattered business logic? → Record in tech-debt.md
 - Are there duplicated calculations? → Record
 - Direct SQL in delivery/entrypoint code? → Record
-- Magic numbers? → Record and add to glossary
+- Magic numbers? → Record, and record the term in the spec; the flow says when it reaches `glossary.md`
 - Undocumented status values? → List them in their field's lifecycle in `analysis.md`
 
 ## Workflow Steps

@@ -235,9 +235,11 @@ Key Brownfield-track notes:
   for migration-era concerns. The Greenfield track uses `architecture/`
   instead; this split is an F-05 decision from R7 review.
 - **`behavior.md` is NOT generated here.** Per F-05, per-context
-  `behavior.md` files are created by `/dflow:new-feature` Step 8.3
-  (completion flow) or by the P007a baseline-capture flow at the moment
-  the first bounded context is established.
+  `behavior.md` files are created when a feature closes out
+  (`/dflow:finish-feature` Step 3) or a change on a host of its own
+  completes (`/dflow:modify-existing`), or by the P007a
+  baseline-capture flow at the moment the first bounded context is
+  established.
 - **`analysis.md` is NOT generated here**, at either of its paths. It holds
   the system-level knowledge no single context document owns — an ordered flow
   that crosses contexts (always the domain-root copy), the lifecycle a status
@@ -301,7 +303,8 @@ skip, and wait for developer confirmation:
 >
 > **Not creating**:
 > - No `dflow/specs/domain/{context}/behavior.md` files. These are created
->   later by `/dflow:new-feature` Step 8.3 or P007a when the first
+>   later — by `/dflow:finish-feature` Step 3, by `/dflow:modify-existing`
+>   for a change on a host of its own, or by P007a when the first
 >   bounded context is established.
 > - No `dflow/specs/domain/context-map.md`. Brownfield track treats BCs as
 >   emergent from domain extraction; this file becomes relevant later,
@@ -447,8 +450,8 @@ Init complete. Summary:
     - (none this run)
 
   Deferred (not created here by design):
-    - dflow/specs/domain/{context}/behavior.md — created by /dflow:new-feature
-      Step 8.3 or P007a baseline capture
+    - dflow/specs/domain/{context}/behavior.md — created by /dflow:finish-feature
+      Step 3, /dflow:modify-existing or P007a baseline capture
     - dflow/specs/domain/context-map.md — created organically when you have
       ≥2 bounded contexts or an external system to record
     - dflow/specs/domain/{context}/analysis.md — needs a real bounded context

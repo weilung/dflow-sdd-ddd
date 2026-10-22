@@ -1,11 +1,12 @@
-<!-- dflow-shape: greenfield/behavior.md 2 — keep this line: dflow doctor reads it -->
+<!-- dflow-shape: greenfield/behavior.md 3 — keep this line: dflow doctor reads it -->
 # Expense — Behavior Specification
 
 > **Purpose**: Expense context 現行規則的情境與觀察，彙整在本檔。
 > 帶 BR-ID 的情境寫業務規則；Known deviation 紀錄寫觀察到的實作差異。
 > 沒有確認 BR 的觀察仍是觀察，不是驗證過的規則。
 >
-> **Maintenance**: AI 在 completion flow（Step 8.3 / Step 5.3）更新本檔。
+> **Maintenance**: AI 在本檔記錄的工作收尾時更新本檔——帶 phase-spec 的 feature 在
+> `/dflow:finish-feature` Step 3，自己一個 host 的 lightweight 變更在 `/dflow:modify-existing` Step 5.3。
 > feature completed 時，將 Given/When/Then scenarios merge 到這裡。
 > behavior modified 時，用 Delta result 更新對應 section；不要保留 Delta markup。
 > 取代或刪除帶 `> Known deviation:` 行的 section 時，套用
