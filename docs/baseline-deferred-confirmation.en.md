@@ -15,7 +15,7 @@ The detailed rules are in the workflow bundle's `references/modify-existing-base
 - **Only a baseline capture's 6.2 questions.** Every other Step Gate, the branch gate, the commit policy, merge and push permission, and the capture's two checkpoints still need a person. Running the whole workflow with nobody present is outside this page.
 - **The developer must authorize it explicitly**, naming the questions or the whole capture. No answer, a developer who is away, a general "continue", or the AI's own confidence is not an authorization, and none of them is a confirmation.
 - The deferred scope, who authorized it, the date and who is to answer are written only in each question's `Deferred confirmation` line. The host's Goals & Scope records only **confirmations actually given** — no deferral and no list of pending questions.
-- Once authorized, the AI first assembles the complete list within that scope for one review, grouped: items resting on inference (`inferred`) or assumption (`assumed`), items whose sources conflict, and the rest, each with its question id. A batch answer confirms only the items the developer could see with their ids and explicitly named as accepted; closing the capture, approving a format or approving a commit confirms nothing.
+- Once authorized, the AI first assembles the complete list within that scope for one review in the conversation (the list itself goes into no document), grouped: items resting on inference (`inferred`) or assumption (`assumed`), items whose sources conflict, and the rest, each with its question id. A question asks about one thing 6.2 would ask about on its own — a BR, an `analysis.md` entry, a `behavior.md` passage, a term, say — so that it can be answered by itself, and no two questions ask about the same thing. A batch answer confirms only the items the developer could see with their ids and explicitly named as accepted; closing the capture, approving a format or approving a commit confirms nothing.
 
 ## What the documents gain
 
@@ -58,7 +58,7 @@ Each record is its own paragraph with a blank line before and after it. The `Que
 
 - `Provisional` is the AI's provisional answer and **not a confirmation**; with no provisional answer there is no such line.
 - A `Decision` exists only while an answer cannot be applied yet, and there is only one: `unresolved` when it still cannot be confirmed, `not-applied` when the ordinary spec flow has to apply it, `conflicting` when answers conflict. Its `confirmed by` says only that this role gave this answer — not that the rule or the code is confirmed, and not that the answer was applied.
-- A question id is the capturing host's SPEC-ID, `/Q` and a number of at least two digits. Within one SPEC-ID a number is **never reused**, even after its record is removed: a new question is numbered above the highest number already used for that SPEC-ID — in version history, commit messages included, and in the change not yet committed — not above the numbers still visible in the documents.
+- A question id is the capturing host's SPEC-ID, `/Q` and a number of at least two digits. Within one SPEC-ID a number is **never reused**, even after its record is removed: a new question is numbered above the highest number already used for that SPEC-ID — in version history, commit messages included, and in the change not yet committed (a number counts once a record carried it; one only planned, never written into a record, does not) — not above the numbers still visible in the documents.
 
 ## Answering later
 

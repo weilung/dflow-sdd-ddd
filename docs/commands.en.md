@@ -61,7 +61,7 @@ is rejected.
 
 | Flow | When | Typical output |
 |---|---|---|
-| `/dflow:verify` | You need to confirm docs, code, tests and debt records still agree | A drift report across specs, domain docs, implementation, tests and debt |
+| `/dflow:verify` | You need to confirm a bounded context's `rules.md` and `behavior.md` still agree (rule IDs, links); it reads no code or tests | That context's drift report: rules with no scenarios, undeclared rule IDs, broken links |
 | `/dflow:pr-review` | A change is ready for review | An SDD/DDD compliance review list with risks, gaps and follow-ups |
 | `/dflow:report-dflow-feedback` | You or the AI hit a problem in Dflow itself | A sanitized local draft, field-by-field aligned with the upstream issue form and ready to paste; nothing is sent automatically. Several observations can go in a usage report sent in parts (part 1 is a form, later parts are paste-ready comments; see "Usage reports" below) |
 
@@ -114,7 +114,7 @@ skip that and name the flow yourself.
 | **Not sure** how to classify it, but it changes something that exists | `/dflow:modify-existing` |
 | Every phase of a feature is done and it needs closing out | `/dflow:finish-feature` |
 | Run a change review | `/dflow:pr-review` |
-| Check for doc / code drift | `/dflow:verify` |
+| Check rules against scenarios for drift (`rules.md` ↔ `behavior.md`) | `/dflow:verify` |
 
 ## How to type them in each AI tool
 

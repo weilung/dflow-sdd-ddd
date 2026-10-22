@@ -194,7 +194,9 @@ be answered later.
   `unresolved` Decision to it.
 - Within what the developer authorized, first assemble the complete list for
   one review, grouped: items that rest on `inferred` or `assumed`, items whose
-  sources conflict, and the rest. Give every item its question id.
+  sources conflict, and the rest. Give every item its question id. Show the
+  list to the developer in the conversation; it goes into no document — in
+  the documents, each question has only its own records.
 - A batch answer confirms only the items the developer could see with their
   ids and explicitly named as accepted. Completing the capture, approving a
   format or approving a commit confirms nothing.
@@ -206,7 +208,8 @@ be answered later.
 - An answer given before checkpoint 1 — a debt question's included — goes into
   checkpoint 1 in its final form (§ Applying an answer).
 - Before checkpoint 1, check the list, every Draft basis and every unconfirmed
-  status, then offer checkpoint 1 and closeout as usual. An answer given after
+  status, and that no two questions ask about the same thing (keep one and
+  narrow or remove the other), then offer checkpoint 1 and closeout as usual. An answer given after
   checkpoint 1 follows the host's own checkpoint contract, and a change to the
   capture's documents never rides the closeout commit. After the capture
   closes, a later capture answers it, or, once the capture has merged,
@@ -454,9 +457,14 @@ else; an answered question leaves no record.
   never reused, even after its record is removed. Number a new question one
   above the highest number already used for that SPEC-ID: search version
   history, commit messages included, for `{SPEC-ID}/Q`, and count the numbers
-  the change not yet committed has given, removed ones included. Never number
-  it from the highest number still in the documents.
-  When the rule, what the code does and whether to defer a fix need different
+  the change not yet committed has given, removed ones included. A number is
+  given once a record in that change carried it: one you only planned, and
+  never wrote into a record, is not. Never number it from the highest number
+  still in the documents.
+  A question asks about one item that 6.2 asks about on its own — a BR, an
+  `analysis.md` entry, a `behavior.md` passage, a term, a `models.md` passage
+  or a `context-map.md` row, say — so that it can be answered by itself. When
+  the rule, what the code does and whether to defer a fix need different
   answers, give each its own question.
 - A commit that removes or replaces a question's records names each such
   question id in its message — a question opened and removed before that

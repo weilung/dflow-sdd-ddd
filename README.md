@@ -22,7 +22,7 @@
 | **三層文件模型** | phase（單次提案-實作循環）／feature（整條 branch 的累積狀態）／system（跨 feature 長期知識），對應 feature branch 的實際節奏。下方有完整說明。 |
 | **DDD 的模型與規則裝不下的那一塊（`analysis.md`）** | `models.md` 收「存下來的是什麼」、`rules.md` 收「一條規則」、`behavior.md` 收「一個情境」——**沒有一支收「它怎麼動的」**。`analysis.md` 就是那一支，六節：跨 context 的交手順序（`FL-nn`）、一個狀態欄位的生命週期（`LC-nn`）、算出來而不是存下來的數字（`RM-nn`）、單一規則解釋不了的機制（`MX-nn`）、誰碰得到哪個功能的索引，以及一直被繞過的熱點。每一條標明出處（程式碼、資料、誰確認的、推論或假設）。不再只留在對話裡、或跟著 feature 收尾一起凍結；中途採用 Dflow 的既有專案，也靠它把系統現況一塊塊補齊。 |
 | **依改動深淺的 Tier 制（T1/T2/T3）** | AI 依改動深淺自動決定規格與驗證量級：改顏色／typo 這類小修（掛在所屬 feature 下）只需 `_index.md` 一行、功能性 bug fix 用 lightweight spec（T3 顯示層 defect 仍是 `_index.md` 一行）、新 feature 或動到 bounded context 級的變更才走完整 phase-spec。小修改不會被流程拖累。 |
-| **漂移驗證** | `/dflow:verify` 交叉比對規格、領域文件、實作、測試與債務紀錄，抓出「文件還在描述舊行為」這種 PR review 人眼看不出的漂移。 |
+| **漂移驗證** | `/dflow:verify` 機械比對一個 bounded context 的 `rules.md` 與 `behavior.md`——每條規則都有情境、情境引用的規則都有登記、連結沒有斷——抓出「規則改了、情境沒跟上」這種 PR review 人眼不容易看出的漂移。實作與測試有沒有照規格做，由各 workflow 收尾前的驗證與 `/dflow:pr-review` 比對。 |
 | **Specs 給 AI 讀、也給人讀（md → HTML）** | `dflow render` 把 AI 取向的密集 Markdown specs 轉成可瀏覽的靜態 HTML。`analysis.md` 裡的狀態生命週期與跨 context 流程畫成圖：哪個狀態會繞回去、停在哪個狀態，交手在哪幾個 context 之間移動，一眼看出來；其餘的表可以在卡片與表格之間逐張切換、標記變 badge（下方有對照截圖）。Markdown 仍是 AI 讀的 source of truth。 |
 | **多 AI 工具共用一份規則** | Canonical 專案指南＋各工具薄 shim（`CLAUDE.md` / `AGENTS.md` / Copilot instructions），在 Claude / Codex / Copilot 間切換不必維護多份規則；三家共用依 agentskills.io 開放標準的 project-level skill，可自然語言自動觸發（Copilot CLI 需先打 `/dflow` 喚起）。 |
 

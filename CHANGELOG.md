@@ -6,6 +6,32 @@
 
 ---
 
+## Unreleased
+
+> **目前投影版號：`0.17.1`**（**未發布到 npm**；npm latest 仍是 `0.17.0`）。
+> 下面一段在這一版裡，段標題標出它第一次投影的版號。
+
+### 延後題目的清單、題號與粒度；`/dflow:verify` 的說明；`git mv` 的理由（dist issue #24 第 2、3、6、7 條，#26、#27）——`0.17.1`
+
+**來源**：dist issue #24（一個 brownfield 專案用 `0.17.0` 盤點一頁、延後回答 6.2 的使用回報）裡只有一種修法的四條，以及 #26、#27。沒有提案。
+
+- **延後回答 6.2 的題目**（brownfield baseline 盤點，#24）：
+  - 授權之後整理的分組清單，只在對話裡給開發者看，不寫進任何文件；文件裡每一題只有它自己的紀錄（第 2 條）。
+  - 題號：只預留、從沒寫進紀錄的編號不算配出去，新題號照舊從用過的最大編號往上加（第 3 條）。
+  - 一題只問 6.2 會單獨問的一件事——一條 BR、一筆 `analysis.md` 條目、一段 `behavior.md`、一個名詞、一段 `models.md` 或
+    `context-map.md` 的一列——可以單獨回答。以前一題可以包好幾件事，答了其中一件就得把其餘拆成新題，待確認的題數反而變多（第 6 條）。
+  - checkpoint 1 之前多查一項：沒有兩題在問同一件事（第 7 條）。
+  - 說明頁 `docs/baseline-deferred-confirmation` 兩語跟上。
+- **`/dflow:verify` 的說明照它實際做的事寫**（#26）：README、`docs/commands`、`docs/using-with-*` 兩語與教材原本說它會比對實作、
+  測試與債務紀錄；它實際只比對一個 bounded context 的 `rules.md` 與 `behavior.md`（規則編號、連結），不讀程式與測試。
+  實作與測試有沒有照規格做，由各 workflow 收尾前的驗證與 `/dflow:pr-review` 比對。指令本身沒變；教材 `outputs/` 裡兩份
+  `AI-AGENT-GUIDE.md` 副本的指令表跟上出貨的 guide。
+- **`git mv` 的理由改正**（#27）：兩軌 `git-integration.md` 原本說一般的 `mv` 加 `git add` 會讓 git 追不到歷史，還拿另一套工具當反例。
+  git 本來就不記錄改名，是比對內容認出來的：舊路徑的刪除與新路徑的新增都 stage，一樣認得出是搬移。真正會出錯的是只 stage
+  新路徑——commit 記下的是複製，不是搬移（收尾時 `dflow check-closeout` 會報 `active/` 底下還留著）。仍然要求用 `git mv`：
+  它一次把兩半都 stage，不會漏掉刪除。「不要這樣做」的例子、確認改名成功的那一段、設計理由 `R-FF-GITMV-01` 與教材一起改。
+- **既有專案**：跑一次 `dflow configure-agents` 換上新的 flow 檔；範本與形狀號碼沒變，不必改任何文件。
+
 ## 0.17.0 — 2026-10-20 — brownfield baseline 盤點這條路與延後回答、確認的規則與程式不一致的記法、`analysis.md` 的角色與生命週期寫法、`dflow render` 的表格檢查與生命週期圖、外部系統的位置、使用回報、給採用者的附加許可
 
 **Proposals**：PROPOSAL-106（baseline 盤點這條路）、PROPOSAL-107（確認的規則與程式不一致時怎麼記、修好後誰收掉）、PROPOSAL-108（`dflow render` 的多欄表在卡片與表格之間切換）、PROPOSAL-109（Function / Role Index 寫得出各角色能做的事）、PROPOSAL-110（生命週期的新建與刪除、沒有轉移的值、寫不出原樣的值）、PROPOSAL-111（偏離紀錄接上誰確認的、baseline 盤點的 `Last updated`）、PROPOSAL-112（`dflow render` 提醒壞掉的 Markdown 表格）、PROPOSAL-113（使用回報）、PROPOSAL-114（給採用者的附加許可、名稱條款與原始檔告示）、PROPOSAL-115（baseline 盤點的 6.2 題目延後回答）、PROPOSAL-116（生命週期圖的尺寸與共用線）、PROPOSAL-117（外部系統記在 `context-map.md` 新的一節 External Systems）

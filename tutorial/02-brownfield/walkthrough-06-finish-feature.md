@@ -573,8 +573,8 @@ Step 4：Archive feature directory。
 git mv dflow/specs/features/active/SPEC-20260430-001-order-discount-calculation \
        dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation
 
-git mv 讓 Git 更容易保留 directory rename history，
-改善 git log --follow、git blame 與 PR diff。
+git mv 一次把舊路徑的刪除和新路徑的新增都 stage 起來，
+commit 記下的是搬移：git blame 追得到搬移之前，diff 也顯示成改名、不是新檔。
 ```
 
 Archive scope：

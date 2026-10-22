@@ -134,7 +134,7 @@ bundle 投影進每個初始化的專案，因此 workflow 步驟是 self-contai
 | `/dflow:bug-fix` | 可以用預期行為 vs 實際行為描述的缺陷。 |
 | `/dflow:new-phase` | 進行中的 feature 需要另一個實作 slice。 |
 | `/dflow:finish-feature` | 實作完成後需要進行漂移（drift）收尾。 |
-| `/dflow:verify` | 需要對 spec、領域文件、實作與測試進行一致性檢查。 |
+| `/dflow:verify` | 一個 bounded context 的領域文件（`rules.md` ↔ `behavior.md`）需要一致性／漂移檢查。 |
 | `/dflow:pr-review` | 變更已準備好進行 SDD/DDD review。 |
 | `/dflow:report-dflow-feedback` | 你發現了 Dflow 的問題或改進點，想要一份清理過的上游回饋草稿。 |
 

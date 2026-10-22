@@ -540,8 +540,8 @@ git mv dflow/specs/features/active/SPEC-20260428-001-employee-submit-expense \
 
 | 做法 | 結果 |
 |---|---|
-| `mv` + later add | Git 仍可能偵測 rename，但大型 directory diff 可讀性較差。 |
-| `git mv` | 明確表達 archive action，rename history / PR diff / `git log --follow` 較清楚。 |
+| `mv` 之後只 `git add` 新路徑 | 舊路徑的刪除沒有 stage，commit 記下的是複製、不是搬移；收尾時 `dflow check-closeout` 會報 `active/` 底下還留著東西。 |
+| `git mv` | 一次把刪除和新增都 stage，commit 記下的是搬移：`git blame` 追得到搬移之前，diff 也顯示成改名、不是新檔。 |
 
 ### `git mv` 之後緊接著寫終局 cursor
 

@@ -461,7 +461,7 @@ Dflow 應該回報：
 | Command | 作用 |
 |---|---|
 | `dflow doctor` | CLI read-only 專案健康檢查。 |
-| `/dflow:verify` | AI workflow drift verification，檢查 specs、domain docs、implementation、tests 是否還描述同一個系統。 |
+| `/dflow:verify` | AI workflow drift verification，檢查一個 bounded context 的 `rules.md` 與 `behavior.md` 是否還對得上（BR-ID、anchor）；實作與測試由各 workflow 收尾前的驗證與 `/dflow:pr-review` 比對。 |
 
 常見用法：
 

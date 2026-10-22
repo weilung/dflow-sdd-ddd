@@ -272,15 +272,16 @@ feature-directory pairing (one feature = one branch = one directory).
 This coupling means feature lifecycle events trigger directory moves,
 and rename history is what makes the spec auditable across time.
 
-A plain `mv` followed by `git add` shows up as `delete + add` in git's
-diff. That breaks:
-- `git log --follow {path}` (won't trace history across the move)
-- `git blame` on lines that crossed the rename boundary
-- PR diff quality (reviewers see two unrelated big-blob changes
-  instead of one rename + small content diff)
-
-This is a known weakness of OpenSpec's directory-rename pattern; Dflow
-deliberately avoids it by mandating `git mv`.
+Git records no renames: it detects one when it compares two trees and a
+path that appeared is similar enough to a path that left. A move reads as
+a rename — `git blame` follows it, and the commit's diff shows a rename
+rather than a new file — only when that commit holds both halves: the old
+path removed and the new path added. `git mv` stages both halves in one
+step. A plain `mv` followed by `git add` of only the new path leaves the
+old path's removal unstaged, so the commit keeps both paths: a copy, not a
+move (at closeout, `dflow check-closeout` reports what is left under
+`active/`). Staging both halves by hand records a move too; `git mv` is
+required because it cannot leave the removal behind.
 
 ### Where `git mv` is required
 
@@ -322,9 +323,10 @@ holds via similarity index.
 ### What NOT to do
 
 ```bash
-# ❌ Wrong: produces delete + add, loses rename detection
+# ❌ Wrong: stages only the new path — the old path's removal stays
+#    unstaged, so the commit records a copy, not a move
 mv dflow/specs/features/active/{SPEC-ID}-{slug} dflow/specs/features/completed/
-git add -A
+git add dflow/specs/features/completed/{SPEC-ID}-{slug}
 ```
 
 ```bash
@@ -347,10 +349,11 @@ Changes to be committed:
 ```
 
 If you see `deleted` + `new file` instead, the rename detection failed
-— investigate before committing (most often, the file was edited
-heavily enough that git's similarity index dropped below the rename
-threshold; consider using `git mv` for the move, then making content
-edits in a follow-up commit).
+— investigate before committing. Either the old path's removal is not
+staged (`deleted` sits under "Changes not staged for commit": stage it
+with `git add -A {old path}`), or the file was edited heavily enough that
+git's similarity index dropped below the rename threshold (consider using
+`git mv` for the move, then making content edits in a follow-up commit).
 
 ### CI / hook automation
 

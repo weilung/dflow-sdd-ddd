@@ -52,7 +52,7 @@ Brownfield 的 `/dflow:modify-existing` 也用來做 baseline 盤點（把既有
 
 | Flow | 何時用 | 典型產出 |
 |---|---|---|
-| `/dflow:verify` | 需要確認文件、程式、測試、債務紀錄是否一致 | 跨規格、領域文件、實作、測試、債務的 drift report |
+| `/dflow:verify` | 需要確認一個 bounded context 的 `rules.md` 與 `behavior.md` 還對得上（規則編號、連結）；不讀程式與測試 | 那個 context 的 drift report：沒有情境的規則、沒登記的規則編號、斷掉的連結 |
 | `/dflow:pr-review` | 變更已準備接受審查 | SDD/DDD 合規 review 清單，含風險、缺口、後續項目 |
 | `/dflow:report-dflow-feedback` | 你或 AI 在使用中發現 Dflow 本身的問題 | sanitized 的本地草稿，逐欄對齊上游 issue 表單可直接貼上；不自動送出。多條觀察可以寫成分次交回的使用回報（第 1 次是表單，之後是可直接貼的留言，見下面「使用回報」） |
 
@@ -93,7 +93,7 @@ Brownfield 的 `/dflow:modify-existing` 也用來做 baseline 盤點（把既有
 | **不確定**怎麼分類、反正是改既有的 | `/dflow:modify-existing` |
 | feature 全部 phase 都完成、要收尾 | `/dflow:finish-feature` |
 | 跑變更 review | `/dflow:pr-review` |
-| 檢查文件與程式碼 drift | `/dflow:verify` |
+| 檢查規則與情境有沒有漂移（`rules.md` ↔ `behavior.md`） | `/dflow:verify` |
 
 ## 各 AI 工具怎麼輸入
 
