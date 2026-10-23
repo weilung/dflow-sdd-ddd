@@ -435,10 +435,13 @@ time there is something to record — and `migration/tech-debt.md` were written
 as the work happened: re-check them here against the feature's net result.
 
 Then update `context-map.md`: § Relationships for each relationship between
-contexts that this feature added, changed or removed, and § External Systems
-for each exchange between a context and an external system that this feature
-added, changed or removed, as its specs and its diff show (create the file
-from `templates/context-map.md` the first time there is something to record).
+contexts that this feature added, changed or removed, § External Systems for
+each exchange between a context and an external system that this feature
+added, changed or removed, and § Undecided Neighbors for each exchange with a
+neighbor that this feature added, changed or removed — and for each neighbor
+this feature decided, move it as the template's note says — as its specs and
+its diff show (create the file from `templates/context-map.md` the first time
+there is something to record).
 The brownfield per-change sweeps do not carry this item: record it here.
 
 Then check, and report ✓ / ✗ before the step gate: `behavior.md` has a
@@ -582,8 +585,8 @@ Then, in this order:
    instruction, not from a list kept somewhere else:
    **(a)** whatever Step 3 wrote (`rules.md`, `behavior.md`, `models.md`,
    `analysis.md`, `glossary.md`, `domain/analysis.md`,
-   `migration/tech-debt.md`, and `context-map.md` when it updated
-   Relationships or External Systems) — a no-BC host skips the BC-scoped sync, so this half holds only
+   `migration/tech-debt.md`, and `context-map.md` when Step 3 updated it) — a
+   no-BC host skips the BC-scoped sync, so this half holds only
    what Step 3's debt reconciliation wrote, plus `glossary.md` on a host that
    carries phase-specs; a baseline host's Step 3 writes nothing; **and**
    **(b)** the **documentation-sweep step of the flow that produced *this
@@ -614,8 +617,9 @@ Then, in this order:
    `/dflow:new-phase`, or `modify-existing-flow.md` Step 1.6 / 6.4 routing into
    the new-feature machinery — and **you do not have to tell them apart**:
    § 8.3 carries only `analysis.md` and the tech-debt file, Step 6.3 carries
-   the whole set (a T2 on a host that carries phase-specs carries only § 8.3's
-   part of it), and `/dflow:new-phase` has no sweep at all, so every branch
+   the whole set (a T2 on a BC-bearing host that carries phase-specs carries
+   only § 8.3's part of it), and `/dflow:new-phase` has no sweep at all, so
+   every branch
    yields Step 6.3's set or a part of it, save one file the next paragraph
    names.
    ⚠ **`/dflow:new-phase` has no sweep and is deliberately absent here.**
@@ -626,8 +630,8 @@ Then, in this order:
    `analysis.md` directly, at whichever of its two paths the entry belongs
    to. **Do not sync any other system-level current state**". The external
    writes its own steps call for are those two paths; the set above already
-   carries both. `context-map.md` is in that set only when Step 3 updated its
-   Relationships or External Systems section; `ddd-modeling-guide.md`,
+   carries both. `context-map.md` is in that set only when Step 3 updated it;
+   `ddd-modeling-guide.md`,
    which its Step 2 sends it to, can also record there a choice to model
    deeper — stage it too when a phase did.
    On a **minimal host** that set is exactly what allow-list member (iii) of

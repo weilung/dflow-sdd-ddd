@@ -608,9 +608,9 @@ Then, in this order:
    `/dflow:new-phase`, or `modify-existing-flow.md` Step 1.6 / 5.4 routing into
    the new-feature machinery — and **you do not have to tell them apart**:
    § 8.3 carries only `analysis.md` and the tech-debt file, Step 5.3 carries
-   the whole set (a T2 on a host that carries phase-specs carries only § 8.3's
-   part of it), and `/dflow:new-phase` has no sweep at all, so every branch
-   yields Step 5.3's set or a part of it.
+   the whole set (a T2 on a BC-bearing host that carries phase-specs carries
+   only § 8.3's part of it), and `/dflow:new-phase` has no sweep at all, so
+   every branch yields Step 5.3's set or a part of it.
    ⚠ **`/dflow:new-phase` has no sweep and is deliberately absent here.**
    `new-phase-flow.md` Step 7 updates the phase-spec and this host's own tables,
    and says so in as many words — "The bounded context's `rules.md` /

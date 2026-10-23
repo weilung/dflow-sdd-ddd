@@ -60,7 +60,12 @@ developer (Step 1.5 does not run for a capture).
 - **`context-map.md`** records how two contexts integrate: which one is
   upstream, and what data passes between them; its External Systems section
   records each exchange the captured area's contexts have with an external
-  system. To write it, declare it in the `Tier = baseline` row. Brownfield
+  system. Its Undecided Neighbors section records each part of this system the
+  captured area exchanges data with whose bounded context nobody has decided;
+  a part already recorded as a context, an external system or a region someone
+  decided not to model is not one, and the calls you saw are no reason to give a
+  part a Context List row or an end of a Relationships row. To write it,
+  declare it in the `Tier = baseline` row. Brownfield
   `init` does not create it: create it from `templates/context-map.md` the
   first time there is something to record. The declaration admits the file,
   not particular rows: which relationships the capture changed is for its
@@ -168,7 +173,10 @@ says:
    yet, ask the developer to settle the primary term.
 8. **Models and context relationships.** For every `models.md` passage and
    `context-map.md` row this capture added or changed, ask the developer to
-   confirm it.
+   confirm it. For an Undecided Neighbors row, also ask what the neighbor is —
+   part of a bounded context already recorded, a context of its own, or an
+   external system: an answer moves it as `templates/context-map.md` says, and
+   "I don't know" keeps the row.
 
 When an answer to **Business rules**, to the baseline form of question 4 or to
 **Differences** concerns a BR the host's Current BR Snapshot carries, it lands

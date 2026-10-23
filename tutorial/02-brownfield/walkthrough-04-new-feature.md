@@ -215,8 +215,8 @@ Dflow:
   這些規則要到 SPEC-001 收尾才進 Order/rules.md；現在 Order 還沒有 rules.md。
 - SPEC-001 的 phase spec 已有 DiscountPolicy（Domain Concepts），可擴張，不需要重寫；
   CustomerTier 在那裡只明確列 Senior。
-- Customer 是候選 BC / upstream reference data：也記在 SPEC-001 的 phase spec，
-  收尾才寫進 context-map.md。
+- Customer 是 Order 的鄰居（有資料往來、歸屬還沒人決定）：context-map.md 的 Undecided Neighbors
+  已經有它一列（05-04 盤點記的）；SPEC-001 的 phase spec 也記了它與 Order 的交換，SPEC-001 收尾才寫進那一列。
 
 有一處重疊要先問你：BR-004 定了折扣的累積順序（先滿額、再客戶等級），
 VIP 折扣要插進這個順序。這次是改 BR-004，還是另加規則、BR-004 不動？
@@ -303,15 +303,18 @@ Dflow 回答：
 
 ```text
 Dflow:
-我會把 Customer 標成 partially referenced via reference data，未正式建 BC。
-這句先寫在這次的 phase spec；SPEC-002 收尾時，跟 Customer 的關係一起寫進 context-map.md。
+context-map.md 有一節 Undecided Neighbors，記的就是這種部分：和某個 context 有資料往來、
+歸屬還沒人決定。Customer 已經在那裡有一列（05-04 盤點記的），所以它沒有被忽略。
+這次多一種交換——Order 讀 VIP eligibility 與合約有效期——先記在這次 phase spec 的
+Domain Concepts；SPEC-002 收尾時，加進 Customer 那一列的 Exchanges。
 
-- Customer 已經是 candidate BC（SPEC-001 的 phase spec 記的，它收尾時進 context-map）。
+- 名字照那一列的 Customer，不寫成「Customer（未建 BC）」；不確定的地方寫在 Notes。
 - 本 feature 只用 Customer 概念，不正式建立 Customer Aggregate 或 Customer BC directory。
 - GetVipContractInfo(customerId) 類似 reference repository query，
   提供 Order BC 計算所需資料。
-- 真正建立 Customer BC 應由 Customer-owned feature 觸發，
-  例如合約維護、付款條件或信用額度規則。
+- 決定 Customer 是什麼（自己一個 context、某個 context 的一部分，或外部系統），
+  應由 Customer-owned feature 或盤點觸發，例如合約維護、付款條件或信用額度規則；
+  決定的那一次變更照範本把那一列搬走。
 
 Step 2 complete。
 BC identified: Order；
@@ -412,7 +415,8 @@ Dflow:
 
 會跨 bounded context 嗎？
 Order 讀 Customer 的 reference data（GetVipContractInfo(customerId)）。
-拿掉先後順序也成立，這是 context-map.md 的事，不是有序的跨 context 流程。
+Customer 歸屬還沒定、不是 context：這個交換記在 context-map.md 的 Customer 那一列，
+不寫成跨 context 流程的一步；拿掉先後順序也成立。
 ```
 
 狀態與角色那兩題，這個例子一樣沒有答案，所以沒有記：合約「有效／過期」是每次拿 `ContractValidUntil`
@@ -691,7 +695,7 @@ cumulative documents：
 | BR-005～008 | phase spec 的 Business Rules 與 Delta、`_index.md` 的 Current BR Snapshot | `rules.md`、`behavior.md` |
 | `ContractValidUntil` VO、擴張後的 `DiscountPolicy`、讀 Customer reference data 的 repository seam | phase spec 的 Domain Concepts、Implementation Notes | `models.md` |
 | `CustomerTier` 多一個 `VIP` 值、`ContractValidUntil` 等術語 | phase spec 的 Domain Concepts | `glossary.md` |
-| Customer 以 reference data 供應 VIP eligibility 與合約有效期 | phase spec 的 Domain Concepts | `context-map.md` 的 Relationships |
+| Customer 以 reference data 供應 VIP eligibility 與合約有效期 | phase spec 的 Domain Concepts | `context-map.md` 的 Undecided Neighbors（Customer 那一列多一行 Exchanges） |
 
 本教材結束時 SPEC-002 還在 implementation、沒有收尾，所以完整文件範例的 `rules.md`、`behavior.md`、`models.md`、
 `glossary.md`、`context-map.md` 裡**都看不到** SPEC-002 的內容——它們只在
@@ -700,9 +704,10 @@ cumulative documents：
 這正是新做法要的結果：系統層只放收尾過的 feature 定案的規則。SPEC-002 之後若再開 phase 改規則，
 或做到一半放棄，Order BC 的文件都不會停在、或留下沒定案的 VIP 規則。
 
-Customer 這次也不是被忽略，而是把它的狀態先寫清楚在 spec 裡，收尾時再進 `context-map.md`：
+Customer 這次也不是被忽略：它在 `context-map.md` 的 Undecided Neighbors 已經有一列，這次多的交換
+先寫清楚在 spec 裡，收尾時再加進那一列：
 
-- Candidate BC：未來可能正式建模。
+- 鄰居：歸屬還沒人決定；決定了，那一次變更照範本把它搬走。
 - Reference data：本 feature 只讀所需資料。
 - Not owned here：不在本 feature 建 Customer Aggregate 或合約維護流程。
 
@@ -752,7 +757,7 @@ Evidence: document - `SPEC-20260430-001` 的 `phase-spec-2026-04-30-baseline-and
 - **數字歸算它的 context，不歸它讀資料的 context。** VIP eligibility 與 `ContractValidUntil` 是 Customer
   的資料，但算折扣後金額的是 Order——範本頂端 `Placement` 那句
   `A derived figure is owned by the context that computes it, not the ones it reads from`。
-  所以 RM-01 留在 `Order/analysis.md`；Customer 供應 reference data 這件事屬於 `context-map.md`，SPEC-002 收尾時寫進去。
+  所以 RM-01 留在 `Order/analysis.md`；Customer 供應 reference data 這件事屬於 `context-map.md` 的 Customer 那一列，SPEC-002 收尾時寫進去。
 - **Evidence 多了一個來源。** VIP 那一段的根據是 SPEC-002 的 phase-spec，BR-001～BR-004 那一段照舊是
   SPEC-001 的；兩支都是 `document`，寫在同一行，日期寫較新的那一個。VIP 那一段是還沒做出來的設計，
   要等 SPEC-002 的 phase 1 做完時，由它自己 § 8.3 的複核項對照做出來的東西。
@@ -863,7 +868,7 @@ Step 7 implementation 尚未開始，所以 Step 8 completion checklist 不執�
 - 更新 Order BC 的 context.md：Order 新增 VIP 合約折扣責任，Customer BC 仍 out of scope
 - 更新 Order BC 的 analysis.md：RM-01 加上 VIP 那一段，HS-01 標成 resolved
 - rules.md、behavior.md、models.md、glossary.md、context-map.md 這一步不動：
-  SPEC-002 的規則、情境、模型、術語與 Customer 的關係都在 phase spec 與 _index.md，
+  SPEC-002 的規則、情境、模型、術語與 Customer 的交換都在 phase spec 與 _index.md，
   收尾時才寫進去
 - 更新 tech-debt.md，把 OrderList isVip multiplier 0.93 標成 planned（移除排進 phase 1 的 cleanup task）
 
@@ -886,7 +891,7 @@ Step 7 implementation 尚未開始，所以 Step 8 completion checklist 不執�
 | 收尾時寫 | `outputs/dflow/specs/domain/Order/behavior.md` | BR-005~008 的 Given/When/Then。這一步在 phase spec 的 Behavior Scenarios；`behavior.md` 彙整的是現行規則的情境，VIP 規則要等 SPEC-002 收尾才寫進來。 |
 | 修改 | [`outputs/dflow/specs/domain/Order/analysis.md`](outputs/dflow/specs/domain/Order/analysis.md) | 進 Step 1 之前的 disposition 把 HS-01 標成 resolved；Step 3 在 RM-01 加上 VIP 合約折扣那一段（BR-005～BR-008、多讀的 Customer reference data 欄位）。 |
 | 收尾時寫 | `outputs/dflow/specs/domain/glossary.md` | `VIP`、`ContractValidUntil`、`VIP discount policy` 等 ubiquitous language。這一步在 phase spec 的 Domain Concepts。 |
-| 收尾時寫 | `outputs/dflow/specs/domain/context-map.md` | Customer 以 reference data 供應 VIP eligibility 與合約有效期。這一步在 phase spec。 |
+| 收尾時寫 | `outputs/dflow/specs/domain/context-map.md` | Undecided Neighbors 的 Customer 那一列多一行：以 reference data 供應 VIP eligibility 與合約有效期。這一步在 phase spec 的 Domain Concepts；SPEC-002 在本教材裡還沒收尾，完整文件範例裡沒有這一行。 |
 | 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | `isVip * 0.93` 從 unknown debt 變成排進 phase 1 的 dead code cleanup（status `planned`）。 |
 | 故意不改 | `SPEC-20260430-001-order-discount-calculation/` | 已 ship 的 feature history 不因新 VIP program 回改。 |
 | 故意不建 | Customer BC directory | 本 feature 只用 Customer reference data，不建立 Customer Aggregate。 |

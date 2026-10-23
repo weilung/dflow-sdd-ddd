@@ -34,6 +34,7 @@ The "使用位置" column refers to file paths where the term appears structural
 | Domain Models | 領域模型 | `models.md` | Entities / Value Objects / Services 等模型索引 |
 | Subdomain Type | 子領域類型 | `context-map.md` | 標記 BC 為 core / supporting / generic,決定建模深度（Subdomain-Aware Modeling Depth）；不降低 BR / Tier / 安全測試要求 |
 | External Systems | 外部系統 | `context-map.md`, `AI-AGENT-GUIDE.md`, `_overview.md` | `context-map.md` 的一節：本專案不建也不部署、而本系統某個 bounded context 與它交換資料的系統；一列一種交換，Used By 寫用到它的每個 context。外部系統不寫進 Context List／Contexts 與 Relationships |
+| Undecided Neighbors | 歸屬未定的鄰居 | `context-map.md`（Brownfield）, `AI-AGENT-GUIDE.md`（Brownfield） | Brownfield `context-map.md` 的一節：本系統的一部分（頁面、模組、排程、本專案自己建的服務），某個 bounded context 與它交換資料，但還沒有人決定它屬於哪個 bounded context；一個鄰居一列、一個暫定名稱，Exchanges 一種交換一行。鄰居不寫進 Context List 與 Relationships，也不寫成 `analysis.md` 跨 context 流程的一步；被決定之後搬到新的落點 |
 | Change Scope | 變動範圍 | `Git-principles-*.md`, spec templates | 描述本次變更涵蓋的功能 / 文件 / 程式碼範圍 |
 | Feature Goal | 功能目標 | `Git-principles-*.md`, `finish-feature-flow.md` | Integration Summary 與整合 commit message 的主目標段落 |
 | Related BR-IDs | 關聯 BR-ID 清單 | `Git-principles-*.md`, `finish-feature-flow.md` | 統整本次變更涉及的 ADDED / MODIFIED / REMOVED BR-ID |

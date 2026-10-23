@@ -784,6 +784,9 @@ Document in `dflow/specs/domain/context-map.md`:
 When B is an external system — one this project does not build or deploy —
 record the exchange in `context-map.md` § External Systems, not in
 § Relationships, with the pattern each context uses in that row's Used By.
+In Brownfield, when B is a part of this system whose bounded context nobody has
+decided yet, record the exchange in `context-map.md` § Undecided Neighbors
+instead, until someone decides what B is.
 
 The less-obvious three — when to reach for them:
 

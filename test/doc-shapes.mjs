@@ -810,14 +810,22 @@ const SNAPSHOT_DRAFT_MIGRATION = "_index.md, Current BR Snapshot notes: compare 
 // which would leave a doc saying it is written at Step 8.3 while that step now
 // writes nothing there. Each sentence changes only the sentence about when the
 // file is written and keeps the rest, the project's additions included.
-const BEHAVIOR_TIMING_MIGRATION = "behavior.md, Maintenance in the head note: where it says the file is updated during Step 8.3, say instead that /dflow:finish-feature Step 3 updates it for a feature that carries phase-specs, and /dflow:modify-existing for a lightweight change on a host of its own. Keep the rest of the note as it is, including anything the project added, and show the developer the old and new sentence before writing.";
-const INDEX_TIMING_GF_MIGRATION = "_index.md, Sync to BC layer in the head comment: where it says the sync continues the Step 8.3 / Step 5.3 sync mechanism, say instead that for a feature that carries phase-specs /dflow:finish-feature is the only step that writes the feature's changes into the bounded context, and until then they are in the Current BR Snapshot and the phase-specs. Keep the rest of the comment as it is, including anything the project added, and show the developer the old and new sentence before writing.";
-const INDEX_TIMING_BF_MIGRATION = "_index.md, Current BR Snapshot note: where it says the table is pushed into rules.md / behavior.md continuing the Step 8.3 sync mechanism, say instead that a feature that carries phase-specs writes into the bounded context only at /dflow:finish-feature, and until then its rules are only in this table and the phase-specs. Keep the rest of the note as it is, including anything the project added, and show the developer the old and new sentence before writing.";
+const BEHAVIOR_TIMING_MIGRATION = "behavior.md, Maintenance in the head note: where it says the file is updated during Step 8.3, say instead that /dflow:finish-feature Step 3 updates it for a feature that carries phase-specs, and /dflow:modify-existing for a lightweight change on a host of its own. Keep the rest of the note as it is, including anything the project added, and show the developer the old and new sentence before writing; until they answer, change nothing.";
+const INDEX_TIMING_GF_MIGRATION = "_index.md, Sync to BC layer in the head comment: where it says the sync continues the Step 8.3 / Step 5.3 sync mechanism, say instead that for a feature that carries phase-specs /dflow:finish-feature is the only step that writes the feature's changes into the bounded context, and until then they are in the Current BR Snapshot and the phase-specs. Keep the rest of the comment as it is, including anything the project added, and show the developer the old and new sentence before writing; until they answer, change nothing.";
+const INDEX_TIMING_BF_MIGRATION = "_index.md, Current BR Snapshot note: where it says the table is pushed into rules.md / behavior.md continuing the Step 8.3 sync mechanism, say instead that a feature that carries phase-specs writes into the bounded context only at /dflow:finish-feature, and until then its rules are only in this table and the phase-specs. Keep the rest of the note as it is, including anything the project added, and show the developer the old and new sentence before writing; until they answer, change nothing.";
 // PROPOSAL-117: the default for an added section adds it empty, which would leave
 // each external system where the file recorded it before — a row of the tables
 // above, one end of a Relationships row, an Integration Notes line — with nothing
 // saying to carry its values over, or not to infer the ones the old record lacks.
 const EXTERNAL_SYSTEMS_MIGRATION = "context-map.md, External Systems: add the section from the current template, after Relationships. For each external system this file records elsewhere - as a row of the tables above, as one end of a Relationships row, or in Integration Notes - write a row there for each way it exchanges data, and carry every value those places held into it: the contexts that use it, and how, into Used By; any other value (a Subdomain Type, an owner, a code area, a published language, an ACL location, event names, notes) into the matching cell or Notes, or into an Integration Notes line that names the external system and the context it belongs to. Do not fill a cell by inference: write `—` for a value the old record does not give, and when it does not say which data moves by which mechanism or when, keep what it says in one row; ask the developer, and record what they leave unanswered in Open Questions. If the file already has an External Systems section, match each of its columns to the template's by meaning, not by position, and move a column the template has no place for into Notes. Show the developer the new rows and where each old value went before you remove or rewrite anything; until they answer, remove and rewrite nothing. When it is unclear whether an entry is an external system or one of this system's contexts, ask the developer. When the file records none, add the table header only.";
+// PROPOSAL-119: the default for an added section adds it empty, which would
+// leave a neighbor where the file recorded it before - a Context List row or one
+// end of a Relationships row - under a name carrying its uncertainty. The default
+// for a comment says keeping yours is fine, which would leave a doc without the
+// sentences; replacing the comment would drop what the project added.
+const UNDECIDED_NEIGHBORS_MIGRATION = "context-map.md, Undecided Neighbors: add the section from the current template, after External Systems. A part of this system that this file records in the Context List or at one end of a Relationships row, but whose bounded context nobody has decided - a name carrying a note such as \"not captured\" or \"boundary to be confirmed\", say - may be a neighbor: list those names to the developer and ask which ones are. For each one they confirm, write one row there under one working name and carry every value its old rows held into Exchanges, Code Area or Notes, writing `—` for a value the old record does not give; show the developer the new rows and where each old value went, and remove the old rows only after they answer - until then, remove and rewrite nothing. Change only this file: other documents keep the names they use, so list those names in the row's Notes (\"also called …\"). A name the developer says is a bounded context stays where it is. When there is no such name, the section holds only its table header.";
+const CROSS_CONTEXT_NEIGHBOR_MIGRATION = "analysis.md, Cross-Context Flows comment: add the template's sentence about a part whose bounded context nobody has decided to this section's comment, and keep the rest of it as it is, including anything the project added or translated; show the developer the sentence before writing it, and until they answer, change nothing. Existing flows stay as they are: the rule applies the next time a change writes that flow.";
+const LIFECYCLES_UNWRITTEN_MIGRATION = "analysis.md, Lifecycles comment: add to this section's comment the template's sentences about a value the code tests for but nothing it reads writes, and the template's addition to the values that get a short name (a value made only of symbols, such as `*`); keep the rest of the comment as it is, including anything the project added or translated, and show the developer the sentences before writing them. Where a State cell holds a value made only of symbols, give it a short name no other value of that field uses, in the state table and in the From and To cells that hold it; say in the line after the tables what the name stands for, keeping that line's existing evidence; leave the stored value as it is wherever a rule, a scenario or data evidence quotes it, and leave the `[*]` create and remove marker as it is. Show the developer each rename before writing it, and until they answer, change neither the comment nor any name. Leave the transitions as they are: the new sentences apply the next time a change writes that lifecycle.";
 {
   const expected = ['greenfield', 'brownfield'].flatMap((t) => [
     [`${t}/rules.md`, 2, (c) => c.kind === 'added' && c.item[0] === 'column' && c.item[5] === 'Known deviations', RULES_MIGRATION],
@@ -826,14 +834,17 @@ const EXTERNAL_SYSTEMS_MIGRATION = "context-map.md, External Systems: add the se
     [`${t}/analysis.md`, 2, (c) => c.kind === 'reworded' && c.from[0] === 'comment' && c.from[1] === '' && c.from[2] === '', ANALYSIS_TOP_MIGRATION],
     [`${t}/analysis.md`, 2, (c) => c.kind === 'reworded' && c.from[0] === 'comment' && c.from[1] === 'Lifecycles', LIFECYCLES_MIGRATION],
     [`${t}/analysis.md`, 2, (c) => c.kind === 'reworded' && c.from[0] === 'comment' && c.from[1] === 'Function / Role Index', ANALYSIS_INDEX_MIGRATION],
-    [`${t}/context-map.md`, 2, (c) => c.kind === 'added' && c.item[0] === 'h2' && c.item[1] === 'External Systems', EXTERNAL_SYSTEMS_MIGRATION]
+    [`${t}/context-map.md`, 2, (c) => c.kind === 'added' && c.item[0] === 'h2' && c.item[1] === 'External Systems', EXTERNAL_SYSTEMS_MIGRATION],
+    [`${t}/analysis.md`, 3, (c) => c.kind === 'reworded' && c.from[0] === 'comment' && c.from[1] === 'Cross-Context Flows', CROSS_CONTEXT_NEIGHBOR_MIGRATION],
+    [`${t}/analysis.md`, 3, (c) => c.kind === 'reworded' && c.from[0] === 'comment' && c.from[1] === 'Lifecycles', LIFECYCLES_UNWRITTEN_MIGRATION]
   ]).concat([
     ['brownfield/behavior.md', 3, (c) => c.kind === 'reworded' && c.from[0] === 'note' && c.from[1] === '' && c.from[2] === '', DRAFT_BASIS_MIGRATION],
     ['brownfield/_index.md', 4, (c) => c.kind === 'reworded' && c.from[0] === 'note' && c.from[1] === 'Current BR Snapshot', SNAPSHOT_DRAFT_MIGRATION],
     ['greenfield/behavior.md', 3, (c) => c.kind === 'reworded' && c.from[0] === 'note' && c.from[1] === '' && c.from[2] === '', BEHAVIOR_TIMING_MIGRATION],
     ['brownfield/behavior.md', 4, (c) => c.kind === 'reworded' && c.from[0] === 'note' && c.from[1] === '' && c.from[2] === '', BEHAVIOR_TIMING_MIGRATION],
     ['greenfield/_index.md', 4, (c) => c.kind === 'reworded' && c.from[0] === 'comment' && c.from[1] === '' && c.from[2] === '', INDEX_TIMING_GF_MIGRATION],
-    ['brownfield/_index.md', 5, (c) => c.kind === 'reworded' && c.from[0] === 'note' && c.from[1] === 'Current BR Snapshot', INDEX_TIMING_BF_MIGRATION]
+    ['brownfield/_index.md', 5, (c) => c.kind === 'reworded' && c.from[0] === 'note' && c.from[1] === 'Current BR Snapshot', INDEX_TIMING_BF_MIGRATION],
+    ['brownfield/context-map.md', 3, (c) => c.kind === 'added' && c.item[0] === 'h2' && c.item[1] === 'Undecided Neighbors', UNDECIDED_NEIGHBORS_MIGRATION]
   ]);
   const registered = [];
   for (const [key, e] of Object.entries(registry.templates)) {
@@ -852,7 +863,8 @@ const EXTERNAL_SYSTEMS_MIGRATION = "context-map.md, External Systems: add the se
     assert.equal(change.migration, sentence, `${key} shape ${number}: the migration is the approved sentence`);
   }
   // PROPOSAL-118 (F7): a timing migration rewrites one sentence, never the whole
-  // note, and shows that sentence before writing.
+  // note, and shows that sentence before writing (the developer's answer comes
+  // first: see the check after the analysis.md 3 ones).
   for (const m of [BEHAVIOR_TIMING_MIGRATION, INDEX_TIMING_GF_MIGRATION, INDEX_TIMING_BF_MIGRATION]) {
     assert.ok(m.includes('Keep the rest of the') && m.includes('including anything the project added'), `a PROPOSAL-118 timing migration keeps the rest, the project's additions included: ${m}`);
     assert.ok(m.includes('show the developer the old and new sentence before writing'), `a PROPOSAL-118 timing migration shows the old and new sentence first: ${m}`);
@@ -887,10 +899,40 @@ const EXTERNAL_SYSTEMS_MIGRATION = "context-map.md, External Systems: add the se
   assert.ok(EXTERNAL_SYSTEMS_MIGRATION.includes('by meaning, not by position'), 'an existing External Systems section is matched column by column, not given the template header');
   assert.ok(EXTERNAL_SYSTEMS_MIGRATION.includes('until they answer, remove and rewrite nothing'), 'nothing is removed or rewritten before the developer has seen the mapping');
   assert.ok(EXTERNAL_SYSTEMS_MIGRATION.includes('When the file records none, add the table header only.'), 'a file with no external system gets the header only');
-  // shape 2 is unpublished: its Lifecycles change is the one PROPOSAL-110
-  // reworded again, not a third shape (user 2026-10-09).
-  for (const t of ['greenfield', 'brownfield']) {
-    assert.equal(registry.templates[`${t}/analysis.md`].shapes.length, 2, `${t}/analysis.md: PROPOSAL-110 changes the unpublished shape 2 instead of adding shape 3`);
+  // Undecided Neighbors (PROPOSAL-119 (A)): the developer says which names are
+  // neighbors, every old value keeps a place, nothing is removed or rewritten
+  // before the developer has seen where each value went, and other documents keep
+  // their names, reachable through "also called".
+  assert.ok(UNDECIDED_NEIGHBORS_MIGRATION.includes('list those names to the developer and ask which ones are'), 'the Undecided Neighbors migration asks which names are neighbors instead of deciding it');
+  assert.ok(UNDECIDED_NEIGHBORS_MIGRATION.includes('carry every value its old rows held'), 'the Undecided Neighbors migration keeps every old value');
+  assert.ok(UNDECIDED_NEIGHBORS_MIGRATION.includes('writing `—` for a value the old record does not give'), 'the Undecided Neighbors migration never infers a value the old record does not give');
+  assert.ok(UNDECIDED_NEIGHBORS_MIGRATION.includes('until then, remove and rewrite nothing'), 'nothing is removed or rewritten before the developer has seen the mapping');
+  assert.ok(UNDECIDED_NEIGHBORS_MIGRATION.includes('Change only this file') && UNDECIDED_NEIGHBORS_MIGRATION.includes('also called'), 'the migration changes only context-map.md and lists the other names in Notes');
+  assert.ok(UNDECIDED_NEIGHBORS_MIGRATION.includes('When there is no such name, the section holds only its table header.'), 'a file with no neighbor gets the header only');
+  // analysis.md 3 (PROPOSAL-119 (D)): each sentence is added to the comment, the
+  // rest - the project's additions and translations included - stays, the
+  // developer sees it and answers before anything is written, and existing flows
+  // and transitions are left alone.
+  for (const m of [CROSS_CONTEXT_NEIGHBOR_MIGRATION, LIFECYCLES_UNWRITTEN_MIGRATION]) {
+    assert.ok(m.includes('including anything the project added or translated'), `an analysis.md 3 migration keeps the rest of the comment: ${m}`);
+    assert.ok(m.includes('show the developer the sentence'), `an analysis.md 3 migration shows the sentences before writing: ${m}`);
+  }
+  assert.ok(CROSS_CONTEXT_NEIGHBOR_MIGRATION.includes('Existing flows stay as they are'), 'the Cross-Context Flows migration does not move existing flows');
+  assert.ok(LIFECYCLES_UNWRITTEN_MIGRATION.includes('Leave the transitions as they are'), 'the Lifecycles migration does not add or remove transitions');
+  assert.ok(LIFECYCLES_UNWRITTEN_MIGRATION.includes('Show the developer each rename before writing it'), 'a short name for a symbol value is shown before it is written');
+  assert.ok(LIFECYCLES_UNWRITTEN_MIGRATION.includes('leave the stored value as it is wherever a rule, a scenario or data evidence quotes it') && LIFECYCLES_UNWRITTEN_MIGRATION.includes('leave the `[*]` create and remove marker as it is'), 'the rename touches only the two tables, never a quoted stored value or the `[*]` marker');
+  assert.ok(LIFECYCLES_UNWRITTEN_MIGRATION.includes('until they answer, change neither the comment nor any name'), 'neither the new sentences nor a rename is written before the developer answers');
+  // A migration that shows the developer a change waits for their answer before
+  // writing it: shown and written in one go, the change leaves them nothing to
+  // answer, and doctor prints the migration instead of the default for a note or
+  // comment, which leaves the decision with the developer.
+  for (const [key, e] of Object.entries(registry.templates)) {
+    for (const shape of e.shapes) {
+      for (const c of shape.changes) {
+        if (typeof c.migration !== 'string' || !/show the developer/i.test(c.migration)) continue;
+        assert.ok(/(until|only after) they answer/i.test(c.migration), `${key} shape ${shape.number}: a migration that shows the developer a change waits for their answer: ${c.migration}`);
+      }
+    }
   }
 }
 // behavior.md's maintenance call sits in its top note because that is the only
@@ -1343,7 +1385,8 @@ for (const [edition, track] of [['1', 'greenfield'], ['2', 'brownfield']]) {
   // Function / Role Index comment's, each right after its change.
   const a = await newProject(edition);
   await put(a, 'domain/analysis.md', await older(a, 'analysis.md'));
-  const analysisGroup = olderGroup(findingOf(await doctorAt(a), /^\[info\] 1 spec doc\(s\) were written against an older template shape$/).detail, `${track}/analysis.md 1 → 2`);
+  const analysisLatest = registry.templates[`${track}/analysis.md`].shapes.length;
+  const analysisGroup = olderGroup(findingOf(await doctorAt(a), /^\[info\] 1 spec doc\(s\) were written against an older template shape$/).detail, `${track}/analysis.md 1 → ${analysisLatest}`);
   assert.ok(analysisGroup.includes(`the HTML comments at the top of the document changed (migration: ${ANALYSIS_TOP_MIGRATION})`),
     `${track}: the analysis.md top comments are followed by their migration\n${analysisGroup}`);
   assert.ok(analysisGroup.includes(`the HTML comments under \`## Lifecycles\` changed (migration: ${LIFECYCLES_MIGRATION})`),
@@ -1351,16 +1394,27 @@ for (const [edition, track] of [['1', 'greenfield'], ['2', 'brownfield']]) {
   assert.ok(analysisGroup.includes(`the HTML comments under \`## Function / Role Index\` changed (migration: ${ANALYSIS_INDEX_MIGRATION})`),
     `${track}: the analysis.md Function / Role Index comment is followed by its migration\n${analysisGroup}`);
   assert.ok(analysisGroup.includes(`(migration: ${ANALYSIS_MIGRATION})`), `${track}: the column keeps its own migration beside the comments' ones\n${analysisGroup}`);
+  // PROPOSAL-119: shape 3 adds its two, after the shape-2 ones.
+  assert.ok(analysisGroup.includes(`the HTML comments under \`## Cross-Context Flows\` changed (migration: ${CROSS_CONTEXT_NEIGHBOR_MIGRATION})`),
+    `${track}: the analysis.md Cross-Context Flows comment is followed by its migration\n${analysisGroup}`);
+  assert.ok(analysisGroup.includes(`(migration: ${LIFECYCLES_UNWRITTEN_MIGRATION})`),
+    `${track}: the shape-3 Lifecycles migration is printed beside the shape-2 one\n${analysisGroup}`);
 
   // context-map.md 1 → 2 (PROPOSAL-117): the External Systems section is followed
   // by its migration; the section's columns and note are listed without one.
   const m = await newProject(edition);
   await put(m, 'domain/context-map.md', await older(m, 'context-map.md'));
-  const mapGroup = olderGroup(findingOf(await doctorAt(m), /^\[info\] 1 spec doc\(s\) were written against an older template shape$/).detail, `${track}/context-map.md 1 → 2`);
+  const mapLatest = registry.templates[`${track}/context-map.md`].shapes.length;
+  const mapGroup = olderGroup(findingOf(await doctorAt(m), /^\[info\] 1 spec doc\(s\) were written against an older template shape$/).detail, `${track}/context-map.md 1 → ${mapLatest}`);
   assert.ok(mapGroup.includes(`\`## External Systems\` (migration: ${EXTERNAL_SYSTEMS_MIGRATION})`),
     `${track}: the External Systems section is followed by its migration\n${mapGroup}`);
-  assert.equal(mapGroup.split('(migration:').length - 1, 1, `${track}: only the section carries a migration, not its columns or note\n${mapGroup}`);
+  // PROPOSAL-119: brownfield's context-map.md 3 adds Undecided Neighbors, with
+  // its own migration on the section and none on its columns or note.
+  assert.equal(mapGroup.includes(`\`## Undecided Neighbors\` (migration: ${UNDECIDED_NEIGHBORS_MIGRATION})`), track === 'brownfield',
+    `${track}: the Undecided Neighbors section is followed by its migration, in brownfield only\n${mapGroup}`);
+  assert.equal(mapGroup.split('(migration:').length - 1, track === 'brownfield' ? 2 : 1, `${track}: only the sections carry a migration, not their columns or notes\n${mapGroup}`);
   assert.ok(mapGroup.includes('the `>` notes under `## External Systems` added'), `${track}: the section's note is listed as added\n${mapGroup}`);
+  assert.equal(mapGroup.includes('the `>` notes under `## Undecided Neighbors` added'), track === 'brownfield', `${track}: the neighbors' note is listed as added, in brownfield only\n${mapGroup}`);
 
   // Only changes without a migration: the action is the one above without its lead.
   const q = await newProject(edition);
@@ -1410,10 +1464,30 @@ for (const [edition, track, tutorial] of [['1', 'greenfield', '01-greenfield'], 
   assert.equal(marker.state, 'ok', `${tutorial}: the tutorial context-map.md carries one readable marker`);
   assert.equal(marker.number, latest, `${tutorial}: the tutorial context-map.md is at the current shape ${latest}`);
   assert.ok(doctorChecks.extractShapeSkeleton(fixture).some((item) => item[0] === 'h2' && item[1] === 'External Systems'), `${tutorial}: the tutorial context-map.md has the External Systems section`);
+  assert.equal(doctorChecks.extractShapeSkeleton(fixture).some((item) => item[0] === 'h2' && item[1] === 'Undecided Neighbors'), track === 'brownfield', `${tutorial}: the tutorial context-map.md has the Undecided Neighbors section in brownfield only`);
   const p = await newProject(edition);
   await put(p, 'domain/context-map.md', fixture);
   const out = await doctorAt(p);
   assert.match(out, CLEAN, `${tutorial}: doctor is silent with the tutorial context-map.md in place\n${out}`);
+}
+// The tutorials' analysis.md (PROPOSAL-119 (G)): migrated with the shipped
+// sentences, so each carries the template's current number and doctor says
+// nothing about it once placed where the flows put it.
+for (const [edition, track, tutorial, docs] of [
+  ['1', 'greenfield', '01-greenfield', ['domain/analysis.md', 'domain/Expense/analysis.md']],
+  ['2', 'brownfield', '02-brownfield', ['domain/Order/analysis.md', 'domain/Shipment/analysis.md']]
+]) {
+  const latest = registry.templates[`${track}/analysis.md`].shapes.length;
+  const p = await newProject(edition);
+  for (const doc of docs) {
+    const fixture = await readFile(join(repoRoot, `tutorial/${tutorial}/outputs/dflow/specs/${doc}`), 'utf8');
+    const marker = doctorChecks.readShapeMarker(fixture);
+    assert.equal(marker.state, 'ok', `${tutorial}: ${doc} carries one readable marker`);
+    assert.equal(marker.number, latest, `${tutorial}: ${doc} is at the current shape ${latest}`);
+    await put(p, doc, fixture);
+  }
+  const out = await doctorAt(p);
+  assert.match(out, CLEAN, `${tutorial}: doctor is silent with the tutorial analysis.md files in place\n${out}`);
 }
 {
   // A project that does not say which track it uses: both tracks' templates

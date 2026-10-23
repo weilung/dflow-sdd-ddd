@@ -488,9 +488,12 @@ Step 3 其他 BC layer 文件：
   Order Aggregate Root、OrderLine Entity、Money / Quantity / DiscountRate VO、
   DiscountPolicy Domain Service
 - glossary.md：依 Domain Concepts 補上這個 feature 的術語（DiscountPolicy、CustomerTier 等）
-- context-map.md：§ Relationships 寫進這個 feature 加的關係——Customer、Inventory 供應 Order，
-  Order 往下游接 Shipment、Invoice（brownfield 的 per-change sweep 不帶這一項，由收尾寫）；
-  § External Systems 沒有要記的交換
+- context-map.md：§ Undecided Neighbors 寫進這個 feature 記的交換（phase spec 的 Domain Concepts
+  表後那張鄰居表）——Customer 那一列 05-04 盤點已經建了，加一行「提交訂單時讀取付款條件、
+  信用額度與 CustomerTier」，Code Area 與 Notes 補上 phase spec 記的；Inventory、Shipment、Invoice
+  各加一列。四個的歸屬都還沒定，所以不進 Context List，也不寫 Relationships——Relationships 的
+  兩端都要是 context，現在只有 Order 一個。§ External Systems 沒有要記的交換
+  （brownfield 的 per-change sweep 不帶這一項，由收尾寫）
 - SPEC-002 的 Domain Concepts 記的 ContractValidUntil、VIP 等，不寫：等它自己收尾
 ```
 
@@ -873,7 +876,7 @@ Integration Summary 也記錄未來工作：
 - `SPEC-20260505-002-vip-discount-policy` remains `in-progress` under `features/active/`；本次 closeout 不同步 BR-005~008，也不搬動 SPEC-002。
 - 後續 phase 候選：抽離 `OrderEntry.aspx.cs` 剩餘約 50 行 EF query / UI parsing / 狀態設定流程。
 - 後續 phase 候選：建立 Order status machine，讓訂單狀態轉換從 WebForms event handler 移到 Domain / application-facing boundary。
-- 後續 feature 候選：Customer BC 正式建立，承接 VIP eligibility、合約維護與 Customer reference data owner。
+- 後續 feature 候選：決定 Customer 是什麼（現在是 `context-map.md` Undecided Neighbors 的一列）；它若是自己一個 context，正式建立 Customer BC，承接 VIP eligibility、合約維護與 Customer reference data owner。
 - 本 feature 已完成並凍結；若未來要修正 BR-001~004 或 rounding-related behavior，請走 `/dflow:modify-existing`，建立 follow-up feature，不直接追加 T2/T3 到本 directory。
 ```
 
@@ -929,7 +932,7 @@ Order BC 整體 modernization 還有很長的路，
 | 保留 | [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/BUG-001-rounding-inconsistency.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/BUG-001-rounding-inconsistency.md) | BUG-001 frozen history；closeout 只在 `_index.md` 彙整。 |
 | 新建 | [`outputs/dflow/specs/domain/Order/rules.md`](outputs/dflow/specs/domain/Order/rules.md) | 照 SPEC-001 snapshot 寫進 BR-001~004，加上團隊自加的 Lifecycle note。SPEC-002 的 BR-005~008 還在它自己的 `_index.md`，不在這裡。 |
 | 新建 | [`outputs/dflow/specs/domain/Order/models.md`](outputs/dflow/specs/domain/Order/models.md) | 依 phase spec 的 Domain Concepts 寫 Order、OrderLine、Money、Quantity、DiscountRate、DiscountPolicy。 |
-| 修改 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) / [`context-map.md`](outputs/dflow/specs/domain/context-map.md) | 這個 feature 的術語；Order 與 Customer、Inventory、Shipment、Invoice 的 Relationships。 |
+| 修改 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) / [`context-map.md`](outputs/dflow/specs/domain/context-map.md) | 這個 feature 的術語；Undecided Neighbors：Customer 那一列（05-04 盤點建的）加上 SPEC-001 記的交換，Inventory、Shipment、Invoice 各一列。`outputs/` 是最終狀態：Shipment 在 walkthrough 07 搬成 context。 |
 | 修改 | [`outputs/dflow/specs/domain/Order/behavior.md`](outputs/dflow/specs/domain/Order/behavior.md) | 寫進 BR-001~004 的情境（Order Discount Calculation 一節）；05-04 盤點的跨頁情境照原樣保留。 |
 | 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | 技術債對帳把 rounding debt 設成 `done`（附 `Resolved by:`）；multi-page discount debt 仍 open、補一句進度；isVip 仍 `planned`；其餘 brownfield debt 照舊。 |
 | 故意不改 | [`outputs/dflow/specs/features/active/SPEC-20260505-002-vip-discount-policy/_index.md`](outputs/dflow/specs/features/active/SPEC-20260505-002-vip-discount-policy/_index.md) | SPEC-002 仍 active，不在本 closeout scope。 |

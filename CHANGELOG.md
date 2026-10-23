@@ -8,8 +8,36 @@
 
 ## Unreleased
 
-> **目前投影版號：`0.17.2`**（**未發布到 npm**；npm latest 仍是 `0.17.0`）。
-> 下面兩段都在這一版裡，段標題標出各自第一次投影的版號。
+> **目前投影版號：`0.17.3`**（**未發布到 npm**；npm latest 仍是 `0.17.0`）。
+> 下面三段都在這一版裡，段標題標出各自第一次投影的版號。
+
+### 只盤一塊時：歸屬未定的鄰居記在哪、被讀的程式只檢查不寫的值怎麼記（PROPOSAL-119，dist issue #24 第 1、5 條）——`0.17.3`
+
+**來源**：dist issue #24 第 1、5 條——在大系統裡只盤一個頁面時，和它有資料往來、還沒盤過的部分沒有固定的寫法：AI 把它們寫成帶註記的名字放進 Relationships，同一個部分在各文件叫法不同，收尾的 `BC:` 列出九個名字；那一頁只檢查、不寫的狀態欄位，生命週期圖只有一個方框，題目問「完不完整」而不是「誰寫、在哪寫」。
+
+- **brownfield `context-map.md` 加一節 Undecided Neighbors**（形狀 3）：被記錄的 context 與它有資料往來、但還沒有人決定它屬於哪個 bounded context 的本系統部分（頁面、模組、排程、本專案自己建的服務），一個鄰居一列——暫定名稱、Exchanges（一種交換一行：context、冒號、交換什麼、往哪個方向、怎麼交換）、Code Area、Notes。
+  已經記成或決定屬於某個 context 的、外部系統、決定不建模的區塊都不是鄰居。Context List 與 Relationships 照舊只寫 context；鄰居和 context 之間的交換也不寫成 `analysis.md` 跨 context 流程的一步。名字照那一列的暫定名稱，不確定的地方寫在 Notes，不寫進名字。
+- **鄰居被決定之後搬走**：寫 `context-map.md` 的那一次變更記下它是什麼（自己一個 context、某個 context 的一部分、外部系統）時，把那一列的每個值帶到新的落點、拿掉那一列；移除或改寫之前，先給開發者看新的紀錄與每個值的去向。
+  baseline 盤點當場搬（6.2 第 8 題對鄰居那一列另問它是什麼，答「不知道」就留著）；帶 phase-spec 的 feature 在 `/dflow:finish-feature` Step 3 搬。其他文件留著暫定名稱，新的落點在 Notes 寫「also called …」。
+- **`BC:` 不收鄰居與外部系統**：baseline 那一列推出的名字依序判——Context List 有一列、或自己有 BC 目錄的，算 context；`context-map.md` 列為鄰居或外部系統的，不收；紀錄自己寫著歸屬還沒定的（舊文件的「未盤」「邊界待確認」），先問開發者。有不收的名字，告訴開發者。
+- **`analysis.md`**（兩軌，形狀 3）：§ Cross-Context Flows 多一句：歸屬還沒定的部分不是 context。§ Lifecycles 多兩句：被讀的程式檢查或顯示、但讀到的程式沒有地方寫的值，不從那個檢查推轉移——值留在狀態表，表後那一行寫讀到的程式沒有寫它，再記一題問還有沒有人寫、誰、在哪、什麼條件、這個欄位歸不歸這個 context；只由符號組成的值（例如 `*`）比照空字串在 State 取短名，`*` 不再和 `[*]` 並排。
+- **順手修掉**：brownfield minimal host 收尾 Step 3 寫了 `context-map.md` 之後，Step 4 驗 baseline 讀不到而從 Step 1 重來時，Step 1 的封閉清單現在收下 BC-bearing host 的 `context-map.md`（no-BC 與 baseline host 照舊擋）；brownfield 收尾 Step 4 的 stage 條件改成「Step 3 更新了 `context-map.md`」。
+  兩軌收尾 Step 4 的括號與兩筆設計理由（`R-FF-SWEEPKEY-01`、`R-NP-ANALYSIS-01`）補上：帶 phase-spec、沒碰 bounded context 的 host，收尾也寫 `glossary.md`。
+- brownfield `AI-AGENT-GUIDE.md` § Source of Truth 加一列；brownfield 盤點與收尾的 flow、共用 `ddd-modeling-guide.md` 的說法跟上。已知限制寫在 [`docs/analysis-limitations.md`](docs/analysis-limitations.md)：只檢查、不寫的值在答題前沒有轉移；鄰居的名字一致只靠指示。
+- **還在的限制**（`BC:` 與鄰居的分類）：
+  - `BC:` 認得的是「列了名」與「紀錄自己寫著還沒定」：一個鄰居既沒列進那一節、名字旁也沒有註記，卻被寫進某個 context 欄位時，照舊推進 `BC:`；它在 Integration Summary 上看得到，開發者改得回來。
+  - `BC:` 分得出 context 與鄰居，分不出「這次盤過」與「只是記成 context」：開發者確認是 context、還沒人盤的部分照樣算 context。
+  - 既有文件遷移之前，鄰居還寫在 Relationships 或跨 context 流程時：名字旁有「未盤」「邊界待確認」這類註記的，收尾先問開發者；沒有註記的照舊推進 `BC:`。
+  - 鄰居被決定之後，只有那一次變更寫的文件換成新名字；進行中 feature 的 spec、鷹架、已完成 feature 的紀錄留著暫定名稱，靠新落點 Notes 的「also called」照得到。
+  - `/dflow:new-feature` Step 2 確認的 BC 正好是一個鄰居時，Step 2 照舊寫 Context List 那一列，鄰居那一列留到收尾才搬，中間兩列並存；這段期間的 `BC:` 照樣把它算成 context。
+- 教材（brownfield）：Order 以外四個沒盤過的區塊改記成鄰居，不是 Context List 的候選列。05-04 的盤點記下 Customer 一列（兩頁讀它的 CustomerTier）；SPEC-001 的 phase spec 在 Domain Concepts 後面記四個鄰居與交換，收尾時寫進 Undecided Neighbors；SPEC-002 用這一節回答「`context-map.md` 要怎麼寫才不會讓人以為忽略 Customer」；walkthrough-07 盤 Shipment 時把它搬成 Context List 的一列與 Order → Shipment 的 Relationships，`BC:` 是 Order、Shipment。
+  兩軌 `outputs/` 的四支 `analysis.md` 照遷移加句子。
+
+**既有專案（升級時注意）**：
+
+1. brownfield `context-map.md`（形狀 3）：`dflow doctor` 提示一次。遷移加 Undecided Neighbors 的表頭；Context List 或 Relationships 裡有歸屬可能還沒定的部分（名字帶「未盤」「邊界待確認」之類），先列給開發者看、問過哪些是鄰居，再給開發者看要寫的列與每個舊值的去向，回答了才搬；只動 `context-map.md`，其他文件用的名字列在那一列的 Notes。
+2. 兩軌 `analysis.md`（形狀 3）：`dflow doctor` 對每一支提示一次。遷移把新句子加進兩節的註解，其餘（包括專案自己加的與翻譯）照留；State 有只由符號組成的值才改短名（兩張表一起改、表後那一行寫它代表什麼，規則、情境、`data` 證據引用的存值不改）。句子與改名都先給開發者看，開發者回答之前不改。既有的轉移與流程不動，下一次有變更寫到時才照新規則。
+3. `behavior.md`（greenfield 形狀 3、brownfield 形狀 4）與 `_index.md`（greenfield 形狀 4、brownfield 形狀 5）的遷移句也改成：給開發者看新舊兩句之後，開發者回答之前不改。
 
 ### 系統層只在收尾寫入：帶 phase-spec 的 feature，變更在收尾前只留在 feature 目錄（PROPOSAL-118，dist issue #25）——`0.17.2`
 

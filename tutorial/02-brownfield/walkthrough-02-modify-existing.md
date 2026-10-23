@@ -213,6 +213,9 @@ Brownfield 的 BC 是從抽離過程中浮現的，init 不會預先建 context-
 
 Customer 目前只提供 CustomerTier reference data；
 Inventory、Shipment、Invoice 都不是本 phase 的 owner。
+這四個和 Order 有資料往來，但各屬於哪個 bounded context 還沒有人決定——
+它們是 Order 的鄰居，不是 context。它們與 Order 的交換我記在 phase spec 的
+Domain Concepts（表後的鄰居表），收尾時寫進 context-map.md 的 Undecided Neighbors。
 
 我建議建立第一個 BC directory：
 
@@ -237,6 +240,7 @@ scope 會膨脹，且不一定有足夠業務資訊支撐模型。
 |---|---|
 | 新建 BC | Order |
 | 不建 BC | Customer、Inventory、Shipment、Invoice |
+| 鄰居（歸屬未定） | 同上四個：與 Order 的交換記在 phase spec，收尾寫進 `context-map.md` § Undecided Neighbors |
 | Customer 資訊 | 只用 `CustomerTier` reference value |
 | 本 phase owner | Order discount calculation |
 
@@ -403,8 +407,9 @@ Dflow:
 
 會跨 bounded context 嗎？
 只讀 Customer 的 CustomerTier reference value。
-「Order 讀 Customer 的資料」拿掉先後順序也成立，屬於 context-map.md，
-不是一條有序的跨 context 流程，不記進 analysis.md。
+Customer 歸屬還沒定，不是 context：它和 Order 之間的交換記在 context-map.md 記它的地方
+（Undecided Neighbors），不寫成跨 context 流程的一步；「Order 讀 Customer 的資料」
+拿掉先後順序也成立。所以不記進 analysis.md。
 ```
 
 狀態與角色那兩題，這個例子沒有答案，所以沒有記：handler 裡的狀態設定本 phase 不碰、例子也沒交代它有哪些值；
@@ -802,14 +807,14 @@ Evidence: document - `SPEC-20260430-001` 的 `phase-spec-2026-04-30-baseline-and
 | 狀態 | Path | 讀者看什麼 |
 |---|---|---|
 | 新建 | [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md) | Feature dashboard、BR snapshot、scope boundary、resume pointer。 |
-| 新建 | [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/phase-spec-2026-04-30-baseline-and-fix.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/phase-spec-2026-04-30-baseline-and-fix.md) | Baseline contrast、behavior scenarios、BR、implementation tasks。 |
+| 新建 | [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/phase-spec-2026-04-30-baseline-and-fix.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/phase-spec-2026-04-30-baseline-and-fix.md) | Baseline contrast、behavior scenarios、BR、與 Order 交換資料的鄰居（Domain Concepts 表後）、implementation tasks。 |
 | 新建 | [`outputs/dflow/specs/domain/Order/context.md`](outputs/dflow/specs/domain/Order/context.md) | Order BC responsibilities、scope、out-of-scope。 |
 | 收尾時寫 | [`outputs/dflow/specs/domain/Order/models.md`](outputs/dflow/specs/domain/Order/models.md) | Order、OrderLine、Money、Quantity、DiscountRate、DiscountPolicy。這一步在 phase spec 的 Domain Concepts 表。 |
 | 收尾時寫 | [`outputs/dflow/specs/domain/Order/rules.md`](outputs/dflow/specs/domain/Order/rules.md) | BR-001~004 的 rule index。這一步在 phase spec 的 Business Rules 與 `_index.md` 的 Current BR Snapshot。 |
 | 這一步不建 | [`outputs/dflow/specs/domain/Order/behavior.md`](outputs/dflow/specs/domain/Order/behavior.md) | 折扣行為的 Given/When/Then 在 phase spec 的 Behavior Scenarios。walkthrough 03 的盤點第一次建這份檔（跨頁情境），walkthrough 06 收尾時寫進 BR-001~004 的情境；`outputs/` 樹是最終狀態。 |
 | 新建 | [`outputs/dflow/specs/domain/Order/analysis.md`](outputs/dflow/specs/domain/Order/analysis.md) | RM-01：折扣後金額在哪裡算、計入哪些折扣、存下什麼（Step 3 第一次有東西要記時從範本建）。`outputs/` 是最終狀態，你在那裡還會看到後續補上的 RM-02、HS-01，以及 RM-01 的 VIP 那一段。 |
 | 收尾時寫 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) | Order / OrderLine / DiscountPolicy 等 ubiquitous language。這一步在 phase spec 的 Domain Concepts 表。 |
-| 新建 | [`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md) | Step 2 建立，記下 Order 與它的 Subdomain Type。Order 與 Customer / Inventory / Shipment / Invoice 的關係這一步記在 phase spec，walkthrough 06 收尾時寫進 Relationships。⚠ Brownfield 的 init **不建**這一份（BC 由抽離過程浮現），所以它是在本篇確認 Order BC 時才第一次建立。 |
+| 新建 | [`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md) | Step 2 建立，記下 Order 與它的 Subdomain Type。Customer / Inventory / Shipment / Invoice 是鄰居（歸屬未定）：它們與 Order 的交換這一步記在 phase spec 的 Domain Concepts（表後的鄰居表），walkthrough 06 收尾時寫進 Undecided Neighbors（Customer 那一列由 walkthrough 03 的盤點先建）。⚠ Brownfield 的 init **不建**這一份（BC 由抽離過程浮現），所以它是在本篇確認 Order BC 時才第一次建立。 |
 | 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | 本次不擴張的頁面與剩餘 Code-Behind debt。 |
 | 故意不建 | `events.md` | 本 phase 不引入 Domain Events。 |
 | 故意不建 | `aggregate-design.md` | Brownfield 以 phase spec（收尾後是 models.md）承載抽離設計。 |

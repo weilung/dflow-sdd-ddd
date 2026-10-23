@@ -73,8 +73,9 @@ the guide states them rather than continuing through the steps below.
   behavior-capture / layer steps only where the change actually touches them.
 - **Observation-only (tier-exempt, step 0)** → record the capture where it belongs
   (BC-layer `rules.md`, `behavior.md`, `models.md` and `analysis.md`,
-  `glossary.md`, `context-map.md` for how two contexts integrate and for the
-  exchanges a context has with external systems,
+  `glossary.md`, `context-map.md` for how two contexts integrate, for the
+  exchanges a context has with external systems and for the parts of this
+  system a context exchanges data with whose bounded context nobody has decided,
   `domain/analysis.md` for a cross-context flow, for role reach and for
   whatever else no one context owns,
   a hotspot in the copy that holds the knowledge it is stuck on,
@@ -586,7 +587,7 @@ When the feature being modified has no existing spec, take the opportunity to do
 3. Identify domain concepts (potential Entities, Value Objects, Services)
 4. Check for duplicated logic across pages
 5. Identify the system-level knowledge no single context document holds — an ordered flow that crosses contexts (always the domain-root copy), the lifecycle a status field moves through, a figure computed rather than stored, a mechanism no single rule explains, which roles reach the function and what some of them can do there that others cannot (always the domain-root copy), and any spot in those this system keeps working around pending a domain decision (in the copy that holds the knowledge it is stuck on)
-6. Record findings in the appropriate domain docs (`models.md`, `rules.md`, and `analysis.md` — the owning context's copy, or `dflow/specs/domain/analysis.md` when no one context owns what you found, created from `templates/analysis.md` the first time there is something to record) and `tech-debt.md`; a baseline capture also records in `context-map.md` how two contexts integrate and each exchange the captured area's contexts have with an external system (an API it calls, a file it imports or exports, a database another system owns), declared in its row — see `references/modify-existing-baseline.md` § Step 2
+6. Record findings in the appropriate domain docs (`models.md`, `rules.md`, and `analysis.md` — the owning context's copy, or `dflow/specs/domain/analysis.md` when no one context owns what you found, created from `templates/analysis.md` the first time there is something to record) and `tech-debt.md`; a baseline capture also records in `context-map.md` how two contexts integrate, each exchange the captured area's contexts have with an external system (an API it calls, a file it imports or exports, a database another system owns), and each part of this system they exchange data with whose bounded context nobody has decided (an undecided neighbor), declared in its row — see `references/modify-existing-baseline.md` § Step 2
 
 This is an **opportunistic** strategy — "capture while we're already here." Do not force a full codebase scan; scope it to the modified feature and its immediate neighbors. Share what you find:
 

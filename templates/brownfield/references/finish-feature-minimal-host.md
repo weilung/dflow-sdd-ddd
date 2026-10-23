@@ -260,6 +260,8 @@ A `✗` here stops closeout there, on the same terms.
       `references/confirmed-rule-vs-code.md` § Closeout reconciliation defines
       them, and from completing this host's `Deferred deviation` lines. This
       admits no implementation source, new capture, or unrelated cleanup.
+      On a BC-bearing host only, (iv) also admits the edits that Step 3's sync
+      produced in `context-map.md`.
       Read each delta with `git diff HEAD -- {path}` — plain `git diff` hides
       what is already staged — and do not infer it from the filename.
       **The list is closed** — if a later change adds another

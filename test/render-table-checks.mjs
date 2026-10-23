@@ -158,6 +158,13 @@ try {
     assert.deepEqual(found(md(...externalSystems, ...after)), [], 'a header-only External Systems table, then its note, is not a problem');
     assert.deepEqual(found(md(...externalSystems, '| Billing | invoices | out | file | nightly | Order | — |', '', '| Billing | refunds | in | API | on demand | Order | — |', ...after)),
       ['cut 6-6 -> 7-7'], 'an External Systems table with rows is checked: a blank line between rows is a cut');
+    // PROPOSAL-119: brownfield's Undecided Neighbors section follows the same
+    // shape — a header-only table, then the section's note.
+    const neighbors = ['## Undecided Neighbors', '', '| Neighbor | Exchanges | Code Area | Notes |', '|---|---|---|---|'];
+    const afterNeighbors = ['', '> **Undecided Neighbor** — a note.', '', '## Integration Notes', '', '- a note'];
+    assert.deepEqual(found(md(...neighbors, ...afterNeighbors)), [], 'a header-only Undecided Neighbors table, then its note, is not a problem');
+    assert.deepEqual(found(md(...neighbors, '| Customer | Order：reads the tier | `db.Customers` | — |', '', '| Inventory | Order：reads stock | not located | — |', ...afterNeighbors)),
+      ['cut 6-6 -> 7-7'], 'an Undecided Neighbors table with rows is checked: a blank line between rows is a cut');
   }
 
   // --- (3) extra cells ---

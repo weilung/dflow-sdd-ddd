@@ -23,6 +23,7 @@ Phase 1 `baseline-and-fix` 同時包含三件事：先 baseline capture `OrderEn
 - 抽離機會：「OrderList / OrderEntry / OrderDetail rounding 策略不一致」那一列記的統一 `Money` display contract 抽離方向寫得夠清楚。
 - BR-004：`OrderList.BindGrid()` 與 `OrderDetail.LoadDiscountSummary()` 讀出的折扣累積就是 BR-004。
 - `behavior.md`：「Confirmed across pages」兩段情境寫的是 BR-004 這條規則，出處頁面也寫對（補的是情境與出處頁面，不改 BR-004 的意思）。
+- `context-map.md`：Undecided Neighbors 的 Customer 那一列（兩頁的折扣摘要帶著它的 CustomerTier）寫得對。
 
 <!-- dflow:section phase-specs -->
 ## Phase Specs
@@ -48,7 +49,7 @@ Phase 1 `baseline-and-fix` 同時包含三件事：先 baseline capture `OrderEn
 
 | Date | Tier | Description | Commit |
 |---|---|---|---|
-| 2026-05-04 | baseline | Baseline-only capture：已補 `OrderList.aspx.cs` 與 `OrderDetail.aspx.cs` 的跨頁 confirmed behavior，詳見 [`behavior.md`](../../../domain/Order/behavior.md#confirmed-across-pages-baseline-capture-2026-05-04)，兩頁折扣後金額的來源與 `isVip` 熱點記於 [`analysis.md`](../../../domain/Order/analysis.md)（RM-02、HS-01）；新發現的 rounding / `isVip` debt 已記錄於 [`tech-debt.md`](../../../migration/tech-debt.md)。本 row 無對應 spec 檔。 | c58d213 |
+| 2026-05-04 | baseline | Baseline-only capture：已補 `OrderList.aspx.cs` 與 `OrderDetail.aspx.cs` 的跨頁 confirmed behavior，詳見 [`behavior.md`](../../../domain/Order/behavior.md#confirmed-across-pages-baseline-capture-2026-05-04)，兩頁折扣後金額的來源與 `isVip` 熱點記於 [`analysis.md`](../../../domain/Order/analysis.md)（RM-02、HS-01）；新發現的 rounding / `isVip` debt 已記錄於 [`tech-debt.md`](../../../migration/tech-debt.md)；兩頁讀到資料的 Customer（歸屬未定）記於 [`context-map.md`](../../../domain/context-map.md) 的 Undecided Neighbors。本 row 無對應 spec 檔。 | c58d213 |
 | 2026-05-08 | T2 | Bug-fix: 修正 `OrderList` / `OrderEntry` / `OrderDetail` 跨頁 display rounding inconsistency，見 [`BUG-001-rounding-inconsistency.md`](./BUG-001-rounding-inconsistency.md)。 | 9f2e470 |
 
 > **兩格填的都是「那一列自己的 commit」。** baseline 列填的是把 confirmed behavior

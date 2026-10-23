@@ -589,6 +589,33 @@ RM-02 刻意不記顯示精度——那是上面 Finding 3 的 tech debt。
 補充：完整文件範例中 HS-01 已是 `resolved`——walkthrough 04 開頭，Daniel 確認它是五年前促銷殘留的
 dead code；RM-01 也在 walkthrough 04 加上了 VIP 那一段。本篇 baseline capture 當下，HS-01 是 `open`。
 
+### `context-map.md`：兩頁讀到資料的 Customer 記成鄰居
+
+兩頁的折扣摘要帶著每筆訂單客戶的 `CustomerTier`——那是 Customer 的資料。Customer 歸屬哪個 bounded context
+還沒有人決定（[walkthrough 02](walkthrough-02-modify-existing.md) 的 Step 2，Bob 決定先不建 Customer BC），
+所以它是 Order 的**鄰居**（有資料往來、歸屬還沒人決定的本系統部分）。盤點當場把這個交換記進
+`context-map.md` 的 Undecided Neighbors，一列：
+
+```markdown
+| Neighbor | Exchanges | Code Area | Notes |
+|---|---|---|---|
+| Customer | Order：訂單列表與明細的折扣摘要帶著每筆訂單客戶的 CustomerTier（Customer → Order；`usp_GetOrderDiscountSummary` 的結果） | `usp_GetOrderDiscountSummary`（`OrderList.BindGrid()` 的 data source、`OrderDetail.LoadDiscountSummary()`） | 還不知道：它是自己一個 context、某個 context 的一部分，還是外部系統（Open Questions）。 |
+```
+
+三個細節：
+
+- **不放進 Context List，也不寫成 Relationships 的一端。** 那兩張表只放 context；看到兩頁讀它的資料，
+  不是把它寫成 context 的理由。它與 Order 之間的交換也不寫成 `analysis.md` 跨 context 流程的一步。
+- **名字就叫 Customer，不寫成「Customer（未建 BC）」。** 不確定的地方寫在 Notes；之後每一份文件提到它都照這個名字。
+- **只記這次讀到的。** Order 提交時讀付款條件、信用額度與 CustomerTier，是 SPEC-001 的 phase spec 記的交換，
+  等 SPEC-001 收尾（[walkthrough 06](walkthrough-06-finish-feature.md)）才寫進這一列——盤點不替那個 feature 提早寫。
+
+`context-map.md` 也要宣告在 baseline 那一列（下一節）。
+
+完整文件範例：
+[`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md)
+（最終狀態：Customer 那一列在 walkthrough 06 多了一行 Exchanges，它的歸屬到教材結束都還沒定）
+
 ### `_index.md` 新增 baseline-capture row
 
 Host feature dashboard 也要知道這次 baseline capture 發生過：
@@ -598,12 +625,12 @@ Host feature dashboard 也要知道這次 baseline capture 發生過：
 
 | Date | Tier | Description | Commit |
 |---|---|---|---|
-| 2026-05-04 | baseline | Baseline-only capture：已補 `OrderList.aspx.cs` 與 `OrderDetail.aspx.cs` 的跨頁 confirmed behavior，詳見 [`behavior.md`](../../../domain/Order/behavior.md#confirmed-across-pages-baseline-capture-2026-05-04)，兩頁折扣後金額的來源與 `isVip` 熱點記於 [`analysis.md`](../../../domain/Order/analysis.md)（RM-02、HS-01）；新發現的 rounding / `isVip` debt 已記錄於 [`tech-debt.md`](../../../migration/tech-debt.md)。本 row 無對應 spec 檔。 |  |
+| 2026-05-04 | baseline | Baseline-only capture：已補 `OrderList.aspx.cs` 與 `OrderDetail.aspx.cs` 的跨頁 confirmed behavior，詳見 [`behavior.md`](../../../domain/Order/behavior.md#confirmed-across-pages-baseline-capture-2026-05-04)，兩頁折扣後金額的來源與 `isVip` 熱點記於 [`analysis.md`](../../../domain/Order/analysis.md)（RM-02、HS-01）；新發現的 rounding / `isVip` debt 已記錄於 [`tech-debt.md`](../../../migration/tech-debt.md)；兩頁讀到資料的 Customer（歸屬未定）記於 [`context-map.md`](../../../domain/context-map.md) 的 Undecided Neighbors。本 row 無對應 spec 檔。 |  |
 ```
 
 ⚠ **Description 要宣告的是「它寫進去的文件」，不是它讀過的檔案。** 上面那一列
-點名 `behavior.md` 的錨點與 `analysis.md`，正是因為 baseline capture **沒有原始碼變更**——
-`OrderList.aspx.cs` / `OrderDetail.aspx.cs` 只是它**讀**的對象，`behavior.md` 與 `analysis.md` 才是它
+點名 `behavior.md` 的錨點、`analysis.md` 與 `context-map.md`，正是因為 baseline capture **沒有原始碼變更**——
+`OrderList.aspx.cs` / `OrderDetail.aspx.cs` 只是它**讀**的對象，`behavior.md`、`analysis.md` 與 `context-map.md` 才是它
 **寫**的產物。範本對 `Tier = baseline` 列的要求就是寫實際寫入的文件路徑。
 
 ⚠ **`Commit` 欄先留空——不要寫 `n/a - spec capture only` 這種說明文字。** 「沒有 spec 檔」
@@ -637,7 +664,7 @@ Dflow:
 Baseline capture 已記錄。要更新文件了嗎？輸入 /dflow:next 繼續。
 ```
 
-Bob 回 OK。Step 6 的完成檢查表對 baseline 只重新核對上面四份文件，不新建任何東西；
+Bob 回 OK。Step 6 的完成檢查表對 baseline 只重新核對上面五份文件，不新建任何東西；
 spec 那幾項是 N/A（baseline 沒有 spec 檔）。
 
 不一樣的是 6.2「需要開發者確認」那一組。原本五題裡，第 1 題（Delta 的意圖）與第 5 題
@@ -678,9 +705,16 @@ Bob: 對。
    折扣後金額 glossary 的 Order 那一列已經有；DiscountedTotal、
    usp_GetOrderDiscountSummary 是程式裡的名字，不另立名詞——這題沒有要問的。
 
-8. models.md、context-map.md 這次有沒有新增或改了的內容？
-   沒有。
+8. models.md、context-map.md 這次新增或改了的內容：
+   context-map.md 的 Undecided Neighbors 加了一列 Customer——
+   兩頁的折扣摘要帶著它的 CustomerTier。這一列寫得對嗎？
+   另外，Customer 是什麼：已經記錄的某個 context 的一部分、自己一個 context，還是外部系統？
+Bob: 那一列寫得對。Customer 是什麼我現在答不出來，先留著。
 ```
+
+第 8 題對鄰居那一列多問一件事：它是什麼。答得出來，盤點當場照範本把它搬走（搬之前先給開發者看新的紀錄與每個值的去向，
+[walkthrough 07](walkthrough-07-baseline-minimal-host.md) 就是這樣搬 Shipment）；答「不知道」，那一列就留著，
+題目在 Notes 與 `context-map.md` 的 Open Questions。
 
 **第 4 題有一個 baseline 才有的判斷：BR-004 在這個 host 的 Current BR Snapshot 上，`rules.md` 卻還沒有它。**
 `SPEC-20260430-001` 的 Snapshot 帶著 BR-001～004——它們是這個 feature 自己的 phase-spec
@@ -724,6 +758,7 @@ Bob: 對。
 - 抽離機會：「OrderList / OrderEntry / OrderDetail rounding 策略不一致」那一列記的統一 `Money` display contract 抽離方向寫得夠清楚。
 - BR-004：`OrderList.BindGrid()` 與 `OrderDetail.LoadDiscountSummary()` 讀出的折扣累積就是 BR-004。
 - `behavior.md`：「Confirmed across pages」兩段情境寫的是 BR-004 這條規則，出處頁面也寫對（補的是情境與出處頁面，不改 BR-004 的意思）。
+- `context-map.md`：Undecided Neighbors 的 Customer 那一列（兩頁的折扣摘要帶著它的 CustomerTier）寫得對。
 ```
 
 三個細節：
@@ -756,6 +791,7 @@ Step 6 跑完，checkpoint 才在 6.5 提出。這次的 commit 是 `c58d213`：
 | 新建 | [`outputs/dflow/specs/domain/Order/behavior.md`](outputs/dflow/specs/domain/Order/behavior.md) | 第一次有東西要寫，從範本建立：`Confirmed across pages` 區塊，記錄 OrderList / OrderDetail 對 BR-004 的確認。BR-001～004 自己的情境收尾時才寫進來。 |
 | 修改 | [`outputs/dflow/specs/domain/Order/analysis.md`](outputs/dflow/specs/domain/Order/analysis.md) | 新增 RM-02（兩頁折扣後金額的產出點）與 HS-01（`isVip * 0.93` 熱點，當時 open）；RM-01 補一句指向 RM-02。 |
 | 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | rounding inconsistency 與 `isVip` multiplier 來源不明。 |
+| 修改 | [`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md) | Undecided Neighbors 加 Customer 一列（兩頁的折扣摘要讀它的 CustomerTier）。`outputs/` 是最終狀態：那一列在 walkthrough 06 多了 SPEC-001 記的交換。 |
 | 修改 | [`outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md) | baseline-capture row、Goals & Scope 末尾的 6.2 確認行，與後續 resume context。 |
 | 故意不建 | `lightweight-*.md` | baseline capture（observation-only），不建立 lightweight spec。 |
 | 故意不建 | `phase-spec-*.md` | 沒有新的 implementation slice。 |

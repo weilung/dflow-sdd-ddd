@@ -11,7 +11,8 @@ Most are left unguarded because guarding them would mean a machine reading conte
 
 In a lifecycle's transition table, `[*]` in From means that step creates the entity, and `[*]` in To means that step removes it; `[*]` is not a value and is not listed in the state table.
 A value no transition has is listed under the diagram by `dflow render` instead of being drawn as a box; where the list of values was taken from goes in one line after the two tables that reads `Evidence:`.
-A value that cannot be written as itself — an empty string, spaces only, no value at all — gets a name in State, and that `Evidence:` line says what each name stands for.
+A value that cannot be written as itself — an empty string, spaces only, no value at all, a value made only of symbols such as `*` — gets a name in State, and that `Evidence:` line says what each name stands for.
+A value the code you read tests for or shows, but that nothing you read writes, gets no transition from that test: it stays in the state table, the `Evidence:` line says that no code you read writes it and that whether anything still writes it is not known, and a question asks whether anything still writes it, who, where, under what condition, and whether the field belongs to this context.
 
 1. **Each project picks its own names, so they differ between projects.** One project writes "(not set)" for no value, another "(none)".
    - Why not prevented: within one document there is no confusion, since the `Evidence:` line after the tables says what each name stands for; a fixed notation would collide with values that really store those characters.
@@ -57,6 +58,10 @@ A value that cannot be written as itself — an empty string, spaces only, no va
    - Why not prevented: reading them reliably would mean reading all HTML and references by the browser's rules; covering only some of them always leaves a form nobody thought of read wrong, and a wrong reading draws a wrong diagram. Refusing HTML in descriptive cells too would cost every document that uses HTML there, and where a tag swallows cells, the table on the page is visibly broken already.
    - Who bears it: the author of a document that writes these cells this way (very rare); for descriptive cells, readers comparing the diagram with the table.
    - Reconsider: when someone reports a common way of writing being refused, or HTML in a descriptive cell making the diagram and the table disagree.
+11. **A value that is only tested, never written, has no transition until its question is answered.** When you capture one part of a large system, the page you read often only tests a status value (a posted flag, say: once posted, no edit or delete), while what writes it is in a module nobody has captured. The template derives no transition from that test, so until the question is answered the value is listed under the diagram when other transitions exist; when there is no transition at all (a page that only displays, say), `dflow render` draws nothing and prints a one-line note, and both tables are still there. Shown to someone else, the diagram may draw "why does this look so odd".
+   - Why not prevented: making the diagram look right before the answer would take a line the code you read does not prove — a test shows neither that something still writes the value (it may be a defensive branch, or a retired value) nor which state it comes from (it may be a page that only displays, or records imported with that value). With the right question asked, the answer adds the transitions.
+   - Who bears it: people reading the diagram before the answer.
+   - Reconsider: when such diagrams are often misread — then consider having `dflow render` draw a value no transition has as a box of its own.
 
 ## Lifecycle diagrams: rows with the same From and To share one arrow
 
@@ -117,3 +122,12 @@ Rows whose From and To read as the same values share one arrow, labelled with th
    - Why not prevented: checking means reading code or asking people, which is not mechanical.
    - Who bears it: readers, and whoever rewrites the system (who must check first).
    - Reconsider: if few people go back to check after upgrading — then consider a `dflow doctor` notice for rows for several roles that nobody has checked.
+
+## Undecided neighbors (brownfield): their names
+
+A brownfield `context-map.md` has an Undecided Neighbors section: the parts of this system (a page, a module, a batch job) that a recorded context exchanges data with, but whose bounded context nobody has decided yet — one row and one working name per neighbor. What passes between a neighbor and a context is recorded only in that row, never as a step of a cross-context flow.
+
+1. **Only instructions keep a neighbor's name the same everywhere.** A transition's Trigger, a question or a Notes cell that names a neighbor should copy the row's working name, but nothing compares the names documents use: a neighbor called two names in two documents is found only by a reader or by the next capture.
+   - Why not prevented: the names sit in prose and descriptive cells, and a machine cannot judge reliably which word means a neighbor.
+   - Who bears it: people reading the documents, and the next capture.
+   - Reconsider: when a neighbor is reported under two names again — then consider having `dflow render` or `dflow doctor` list the names that are neither a context nor in the neighbors section, with what to do about them.

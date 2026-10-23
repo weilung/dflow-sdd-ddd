@@ -33,6 +33,7 @@ branch: feature/SPEC-20260511-001-shipment-fee-baseline
 - 抽離機會：「Shipment 免運門檻判斷基準三處不一致」那一列（拍板後建立單一判定 contract）寫得夠清楚。
 - `Shipment/behavior.md`：「運費計算的三個產生點」、Scenario 1～3、「未捕捉的範圍」、「已知不一致（不在本文件裁定）」都照現況寫對。
 - 名詞：「免運門檻」先不進 `glossary.md`，等免運門檻的判定拍板（`Shipment/analysis.md` HS-01）時一起定。
+- `context-map.md`：Shipment 是自己一個 context——Undecided Neighbors 那一列搬成 Context List 的 Shipment 一列與 Order → Shipment 的 Relationships 一列，每個值的去向看過、寫得對。
 
 ## Phase Specs
 
@@ -58,7 +59,7 @@ branch: feature/SPEC-20260511-001-shipment-fee-baseline
 > reader 都認得這個值（P082 契約）。
 >
 > Description 末尾宣告這次變更碰到的路徑。baseline 沒有原始碼變更，它宣告的是
-> **自己寫進去的 BC 層文件**。closeout 會拿 `spec-baseline` checkpoint 的 diff 與它比對；
+> **自己寫進去的文件**（BC 層文件，與這次寫到的 `context-map.md`）。closeout 會拿 `spec-baseline` checkpoint 的 diff 與它比對；
 > 一個路徑都沒宣告會擋下 closeout。
 > ⚠ **baseline 列還多一個連接詞**：那份 capture 必須由該 commit **新增或修改**，而且
 > **存在於它的樹裡**——刪掉或改名走的 commit 也會動到同一個路徑，卻不可能是捕捉它的
@@ -72,7 +73,7 @@ branch: feature/SPEC-20260511-001-shipment-fee-baseline
 
 | Date | Tier | Description | Commit |
 |---|---|---|---|
-| 2026-05-11 | baseline | Shipment 運費在購物車 / 結帳 / 出貨通知三處的現行計算與顯示行為 capture（observation-only，未改任何輸出）— `dflow/specs/domain/Shipment/behavior.md`、`dflow/specs/domain/Shipment/analysis.md` | 4b17d92 |
+| 2026-05-11 | baseline | Shipment 運費在購物車 / 結帳 / 出貨通知三處的現行計算與顯示行為 capture（observation-only，未改任何輸出）— `dflow/specs/domain/Shipment/behavior.md`、`dflow/specs/domain/Shipment/analysis.md`、`dflow/specs/domain/context-map.md` | 4b17d92 |
 
 <!-- dflow:section checkpoint-log -->
 ## Checkpoint Log

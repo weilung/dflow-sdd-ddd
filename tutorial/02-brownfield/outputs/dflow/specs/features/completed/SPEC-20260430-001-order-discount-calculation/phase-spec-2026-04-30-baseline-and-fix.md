@@ -30,6 +30,15 @@ branch: feature/SPEC-20260430-001-order-discount-calculation
 | DiscountPolicy | Domain Service | 封裝滿額折扣與客戶等級折扣的判定、順序與累積公式。 |
 | CustomerTier | External reference value | Order 計算折扣時讀取的客戶等級；本 phase 只使用 `Senior` 判定，不建立 Customer BC model。 |
 
+與 Order 交換資料、歸屬還沒人決定的部分（鄰居）——收尾時寫進 `context-map.md` § Undecided Neighbors，名字照這張表：
+
+| Neighbor | Exchanges | Code Area | Notes |
+|---|---|---|---|
+| Customer | Order：提交訂單時讀取付款條件、信用額度與 CustomerTier，當 reference data 用（Customer → Order；EF entities + Stored Procedures） | `OrderEntry.aspx.cs` 的 `db.Customers` 與 Customer repositories<br>它自己的頁面在 `OrderManager.Web/Pages/Customer/` | 看起來負責客戶資料、付款條件、啟用狀態與信用額度；owner 可能是業務 / 客戶資料 owner；可能是 Order 的 upstream。本 phase 不建 Customer BC model。 |
+| Inventory | Order：Order 需要可售量或預留結果，但不應擁有完整庫存計算（Inventory → Order；Stored Procedures） | `OrderManager.Web/Pages/Inventory/` / Stored Procedures | 看起來負責庫存、預留、可售量與庫存查詢；owner 可能是倉儲 / Inventory owner；與 OrderLine 的責任邊界待釐清。 |
+| Shipment | Order：訂單成立後觸發出貨流程，Order 在上游、Shipment 在下游（Order → Shipment；Shared database tables + Web Service；耦合方式待確認） | `OrderManager.Web/Pages/Shipment/` / Web Service integrations | 看起來負責出貨、貨運整合與物流狀態回寫；owner 可能是倉儲 / 出貨團隊；可能依賴 Order 狀態。 |
+| Invoice | Order：發票資料通常基於訂單與出貨結果產生（Order → Invoice；Shared database tables / nightly jobs） | `OrderManager.Web/Pages/Invoice/` | 看起來負責發票、應收帳款與財務狀態；owner 可能是財務團隊；可能是 Order / Shipment 的 downstream；是否由 OrderManager 同一團隊維護還不知道。 |
+
 Baseline code inspection（基準碼閱讀）：
 
 ```csharp

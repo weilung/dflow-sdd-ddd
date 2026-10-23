@@ -184,6 +184,9 @@ Step 1.7：Open a Standalone Minimal Host（baseline 分支）。
    Goals & Scope **要指名它捕捉的 bounded context**——
    baseline capture 有真實的 BC（Shipment），這一點和
    no-BC 的 standalone T3 不同。
+   Shipment 在 context-map.md 還是 Undecided Neighbors 的一列（歸屬沒人決定）；
+   Bob 指名它是這次盤點的 BC，等於說它是自己一個 context——
+   那一列在 6.2 第 8 題搬走，搬之前先給 Bob 看。
 
 4. Branch gate — 依 change class：
    baseline 是 tier-exempt、不是功能性 bug
@@ -328,7 +331,7 @@ Evidence: code - `OrderManager.Web/Pages/Cart/ShoppingCart.aspx.cs` `CalculateSh
 ```markdown
 | Date | Tier | Description | Commit |
 |---|---|---|---|
-| 2026-05-11 | baseline | Shipment 運費在購物車 / 結帳 / 出貨通知三處的現行計算與顯示行為 capture（observation-only，未改任何輸出）— `dflow/specs/domain/Shipment/behavior.md`、`dflow/specs/domain/Shipment/analysis.md` | 4b17d92 |
+| 2026-05-11 | baseline | Shipment 運費在購物車 / 結帳 / 出貨通知三處的現行計算與顯示行為 capture（observation-only，未改任何輸出）— `dflow/specs/domain/Shipment/behavior.md`、`dflow/specs/domain/Shipment/analysis.md`、`dflow/specs/domain/context-map.md` | 4b17d92 |
 ```
 
 三個地方要看：
@@ -336,7 +339,7 @@ Evidence: code - `OrderManager.Web/Pages/Cart/ShoppingCart.aspx.cs` `CalculateSh
 | 欄位 | 值 | 為什麼 |
 |---|---|---|
 | `Tier` | **`baseline`** | 不是 T2、不是 T3。closeout 與 pr-review 的 reader 都認得這個值。 |
-| Description 末尾的路徑 | `dflow/specs/domain/Shipment/behavior.md`、`dflow/specs/domain/Shipment/analysis.md` | 每一列都要宣告「碰到什麼」。baseline 宣告的是**它寫進去的文件**——它沒有原始碼變更。兩支都要列：closeout 會檢查 `spec-baseline` 那個 commit 帶的 BC 層文件都在這一列宣告過，漏列 `analysis.md`，它就成了不該出現的路徑，closeout 被擋下。 |
+| Description 末尾的路徑 | `dflow/specs/domain/Shipment/behavior.md`、`dflow/specs/domain/Shipment/analysis.md`、`dflow/specs/domain/context-map.md` | 每一列都要宣告「碰到什麼」。baseline 宣告的是**它寫進去的文件**——它沒有原始碼變更。三支都要列（`context-map.md` 是第 8 題搬 Shipment 時寫的）：closeout 會檢查 `spec-baseline` 那個 commit 帶的 BC 層文件都在這一列宣告過，漏列 `analysis.md`，它就成了不該出現的路徑，closeout 被擋下。 |
 | `Commit` | `4b17d92` | 就是 `spec-baseline` 那個 checkpoint 的 hash。 |
 
 ## 產出 2 — Step 6 逐題確認，與為什麼 checkpoint 叫 `spec-baseline`
@@ -394,8 +397,26 @@ Bob: 對。「已知不一致」那段就是我們要的寫法：記三種結果
 Bob: 先不要。免運門檻怎麼判定還沒拍板（HS-01），現在寫定義等於先寫了半條規則。
      等營運拍板、那個 feature 寫 BR 時一起定。
 
-8. models.md、context-map.md 這次有沒有新增或改了的內容？
-   沒有。
+8. models.md、context-map.md 這次新增或改了的內容：
+   Shipment 在 context-map.md 是 Undecided Neighbors 的一列。它是什麼——
+   你在 Step 1.7 指名它是這次盤點的 BC，也就是自己一個 context，對嗎？
+Bob: 對。
+   那我照範本把那一列搬走。搬之前先給你看新的兩列與每個值的去向：
+
+   Context List 加一列 Shipment：
+     Responsibility ← Notes 的「看起來負責出貨、貨運整合與物流狀態回寫」
+     Owner / Team   ← Notes 的「owner 可能是倉儲 / 出貨團隊」
+     Primary Code Area ← Code Area
+     Notes ← 「可能依賴 Order 狀態」，加上還沒盤的部分（出貨流程、貨運整合、物流狀態回寫）
+     Subdomain Type 留白：盤點不做抽離決定
+   Relationships 加一列 Order → Shipment：
+     Exchanges 那一行 → Relationship Type（Upstream / Downstream）、
+     Integration Mechanism（Shared database tables + Web Service）、
+     Notes（訂單成立後觸發出貨流程；目前耦合方式待確認）
+   然後拿掉 Undecided Neighbors 的 Shipment 那一列。
+   暫定名稱與新名字都是 Shipment，別的文件不用靠 also called 找它。
+   這樣搬對嗎？
+Bob: 對，搬。
 ```
 
 第 5 題問的是 `behavior.md` 這次寫的**每一段**，不只有 BR-ID 的段落：本篇的三個情境與「已知不一致」
@@ -412,6 +433,7 @@ Bob: 先不要。免運門檻怎麼判定還沒拍板（HS-01），現在寫定�
 - 抽離機會：「Shipment 免運門檻判斷基準三處不一致」那一列（拍板後建立單一判定 contract）寫得夠清楚。
 - `Shipment/behavior.md`：「運費計算的三個產生點」、Scenario 1～3、「未捕捉的範圍」、「已知不一致（不在本文件裁定）」都照現況寫對。
 - 名詞：「免運門檻」先不進 `glossary.md`，等免運門檻的判定拍板（`Shipment/analysis.md` HS-01）時一起定。
+- `context-map.md`：Shipment 是自己一個 context——Undecided Neighbors 那一列搬成 Context List 的 Shipment 一列與 Order → Shipment 的 Relationships 一列，每個值的去向看過、寫得對。
 ```
 
 確認不寫進 Resume Pointer（Current Progress 維持一兩句的游標），也不另開段落。
@@ -498,7 +520,8 @@ Step 3 — Sync BR Snapshot to BC Layer：
   注意這和 no-BC 的「跳過 BC 範圍的同步」不一樣：
   本 host **有** bounded context（Shipment），
   只是它的內容早就寫進去了。
-  Integration Summary 的 BC: 欄填 **Shipment**，不是 none。
+  Integration Summary 的 BC: 欄照 baseline 那一列寫的推：
+  **Order, Shipment**，不是 none。
 
 Step 4 — git mv 歸檔，**緊接著寫 Resume Pointer 終局值**
   （Active Workflow: none、Current Step / Gates Passed: n/a、Awaiting: none），
@@ -520,7 +543,7 @@ Feature Goal: 捕捉 Shipment 運費在購物車 / 結帳 / 出貨通知三處�
 observation-only，未改任何輸出。
 
 Change Scope:
-- BC: Shipment
+- BC: Order, Shipment
 - Phase Count: 0
 - Lightweight Changes: 0 T2 lightweight specs + 0 T3 inline rows + 1 baseline rows
 
@@ -538,8 +561,12 @@ Next Steps (developer) — Integration / PR gate (needs network):
   you, but only when you explicitly ask; it never pushes on its own
 ```
 
-`BC:` 是 **`Shipment`** 而不是 `none`——這是 baseline host 與 no-BC standalone host 最明顯的
+`BC:` 是 **`Order, Shipment`** 而不是 `none`——這是 baseline host 與 no-BC standalone host 最明顯的
 差別。baseline 有真實的 bounded context，這一次捕捉的內容就住在那裡。
+為什麼也有 Order：`BC:` 照 baseline 那一列寫的每一筆推（`references/finish-feature-baseline.md`）。
+`Shipment/` 底下兩份文件給出 Shipment；第 8 題寫進 `context-map.md` 的 Relationships 一列，兩端是 Order 與 Shipment——
+Order 與 Shipment 的關係這次改了，所以 Order 也算。兩個名字在 Context List 都有一列，都是 context；
+沒有哪個是鄰居或外部系統，所以沒有要排除、要告訴 Bob 的名字。
 
 **注意這裡沒有 `Aggregates affected:` 也沒有 `Domain Events Changes:`。** 那兩欄是
 **Greenfield** Integration Summary 才有的。Brownfield 的 canonical 形狀
@@ -735,10 +762,11 @@ commit 之後照 PR 合回 `develop`；確認規則不代表可以 merge 或 pus
 
 | 狀態 | Path | 讀者看什麼 |
 |---|---|---|
-| 新建 | [`.../SPEC-20260511-001-shipment-fee-baseline/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260511-001-shipment-fee-baseline/_index.md) | baseline 最小 host：七個必要段落、`Tier = baseline` 列、`spec-baseline` checkpoint、Goals & Scope 末尾的 6.2 確認行。（`BC: Shipment` 是 Integration Summary 的欄位，不在 fixture 裡；fixture 對 BC 的宣告在 Goals & Scope。） |
+| 新建 | [`.../SPEC-20260511-001-shipment-fee-baseline/_index.md`](outputs/dflow/specs/features/completed/SPEC-20260511-001-shipment-fee-baseline/_index.md) | baseline 最小 host：七個必要段落、`Tier = baseline` 列、`spec-baseline` checkpoint、Goals & Scope 末尾的 6.2 確認行。（`BC: Order, Shipment` 是 Integration Summary 的欄位，不在 fixture 裡；fixture 對 BC 的宣告在 Goals & Scope。） |
 | 新建 | [`outputs/dflow/specs/domain/Shipment/behavior.md`](outputs/dflow/specs/domain/Shipment/behavior.md) | 三處 confirmed behavior 的捕捉結果，含「未捕捉的範圍」與「已知不一致（不在本文件裁定）」。 |
 | 新建 | [`outputs/dflow/specs/domain/Shipment/analysis.md`](outputs/dflow/specs/domain/Shipment/analysis.md) | RM-01：運費的三個產出點、比門檻用哪個金額、通知信讀的快照；HS-01：免運門檻該拿哪個金額比（open，連回 tech-debt）。Step 2 第一次有東西要記時從範本建。 |
 | 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | 「三處免運門檻判斷基準不一致」記為 open，來源指回本 SPEC-ID。 |
+| 修改 | [`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md) | 第 8 題把 Shipment 從 Undecided Neighbors 搬成 Context List 的一列與 Order → Shipment 的 Relationships；Customer、Inventory、Invoice 仍是鄰居。 |
 | 故意不建 | `phase-spec-*.md` / `lightweight-*.md` | baseline 不產 spec 檔；`Tier = baseline` 那一列就是它的記錄。 |
 | 故意不改 | 任何 `.aspx.cs` / `.cs` | observation-only。今天不改輸出。 |
 | 故意不建 | 任何 BR | 「哪一個門檻才對」是待決的業務決定，不是已成立的規則。 |

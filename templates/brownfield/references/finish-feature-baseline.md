@@ -19,12 +19,22 @@ wrote names (a role-index row's Bounded Context unless it is `—`, a flow's Fro
 an Affects line cites); the Bounded Context of each `glossary.md` row it wrote;
 the contexts each `context-map.md` row it wrote names (a Context List row's
 Bounded Context, a Relationships row's Source and Target Context, the contexts
-an External Systems row's Used By names — never the external system itself);
-and the context each `migration/tech-debt.md` row it wrote is about, read from
-that row's Location and Description — or, when neither shows one, the context
-of the capture's scope. The scope is the area the opening sentences of a
-baseline minimal host's Goals & Scope name (after a follow-up's prepended
-note), or a hosted row's Description. Read what the row wrote by host shape:
+an External Systems row's Used By names — never the external system itself —
+and the contexts an Undecided Neighbors row's Exchanges names — never the
+neighbor itself); and the context each `migration/tech-debt.md` row it wrote is
+about, read from that row's Location and Description — or, when neither shows
+one, the context of the capture's scope. Then sort the names these entries
+give, in this order. A name with a Context List row in `context-map.md`, or a
+bounded-context directory of its own under `dflow/specs/domain/`, is a context,
+even while an Undecided Neighbors row still carries it. Any other name that
+`context-map.md` lists as an undecided neighbor or an external system is left
+out, whichever entry wrote it. Any other name whose own record says its bounded
+context is undecided — an older document's "not captured" or "boundary to be
+confirmed" beside it, say — is a context only if the developer says so. Keep
+every other name. Tell the developer which names you left out. The scope is the
+area the opening sentences of a baseline minimal host's Goals & Scope name
+(after a follow-up's prepended note), or a hosted row's Description. Read what
+the row wrote by host shape:
 - **Baseline minimal host** — the `spec-baseline` commit's changes, with
   `git show` (`--stat` does not show which domain-root or glossary rows
   changed). Closeout's baseline check
