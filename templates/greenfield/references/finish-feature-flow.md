@@ -542,8 +542,9 @@ Then, in this order:
    `_index.md` Checkpoint Log — `closeout | committed` for Y, `closeout |
    skipped` for N. The closeout row carries **no commit hash**: no later
    commit of this host carries it. Trace it later via
-   `git log -1 -- dflow/specs/features/completed/{SPEC-ID}-{slug}` (or the
-   optional `Dflow-Checkpoint` trailer). On any other checkpoint row, a
+   `git log -1 --diff-filter=ACR -- dflow/specs/features/completed/{SPEC-ID}-{slug}/_index.md`,
+   which finds the commit that archived the directory (or via the optional
+   `Dflow-Checkpoint` trailer). On any other checkpoint row, a
    `committed ({hash})` Result is written after its commit and carried by the
    host's next commit (see `references/git-integration.md` § Commit
    Checkpoints, Branch Gate & AI Commits).

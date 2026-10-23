@@ -826,6 +826,12 @@ const EXTERNAL_SYSTEMS_MIGRATION = "context-map.md, External Systems: add the se
 const UNDECIDED_NEIGHBORS_MIGRATION = "context-map.md, Undecided Neighbors: add the section from the current template, after External Systems. A part of this system that this file records in the Context List or at one end of a Relationships row, but whose bounded context nobody has decided - a name carrying a note such as \"not captured\" or \"boundary to be confirmed\", say - may be a neighbor: list those names to the developer and ask which ones are. For each one they confirm, write one row there under one working name and carry every value its old rows held into Exchanges, Code Area or Notes, writing `—` for a value the old record does not give; show the developer the new rows and where each old value went, and remove the old rows only after they answer - until then, remove and rewrite nothing. Change only this file: other documents keep the names they use, so list those names in the row's Notes (\"also called …\"). A name the developer says is a bounded context stays where it is. When there is no such name, the section holds only its table header.";
 const CROSS_CONTEXT_NEIGHBOR_MIGRATION = "analysis.md, Cross-Context Flows comment: add the template's sentence about a part whose bounded context nobody has decided to this section's comment, and keep the rest of it as it is, including anything the project added or translated; show the developer the sentence before writing it, and until they answer, change nothing. Existing flows stay as they are: the rule applies the next time a change writes that flow.";
 const LIFECYCLES_UNWRITTEN_MIGRATION = "analysis.md, Lifecycles comment: add to this section's comment the template's sentences about a value the code tests for but nothing it reads writes, and the template's addition to the values that get a short name (a value made only of symbols, such as `*`); keep the rest of the comment as it is, including anything the project added or translated, and show the developer the sentences before writing them. Where a State cell holds a value made only of symbols, give it a short name no other value of that field uses, in the state table and in the From and To cells that hold it; say in the line after the tables what the name stands for, keeping that line's existing evidence; leave the stored value as it is wherever a rule, a scenario or data evidence quotes it, and leave the `[*]` create and remove marker as it is. Show the developer each rename before writing it, and until they answer, change neither the comment nor any name. Leave the transitions as they are: the new sentences apply the next time a change writes that lifecycle.";
+// dist #20: the default for a note says keeping yours is fine, which would leave
+// an active feature's record tracing its closeout with `git log -1` on the
+// archived directory - a command that returns the latest follow-up edit instead
+// - and the record is frozen with it at closeout. The sentence changes only that
+// command and keeps the rest of the note, the project's additions included.
+const CLOSEOUT_TRACE_MIGRATION = "_index.md, Checkpoint Log note: where it says to trace the closeout commit with `git log -1` on the `completed/{SPEC-ID}-{slug}` directory, say instead to trace it with `git log -1 --diff-filter=ACR -- dflow/specs/features/completed/{SPEC-ID}-{slug}/_index.md`, which finds the commit that archived the directory, keeping the SPEC-ID and slug if the note names them. Keep the rest of the note as it is, including anything the project added, and show the developer the old and new sentence before writing; until they answer, change nothing.";
 {
   const expected = ['greenfield', 'brownfield'].flatMap((t) => [
     [`${t}/rules.md`, 2, (c) => c.kind === 'added' && c.item[0] === 'column' && c.item[5] === 'Known deviations', RULES_MIGRATION],
@@ -844,7 +850,9 @@ const LIFECYCLES_UNWRITTEN_MIGRATION = "analysis.md, Lifecycles comment: add to 
     ['brownfield/behavior.md', 4, (c) => c.kind === 'reworded' && c.from[0] === 'note' && c.from[1] === '' && c.from[2] === '', BEHAVIOR_TIMING_MIGRATION],
     ['greenfield/_index.md', 4, (c) => c.kind === 'reworded' && c.from[0] === 'comment' && c.from[1] === '' && c.from[2] === '', INDEX_TIMING_GF_MIGRATION],
     ['brownfield/_index.md', 5, (c) => c.kind === 'reworded' && c.from[0] === 'note' && c.from[1] === 'Current BR Snapshot', INDEX_TIMING_BF_MIGRATION],
-    ['brownfield/context-map.md', 3, (c) => c.kind === 'added' && c.item[0] === 'h2' && c.item[1] === 'Undecided Neighbors', UNDECIDED_NEIGHBORS_MIGRATION]
+    ['brownfield/context-map.md', 3, (c) => c.kind === 'added' && c.item[0] === 'h2' && c.item[1] === 'Undecided Neighbors', UNDECIDED_NEIGHBORS_MIGRATION],
+    ['greenfield/_index.md', 5, (c) => c.kind === 'reworded' && c.from[0] === 'note' && c.from[1] === 'Checkpoint Log', CLOSEOUT_TRACE_MIGRATION],
+    ['brownfield/_index.md', 6, (c) => c.kind === 'reworded' && c.from[0] === 'note' && c.from[1] === 'Checkpoint Log', CLOSEOUT_TRACE_MIGRATION]
   ]);
   const registered = [];
   for (const [key, e] of Object.entries(registry.templates)) {
@@ -922,6 +930,15 @@ const LIFECYCLES_UNWRITTEN_MIGRATION = "analysis.md, Lifecycles comment: add to 
   assert.ok(LIFECYCLES_UNWRITTEN_MIGRATION.includes('Show the developer each rename before writing it'), 'a short name for a symbol value is shown before it is written');
   assert.ok(LIFECYCLES_UNWRITTEN_MIGRATION.includes('leave the stored value as it is wherever a rule, a scenario or data evidence quotes it') && LIFECYCLES_UNWRITTEN_MIGRATION.includes('leave the `[*]` create and remove marker as it is'), 'the rename touches only the two tables, never a quoted stored value or the `[*]` marker');
   assert.ok(LIFECYCLES_UNWRITTEN_MIGRATION.includes('until they answer, change neither the comment nor any name'), 'neither the new sentences nor a rename is written before the developer answers');
+  // dist #20: the trace migration rewrites one command, keeps the rest of the
+  // note, and gives the command the templates give.
+  assert.ok(CLOSEOUT_TRACE_MIGRATION.includes('Keep the rest of the note as it is, including anything the project added'), 'the closeout trace migration keeps the rest of the note');
+  assert.ok(CLOSEOUT_TRACE_MIGRATION.includes('show the developer the old and new sentence before writing'), 'the closeout trace migration shows the sentence first');
+  for (const edition of ['greenfield', 'brownfield']) {
+    const index = await readFile(join(repoRoot, `templates/${edition}/templates/_index.md`), 'utf8');
+    const command = '`git log -1 --diff-filter=ACR -- dflow/specs/features/completed/{SPEC-ID}-{slug}/_index.md`';
+    assert.ok(index.includes(command) && CLOSEOUT_TRACE_MIGRATION.includes(command), `${edition}: the migration gives the trace command the _index.md template gives`);
+  }
   // A migration that shows the developer a change waits for their answer before
   // writing it: shown and written in one go, the change leaves them nothing to
   // answer, and doctor prints the migration instead of the default for a note or

@@ -8,8 +8,21 @@
 
 ## Unreleased
 
-> **目前投影版號：`0.17.3`**（**未發布到 npm**；npm latest 仍是 `0.17.0`）。
-> 下面三段都在這一版裡，段標題標出各自第一次投影的版號。
+> **目前投影版號：`0.17.4`**（**未發布到 npm**；npm latest 仍是 `0.17.0`）。
+> 下面四段都在這一版裡，段標題標出各自第一次投影的版號。
+
+### 收尾 commit 的溯源指令改成找歸檔那一顆（dist issue #20）——`0.17.4`
+
+**來源**：dist issue #20——closeout 列照規定不記 hash，出貨文件給的溯源指令 `git log -1 -- dflow/specs/features/completed/{SPEC-ID}-{slug}` 找的是最後一顆動到那個目錄的 commit。收尾當下它就是收尾 commit；但歸檔之後還會有 commit 改那份紀錄（follow-up 會回頭改原 feature 的 Follow-up Tracking），從那之後它找到的就是那一顆，不報錯，看起來也正常。
+
+- **溯源改用** `git log -1 --diff-filter=ACR -- dflow/specs/features/completed/{SPEC-ID}-{slug}/_index.md`：找把 `_index.md` 加進 `completed/` 的那一顆，也就是歸檔那一顆，歸檔之後的修改不算。issue 建議的是 `--diff-filter=AR`；多收 `C`，是因為設了 `log.follow=true`、而收尾又只 stage 新路徑（記成複製，`dflow check-closeout` 會報）時，`AR` 會跳過歸檔那一顆、找到更早的 commit。在實驗裡，`log.follow`、`diff.renames` 怎麼設，`ACR` 都找到歸檔那一顆。
+- 兩軌三處跟上：`git-integration.md` § Commit Checkpoints, Branch Gate & AI Commits 的 closeout 列例外、`finish-feature-flow.md` Step 4 指令 1、`templates/_index.md` 的 Checkpoint Log 說明（`_index.md` 升形狀號碼：greenfield 5、brownfield 6）。`git-integration.md` 另外寫明不要只對目錄跑 `git log -1`，舊紀錄的說明裡那種寫法一樣不對。
+- 教材：greenfield walkthrough-06 那一句、兩軌 `outputs/` 三份已完成 feature 的 `_index.md`；brownfield 進行中的那一份照遷移升號碼（它的說明沒有這一句）。
+
+**既有專案（升級時注意）**：
+
+1. `_index.md`（greenfield 形狀 5、brownfield 形狀 6）：`dflow doctor` 對每一份進行中 feature 的 `_index.md` 提示一次。遷移只換 Checkpoint Log 說明裡的溯源指令（說明裡填了 SPEC-ID 與 slug 就照留），其餘照留；給開發者看新舊兩句之後，開發者回答之前不改。說明裡沒有這一句的，只改號碼。
+2. 已完成的 feature 不改（`completed/` 底下的紀錄維持原樣，`dflow doctor` 也不檢查）：它們的 `_index.md` 說明裡仍是舊指令。要找那些 feature 的收尾 commit，用上面的新指令。
 
 ### 只盤一塊時：歸屬未定的鄰居記在哪、被讀的程式只檢查不寫的值怎麼記（PROPOSAL-119，dist issue #24 第 1、5 條）——`0.17.3`
 

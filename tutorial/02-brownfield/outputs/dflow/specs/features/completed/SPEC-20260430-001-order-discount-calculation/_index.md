@@ -81,7 +81,8 @@ Phase 1 `baseline-and-fix` 同時包含三件事：先 baseline capture `OrderEn
 > `spec-baseline` / `implementation` / `closeout` 四個，不要自己寫 `spec`。
 >
 > ⚠ **closeout 那列不帶 hash**：一個 commit 沒辦法把自己的 hash 寫進自己裡面。
-> 溯源用 `git log -1 -- completed/SPEC-20260430-001-order-discount-calculation`。
+> 溯源找把目錄搬進 `completed/` 的那一顆：
+> `git log -1 --diff-filter=ACR -- dflow/specs/features/completed/SPEC-20260430-001-order-discount-calculation/_index.md`。
 
 | Timestamp | Checkpoint | Result |
 |---|---|---|

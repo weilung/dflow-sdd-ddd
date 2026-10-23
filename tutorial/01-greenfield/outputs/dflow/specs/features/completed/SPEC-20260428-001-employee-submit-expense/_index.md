@@ -79,7 +79,8 @@ branch: feature/SPEC-20260428-001-employee-submit-expense
 > `spec-baseline` / `implementation` / `closeout` 四個，不要自己寫 `spec`。
 >
 > ⚠ **closeout 那列不帶 hash**：一個 commit 沒辦法把自己的 hash 寫進自己裡面。
-> 溯源用 `git log -1 -- completed/SPEC-20260428-001-employee-submit-expense`。
+> 溯源找把目錄搬進 `completed/` 的那一顆：
+> `git log -1 --diff-filter=ACR -- dflow/specs/features/completed/SPEC-20260428-001-employee-submit-expense/_index.md`。
 
 | Timestamp | Checkpoint | Result |
 |---|---|---|

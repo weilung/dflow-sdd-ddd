@@ -56,8 +56,9 @@ feature 的 follow-up。
 > 所以不分 tier 一律記兩個 checkpoint。`git-integration.md` 那句 canonical 的
 > 「T3 ＝ 單一 commit」描述的是**掛在既有 feature 底下**的 T3。
 >
-> closeout 列**不帶 hash**——commit 無法自含自身 hash；溯源用
-> `git log -1 -- dflow/specs/features/completed/SPEC-20260511-001-login-banner-typo`。
+> closeout 列**不帶 hash**——commit 無法自含自身 hash；溯源找把目錄搬進
+> `completed/` 的那一顆：
+> `git log -1 --diff-filter=ACR -- dflow/specs/features/completed/SPEC-20260511-001-login-banner-typo/_index.md`。
 
 | Timestamp | Checkpoint | Result |
 |---|---|---|

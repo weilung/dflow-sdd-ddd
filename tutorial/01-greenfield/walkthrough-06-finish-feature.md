@@ -238,7 +238,8 @@ branch: feature/SPEC-20260428-001-employee-submit-expense
 `_index.md` 跟 Step 1 讀到的比，**差異必須恰好等於 Step 2、Step 4 的終局 cursor 寫入、
 與 Step 4 指令 1 命令的那些**，
 多出來的欄位會被判成 edit fallout 並擋下 closeout。完成日期不必另存一格：
-closeout commit 自己就是時間戳（`git log -1 -- completed/{SPEC-ID}-{slug}`）。
+closeout commit 自己就是時間戳（把目錄搬進 `completed/` 的那一顆：
+`git log -1 --diff-filter=ACR -- dflow/specs/features/completed/{SPEC-ID}-{slug}/_index.md`）。
 
 Resume Pointer（**這一步寫的是進行中值，不是終局值**）：
 

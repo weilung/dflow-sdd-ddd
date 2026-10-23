@@ -6,7 +6,7 @@ created: {YYYY-MM-DD}
 branch: feature/{SPEC-ID}-{slug}
 # follow-up-of: {原 SPEC-ID}    # 選用：本 feature 為某個已 completed feature 的 follow-up 時填入
 ---
-<!-- dflow-shape: greenfield/_index.md 4 — keep this line: dflow doctor reads it -->
+<!-- dflow-shape: greenfield/_index.md 5 — keep this line: dflow doctor reads it -->
 <!-- This template is part of Dflow (AGPL-3.0-or-later with additional permissions and terms): see LICENSE in the Dflow package, or dflow/specs/shared/dflow-workflows/LICENSE in a project. Documents written from it are yours: do not copy this line into them. -->
 
 <!--
@@ -233,8 +233,9 @@ references/new-phase-flow.md。有衝突時以那些檔為準。
 > 實際成功後才寫，搭 host 的**下一個** commit；pre-commit hook reject 或 commit
 > 失敗記 `failed`、不寫假 hash。**例外：closeout 列不填 hash**——這個 host 之後再也
 > 沒有 commit 會帶上它，所以該列於 commit 前寫入、隨歸檔目錄一起進 commit；
-> 溯源用 `git log -1 -- completed/{SPEC-ID}-{slug}` 或選配的
-> `Dflow-Checkpoint` trailer（見 references/git-integration.md）。
+> 溯源找把目錄搬進 `completed/` 的那一顆：
+> `git log -1 --diff-filter=ACR -- dflow/specs/features/completed/{SPEC-ID}-{slug}/_index.md`，
+> 或選配的 `Dflow-Checkpoint` trailer（見 references/git-integration.md）。
 >
 > ⚠⚠ **下表示範的是欄位值，不是這張表的起始狀態——一列都不要預先放。** 每一列
 > 都在它那個 checkpoint **實際走到的當下**才新增（`branch-override` 在 branch gate

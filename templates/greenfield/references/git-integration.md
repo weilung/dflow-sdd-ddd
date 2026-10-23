@@ -232,10 +232,15 @@ values above are the whole vocabulary.
 carries it, so the closeout row is written before the commit
 as `closeout | committed` with **no hash** (see
 `references/finish-feature-flow.md` Step 4); trace that commit via
-`git log -1 -- dflow/specs/features/completed/{SPEC-ID}-{slug}` or the optional
-`Dflow-Checkpoint` trailer below. After several consecutive skips in a project
-the AI mentions you can turn checkpoints off in config — it does not turn them
-off for you.
+`git log -1 --diff-filter=ACR -- dflow/specs/features/completed/{SPEC-ID}-{slug}/_index.md`,
+which finds the commit that archived the directory, or via the optional
+`Dflow-Checkpoint` trailer below. Do not trace it with `git log -1` on the
+archived directory: commits after archiving still edit this record — a
+follow-up updates its Follow-up Tracking — and the directory form then returns
+the latest of them without any error. A Checkpoint Log note in an older record
+that gives the directory form is wrong in the same way. After several
+consecutive skips in a project the AI mentions you can turn checkpoints off in
+config — it does not turn them off for you.
 
 **Optional machine-greppable trailer.** Teams that want cross-flow checkpoint
 accounting can append a commit trailer at checkpoint commits:
