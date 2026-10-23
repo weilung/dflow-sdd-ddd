@@ -80,7 +80,32 @@ doctor 是**唯讀**檢查——只回報、不寫任何檔案。升級相關的
 
 doctor 是第一道；要完整確認升級沒有漏，基準做法是「乾淨對照」：
 
-1. 在別的空目錄跑一個**同 edition、同答案**的全新 `dflow init`（用同一版 CLI）。
+doctor 查的是它認得的東西；乾淨對照查的是「跟全新安裝哪裡不一樣」，所以連 doctor
+不認得的也看得到。兩道問的是不同的問題，乾淨對照適合想完全確定的時候，不必每次升級都做。
+它比 doctor 多看到三類：
+
+- **指令檔的內容**：升級那次沒帶 `--command-adapters`，指令檔（`/dflow:*` 的指令檔，與
+  `AGENTS.md` 裡的 Codex 指令區塊）會停在舊版；doctor 檢查它們齊不齊、檔名與標記對不對，
+  不比內容。
+- **`_conventions.md` 裡 doctor 沒有指紋的段落**：這支檔歸你，`configure-agents` 只更新它的
+  `> Dflow Version:` 那一行；doctor 只認得其中幾節。
+- **doctor 自己的缺陷**：在全新安裝也有的那些檔上，乾淨對照不靠 doctor，doctor 漏報的它照樣看得到。
+  你自己寫的規格文件（feature、domain 底下的）全新安裝裡沒有，乾淨對照不看它們；那些文件的範本變更靠 doctor 的形狀提示。
+
+「同答案」的答案從你的專案讀回來：
+
+| 答案 | 在哪裡 |
+|---|---|
+| edition（Greenfield／Brownfield） | `dflow/specs/shared/dflow-workflows/.dflow-bundle-manifest.json` 的 `edition` |
+| 技術棧、遷移背景 | `dflow/specs/shared/AI-AGENT-GUIDE.md` 的 `## Project Context` |
+| 語言、Git 政策、AI commit 標記 | `dflow/specs/shared/_conventions.md` |
+| AI 工具 | 專案根目錄有哪幾份 `CLAUDE.md`／`AGENTS.md`／`.github/copilot-instructions.md` |
+| 選裝的起始檔、skill、指令檔 | 那些檔在不在（檔不在時分不出是當初沒選、還是後來刪了，要你自己判斷） |
+
+專案名稱與當天日期會寫進產生的檔，所以全新的那一份要建在跟專案同名的目錄裡；日期不同是正常的。
+
+1. 在別的空目錄跑一個**同 edition、同答案**的全新 `dflow init`（用同一版 CLI）；你的專案裝了
+   指令檔的話，在那個目錄再跑 `dflow configure-agents --command-adapters`（選同樣的 AI 工具）。
 2. 拿它與你的專案逐檔 diff。
 3. 每個差異都應能歸類為三者之一：「你的 user content」、「已知的 marker 外區域」，或
    **「較新版模板新增、而你的專案成立時還沒有的段落」**。第三類有兩條線索：

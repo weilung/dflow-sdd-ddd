@@ -28,7 +28,7 @@ import { fileURLToPath } from 'node:url';
 import init from '../lib/init.js';
 import doctorChecks from '../lib/doctor-checks.js';
 
-const { runInit, runConfigureAgents, runDoctor, writeFilePlan, inferTechStackSummary, inferMigrationContext, placeholderTokens } = init;
+const { runInit, runConfigureAgents, runDoctor, writeFilePlan, inferTechStackSummary, inferMigrationContext, inferInitAnswers, placeholderTokens } = init;
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 const pkg = JSON.parse(await readFile(join(repoRoot, 'package.json'), 'utf8'));
@@ -1318,6 +1318,44 @@ try {
   assert.match(recreatedGuide, /^\| Migration \/ legacy context \| none \|$/m, 'known limitation: a re-created guide records the fallback migration context');
   assert.equal(await inferTechStackSummary(infer), 'unknown', 're-created guide must round-trip through inference');
 
+  // (11i) PROPOSAL-120: inferInitAnswers is what configure-agents reads, without
+  // the fallbacks — the dev-only clean-compare script tells a read answer from a
+  // fallback through it. A value it reads is the value configure-agents writes
+  // into a re-created guide; where the files do not say, it is null and
+  // configure-agents still writes its fallback.
+  const answersProject = await newProject('2');
+  assert.deepEqual(await inferInitAnswers(answersProject), {
+    edition: 'greenfield',
+    techStackSummary: 'Node 20, Express 4, Jest',
+    migrationContext: 'none',
+    proseLanguage: 'zh-TW',
+    gitPolicy: 'trunk',
+    aiCommitMarker: 'none'
+  }, 'inferInitAnswers reads the init answers back');
+  const answersGuidePath = join(answersProject, GUIDE_REL);
+  const answersConventionsPath = join(answersProject, 'dflow/specs/shared/_conventions.md');
+  const answersConventions = await readFile(answersConventionsPath, 'utf8');
+  assert.ok(answersConventions.includes('Project prose language: `zh-TW`'), 'fixture conventions carry the prose language line');
+  await writeFile(answersConventionsPath, answersConventions.replace('Project prose language: `zh-TW`', 'Project prose language: `en`'));
+  await unlink(answersGuidePath);
+  const answersRead = await inferInitAnswers(answersProject);
+  assert.equal(answersRead.proseLanguage, 'en', 'an edited prose language is read');
+  assert.equal(answersRead.techStackSummary, null, 'no guide: the tech stack is null, not the fallback');
+  assert.equal(answersRead.migrationContext, null, 'no guide: the migration context is null, not the fallback');
+  assert.equal((await runConfigure(answersProject, ['2', 'y'])).code, 0, 'configure-agents re-creates the guide');
+  assert.match(await readFile(answersGuidePath, 'utf8'), /^\| Prose language \| en \|$/m, 'configure-agents writes the value inferInitAnswers reads');
+  await writeFile(answersConventionsPath, answersConventions
+    .replace(/^.*Project prose language:.*\n/m, '')
+    .replace(/^.*Selected Git policy:.*\n/m, '')
+    .replace(/^.*AI commit marker:.*\n/m, ''));
+  await unlink(answersGuidePath);
+  const answersMissing = await inferInitAnswers(answersProject);
+  assert.equal(answersMissing.proseLanguage, null, 'no prose language line: null, not the fallback');
+  assert.equal(answersMissing.gitPolicy, null, 'no Git policy line: null');
+  assert.equal(answersMissing.aiCommitMarker, null, 'no AI commit marker line: null');
+  assert.equal((await runConfigure(answersProject, ['2', 'y'])).code, 0, 'configure-agents re-creates the guide without the lines');
+  assert.match(await readFile(answersGuidePath, 'utf8'), /^\| Prose language \| unknown \|$/m, 'configure-agents still writes its fallback');
+
   // (11h) doctor: a recognizable guide missing a Project Context row gets one
   // info finding naming exactly the missing row(s); fresh projects stay clean
   // (asserted in (6)/(7)); an unrecognizable guide keeps only its own finding.
@@ -1625,6 +1663,83 @@ try {
         [],
         `the packaged ${edition} _conventions.md must be drift-free — a fingerprint that fires on the template is mis-specified`
       );
+    }
+
+    // Every section of the packaged `_conventions.md` is either fingerprinted or
+    // listed below with the reason it is not (`conventions-fingerprint-registration`
+    // in `planning/opt-in-backlog.md`). `configure-agents` never refreshes
+    // this file, so a section the template adds or rewords reaches an existing
+    // project only through doctor — and whether doctor knows about it used to
+    // depend on someone remembering to register a fingerprint. A new heading with
+    // neither now fails here, at the moment the section is written.
+    // ⚠ A reason is a decision, not a placeholder. "Project fill-in" and "the
+    // flows state the rule themselves" are reasons; "not yet" is not — if a stale
+    // copy would mislead the AI, write the fingerprint instead.
+    const CONVENTIONS_UNFINGERPRINTED = new Map([
+      ['Spec Writing Conventions — {System Name}',
+        'The file title; the system name is the project\'s own.'],
+      ['Where Specs Live',
+        'Restates the spec tree that `AI-AGENT-GUIDE.md` § Source of Truth defines, and that section sits in the guide-canonical region `configure-agents` refreshes. The flows read the guide, not this copy.'],
+      ['Slug Conventions (Project-Specific Fill-In)',
+        'Mostly the project\'s own fill-in, so a marker cannot tell a stale copy from a customised one. `docs/upgrading.md` says publicly that it has no fingerprint.'],
+      ['Prose Language',
+        'Its value is the project\'s answer; presence and the machine-readable line are checked by `checkConventionsPolicyFormat` in `lib/init.js`, not by a fingerprint.'],
+      ['DDD-specific spec conventions',
+        'Guidance the project is expected to edit. The one Dflow contract in it (Domain Events reach `events.md` at `/dflow:finish-feature` Step 3) is stated by the flows themselves, which the AI follows; a stale copy here was flagged to adopters by the 0.18.0 upgrade note.'],
+      ['Project-specific fill-ins',
+        'Placeholder examples only; every line is the project\'s own.'],
+      ['DDD Modeling Depth (`AI-AGENT-GUIDE.md` § Ceremony Scaling)',
+        'Wanted, but there is no contract sentence to pin as a marker — recorded as debt 10 beside `CONVENTIONS_RETIRED` in `lib/doctor-checks.js`.'],
+      ['Glossary Consistency',
+        'The rule it restates (record a new term in the spec, the flow adds it to `glossary.md` at closeout) is carried by the flows that enforce it; a stale copy here was flagged to adopters by the 0.18.0 upgrade note.'],
+      ['Related Documents',
+        'Links only; each target has its own check, and a stale list states no rule.']
+    ]);
+    // Fingerprinted = some fingerprint for this edition resolves to this heading
+    // under doctor's own section matcher, so a case or wrap difference between
+    // the two spellings cannot hide a registration. The matcher reads a document,
+    // so the heading is rebuilt as one — with an explicit ` ##` closing sequence:
+    // rebuilt bare, a heading text ending in ` #` (from a setext heading, or an
+    // ATX heading that kept a literal `#`) lost that `#` to the closing-sequence
+    // rule and would match a fingerprint doctor never matches it to.
+    // The round trip is asserted, so a heading this rebuild cannot represent
+    // fails here instead of being judged on a different name.
+    const headingTexts = (text) => doctorChecks.classifyLines(doctorChecks.blankFencedBlocks(text))
+      .filter((c) => c.heading).map((c) => c.heading.text);
+    const coveredByFingerprint = (heading, edition) => {
+      const probe = `## ${heading} ##\n\nx\n`;
+      assert.deepEqual(headingTexts(probe), [heading],
+        `the matcher probe for § ${heading} does not read back as the same heading — rebuild it another way before judging its fingerprint`);
+      return doctorChecks.CONVENTIONS_FINGERPRINTS.some((fp) =>
+        doctorChecks.fingerprintAppliesTo(fp, edition) &&
+        doctorChecks.conventionsSectionBodies(probe, fp.heading).length > 0);
+    };
+    assert.equal(coveredByFingerprint('Filling the Templates', 'greenfield'), true, 'control: a fingerprinted heading is covered');
+    assert.equal(coveredByFingerprint('filling the templates', 'greenfield'), true, 'control: case does not hide a registration');
+    for (const shape of ['Filling the Templates #\n---\n', '## Filling the Templates # ###\n']) {
+      const [heading] = headingTexts(shape);
+      assert.equal(heading, 'Filling the Templates #', `doctor reads ${JSON.stringify(shape)} as a heading ending in a literal #`);
+      assert.equal(coveredByFingerprint(heading, 'greenfield'), false,
+        `a heading ending in a literal # is not the fingerprinted section (${JSON.stringify(shape)})`);
+    }
+    const exemptionsUsed = new Set();
+    for (const edition of ['greenfield', 'brownfield']) {
+      const packaged = await readFile(join(repoRoot, `templates/${edition}/scaffolding/_conventions.md`), 'utf8');
+      const headings = headingTexts(packaged);
+      assert.ok(headings.length > 1, `${edition} _conventions.md: the heading list must not be empty`);
+      for (const heading of headings) {
+        const fingerprinted = coveredByFingerprint(heading, edition);
+        const reason = CONVENTIONS_UNFINGERPRINTED.get(heading);
+        assert.ok(!(fingerprinted && reason),
+          `${edition} _conventions.md § ${heading} is fingerprinted, so it must not also be listed in CONVENTIONS_UNFINGERPRINTED`);
+        assert.ok(fingerprinted || (typeof reason === 'string' && reason.trim().length > 0),
+          `${edition} _conventions.md § ${heading} has no fingerprint: add one to CONVENTIONS_FINGERPRINTS in lib/doctor-checks.js, or list the heading in CONVENTIONS_UNFINGERPRINTED (test/upgrade-drift.mjs) with the reason it needs none`);
+        if (reason) exemptionsUsed.add(heading);
+      }
+    }
+    for (const heading of CONVENTIONS_UNFINGERPRINTED.keys()) {
+      assert.ok(exemptionsUsed.has(heading),
+        `CONVENTIONS_UNFINGERPRINTED lists § ${heading}, which neither packaged _conventions.md has — drop the stale entry`);
     }
 
     // A real project, freshly created: silent.

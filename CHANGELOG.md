@@ -6,6 +6,21 @@
 
 ---
 
+## Unreleased
+
+> **目前投影版號：`0.18.1`**（**未發布到 npm**；npm latest 仍是 `0.18.0`）。
+
+### 升級頁的乾淨對照：它比 doctor 多看到什麼、答案從哪裡讀、指令檔也要比（PROPOSAL-120）——`0.18.1`
+
+**來源**：PROPOSAL-120。[`docs/upgrading.md`](docs/upgrading.md) 的「徹底驗證」一節寫了乾淨對照怎麼做，沒寫為什麼值得做、「同答案」的答案從哪裡找；步驟只跑 `dflow init`，而 `init` 不產生指令檔，照做比不到它們。
+
+- **它比 doctor 多看到的三類**：指令檔的內容（doctor 檢查齊不齊、檔名與標記，不比內容）、`_conventions.md` 裡 doctor 沒有指紋的段落、doctor 自己的缺陷（限全新安裝也有的檔；你自己寫的規格文件不在比對範圍，那些靠 doctor 的形狀提示）。乾淨對照適合想完全確定的時候，不必每次升級都做。
+- **答案從哪裡讀**：一張表——edition 看 bundle manifest，技術棧與遷移背景看指南的 `## Project Context`，語言、Git 政策與 AI commit 標記看 `_conventions.md`，AI 工具看根目錄的指令檔，選裝的起始檔、skill 與指令檔看檔在不在（不在時分不出是沒選還是刪了）。全新的那一份要建在跟專案同名的目錄。
+- **步驟第 1 點補一步**：專案裝了指令檔的，在全新的那一份再跑 `dflow configure-agents --command-adapters`。
+- 英文頁 [`docs/upgrading.en.md`](docs/upgrading.en.md) 同一節跟上。
+
+**既有專案**：沒有遷移動作。
+
 ## 0.18.0 — 2026-10-23 — 系統層只在收尾寫入、只盤一塊時歸屬未定的鄰居與只檢查不寫的值、收尾 commit 的溯源指令、延後題目的清單與題號
 
 **Proposals**：PROPOSAL-118（系統層只在收尾寫入）、PROPOSAL-119（只盤一塊時：歸屬未定的鄰居記在哪、被讀的程式只檢查不寫的值怎麼記）；沒開提案、直接修的：dist issue #20、#24 第 2、3、6、7 條、#26、#27

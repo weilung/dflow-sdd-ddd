@@ -77,7 +77,36 @@ doctor is a **read-only** check — it reports and never writes. Upgrade-relevan
 
 doctor is the first pass. To fully confirm nothing was missed, use the clean-comparison baseline:
 
-1. Run a fresh `dflow init` somewhere else with the **same edition and the same answers** (and the same CLI version).
+doctor checks what it recognises; a clean comparison checks what differs from a fresh
+install, so it also sees what doctor does not recognise. They answer different questions:
+the clean comparison is for when you want to be sure, not a step for every upgrade.
+It sees three things doctor does not:
+
+- **The content of your command files**: upgrade without `--command-adapters` and the
+  command files (the `/dflow:*` command files, and the Codex command block in `AGENTS.md`)
+  stay at the old version; doctor checks that they are all there and that their file names
+  and markers are right, not their content.
+- **Sections of `_conventions.md` doctor has no fingerprint for**: the file is yours;
+  `configure-agents` updates only its `> Dflow Version:` line, and doctor recognises only some
+  of its sections.
+- **Defects in doctor itself**: for the files a fresh install also has, the comparison does not rely on doctor,
+  so it sees what doctor misses there. Spec documents you wrote (under features and domain) are not in a fresh
+  install, so the comparison does not look at them; template changes for those rely on doctor's shape hints.
+
+Read the "same answers" back from your project:
+
+| Answer | Where |
+|---|---|
+| Edition (Greenfield / Brownfield) | `edition` in `dflow/specs/shared/dflow-workflows/.dflow-bundle-manifest.json` |
+| Tech stack, migration context | the `## Project Context` table in `dflow/specs/shared/AI-AGENT-GUIDE.md` |
+| Prose language, Git policy, AI commit marker | `dflow/specs/shared/_conventions.md` |
+| AI tools | which of `CLAUDE.md` / `AGENTS.md` / `.github/copilot-instructions.md` your project root has |
+| Optional starter files, skills, command files | whether those files exist (a missing one can mean you never chose it or deleted it later — you decide which) |
+
+The project name and the current date are written into generated files, so create the fresh
+copy in a directory with the same name as your project; a different date is expected.
+
+1. Run a fresh `dflow init` somewhere else with the **same edition and the same answers** (and the same CLI version); if your project has command files, run `dflow configure-agents --command-adapters` in that directory too, choosing the same AI tools.
 2. Diff it file by file against your project.
 3. Every difference should classify as one of three things: "your user content", "a known outside-the-markers region", or **"a section a newer template added that your project predates"**. The third class has two routes: `dflow doctor` (previous section) names the missing sections it recognizes and tells you how to restore them; for anything doctor does not name, see `CHANGELOG.md` (currently zh-TW only), where the release entry says what the section is and whether to adopt it — and, where placement matters, where it goes (e.g. P-083 restoring `### SPEC-ID Format` and `### Slug Conventions` to `_conventions.md` notes they belong above `## Prose Language`). Of that pair, doctor now names `### SPEC-ID Format` directly; `### Slug Conventions` has no fingerprint, so it remains a CHANGELOG-only case. Anything that fits none of the three is a missed fix — handle it item by item.
    ⚠ One difference is none of the three and is **not** to be copied across: the `<!-- dflow-shape: ... -->` line at the top of a fresh doc. Its number states which template shape a doc was compared against, so give your existing docs one only through the procedure in [Shape markers](#shape-markers).
