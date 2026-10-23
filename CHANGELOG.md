@@ -6,12 +6,29 @@
 
 ---
 
-## Unreleased
+## 0.18.0 — 2026-10-23 — 系統層只在收尾寫入、只盤一塊時歸屬未定的鄰居與只檢查不寫的值、收尾 commit 的溯源指令、延後題目的清單與題號
 
-> **目前投影版號：`0.17.4`**（**未發布到 npm**；npm latest 仍是 `0.17.0`）。
-> 下面四段都在這一版裡，段標題標出各自第一次投影的版號。
+**Proposals**：PROPOSAL-118（系統層只在收尾寫入）、PROPOSAL-119（只盤一塊時：歸屬未定的鄰居記在哪、被讀的程式只檢查不寫的值怎麼記）；沒開提案、直接修的：dist issue #20、#24 第 2、3、6、7 條、#26、#27
 
-### 收尾 commit 的溯源指令改成找歸檔那一顆（dist issue #20）——`0.17.4`
+### 從 `0.17.0` 升上來
+
+照 [`docs/upgrading.md`](docs/upgrading.md) 升級：先升 CLI，在專案根目錄跑 `dflow configure-agents`，再跑 `dflow doctor`。這一版另外要注意：
+
+1. **正在跑的 flow，先用你現在這一版收完，再升級。**
+2. **系統層改成收尾才寫**（PROPOSAL-118）：帶 phase-spec 的 feature，收尾之前新的規則只在它的 `_index.md` 與 phase-spec；每個 phase 都合回 `main` 的專案，要等收尾才在 `rules.md` 看到。第一個 phase 已經寫進系統層的進行中 feature，收尾時 Step 3 依淨結果再寫一次，結果相同。
+3. **好幾支範本升了形狀號碼**，`dflow doctor`（`0.18.0` 的 CLI）會對照舊範本寫的文件提示；每一項都附了遷移句，照遷移句做，不套那一類的預設做法（見 [`docs/upgrading.md`](docs/upgrading.md) 的「自帶遷移句的變更」）。每一項都是給開發者看過、開發者回答之前不改既有的內容（brownfield `context-map.md` 會先加上新的一節與要搬的列，舊的列等回答才拿掉）：
+   - 兩軌 `behavior.md`（greenfield 形狀 3、brownfield 形狀 4，PROPOSAL-118）：只換開頭說明寫入時間的那一句。
+   - 兩軌 `_index.md`（greenfield 形狀 5、brownfield 形狀 6），只看進行中的 feature：說明寫入時間的那一句（PROPOSAL-118）與 Checkpoint Log 說明裡的溯源指令（#20）。已完成的 feature 不改，`dflow doctor` 也不檢查；要找它們的收尾 commit，用 `git log -1 --diff-filter=ACR -- dflow/specs/features/completed/{SPEC-ID}-{slug}/_index.md`。
+   - brownfield `context-map.md`（形狀 3，PROPOSAL-119）：加 Undecided Neighbors 一節；Context List 或 Relationships 裡歸屬可能還沒定的部分，先問開發者哪些是鄰居，寫好新的列、給開發者看每個舊值的去向，回答了才拿掉舊的列。
+   - 兩軌 `analysis.md`（形狀 3，PROPOSAL-119）：兩節的註解加句子；State 有只由符號組成的值才改短名。既有的轉移與流程不動。
+4. **鷹架是專案自己的檔，不會自動更新**：兩軌 `_conventions.md`、greenfield `_overview.md` 有幾處還是舊說法（先加進 glossary、Step 8.3 寫 `events.md`），flow 照新的時間做；文件要不要改，照 [`docs/upgrading.md`](docs/upgrading.md) 的 fresh-init 對照判斷。greenfield `Git-principles-trunk.md` 改的那一個子句在 marker 區域裡，`dflow configure-agents` 會一起更新 marker 完好的檔。
+5. 其餘各項都沒有遷移動作。dist 投影過的 `0.17.1`–`0.17.4` 都在這一版裡；下面每一段標題後面的版號，是它第一次投影的版號，各段的「既有專案」是從前一個投影升上來的說明。
+
+**驗證**：發布前 `scripts/check-repo-consistency.sh` 全數通過（含 `npm test` 與 `npm pack --dry-run`）。
+
+### 各項變更
+
+#### 收尾 commit 的溯源指令改成找歸檔那一顆（dist issue #20）——`0.17.4`
 
 **來源**：dist issue #20——closeout 列照規定不記 hash，出貨文件給的溯源指令 `git log -1 -- dflow/specs/features/completed/{SPEC-ID}-{slug}` 找的是最後一顆動到那個目錄的 commit。收尾當下它就是收尾 commit；但歸檔之後還會有 commit 改那份紀錄（follow-up 會回頭改原 feature 的 Follow-up Tracking），從那之後它找到的就是那一顆，不報錯，看起來也正常。
 
@@ -24,7 +41,7 @@
 1. `_index.md`（greenfield 形狀 5、brownfield 形狀 6）：`dflow doctor` 對每一份進行中 feature 的 `_index.md` 提示一次。遷移只換 Checkpoint Log 說明裡的溯源指令（說明裡填了 SPEC-ID 與 slug 就照留），其餘照留；給開發者看新舊兩句之後，開發者回答之前不改。說明裡沒有這一句的，只改號碼。
 2. 已完成的 feature 不改（`completed/` 底下的紀錄維持原樣，`dflow doctor` 也不檢查）：它們的 `_index.md` 說明裡仍是舊指令。要找那些 feature 的收尾 commit，用上面的新指令。
 
-### 只盤一塊時：歸屬未定的鄰居記在哪、被讀的程式只檢查不寫的值怎麼記（PROPOSAL-119，dist issue #24 第 1、5 條）——`0.17.3`
+#### 只盤一塊時：歸屬未定的鄰居記在哪、被讀的程式只檢查不寫的值怎麼記（PROPOSAL-119，dist issue #24 第 1、5 條）——`0.17.3`
 
 **來源**：dist issue #24 第 1、5 條——在大系統裡只盤一個頁面時，和它有資料往來、還沒盤過的部分沒有固定的寫法：AI 把它們寫成帶註記的名字放進 Relationships，同一個部分在各文件叫法不同，收尾的 `BC:` 列出九個名字；那一頁只檢查、不寫的狀態欄位，生命週期圖只有一個方框，題目問「完不完整」而不是「誰寫、在哪寫」。
 
@@ -52,7 +69,7 @@
 2. 兩軌 `analysis.md`（形狀 3）：`dflow doctor` 對每一支提示一次。遷移把新句子加進兩節的註解，其餘（包括專案自己加的與翻譯）照留；State 有只由符號組成的值才改短名（兩張表一起改、表後那一行寫它代表什麼，規則、情境、`data` 證據引用的存值不改）。句子與改名都先給開發者看，開發者回答之前不改。既有的轉移與流程不動，下一次有變更寫到時才照新規則。
 3. `behavior.md`（greenfield 形狀 3、brownfield 形狀 4）與 `_index.md`（greenfield 形狀 4、brownfield 形狀 5）的遷移句也改成：給開發者看新舊兩句之後，開發者回答之前不改。
 
-### 系統層只在收尾寫入：帶 phase-spec 的 feature，變更在收尾前只留在 feature 目錄（PROPOSAL-118，dist issue #25）——`0.17.2`
+#### 系統層只在收尾寫入：帶 phase-spec 的 feature，變更在收尾前只留在 feature 目錄（PROPOSAL-118，dist issue #25）——`0.17.2`
 
 **來源**：dist issue #25——一個 feature 來回好幾輪才定案時，系統層停在第一個 phase 的版本，直到收尾；第一個 phase 之後放棄的 feature，系統層留著沒定案的規則；每個 phase 都合回 `main` 的專案，後面幾個 phase 不更新系統層。
 
@@ -80,7 +97,7 @@
    flow 照新的時間做，而且明寫 `_conventions.md` 叫人先加 glossary 也一樣先記在 phase-spec；文件要不要改，照 [`docs/upgrading.md`](docs/upgrading.md) 的 fresh-init 對照判斷。
    greenfield `Git-principles-trunk.md` 加的那一個子句在 marker 區域裡，`dflow configure-agents` 會一起更新 marker 完好的檔。
 
-### 延後題目的清單、題號與粒度；`/dflow:verify` 的說明；`git mv` 的理由（dist issue #24 第 2、3、6、7 條，#26、#27）——`0.17.1`
+#### 延後題目的清單、題號與粒度；`/dflow:verify` 的說明；`git mv` 的理由（dist issue #24 第 2、3、6、7 條，#26、#27）——`0.17.1`
 
 **來源**：dist issue #24（一個 brownfield 專案用 `0.17.0` 盤點一頁、延後回答 6.2 的使用回報）裡只有一種修法的四條，以及 #26、#27。沒有提案。
 
