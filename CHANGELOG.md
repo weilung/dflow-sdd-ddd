@@ -8,7 +8,17 @@
 
 ## Unreleased
 
-> **目前投影版號：`0.18.1`**（**未發布到 npm**；npm latest 仍是 `0.18.0`）。
+> **目前投影版號：`0.18.2`**（**未發布到 npm**；npm latest 仍是 `0.18.0`）。
+> 下面兩段都在這一版裡，段標題標出各自第一次投影的版號。
+
+### DDD 建模指引：拆分或改名排成第一個階段時，新名詞什麼時候進 `glossary.md`（dist issue #28）——`0.18.2`
+
+**來源**：dist issue #28——`ddd-modeling-guide.md` § Revising an Established Model 第 2 點，把拆分或改名排成 feature 的第一個階段時寫的是「the glossary moves first」，照字面是第一個階段就改 `glossary.md`。`0.17.2`（PROPOSAL-118）起，帶 phase-spec 的 feature 進行中不寫 `glossary.md`：新的或改名的名詞記在 phase-spec 的 Domain Concepts 表，`/dflow:finish-feature` 收尾時才寫進去。同一個說法在 greenfield `_overview.md` 那時已經改掉，這一節沒有跟著改。
+
+- 第 2 點改成：那個 phase 的 phase-spec 在 Domain Concepts 表記下每個新名詞，以及它改掉或拆出的是哪個舊名詞；接著程式跟上，名詞在 `/dflow:finish-feature` 寫進 `glossary.md`。原本括號裡的「RENAMED deltas」拿掉：RENAMED 是 phase-spec 記 BR 改名的 Delta，第一個 phase 沒有前一個 phase 可比，範本的 Delta 那一節在第一個 phase 不填。
+- 檔頭「When the bounded context's documents are written」那一段（進行中先記在 phase-spec、收尾才寫的文件）的清單補上 `glossary.md`。
+
+**既有專案**：沒有遷移動作。
 
 ### 升級頁的乾淨對照：它比 doctor 多看到什麼、答案從哪裡讀、指令檔也要比（PROPOSAL-120）——`0.18.1`
 

@@ -21,10 +21,10 @@ use this guide to walk them through DDD tactical patterns.
 >
 > **When the bounded context's documents are written.** While a feature that
 > carries phase-specs is in progress, record in its phase-spec what this guide
-> would put in `models.md`, `rules.md`, `behavior.md`, `events.md` or
-> `context-map.md`: `/dflow:finish-feature` Step 3 writes it into those
-> documents. A baseline capture and a change on a host of its own write them
-> directly.
+> would put in `glossary.md`, `models.md`, `rules.md`, `behavior.md`,
+> `events.md` or `context-map.md`: `/dflow:finish-feature` Step 3 writes it
+> into those documents. A baseline capture and a change on a host of its own
+> write them directly.
 >
 > The tactical patterns themselves are identical across editions; only the
 > recording surface differs.
@@ -329,8 +329,10 @@ Any of these appearing in your change is a signal — go to the ladder below:
 2. **Treat the revision as its own change** when the answer is "split" or
    "rename": record it as tech debt or a follow-up feature — or, if the
    feature cannot proceed sanely on the old boundary, make the split /
-   rename the feature's first phase (T1 ceremony; the glossary moves
-   first, RENAMED deltas, code follows).
+   rename the feature's first phase (T1 ceremony). That phase-spec's
+   Domain Concepts table names each new term and the term it renames or
+   splits from; code follows, and the terms reach `glossary.md` at
+   `/dflow:finish-feature`.
 
 Two guards, so this section cannot become its own kind of
 over-engineering:
