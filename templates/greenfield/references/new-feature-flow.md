@@ -432,7 +432,7 @@ During implementation, continuously verify:
 - [ ] State changes only through methods (no public setters)
 - [ ] Value Objects are immutable with validation
 - [ ] Domain Events raised for significant state changes
-- [ ] Zero external dependencies (check the Domain package/module manifest)
+- [ ] No external dependencies outside the allow-list in `_overview.md` § Technical Architecture (check the Domain package/module manifest)
 - [ ] Unit tests cover invariants and business rules
 
 **Application Layer**
@@ -475,7 +475,7 @@ AI reports `✓` / `✗` for every item before touching docs:
 - [ ] Every `BR-*` business rule is covered by implementation or tests
 - [ ] Every `EC-*` edge case is handled
 - [ ] Every Domain Event listed in the spec is raised in the implementation
-- [ ] Domain layer/package has **no** external package-manager dependencies beyond the language/runtime baseline
+- [ ] Domain layer/package has **no** external package-manager dependencies outside the allow-list in `_overview.md` § Technical Architecture (with no allow-list there, none beyond the language/runtime baseline)
 - [ ] Aggregate invariants still hold after the change (all state changes go through methods, no public setters)
 - [ ] ORM / persistence mapping is kept outside Domain entities (no persistence attributes/annotations on Domain entities)
 

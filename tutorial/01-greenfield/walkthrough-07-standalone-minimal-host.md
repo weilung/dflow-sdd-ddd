@@ -533,7 +533,7 @@ T3-only 的 no-BC host 兩者皆無，所以留空。把它一起寫成 `none` �
 |---|---|
 | **這個 host 自己的記錄**（status、收尾完成、phase-spec 檢查） | **原封不動適用**。它們正是擋住「記錄還開著就 merge」的那道防線。 |
 | **點名 Domain / bounded-context artifact 的項目**（BR-Snapshot sync、events.md、glossary/models/rules） | 只適用於這次變更**實際碰到**的部分。no-BC host 沒有 BC 要 sync、T3 不做 Domain 工作 → 讀 N/A。但 `glossary.md` 與 tech-debt 不屬於任何 bounded context，**不是** N/A。 |
-| **講原始碼規則、而不是點名文件的項目**（Domain 層零外部相依、業務邏輯不外洩、Domain entity 不掛 ORM attribute、Domain 單元測試要過） | **永遠不是 N/A。** 只要變更碰到 code 就成立——而且一個謊稱自己 no-BC 的 host，正是靠這幾項抓出來的。 |
+| **講原始碼規則、而不是點名文件的項目**（Domain 層沒有允許清單以外的外部相依、業務邏輯不外洩、Domain entity 不掛 ORM attribute、Domain 單元測試要過） | **永遠不是 N/A。** 只要變更碰到 code 就成立——而且一個謊稱自己 no-BC 的 host，正是靠這幾項抓出來的。 |
 
 第三類最容易被誤讀成「最小 host 一律 N/A」。**Code invariant 不是 artifact**：它沒有要你去
 更新哪份文件，它是對原始碼的斷言。

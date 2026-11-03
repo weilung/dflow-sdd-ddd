@@ -1765,7 +1765,8 @@ try {
   // framework version. An existing ASP.NET Core MVC project (Web SDK, net10.0)
   // that picks Brownfield gets no warning; the same project picking Greenfield
   // gets the existing-source note. A folder holding only WebForms pages counts as
-  // existing source too.
+  // existing source too, and so does one holding only a `.slnx` solution file
+  // (dist #34: the format .NET 10's `dotnet new sln` writes by default).
   {
     const trackInput = (track) => [
       track,
@@ -1803,6 +1804,13 @@ try {
     const webForms = runDflow(webFormsDir, trackInput('1'));
     assert.equal(webForms.code, 0, `#21 webforms init failed\nSTDOUT:\n${webForms.stdout}\nSTDERR:\n${webForms.stderr}`);
     assert.match(webForms.stdout, NOTE, '#21: a folder of WebForms pages is existing source');
+
+    const slnxDir = join(tempRoot, 'i34-slnx');
+    await mkdir(slnxDir, { recursive: true });
+    await writeFile(join(slnxDir, 'Shop.slnx'), '<Solution>\n</Solution>\n');
+    const slnx = runDflow(slnxDir, trackInput('1'));
+    assert.equal(slnx.code, 0, `#34 slnx init failed\nSTDOUT:\n${slnx.stdout}\nSTDERR:\n${slnx.stderr}`);
+    assert.match(slnx.stdout, NOTE, '#34: a folder holding only a .slnx solution file is existing source');
   }
 
   console.log(`Smoke test passed in ${tempRoot}`);

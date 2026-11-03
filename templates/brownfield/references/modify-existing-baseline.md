@@ -122,6 +122,9 @@ A capture changes nothing, so it makes no extract-now decision.
 - **A context with no Subdomain Type**: N/A — the question serves only the
   extraction decision.
 - **Established-model re-read**: N/A — the capture extends no model.
+- **The Step 4 → Step 5 gate**: not a stop. Step 5 is skipped, so the next
+  stop is the Step 5 → Step 6 gate. Apply the branch gate and announce as
+  `references/modify-existing-flow.md` says at the Step 4 → Step 5 gate.
 
 ## Step 6.2 — the questions a capture asks
 

@@ -7,7 +7,7 @@
 A few things about how `analysis.md` is written and how `dflow render` draws it are known and deliberately left unguarded. This page lists each one: what goes wrong, why it is not prevented, who bears it, and what would make us reconsider.
 Most are left unguarded because guarding them would mean a machine reading content it cannot judge reliably, or every document paying for a case few of them have.
 
-## Lifecycles: creating and removing (`[*]`), values no transition has, values that cannot be written as themselves
+## Lifecycles: creating and removing (`[*]`), values no transition has, values that cannot be written as themselves, transitions from any state
 
 In a lifecycle's transition table, `[*]` in From means that step creates the entity, and `[*]` in To means that step removes it; `[*]` is not a value and is not listed in the state table.
 A value no transition has is listed under the diagram by `dflow render` instead of being drawn as a box; where the list of values was taken from goes in one line after the two tables that reads `Evidence:`.
@@ -62,6 +62,10 @@ A value the code you read tests for or shows, but that nothing you read writes, 
    - Why not prevented: making the diagram look right before the answer would take a line the code you read does not prove — a test shows neither that something still writes the value (it may be a defensive branch, or a retired value) nor which state it comes from (it may be a page that only displays, or records imported with that value). With the right question asked, the answer adds the transitions.
    - Who bears it: people reading the diagram before the answer.
    - Reconsider: when such diagrams are often misread — then consider having `dflow render` draw a value no transition has as a box of its own.
+12. **A transition from any state has no shorthand.** Some systems have an entry point that does not check the current state — an administrator's page that sets a record to any status to handle exceptions, or a submit that accepts the record in whatever state it is in. The table takes one row per From value: from every state to one state is a row per state, and from every state to every state is a row per pair — with 8 values, dozens of rows. Written instead as one row whose From is not a listed value (such as "any state"), the row reads well, but `dflow render` does not draw that lifecycle and prints a one-line note that the row's From is not in the state table; both tables are still there.
+   - Why not prevented: a notation that stands for every value is one more thing that is not a value to learn, and one row per From value keeps each transition's own Guard and Evidence. The lifecycles checked in two real projects had no such entry point.
+   - Who bears it: people reading that lifecycle (no diagram; they read the table) and its writer (many rows, or a row the diagram cannot use).
+   - Reconsider: when a real project's capture runs into one.
 
 ## Lifecycle diagrams: rows with the same From and To share one arrow
 

@@ -8,8 +8,21 @@
 
 ## Unreleased
 
-> **目前投影版號：`0.18.2`**（**未發布到 npm**；npm latest 仍是 `0.18.0`）。
-> 下面兩段都在這一版裡，段標題標出各自第一次投影的版號。
+> **目前投影版號：`0.18.3`**（**未發布到 npm**；npm latest 仍是 `0.18.0`）。
+> 下面三段都在這一版裡，段標題標出各自第一次投影的版號。
+
+### 技術棧例子與套件授權、Domain 能依賴什麼、baseline 盤點少問一次、生命週期沒有「從任何狀態」的簡寫（dist issue #34、#32、#29、#31）——`0.18.3`
+
+**來源**：dist issue #34、#32、#29、#31。
+
+- **技術棧的例子（#34）**：[`docs/examples-by-stack.md`](docs/examples-by-stack.md) 的 .NET 例子改成 .NET 10（C# 14、ASP.NET Core 10、EF Core 10）——.NET 9 與 .NET 8 都在 2026-11-10 停止支援；brownfield 例子的目標架構從 ASP.NET Core 8 改成 10。Mediator 那一列改成直接寫 handler，並註明 MediatR 13 起要授權金鑰（12.5.0 是最後一個 Apache-2.0 的版本）；測試改成 xUnit 內建的 `Assert` 加 NSubstitute，並註明 FluentAssertions 8 起是 Xceed 的商業授權。其他已經停止支援的版本一起跟上：Spring Boot 3.3 → 4.1（Hibernate 6.5 → 7）、NestJS 10 → 12（TypeScript 6.0、Prisma 7）、Go 1.22 → 1.27。
+- greenfield 的 `_overview.md` 範本，Testing 的例子拿掉 FluentAssertions；`init-project-flow.md` 第 2 題的例子不再寫版號（版號照專案自己的回答），Mediator 的例子加上「直接寫 handler」並註明 MediatR 13 起要授權金鑰。
+- `dflow init` 判斷「已經有原始碼」時也認 `.slnx`（.NET 10 的 `dotnet new sln` 預設產生的格式）。原本往下找 `.csproj` 也找得到，沒有實際影響。
+- **Domain 能依賴什麼（#32，greenfield）**：PR 檢查表、`new-feature-flow.md` 的實作檢查表與完成檢查、`modify-existing-flow.md` 的完成檢查、`git-integration.md`、兩份 `Git-principles-*.md` 的 PR 檢查項原本寫「零外部依賴」，和 `_overview.md` 的「允許清單以外不行」不一致；一律改成「`_overview.md` § Technical Architecture 列的允許清單以外不行（沒列就只有語言與 runtime 本身）」。`_overview.md` 範本的 Domain 那一列寫明清單列在這一節，開頭那句改成「Domain 不依賴其他層」；舊版面 `CLAUDE-md-snippet.md` 跟上同一個寫法。
+- **baseline 盤點少問一次（#29，brownfield）**：盤點沒有抽離決定、也跳過 Step 5，所以 `modify-existing` 的 Step 4 → 5 不再停下來問，直接到 Step 5 → 6（那一關照舊）。分支檢查照舊在 Step 4 結束時做。
+- **生命週期沒有「從任何狀態都能轉」的簡寫（#31）**：[`docs/analysis-limitations.md`](docs/analysis-limitations.md)（與英文頁）「生命週期」那一節加第 12 條：不檢查目前狀態的入口（例如管理者處理例外時直接改成任何狀態），照一個 From 一列寫會很長；寫成一列、From 不在狀態表裡時，`dflow render` 不畫那張圖。範本與 `dflow render` 都不改，寫明為什麼不防、什麼時候重看。
+
+**既有專案**：沒有遷移動作。`Git-principles-*.md` 的 PR 檢查項在 Dflow 管理的區段裡，`dflow configure-agents` 會更新；`_overview.md` 與 `CLAUDE-md-snippet.md` 是你自己的檔，不會被改，想跟上就照新的寫法改那幾句。
 
 ### DDD 建模指引：拆分或改名排成第一個階段時，新名詞什麼時候進 `glossary.md`（dist issue #28）——`0.18.2`
 

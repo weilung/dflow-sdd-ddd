@@ -33,7 +33,7 @@ delivers. Keep it non-technical enough that a new hire can skim it in
 
 This project follows **Clean Architecture** and **Domain-Driven Design
 (DDD)**. Dependencies flow inward only — the Domain layer is the core
-and depends on nothing.
+and depends on no other layer.
 
 ### Stack
 
@@ -47,7 +47,7 @@ and depends on nothing.
 | Database | {e.g. PostgreSQL 16, SQL Server 2022} |
 | Auth | {e.g. JWT bearer, OIDC via Azure AD, cookie auth} |
 | Hosting | {e.g. Azure App Service, Kubernetes, Docker compose} |
-| Testing | {e.g. xUnit + FluentAssertions + NSubstitute} |
+| Testing | {e.g. xUnit + NSubstitute} |
 
 ### Clean Architecture Layers
 
@@ -57,7 +57,7 @@ Presentation  →  Application  →  Domain  ←  Infrastructure
 
 | Layer | Responsibilities | Must NOT |
 |-------|------------------|----------|
-| Domain | Aggregates, Entities, Value Objects, Domain Events, Domain Services, repository interfaces | Depend on package-manager libraries outside the project's allow-list; know about ORM/persistence frameworks, HTTP, DI containers |
+| Domain | Aggregates, Entities, Value Objects, Domain Events, Domain Services, repository interfaces | Depend on package-manager libraries outside the project's allow-list (list them in this section; with none listed, nothing beyond the language/runtime baseline); know about ORM/persistence frameworks, HTTP, DI containers |
 | Application | Commands / Queries (CQRS), Validators, DTOs, Event Handlers, orchestration | Contain business logic; access database directly |
 | Infrastructure | ORM / persistence configuration, repository implementations, external API clients | Contain business logic |
 | Presentation | HTTP endpoints, Request / Response mapping, auth + middleware | Contain business logic; expose Domain objects directly |

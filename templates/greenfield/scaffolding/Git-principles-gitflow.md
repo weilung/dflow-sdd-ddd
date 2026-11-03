@@ -193,8 +193,8 @@ Before making key Git operations:
       already be written **before** this commit, not after it. Refresh the
       Resume Pointer as usual.
 - [ ] Clean Architecture layer rules hold (Domain has no external
-      package deps, no business logic leaked into handlers /
-      controllers)
+      package deps outside the `_overview.md` allow-list, no business
+      logic leaked into handlers / controllers)
 
 ### Before merging a feature branch to `develop`
 
@@ -211,7 +211,7 @@ Before making key Git operations:
       `context-map.md` reflect the feature's net changes
 - [ ] `dflow/specs/domain/glossary.md` updated with any new terms
 - [ ] `dflow/specs/architecture/tech-debt.md` updated with any debt discovered
-- [ ] Domain project has zero external package dependencies
+- [ ] Domain project has no external package dependencies outside the allow-list in `_overview.md` § Technical Architecture
 - [ ] No ORM / serialization attributes on Domain entities
 - [ ] Domain unit tests pass (invariants + value object equality)
 

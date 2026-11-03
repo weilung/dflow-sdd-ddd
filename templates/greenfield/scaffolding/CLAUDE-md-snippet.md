@@ -53,11 +53,11 @@ preserved — it keeps every project's `CLAUDE.md` scannable for AI in the same 
 Presentation → Application → Domain ← Infrastructure
 ```
 
-依賴方向永遠朝內。Domain 層是核心，不依賴任何外部套件。
+依賴方向永遠朝內。Domain 層是核心，不依賴其他層；外部套件只能用 `dflow/specs/shared/_overview.md` § Technical Architecture 允許清單裡列的（沒列就只有語言與 runtime 本身）。
 
 | Layer | Responsibilities | Must NOT |
 |---|---|---|
-| Domain | 業務規則、Aggregate、Value Object、Domain Event | 依賴外部套件、存取資料庫、處理 HTTP |
+| Domain | 業務規則、Aggregate、Value Object、Domain Event | 依賴允許清單以外的外部套件、存取資料庫、處理 HTTP |
 | Application | 編排領域操作、CQRS、驗證、DTO | 包含業務邏輯、直接存取資料庫 |
 | Infrastructure | {ORM / persistence}、外部 API、檔案存取 | 包含業務邏輯 |
 | Presentation | HTTP 端點、Request/Response | 包含業務邏輯、直接操作 Domain 物件 |
@@ -123,7 +123,7 @@ AI 的完整決策樹、Workflow Transparency、Ceremony Scaling 三層判準
 
 ### Domain Layer Rules (Hard Invariants)
 
-- ❌ 不可有任何外部套件依賴（語言純粹 types）
+- ❌ 不可依賴允許清單以外的外部套件（`_overview.md` § Technical Architecture；沒列就只用語言本身的 types）
 - ❌ 不可有 ORM 屬性（`[Table]`、`[Column]` 等）
 - ❌ 不可有序列化屬性（`[JsonProperty]` 等）
 - ❌ 不可有 `DbContext`、`IConfiguration`、`HttpClient`
@@ -154,7 +154,7 @@ AI 的完整決策樹、Workflow Transparency、Ceremony Scaling 三層判準
 - 確認實作順序：Domain → Application → Infrastructure → Presentation
 - 發現業務邏輯在錯誤的層時，指出並建議搬移
 - 每次開發循環結束時，提醒更新術語表、models.md、events.md
-- Review 時檢查 Domain 層的純淨度（零外部依賴）
+- Review 時檢查 Domain 層的純淨度（沒有允許清單以外的外部依賴）
 ```
 
 ---

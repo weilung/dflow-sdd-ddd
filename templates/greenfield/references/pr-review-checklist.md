@@ -407,7 +407,7 @@ instead, writing the owner, known risk and exit criteria in the debt row's
 
 ## Domain Layer Quality
 
-- [ ] **Zero external dependencies** — check the Domain package/module manifest; no external dependencies beyond the language/runtime baseline
+- [ ] **No external dependencies outside the allow-list** — check the Domain package/module manifest against the allow-list in `dflow/specs/shared/_overview.md` § Technical Architecture; with no allow-list there, no external dependencies beyond the language/runtime baseline
 - [ ] **No ORM attributes** — no [Table], [Column], [Key] on domain classes
 - [ ] **No serialization attributes** — no [JsonProperty], [JsonIgnore]
 - [ ] **Private setters** — state changes through methods only

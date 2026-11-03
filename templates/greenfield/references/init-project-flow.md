@@ -98,10 +98,11 @@ choose the Greenfield track for a new bounded area.
 ### Q2. Tech stack confirmation
 
 > "Confirm the tech stack so I populate the right scaffolding
-> variables: Framework + version (e.g. ASP.NET Core 9 / Spring Boot 3.3 /
-> NestJS 10 / Django 5 / FastAPI 0.115)? Persistence layer (e.g.
+> variables: Framework + version (e.g. ASP.NET Core / Spring Boot /
+> NestJS / Django / FastAPI — with the version you use)? Persistence layer (e.g.
 > EF Core / Hibernate/JPA / Prisma / SQLAlchemy / GORM / Eloquent)?
-> Mediator (e.g. MediatR / pipeline behavior — optional)? Test framework
+> Mediator (e.g. direct handlers, or MediatR — 13 and later require a
+> license key — optional)? Test framework
 > (e.g. xUnit / NUnit / JUnit / Jest / pytest / go test / PHPUnit)?"
 
 Used to substitute `{Framework version}` / `{ORM version}` /

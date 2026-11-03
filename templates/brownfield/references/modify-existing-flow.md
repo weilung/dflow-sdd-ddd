@@ -5,7 +5,7 @@ Step-by-step guide for when a developer triggers `/dflow:modify-existing` or `/d
 
 **Step Gates** in this flow (stop-and-confirm before proceeding):
 - Step 2 → Step 3 (baseline captured → analyze business logic embedded in delivery/entrypoint code: presentation/UI layer, controllers, handlers, jobs, message consumers, data pipelines, or stored procedures)
-- Step 4 → Step 5 (extraction decision → start implementation)
+- Step 4 → Step 5 (extraction decision → start implementation) — not a stop for a baseline capture, which goes on to the Step 5 → Step 6 gate
 - Step 5 → Step 6 (implementation done → update artifacts)
 
 Crossing any step gate above also updates the host feature's `_index.md` Resume Pointer cursor (Active Workflow / Current Step / Gates Passed / Awaiting) once the host feature directory exists — fold it into that gate's existing `_index.md` / Resume Pointer edit, no separate ceremony (see the `_index.md` template's Resume Pointer notes).
@@ -656,9 +656,9 @@ Before changing an `analysis.md` entry that holds a `> Known deviation:` line, a
 
 ## Step 4: Evaluate Extraction Opportunity
 
-A **baseline capture** changes nothing, so it makes no extract-now decision:
-it records what it finds in `tech-debt.md` — see
-`references/modify-existing-baseline.md` § Step 4.
+A **baseline capture** changes nothing, so it makes no extract-now decision
+and does not stop at the Step 4 → Step 5 gate: it records what it finds in
+`tech-debt.md` — see `references/modify-existing-baseline.md` § Step 4.
 
 For the code being modified, ask:
 
@@ -739,13 +739,17 @@ If the lightweight checklist looks larger than a short-fix checklist, AI must pa
 Announce to developer:
 > "Extraction decision made — {extract now / defer and record}. Ready to start implementation? `/dflow:next` to proceed, or adjust the extraction scope first."
 
-A **baseline capture** made no extraction decision, so it announces instead
-(see `references/modify-existing-baseline.md`):
-> "Extraction opportunities recorded in tech-debt.md. Ready to go on to Step 5 (skipped for a baseline)? `/dflow:next` to proceed."
+A **baseline capture** made no extraction decision and implements nothing, so
+for it this is a step-internal transition, not a confirmation stop. The branch
+gate below still applies as written — it asks only when you are not on the
+host's branch. Then announce instead and continue through Step 5 (skipped) to
+the Step 5 → Step 6 gate (see `references/modify-existing-baseline.md`
+§ Step 4):
+> "Step 4 complete (extraction opportunities recorded in tech-debt.md). Step 5 is skipped for a baseline capture — next, the Step 5 → Step 6 gate."
 
 > Branch gate (policy-aware): a feature branch is mandatory for every tier (T1 / T2 / T3) under both Git policies (`_conventions.md` § Git Policy). If you are already on this work's `feature/{SPEC-ID}-{slug}` (or `bugfix/{BUG-ID}-{slug}`) branch — e.g. the change belongs to the active feature you are already in — the gate is satisfied and nothing new is created. Otherwise (on the base branch the project cuts from, or an unrelated branch) the AI offers to create/switch to the correct branch, switch to an existing matching one, or override and record it in the `_index.md` Checkpoint Log. Dflow does not need to know which branch is your base. **Minimal-host exception (Step 1.6 follow-up variant / Step 1.7 standalone / Step 1.8 post-hoc): the override is not available.** Those hosts assert branch equality against the `_index.md` `branch:` value they cut by change class, so working them on an unrelated branch would falsify the host's own authoritative field — switch to the host's branch instead. See `references/git-integration.md` § Commit Checkpoints, Branch Gate & AI Commits.
 
-Wait for confirmation before entering Step 5.
+Wait for confirmation before entering Step 5 — except a baseline capture, whose next stop is the Step 5 → Step 6 gate.
 
 ## Step 5: Implement the Change
 

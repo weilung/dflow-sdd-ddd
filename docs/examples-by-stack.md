@@ -38,10 +38,10 @@ Each section provides:
 ```markdown
 | Item | Choice |
 |------|--------|
-| Language | C# 12 |
-| Framework | ASP.NET Core 9 |
-| ORM / persistence | Entity Framework Core 9 |
-| Mediator | MediatR 12 |
+| Language | C# 14 |
+| Framework | ASP.NET Core 10 |
+| ORM / persistence | Entity Framework Core 10 |
+| Mediator | (none — direct handlers; MediatR 13 and later require a license key, 12.5.0 is its last Apache-2.0 release) |
 | Test framework | xUnit |
 | Database | PostgreSQL 16 |
 | Auth | JWT bearer / OIDC via Azure AD |
@@ -96,7 +96,9 @@ disallowed dependency appears.
 
 ### Test framework
 
-`xUnit` + `FluentAssertions` + `NSubstitute`. Run with `dotnet test`.
+`xUnit` (its built-in `Assert`) + `NSubstitute`. Run with `dotnet test`.
+FluentAssertions 8 and later is under Xceed's commercial license (7.x is
+Apache-2.0); pin a version if you add it.
 
 ---
 
@@ -115,7 +117,7 @@ disallowed dependency appears.
 | UI | WebForms .aspx + Code-Behind + Bootstrap |
 | Auth | Forms authentication / Windows auth |
 | Hosting | IIS on-prem |
-| Target architecture | ASP.NET Core 8 + Clean Architecture |
+| Target architecture | ASP.NET Core 10 + Clean Architecture |
 ```
 
 ### Project layout
@@ -160,8 +162,8 @@ CI check: project reference analyzer on `src/Domain/Domain.csproj`.
 | Item | Choice |
 |------|--------|
 | Language | Java 21 |
-| Framework | Spring Boot 3.3 |
-| ORM / persistence | Spring Data JPA / Hibernate 6.5 |
+| Framework | Spring Boot 4.1 |
+| ORM / persistence | Spring Data JPA / Hibernate 7 |
 | Mediator | (none — direct service injection; optional: Spring Modulith) |
 | Test framework | JUnit 5 + AssertJ + Mockito |
 | Database | PostgreSQL 16 |
@@ -228,9 +230,9 @@ CI check: ArchUnit rule `noClasses().that().resideInAPackage("..domain..")
 ```markdown
 | Item | Choice |
 |------|--------|
-| Language | TypeScript 5.4 |
-| Framework | NestJS 10 |
-| ORM / persistence | Prisma 5 (or TypeORM / MikroORM) |
+| Language | TypeScript 6.0 |
+| Framework | NestJS 12 |
+| ORM / persistence | Prisma 7 (or TypeORM / MikroORM) |
 | Mediator | (none — NestJS providers; optional: nestjs-cqrs module) |
 | Test framework | Vitest (or Jest) + supertest |
 | Database | PostgreSQL 16 |
@@ -362,7 +364,7 @@ imports of presentation/infrastructure packages.
 ```markdown
 | Item | Choice |
 |------|--------|
-| Language | Go 1.22 |
+| Language | Go 1.27 |
 | Framework | Gin 1.10 (or Echo / Chi) |
 | ORM / persistence | GORM v2 (or sqlx / pgx) |
 | Mediator | (none — interface-based dispatch) |

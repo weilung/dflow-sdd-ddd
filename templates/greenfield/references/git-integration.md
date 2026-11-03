@@ -424,7 +424,7 @@ hotfix, or one added later):
       the host carries `follow-up-of`, the Step 6 tracking commit has also
       landed and been verified. `status: completed` or a directory already
       under `completed/` does not show this on its own.
-- [ ] Domain layer: zero external dependencies
+- [ ] Domain layer: no external dependencies outside the allow-list in `_overview.md` § Technical Architecture
 - [ ] No business logic outside Domain layer
 - [ ] Domain Events documented in events.md
 - [ ] Glossary, models, rules updated
@@ -532,7 +532,7 @@ Dflow workflow") says.
 ## Integration with CI/CD (Future Enhancement)
 
 These checks could eventually be automated in CI:
-- Verify Domain project has zero external package-manager dependencies (beyond allowed list)
+- Verify Domain project has no external package-manager dependencies outside the allow-list in `_overview.md` § Technical Architecture
 - Verify no ORM/serialization attributes on Domain entities
 - Verify a spec file exists for any branch with feature/ or bugfix/ prefix — except a host whose entire record is inline in its `_index.md` and therefore has no spec file by design (a T3-only host today, and any later shape with that same property); check for the row instead
 - Verify glossary.md / rules.md / events.md updated when Domain/ files change
