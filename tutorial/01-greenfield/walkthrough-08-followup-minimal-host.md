@@ -74,6 +74,9 @@ Part A cascade：
   BR-002 / BR-006 文字都不變，沒有新 Aggregate、
   沒有 Domain 概念結構變更、沒有資料結構或破壞性契約變更。
   這是**持久化沒做完**，不是規則錯。
+  兩個 Aggregate 一起提交，是 phase 2 照 Aggregate 規則第 2 條記下的例外
+  （aggregate-design.md 的 Design Decisions）；這次的修正讓程式做到那個決定，
+  不是新的設計決定。
 - 步驟 2（Dflow 不追蹤？）否。使用者看得到的行為壞了。
 - 步驟 3（T3？）否。
   這不是顯示文字修正；它有 observable behavior、root cause、

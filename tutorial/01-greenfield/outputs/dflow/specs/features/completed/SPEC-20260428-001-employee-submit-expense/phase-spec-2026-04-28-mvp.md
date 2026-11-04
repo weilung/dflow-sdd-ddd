@@ -98,7 +98,7 @@ Scenario: 員工嘗試在 Submitted 狀態下加入新的 ExpenseItem
 
 | Event | Trigger | Handler | Sync / Async |
 |---|---|---|---|
-| ExpenseReportSubmitted | ExpenseReport.Submit() 成功時 | _(MVP 無 consumer；保留給 phase 2 Approval handler)_ | in-process / sync（MediatR INotification，同 transaction 內 dispatch） |
+| ExpenseReportSubmitted | ExpenseReport.Submit() 成功時 | _(MVP 無 consumer；保留給 phase 2 Approval handler)_ | in-process / sync（MediatR INotification，commit 成功後 dispatch） |
 
 ## Implementation Plan (Layer by Layer) <!-- Fill timing: Activity 4: Implementation Planning -->
 

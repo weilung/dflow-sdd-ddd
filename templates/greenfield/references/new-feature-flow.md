@@ -445,7 +445,7 @@ During implementation, continuously verify:
 - [ ] Aggregate protects all invariants
 - [ ] State changes only through methods (no public setters)
 - [ ] Value Objects are immutable with validation
-- [ ] Domain Events raised for significant state changes
+- [ ] Domain Events the spec lists are raised in the implementation
 - [ ] No external dependencies outside the allow-list in `_overview.md` § Technical Architecture (check the Domain package/module manifest)
 - [ ] Unit tests cover invariants and business rules
 

@@ -413,7 +413,7 @@ instead, writing the owner, known risk and exit criteria in the debt row's
 - [ ] **Private setters** — state changes through methods only
 - [ ] **Invariants enforced** — constructor and methods reject invalid state
 - [ ] **Value Objects immutable** — using `record` or readonly properties
-- [ ] **Domain Events raised** — significant state changes produce events
+- [ ] **Domain Events raised** — the events the spec lists are raised
 - [ ] **Other Aggregates referenced by ID** — not by direct object reference
 
 ## Application Layer Quality

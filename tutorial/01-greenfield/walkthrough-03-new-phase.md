@@ -260,10 +260,41 @@ Alice:
 等以後真的有多階簽核或 SLA 再 review。
 ```
 
+兩個 Aggregate 定下來之後，Dflow 接著問存檔的邊界：
+
+```text
+Dflow:
+還有一件事要先定。
+Approve / Reject 會同時改 ExpenseReport 的狀態、新增一筆 ApprovalDecision——
+一次操作改到兩個 Aggregate。
+建模指引的 Aggregate 規則第 2 條：預設一個交易只改一個 Aggregate。
+
+A. 分開存：先存 ExpenseReport，commit 之後由事件 handler 建 ApprovalDecision。
+   handler 失敗時，單子已經是 Rejected，卻查不到退回原因。
+B. 同一個交易一起存：這是第 2 條的例外，要記下理由和什麼時候重看。
+```
+
+```text
+Alice:
+B。主管退回了，員工就要看得到原因；
+有審核決定、單子卻還是 Submitted，也不行。
+```
+
+```text
+Dflow:
+好，這個例外記進 aggregate-design.md 的 Design Decisions：
+- 理由：主管核准 / 退回這張單是一件事，單子的狀態和那一筆 ApprovalDecision 要一起成立。
+- 共同的原子邊界：同一個 Expense BC、同一個資料庫，由同一個 Unit of Work 一起提交。
+- 什麼時候重看：Approval 拆成自己的 BC 或服務、或審核決定改由另一個系統寫入時——
+  跟上面「先不要拆 Approval BC」那一條一起看。
+```
+
 這是本篇第三個 lesson：**不過早拆 BC，不代表把所有東西塞進一個 Aggregate。**
 
 `ApprovalDecision` 留在 Expense BC，但它不是 `ExpenseReport` 的 child entity。
 這讓稽核記錄有自己的 ID、唯一約束與不可變歷史。
+反過來也一樣：一個交易只改一個 Aggregate 是預設、不是禁止——兩個 Aggregate 真的要一起成立，
+就一起存，把理由和什麼時候重看記下來。
 
 ## Step 2 — Cross-context and data impact
 

@@ -8,8 +8,20 @@
 
 ## Unreleased
 
-> **目前投影版號：`0.18.4`**（**未發布到 npm**；npm latest 仍是 `0.18.0`）。
-> 下面四段都在這一版裡，段標題標出各自第一次投影的版號。
+> **目前投影版號：`0.18.5`**（**未發布到 npm**；npm latest 仍是 `0.18.0`）。
+> 下面五段都在這一版裡，段標題標出各自第一次投影的版號。
+
+### Domain Event 預設在 commit 成功之後發、handler 失敗看業務看不看得到、檢查表的事件項對照 spec（PROPOSAL-122，dist issue #35）——`0.18.5`
+
+**來源**：dist issue #35。
+
+- **什麼時候發（建模指引 `ddd-modeling-guide.md`，兩軌共用）**：§ Event Flow 寫明同一個程序裡的 handler 在 commit 成功之後跑；改另一個 Aggregate 的 handler 是它自己的一次存檔。在 commit 之前跑只適用寫進原本交易的 handler——它改到的 Aggregate 就是一個交易改多個 Aggregate（Aggregate 規則第 2 條的例外，要記下理由、共同的原子邊界與重看條件），只更新 read model 的不必寫理由；寫到別處（另一個交易、寄信、另一個服務）的放到 commit 之後。已經在 commit 之前發的專案照舊，AI 不順手搬，告訴開發者它看到什麼。§ Event Handling Guidelines 的 Same Bounded Context、§ Read Models 講事件更新的表、§ Common Mistakes 第 5 條跟上。
+- **handler 失敗時（failure-path）**：條件改成看業務看不看得到——在原本的交易之外處理的 handler（commit 之後，或經 queue），最終失敗（含事件沒有被處理）業務看得到，就寫成 `BR-*` 與 `EC-*`，不限跨 Aggregate；業務要求的通知、稽核紀錄也算，可有可無的通知信、log 照舊不用。還沒接 dispatcher 時，業務看得到的事件改走這一條。greenfield `events.md` 範本 Event Flow Notes 的佔位字跟上（形狀號碼不變）。
+- **dispatcher**：例子不再指名 MediatR，改成手寫的，或專案已經在用的 mediator；Dispatch / clear lifecycle 加一句——同一批事件只發一次：發的期間 handler 透過同一個 Unit of Work 存檔，只發之後新產生的事件，不會把那一批再發一次。
+- **檢查表的事件項對照 spec（greenfield）**：`new-feature-flow.md` 第 7 步與 PR 檢查表 § Domain Layer Quality 從「重要的狀態改變都發事件」改成 spec 列的事件有沒有發，和 `new-phase-flow.md` 第 6 步一致；要發哪些事件，在建模時照 context 的 Subdomain Type 決定。
+- **教材（greenfield）**：walkthrough-03 第 2 步加一段——核准／退回一次改 ExpenseReport 與 ApprovalDecision 兩個 Aggregate，Alice 選同一個交易一起存，理由、共同的原子邊界與重看條件記進 `aggregate-design.md` § Design Decisions；BUG-002 的 Fix Approach 與 walkthrough-08 Part A 指回那一條；`events.md` 與兩份 phase-spec 的事件表只剩「commit 成功後 dispatch」一種說法；範例專案 `_overview.md` 的 Aggregate Boundaries 跟上範本。觀念教材 `tutorial/DDD_MINDSET_SHIFT.md` 的觀念二寫明事件在 commit 之後才發、加上一起存的例外；觀念四改成「Domain 層不依賴框架與基礎設施」，跟上 greenfield 的允許清單。
+- 做法、限制與接受的風險：[`docs/domain-event-dispatch.md`](docs/domain-event-dispatch.md)（與英文頁）。
+- **既有專案**：沒有遷移動作。建模指引由 `dflow configure-agents` 刷新；範本形狀不變，已經寫好的 `events.md` 不受影響。已經在交易裡發的專案照舊，之後新寫的、改到另一個 Aggregate 的 handler 照第 2 條記一句理由。
 
 ### greenfield 規劃程式之前讀 Technical Architecture、流程寫死的工具名稱改成例子（PROPOSAL-121，dist issue #33）——`0.18.4`
 

@@ -172,8 +172,8 @@ _(none)_
 
 | Event | Trigger | Handler | Sync / Async |
 |---|---|---|---|
-| ExpenseReportApproved | ExpenseReport.Approve() 成功且 ApprovalDecision 建立後 | _(phase 2 暫無外部 consumer；保留給 phase 3 Reimbursement)_ | in-process / sync（MediatR INotification，同 transaction 內 dispatch） |
-| ExpenseReportRejected | ExpenseReport.Reject() 成功且 ApprovalDecision 建立後 | _(phase 2 暫無外部 consumer；UI 可透過查詢讀取 reason)_ | in-process / sync（MediatR INotification，同 transaction 內 dispatch） |
+| ExpenseReportApproved | ExpenseReport.Approve() 成功且 ApprovalDecision 建立後 | _(phase 2 暫無外部 consumer；保留給 phase 3 Reimbursement)_ | in-process / sync（MediatR INotification，commit 成功後 dispatch） |
+| ExpenseReportRejected | ExpenseReport.Reject() 成功且 ApprovalDecision 建立後 | _(phase 2 暫無外部 consumer；UI 可透過查詢讀取 reason)_ | in-process / sync（MediatR INotification，commit 成功後 dispatch） |
 
 ## Implementation Plan (Layer by Layer) <!-- Fill timing: Activity 4: Implementation Planning -->
 

@@ -114,7 +114,9 @@ Approve / Reject」。兩條規則都預設 Reject 之後狀態**真的**變了�
 主要修正在 **Application 層**：
 
 - 讓 reject flow 走同一個 Unit of Work，使 `ExpenseReport` 與 `ApprovalDecision` 的變更在
-  同一個 transaction 內一起提交。
+  同一個 transaction 內一起提交。一個交易改兩個 Aggregate，是 phase 2 照建模指引
+  Aggregate 規則第 2 條記下的例外（SPEC-20260428-001 的 `aggregate-design.md`
+  § Design Decisions）；這次的修正讓程式做到那個決定。
 - 移除 handler 內針對單一 repository 的 `SaveChangesAsync()` 呼叫；持久化的責任上移到
   Unit of Work。
 

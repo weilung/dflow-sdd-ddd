@@ -503,35 +503,61 @@ the values that changed — not a snapshot of the whole Aggregate.
 
 ```
 1. Aggregate method called → state changes → event added to DomainEvents list
-2. Repository saves Aggregate
-3. After save (in same transaction or via outbox):
+2. Repository / Unit of Work saves the Aggregate and commits
+   (with an outbox, the event rows are saved in this same commit)
+3. After the commit succeeds:
    - In-process handlers: update read models, trigger other commands
-   - Cross-context: publish to message queue
+   - Cross-context: publish to message queue (with an outbox: from those rows)
 ```
+
+**In-process handlers run after the commit.** A handler that changes another
+Aggregate saves it in a transaction of its own; if the handler fails, the first
+change stays committed, and the failure-path guideline under Event Handling
+Guidelines decides whether that outcome needs a `BR-*`.
+
+Dispatching before the commit fits only a handler whose writes join the original
+transaction: every Aggregate it changes is then part of one multi-root local
+transaction — the exception in Aggregate Design Rule 2, with its recorded
+rationale (a handler that only updates a read model needs none: a read model
+carries no invariant). A handler that writes anywhere else — another
+transaction, mail, another service — belongs after the commit: before it, the
+change can still roll back. A project that already dispatches before the commit
+keeps doing so until the developer decides otherwise: moving the dispatch
+changes what commits together, so never move it as part of another change —
+tell the developer what you found.
 
 ### Event Handling Guidelines
 
-- **Same Bounded Context**: Handle synchronously (same transaction OK for read models)
+- **Same Bounded Context**: Handle in-process — after the commit by default (see Event Flow)
 - **Cross Bounded Context**: Handle asynchronously (eventual consistency)
 - Event handlers should be idempotent (safe to process multiple times)
 - **The failure path is a business scenario, not a technical detail**: when a
-  cross-Aggregate chain is async (eventually consistent) **and** a handler's
-  final failure — after retries are exhausted — would be business-visible
-  (compensation, customer entitlements, money, inventory, compliance, manual
-  reconciliation), write that outcome as a `BR-*` with its own Given/When/Then
-  in `behavior.md` and list the failure as an `EC-*` edge case in the spec —
-  even if the documented answer is "ops reconciles manually". Best-effort side
-  effects (notification email, logging) don't need a BR; a line in `events.md`
-  Event Flow Notes or a tech-debt entry is enough.
+  handler runs outside the original transaction (after the commit, or through a
+  queue) **and** its final failure — after any retries, or because the event
+  was never handled — would be business-visible (compensation, customer
+  entitlements, money, inventory, compliance, manual reconciliation, a
+  notification or audit record the business requires), write that outcome as a
+  `BR-*` with its own Given/When/Then in `behavior.md` and list the failure as
+  an `EC-*` edge case in the spec — even if the documented answer is "ops
+  reconciles manually". This holds whether or not the handler changes another
+  Aggregate. Best-effort side effects (an optional notification email, logging)
+  don't need a BR; a line in `events.md` Event Flow Notes or a tech-debt entry
+  is enough.
 - **Dispatch / clear lifecycle**: clear `DomainEvents` at the Repository / Unit
   of Work **save boundary** — the UoW clears them *after* the save succeeds and
-  the events have been dispatched (or the outbox row persisted, or dispatch
-  explicitly decided to be dropped/deferred). Never clear inside an Aggregate
-  method, and never before the save succeeds. A simple in-process dispatcher
-  (e.g. `IPublisher` / MediatR) is enough for Phase 1; an **outbox /
-  integration-event bridge is the Phase 2+ upgrade** for reliable cross-service
-  delivery. If no dispatcher is wired yet, record it as deferred tech debt — but
-  still clear on a successful save so events cannot accumulate unbounded.
+  the events have been dispatched (Event Flow says when each handler runs), or
+  the outbox row persisted, or dispatch explicitly decided to be
+  dropped/deferred. Never clear inside an Aggregate method, and never before the
+  save succeeds. Dispatch each event once: while a batch is being dispatched, a
+  save that one of its handlers makes through the same Unit of Work dispatches
+  only the events raised since, never that batch again — for example, mark the
+  batch as in flight, or hold it apart from newly raised events. A simple
+  in-process dispatcher — hand-written, or the mediator the project already
+  uses — is enough for Phase 1; an **outbox / integration-event bridge is the
+  Phase 2+ upgrade** for reliable cross-service delivery. If no dispatcher is
+  wired yet, record it as deferred tech debt — an event whose handling would be
+  business-visible falls under the failure-path guideline instead — but still
+  clear on a successful save so events cannot accumulate unbounded.
 
 ## Long-Running Processes
 
@@ -677,11 +703,11 @@ event sourcing or a separate database. Two common shapes:
 
 - A **live query DTO against the same database** — always fresh; the simplest
   and most common read model.
-- An **event-updated denormalized table** — can be **stale**. If that staleness
-  is user-visible (e.g. a just-placed order missing from the list for a moment),
-  say so in `behavior.md` / an edge case / a design decision. This is the same
-  mechanism as the "same-transaction read model update" note under Event
-  Handling Guidelines.
+- An **event-updated denormalized table** — updated by a handler after the
+  commit, it can be **stale**. If that staleness is user-visible (e.g. a
+  just-placed order missing from the list for a moment), say so in
+  `behavior.md` / an edge case / a design decision — or update the table inside
+  the transaction instead (see Event Flow).
 
 A read model is a *simplification* of the read path, not an extra layer to
 build. (Read model ≠ event sourcing.)
@@ -824,13 +850,14 @@ The less-obvious three — when to reach for them:
 4. **Business logic in Infrastructure** — Rules in SQL queries or EF configurations
    → Domain defines WHAT, Infrastructure defines HOW
 
-5. **Unreviewed direct cross-Aggregate modification** — One command modifies
-   multiple Aggregate roots without challenging the boundaries or recording why
-   one local transaction is justified
-   → Prefer Domain Events and eventual consistency; if the local-transaction
-   exception is justified, record the rationale and re-evaluation condition from
-   Aggregate Design Rule 2. External provider / service facts are never atomic
-   with the local database transaction.
+5. **Unreviewed cross-Aggregate modification** — One command modifies multiple
+   Aggregate roots — directly, or through an event handler whose writes join its
+   transaction — without challenging the boundaries or recording why one local
+   transaction is justified
+   → Prefer Domain Events handled after the commit (eventual consistency); if
+   the local-transaction exception is justified, record the rationale and
+   re-evaluation condition from Aggregate Design Rule 2. External provider /
+   service facts are never atomic with the local database transaction.
 
 6. **Set-based invariant guarded only in memory** — A "unique" / "only one active"
    rule enforced solely by an in-app check, with no DB unique constraint or

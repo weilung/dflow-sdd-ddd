@@ -162,18 +162,22 @@ Aggregate 越小，越靈活、越容易測試、越容易獨立部署。
 
 ### 那不同 Aggregate 之間怎麼溝通？
 
-用 **Domain Event**。報銷單提交後，發出一個事件，審批任務收到事件後自動建立。
+用 **Domain Event**。報銷單提交的交易 commit 之後，發出一個事件，審批任務收到事件後自動建立——那是另一次存檔。
 這叫「最終一致性」——不是即時同步，但通常幾毫秒內就完成了。
 
 ```
 ExpenseReport.Submit()
+    → 報銷單存檔、commit
     → 發出 ExpenseReportSubmittedEvent
     → Event Handler 收到
-    → 建立 ApprovalTask
+    → 建立 ApprovalTask（另一次存檔）
 ```
 
 延伸到你熟悉的概念：這跟 message queue 的思維是一樣的，
 只是規模更小（進程內）、延遲更低（毫秒級）。
+
+真的需要兩個 Aggregate 一起成立時，也可以在同一個交易裡一起存——那是例外，要寫下理由和什麼時候重看。
+使用教學 greenfield 的 walkthrough-03，主管核准／退回時單子的狀態與那一筆審核決定就是這樣一起存的。
 
 ---
 
@@ -258,7 +262,7 @@ public record Money
 
 ---
 
-## 觀念四：Domain 層不依賴任何外部東西
+## 觀念四：Domain 層不依賴框架與基礎設施
 
 ### 你的直覺
 
@@ -288,11 +292,13 @@ public class ExpenseReport
 
 ### DDD 的做法
 
-Domain 層的 .csproj 裡面**零 NuGet 套件**。它不知道 EF Core 的存在，
-不知道 JSON 序列化，不知道 HTTP，不知道任何框架：
+Domain 層**不引用** EF Core、ASP.NET Core、序列化這類套件。它不知道 EF Core 的存在，
+不知道 JSON 序列化，不知道 HTTP，不知道任何框架。
+Dflow 的 greenfield 專案把 Domain 能用的套件列在 `_overview.md` 的 Technical Architecture 那一節（允許清單）；
+沒有列，就只用語言與 runtime 本身（.csproj 裡零 NuGet 套件）：
 
 ```csharp
-// Domain 層：純 C#，零依賴
+// Domain 層：純 C#，不依賴框架
 public class ExpenseReport : AggregateRoot
 {
     public ExpenseReportId Id { get; private set; }    // 沒有 [Table]
@@ -531,7 +537,7 @@ Greg Young 等人，建立在 Meyer 的 CQS 之上）提出、之後被 DDD 社�
 | 行為放 Entity 裡 | 情境一：Money.Round() 取代分散的計算 | 情境二：ExpenseReport.Submit() |
 | Aggregate 邊界 | — | 情境三：ApprovalTask 拆分決策 |
 | Value Object 不只是 DTO | 情境一：Money Value Object | 情境一：Money 建構式驗證 |
-| Domain 零依賴 | 情境三：PR Review 檢查 System.Web | 情境四：PR Review 檢查 async |
+| Domain 不依賴框架 | 情境三：PR Review 檢查 System.Web | 情境四：PR Review 檢查 async |
 | async 不在 Domain | — | 情境四：PR Review 發現 async |
 | Factory／還原≠創建 | — | —（進階補充，暫無對應端到端情境） |
 | 強型別 ID／適度包裝 | — | —（進階補充，暫無對應端到端情境） |

@@ -144,6 +144,9 @@ phase 2 的審核行為只改變 ExpenseReport 的生命週期，語言也仍是
 **為什麼 ApprovalDecision 是第二個 Aggregate，而不是 ExpenseReport child entity？**
 審核決定有自己的稽核識別、唯一約束與不可變歷史。一份 Report 被 Reject 後重新 Submit，必須保留前一次 decision，並為新的 Submit attempt 建一筆新的 decision。如果做成 child entity，ExpenseReport 會承擔越來越大的稽核集合與 concurrency 風險。用第二個 Aggregate 可以把審核紀錄的持久化與唯一性獨立出來。
 
+**為什麼核准 / 退回在同一個交易裡同時存 ExpenseReport 與 ApprovalDecision？**
+建模指引的 Aggregate 規則第 2 條預設一個交易只改一個 Aggregate，這是記下來的例外。業務上「主管核准 / 退回這張單」是一件事：單子的狀態與那一筆 ApprovalDecision 要一起成立——分開存，會出現已退回卻查不到原因、或有審核決定單子卻還是 Submitted 的單。兩者在同一個 Expense BC、同一個資料庫，由同一個 Unit of Work 一起提交。重新評估：Approval 拆成自己的 BC 或服務、或審核決定改由另一個系統寫入時。
+
 **為什麼 BR-005 要在 Domain 層強制？**
 UI 或 Application validator 可以先擋，但不能作為唯一防線。主管也可能透過 API、batch job 或測試工具觸發審核。`SubmitterId != ApproverId` 是業務不變條件，必須由 ApprovalDecision factory / ExpenseReport approve/reject transition 共同守住。
 
