@@ -22,10 +22,8 @@ ExpenseTracker 是公司內部的**企業差旅費用申報與核銷**系統：�
 ### Business Domain
 
 - **Primary domain**: 企業差旅費用申報與核銷（公司差旅費用申報與核銷）
-- **Key stakeholders**: {e.g. 出差員工、直屬主管、財務團隊、稽核}
-  <!-- TODO: 與 PO 確認 stakeholder 細節 -->
-- **User scale**: {e.g. ~200 內部員工、單一公司}
-  <!-- TODO: 第一輪規格收斂前補上 -->
+- **Key stakeholders**: 員工、部門主管、財務、平台維護團隊
+- **User scale**: 內部使用者規模與提交量級
 
 ---
 
@@ -44,10 +42,11 @@ inward only — the Domain layer is the core and depends on nothing.
 | Web framework | ASP.NET Core 9 (Web API) |
 | ORM | Entity Framework Core 8 |
 | Mediator | MediatR 12 |
-| Validation | {e.g. FluentValidation} <!-- TODO: 確認 validator 選型 --> |
-| Database | {e.g. SQL Server 2022} <!-- TODO: 與 infra 團隊確認 --> |
-| Auth | {e.g. JWT bearer / Azure AD OIDC} <!-- TODO --> |
-| Hosting | {e.g. Azure App Service / on-prem IIS} <!-- TODO --> |
+| Validation | FluentValidation |
+| API docs | Swagger |
+| Database | PostgreSQL 16 |
+| Auth | Company SSO via OIDC |
+| Hosting | Azure App Service |
 | Testing | xUnit |
 
 ### Clean Architecture Layers

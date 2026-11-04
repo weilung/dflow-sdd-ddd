@@ -17,6 +17,13 @@ two different times. Read only the section that matches the one that sent you.**
 **You are here when** `references/finish-feature-flow.md` Step 1's hotfix
 callout sent you — it states the condition; this file does not restate it.
 
+When choosing between the two versions changes source code, first read
+`dflow/specs/shared/_overview.md` § Technical Architecture when the file
+exists and this session has not read it yet, and apply the Technical
+Architecture rule in `AI-AGENT-GUIDE.md` § Core Rules. If the guide has no
+such rule, stop before choosing and ask the developer to bring the guide up
+to date.
+
 **What you classify here is the merge-resolution delta, not the hotfix.** The
 hotfix records itself in its **own** minimal host through Step 1.8 — follow-up
 or standalone, never an in-flight feature — and that host is where

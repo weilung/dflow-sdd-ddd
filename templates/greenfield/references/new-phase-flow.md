@@ -26,6 +26,16 @@ All other step transitions are **step-internal**: announce "Step N complete,
 entering Step N+1" and proceed without waiting. See AI-AGENT-GUIDE.md § Workflow
 Transparency for the full transparency protocol and confirmation signals.
 
+**Technical Architecture**: before any step of this flow that designs the
+domain model, plans code or writes code, read
+`dflow/specs/shared/_overview.md` § Technical Architecture when the file
+exists and this session has not read it yet, and apply the Technical
+Architecture rule in `AI-AGENT-GUIDE.md` § Core Rules. If the guide has no
+such rule (for example a guide older than its managed markers), stop before
+designing, planning or writing code and ask the developer to bring the guide
+up to date — `dflow configure-agents` adds the rule once they accept the
+guide's managed markers.
+
 ## Step 1: Read Active Feature Context
 
 Before producing any spec prose, read `dflow/specs/shared/_conventions.md`
@@ -167,8 +177,8 @@ Walk the developer through what the new phase covers:
    something to record. Before changing an `analysis.md` entry that holds a
    `> Known deviation:` line, apply `references/confirmed-rule-vs-code.md`
    § Preserve during merge.
-6. **Data structure impact?** New tables, columns, indices, EF
-   configuration changes?
+6. **Data structure impact?** New tables, columns, indices, ORM / persistence
+   mapping changes?
 7. **Why now?** Priority — informs sequencing relative to other phases.
 
 This is also the moment to ask: "Should this be its own follow-up feature
@@ -314,7 +324,7 @@ During implementation, continuously verify:
 - [ ] Every affected Given/When/Then scenario is covered by implementation or tests
 - [ ] New or changed Domain Events are raised in the implementation
 - [ ] Aggregate invariants still hold after the change
-- [ ] Domain layer remains framework-pure; EF configuration stays in Infrastructure
+- [ ] Domain layer remains framework-pure; ORM / persistence mapping stays in Infrastructure
 - [ ] No business logic leaks into Application handlers, Infrastructure queries,
       or Presentation controllers
 - [ ] Test failures have been resolved or explicitly recorded as follow-up

@@ -15,6 +15,16 @@ Crossing any step gate above also updates the host feature's `_index.md` Resume 
 
 All other step transitions are **step-internal**: announce "Step N complete, entering Step N+1" and proceed without waiting. See AI-AGENT-GUIDE.md § Workflow Transparency for the full transparency protocol and confirmation signals.
 
+**Technical Architecture**: before any step of this flow that designs the
+domain model, plans code or writes code, read
+`dflow/specs/shared/_overview.md` § Technical Architecture when the file
+exists and this session has not read it yet, and apply the Technical
+Architecture rule in `AI-AGENT-GUIDE.md` § Core Rules. If the guide has no
+such rule (for example a guide older than its managed markers), stop before
+designing, planning or writing code and ask the developer to bring the guide
+up to date — `dflow configure-agents` adds the rule once they accept the
+guide's managed markers.
+
 **Ceremony**: this flow always defaults to **T1 Heavy** — the first phase of a brand-new feature is by definition a full SDD cycle. Tier judgement (the ordered cascade — T1 / T2 / T3 / below workflow) applies to `/dflow:modify-existing` and `/dflow:bug-fix`; the criteria live in AI-AGENT-GUIDE.md § Ceremony Scaling, and `references/modify-existing-flow.md` is where they are applied.
 
 ## Step 1: Intake — Understand the Request
@@ -328,11 +338,15 @@ Wait for confirmation (`/dflow:next`, verbal OK, or implicit — see AI-AGENT-GU
 
 ## Step 5: Plan the Implementation (Layer by Layer)
 
+The lists below name the usual pieces of each layer, not this project's
+choices: plan in the shape `_overview.md` § Technical Architecture records
+(the Technical Architecture rule in `AI-AGENT-GUIDE.md` § Core Rules).
+
 ### Domain Layer (implement first)
 ```
 1. Create/update Aggregate Root with state-changing methods
 2. Create Value Objects with validation in constructors
-3. Define Domain Events (record types)
+3. Define Domain Events (immutable types, e.g. records)
 4. Define Repository interface
 5. Write Domain unit tests
 ```
@@ -341,7 +355,7 @@ Wait for confirmation (`/dflow:next`, verbal OK, or implicit — see AI-AGENT-GU
 ```
 1. Create Command + CommandHandler (for writes)
 2. Create Query + QueryHandler (for reads)
-3. Create CommandValidator (FluentValidation)
+3. Add input validation the way Technical Architecture names it (e.g. a FluentValidation validator per command)
 4. Create Domain Event handlers (if needed)
 5. Define DTOs for input/output
 ```
@@ -356,9 +370,9 @@ Wait for confirmation (`/dflow:next`, verbal OK, or implicit — see AI-AGENT-GU
 
 ### Presentation Layer (implement last)
 ```
-1. API endpoint (Controller or Minimal API)
+1. API endpoint (e.g. a controller action or a minimal API endpoint)
 2. Request/Response models
-3. Swagger documentation
+3. API documentation in the form Technical Architecture names (e.g. Swagger / OpenAPI); leave it out only when Technical Architecture records that the project publishes none
 ```
 
 ### Generate Implementation Tasks List
@@ -366,9 +380,9 @@ Wait for confirmation (`/dflow:next`, verbal OK, or implicit — see AI-AGENT-GU
 After the layer-by-layer plan is agreed, AI generates a concrete task list and writes it into the spec's `Implementation Tasks` section (see `templates/phase-spec.md`). Each task follows `[LAYER]-[NUMBER]：description` and maps to Clean Architecture layers:
 
 - `DOMAIN` — Aggregate / Entity / VO / Domain Event / Domain Service / Repository Interface
-- `APP`    — Command/Query / Handler / Validator / DTO / Event Handler
-- `INFRA`  — EF Configuration / Repository Impl / external adapter / Migration
-- `API`    — Controller / Minimal API / Request/Response / Swagger
+- `APP`    — Command/Query / Handler / Validation / DTO / Event Handler
+- `INFRA`  — ORM / persistence mapping (e.g. EF Configuration) / Repository Impl / external adapter / Migration
+- `API`    — Endpoint (e.g. Controller / Minimal API) / Request/Response / API documentation (e.g. Swagger)
 - `TEST`   — Tests per layer
 
 Recommended authoring order mirrors implementation order: `DOMAIN → APP → INFRA → API` (with `TEST` interleaved).
@@ -438,16 +452,16 @@ During implementation, continuously verify:
 **Application Layer**
 - [ ] No business logic in handlers (only orchestration)
 - [ ] Command/Query separation maintained
-- [ ] Validation in Validator, not Handler
+- [ ] Input validation sits where Technical Architecture puts it (e.g. a validator), not in the handler
 - [ ] DTOs map to/from Domain objects (no Domain objects in API)
 
 **Infrastructure Layer**
-- [ ] EF Config in Fluent API (no attributes on Domain entities)
+- [ ] ORM / persistence mapping is kept outside Domain entities (no persistence attributes/annotations on Domain entities)
 - [ ] Repository implements Domain interface correctly
 - [ ] No business logic in queries
 
 **Presentation Layer**
-- [ ] Controller is thin (parse → dispatch → respond)
+- [ ] Endpoint code is thin (parse → dispatch → respond)
 - [ ] No domain objects exposed to API consumers
 - [ ] Proper HTTP status codes
 

@@ -242,6 +242,8 @@ dflow/
         └── completed/
 ```
 
+Greenfield 專案 `_overview.md` 裡的 Technical Architecture 一節，記這個專案替程式選的形狀（套件、模式、分層、各層能依賴什麼）：流程在建模、規劃或寫程式之前讀它，流程與檢查表裡的工具名稱只是例子。什麼時候讀、選擇沒記下時 AI 怎麼做、和 ADR 的關係、接受的風險，見[規劃程式之前讀 Technical Architecture](docs/technical-architecture.md)。
+
 `analysis.md` 不在 init 產生之列：跨 context 的記在 `domain/analysis.md`、單一 context 擁有的記在 `domain/{context}/analysis.md`，都是第一次有東西要記時才從範本建立。
 
 Dflow 也會為你的 AI 程式設計助理建立或更新專案指示檔；確切檔名取決於目標工具與既有專案設定。Dflow 不覆寫既有專案指示中的自訂內容。

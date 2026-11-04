@@ -420,13 +420,13 @@ instead, writing the owner, known risk and exit criteria in the debt row's
 
 - [ ] **No business logic** — handlers only orchestrate, not decide
 - [ ] **CQRS respected** — Commands for writes, Queries for reads
-- [ ] **Validation in Validator** — not in handler or controller
+- [ ] **Input validation where Technical Architecture puts it** — not in handler or controller logic
 - [ ] **No Domain objects in DTOs** — proper mapping between layers
 - [ ] **Event handlers are idempotent** — safe to replay
 
 ## Infrastructure Layer Quality
 
-- [ ] **EF config in Fluent API** — not attributes on Domain entities
+- [ ] **ORM / persistence mapping in Infrastructure** — no persistence attributes/annotations on Domain entities
 - [ ] **Repository only for Aggregate Roots** — not for child entities
 - [ ] **No business logic in SQL/LINQ** — complex filtering via Specifications
 - [ ] **External service behind interface** — mockable for tests

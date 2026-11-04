@@ -195,7 +195,8 @@ Host feature = SPEC-20260428-001-employee-submit-expense，
 | 新 phase | 不需要。沒有新增審核流程、狀態或資料結構。 |
 | 既有 active feature 的 T2 lightweight spec | 對。這是 BR-007 的 wording / validation delta。 |
 
-Affected layer 也被標出：
+Dflow 接著標出 affected layer（Step 1 Part C，選修正落在哪一層）。這一步算規劃，所以 Dflow
+先讀 `_overview.md` § Technical Architecture（這一場還沒讀過的話）：
 
 ```text
 Dflow:

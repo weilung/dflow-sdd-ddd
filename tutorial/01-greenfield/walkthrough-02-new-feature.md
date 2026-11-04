@@ -167,6 +167,9 @@ Entering Step 2: Identify the Bounded Context.
 
 ## Step 2 — Dflow 先定 bounded context，不先定資料表
 
+認 bounded context 之前，Dflow 先讀 `_overview.md` § Technical Architecture（這一場還沒讀過）：
+ASP.NET Core 9、EF Core 8、MediatR 12；Domain 沒有允許清單，不依賴任何套件。
+
 Dflow 接著提出 bounded context 的切法：
 
 ```text
@@ -850,7 +853,25 @@ BR-004 的「重複收據處理方式」MVP 採「拒絕」沒問題。
 
 ## Step 5 — Implementation plan 仍然先 Domain layer
 
-Dflow 依 Clean Architecture 順序規劃：
+規劃之前，Dflow 對照 Step 2 讀過的 Technical Architecture，有兩個選擇沒有記下，現有程式也還定不了：
+Validation 那一列還是佔位字（`{e.g. FluentValidation}`），專案裡也還沒有任何 validator；API 文件
+Technical Architecture 沒有記，也還沒有程式。佔位字與流程裡的例子都不算專案的選擇，所以 Dflow 先問：
+
+```text
+Dflow:
+規劃之前，有兩個選擇 Technical Architecture 沒有記下，現有程式也定不了：
+1. Validation：那一列還是佔位字，專案裡還沒有 validator。要用哪一種？
+2. API 文件：要不要發佈？要的話用什麼？
+答案建議記進 _overview.md § Technical Architecture，之後的 session 就不必再問。
+```
+
+```text
+Alice:
+FluentValidation。API 文件要，用 Swagger。
+```
+
+Alice 自己把答案記進 `_overview.md`：Validation 那一列改成 FluentValidation，另加一列 API docs
+（Swagger）。Dflow 照這兩個答案，依 Clean Architecture 順序規劃：
 
 ```text
 Dflow:
@@ -866,8 +887,8 @@ Domain Layer:
 6. Domain unit tests
 
 Application Layer:
-1. CreateExpenseReportCommand
-2. SubmitExpenseReportCommand
+1. CreateExpenseReportCommand + FluentValidation validator
+2. SubmitExpenseReportCommand + FluentValidation validator
 3. DTOs
 
 Infrastructure Layer:

@@ -156,6 +156,9 @@ Dflow 會先讀現有 feature state，尤其是 `_index.md` Current BR Snapshot 
 
 ## Step 2 — Confirm Phase Scope
 
+Step 2 要為這個 phase 的新概念建模，所以 Dflow 在這一步之前讀 `_overview.md`
+§ Technical Architecture（這一場還沒讀過的話）。
+
 Dflow 先用 plain language 確認：
 
 ```text

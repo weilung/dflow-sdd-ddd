@@ -14,6 +14,16 @@ Crossing any step gate above also updates the host feature's `_index.md` Resume 
 
 All other step transitions are **step-internal**: announce "Step N complete, entering Step N+1" and proceed without waiting. See AI-AGENT-GUIDE.md § Workflow Transparency for the full transparency protocol and confirmation signals.
 
+**Technical Architecture**: before any step of this flow that designs the
+domain model, plans code or writes code, read
+`dflow/specs/shared/_overview.md` § Technical Architecture when the file
+exists and this session has not read it yet, and apply the Technical
+Architecture rule in `AI-AGENT-GUIDE.md` § Core Rules. If the guide has no
+such rule (for example a guide older than its managed markers), stop before
+designing, planning or writing code and ask the developer to bring the guide
+up to date — `dflow configure-agents` adds the rule once they accept the
+guide's managed markers.
+
 **Note on step count**: Greenfield edition has 5 steps (Brownfield has
 6) because Clean Architecture's layered structure already separates
 concerns — there's no delivery/entrypoint extraction step to perform.

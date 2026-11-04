@@ -334,6 +334,15 @@ dflow/
         └── completed/
 ```
 
+In a Greenfield project, the Technical Architecture section of
+`_overview.md` records the shape this project chose for its code (libraries,
+patterns, layers, and what each layer may depend on): the flows read it
+before modeling, planning or writing code, and the tool names in the flows
+and checklists are only examples. When it is read, what the AI does when a
+choice is not recorded, how it relates to ADRs, and the accepted risks:
+[Reading Technical Architecture Before Planning
+Code](docs/technical-architecture.en.md).
+
 `analysis.md` is not created by init: what crosses contexts goes in
 `domain/analysis.md`, what one context owns in `domain/{context}/analysis.md`,
 and each is created from its template the first time there is something to

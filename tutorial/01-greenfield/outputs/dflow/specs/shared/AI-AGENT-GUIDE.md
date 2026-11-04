@@ -77,6 +77,11 @@ Dflow-owned project documents live under `dflow/specs/`.
 3. Keep phase delta, feature snapshot, and system state separate.
 4. Check drift before calling work complete.
 5. Follow `dflow/specs/shared/_conventions.md`, especially `## Prose Language`.
+6. **Technical Architecture decides the shape of the code.** When `dflow/specs/shared/_overview.md` exists, its § Technical Architecture records this project's choices: the libraries and patterns it uses, the layout, and what each layer may depend on.
+   - Where a flow step, checklist or template note names something else, follow Technical Architecture. The flows still decide the steps, gates and documents.
+   - When the work needs a choice that Technical Architecture does not record — no `_overview.md`, no row for it, a blank value, a `{…}` placeholder, or a value marked tentative — follow what the existing code already does consistently. When the code does not settle it either, ask the developer, and suggest recording the answer in Technical Architecture. Never treat an example in Dflow's wording or in a placeholder as the project's choice.
+   - The Domain's dependencies are the exception: with no allow-list recorded, the Domain depends on nothing beyond the language/runtime baseline.
+   - When an accepted ADR you read names a different choice from Technical Architecture, ask the developer which one holds.
 
 ## Tool-Specific Notes
 

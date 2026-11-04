@@ -8,8 +8,20 @@
 
 ## Unreleased
 
-> **目前投影版號：`0.18.3`**（**未發布到 npm**；npm latest 仍是 `0.18.0`）。
-> 下面三段都在這一版裡，段標題標出各自第一次投影的版號。
+> **目前投影版號：`0.18.4`**（**未發布到 npm**；npm latest 仍是 `0.18.0`）。
+> 下面四段都在這一版裡，段標題標出各自第一次投影的版號。
+
+### greenfield 規劃程式之前讀 Technical Architecture、流程寫死的工具名稱改成例子（PROPOSAL-121，dist issue #33）——`0.18.4`
+
+**來源**：dist issue #33。
+
+- **什麼時候讀（greenfield）**：`new-feature-flow.md`、`new-phase-flow.md`、`modify-existing-flow.md`（`/dflow:bug-fix` 也走這一支）開頭加同一段：任何要設計領域模型、規劃或寫程式的步驟之前，有 `_overview.md`、這一場還沒讀過，就讀它的 § Technical Architecture。T3 與從後面的步驟接續的 session 也涵蓋；modify-existing 在 Step 1 Part C（選修正落在哪一層）之前讀。`finish-feature-post-hoc-hotfix.md` § Before closeout 在兩版之間做選擇、會改到程式時也先讀。
+- **以它為準（greenfield `AI-AGENT-GUIDE.md` § Core Rules 第 6 條）**：程式的形狀（套件、模式、分層、各層能依賴什麼）照 Technical Architecture，流程照舊決定步驟、閘與文件；選擇沒記下時先照現有程式一致的做法，程式也定不了就問開發者，並建議把答案記進 Technical Architecture；Dflow 字眼與佔位字裡的例子不算專案的選擇；Domain 沒有允許清單時照舊什麼都不依賴；讀到的 accepted ADR 和它不同時，問開發者哪個為準。
+- **工具名稱改成例子**：`new-feature-flow.md` 第 5 步的分層清單與 task 標籤、第 7 步的檢查表，`new-phase-flow.md` 第 2 步第 6 題與第 6 步，PR 檢查表兩項：FluentValidation、Swagger、Controller／Minimal API、EF／Fluent API 改成「照 Technical Architecture 記的方式（e.g. 原本的工具）」或中性的說法；第 5 步開頭加一句：下面的清單是每一層常見的東西，不是這個專案的選擇。API 文件只有 Technical Architecture 明記不發佈時才略過。
+- **教材（greenfield）**：範例專案的 `_overview.md` 照 walkthrough-01 第 5 步補上 stakeholders、user scale、DB、Auth、Hosting；walkthrough-02 第 2 步讀 Technical Architecture，第 5 步在規劃之前問 Validation 與 API 文件（Alice 答 FluentValidation、Swagger，自己記進 `_overview.md`）；walkthrough-03、04 標出讀的時機；`AI-AGENT-GUIDE.md` 副本跟上第 6 條。
+- **brownfield 不變**：brownfield 的流程不讀 `_overview.md`；寫死 `src/Domain/` 的檢查，在改了領域程式位置的專案會靜默通過，寫在說明頁。
+- 做法、限制與接受的風險：[`docs/technical-architecture.md`](docs/technical-architecture.md)（與英文頁）。
+- **既有專案**：沒有遷移動作。guide 由 `dflow configure-agents` 刷新 marker 之內的部分，範本形狀不變；採用 managed markers 之前的舊 guide 拿不到第 6 條，流程會在設計、規劃或寫程式之前停下來，請開發者把 guide 補上。
 
 ### 技術棧例子與套件授權、Domain 能依賴什麼、baseline 盤點少問一次、生命週期沒有「從任何狀態」的簡寫（dist issue #34、#32、#29、#31）——`0.18.3`
 
