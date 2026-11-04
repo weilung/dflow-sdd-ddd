@@ -21,6 +21,8 @@
 | CreditLimit | 客戶可用信用額度；接單或提交訂單時可能影響是否允許成立訂單。 | Customer | Stored Procedure / Customer repository | 規則可能在 Customer 與 Order 之間跨 context。 |
 | AvailableToPromise | 可承諾給訂單的可售量，通常由庫存量扣除預留量後得到。 | Inventory | Stored Procedure | 目前命名與實作待確認。 |
 | Shipment | 訂單成立後的出貨流程與物流狀態。 | Shipment | `OrderManager.Web.Pages.Shipment.*` | 是否與 Order 狀態共用欄位待釐清。 |
+| 運費 | 一張訂單的出貨費用：依重量級距表收費，拿去比的金額達到免運門檻就是 0；三處怎麼產生見 `Shipment/analysis.md` RM-01。 | Shipment | `Order.ShippingFee` | `SPEC-20260511-001` 確認（照程式的叫法）。 |
+| 重量級距表 | 依訂單重量決定運費的對照表（例：5–10kg = 150），購物車與結帳頁共用同一份。 | Shipment | `ShoppingCart.CalculateShippingFee()`<br>`Checkout.BindShippingSummary()` | not confirmed - code - `ShoppingCart.aspx.cs` `CalculateShippingFee()`、`Checkout.aspx.cs` `BindShippingSummary()` (2026-05-11) |
 | Invoice | 與訂單或出貨結果相關的發票與應收帳款資料。 | Invoice | `OrderManager.Web.Pages.Invoice.*` | 財務規則可能由不同 owner 維護。 |
 
 ## Open Questions
@@ -28,3 +30,7 @@
 - Customer 與 Dealer 是否為同一個 Ubiquitous Language？若業務部門使用 Dealer、資料庫使用 Customer，spec 與 code mapping 要明確記錄。
 - Order 金額計算與折扣規則已由 `SPEC-20260430-001` 確認屬於 Order BC；信用額度檢查與庫存預留仍待 Customer / Inventory 邊界釐清。
 - Invoice 狀態是否應影響 Order 狀態，或只作為 downstream 財務流程？
+
+- Question: SPEC-20260511-001/Q01 — target: domain/glossary.md 免運門檻 — asks: 免運門檻要定成什麼主名詞與定義？
+
+> Decision: SPEC-20260511-001/Q01 — outcome: unresolved — answer: 現在定不了：免運門檻怎麼判定還沒拍板（Shipment/analysis.md HS-01），等營運拍板、寫 BR 的那個 feature 一起定 — confirmed by: Bob (2026-05-11) — applied to: not-applied with reason: 等 HS-01 拍板，再在之後的盤點或不開 host 時照題號回答

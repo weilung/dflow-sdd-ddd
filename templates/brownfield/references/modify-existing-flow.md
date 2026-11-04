@@ -861,7 +861,7 @@ questions says.
 - [ ] `dflow/specs/domain/{context}/rules.md` — business rules updated
 - [ ] `dflow/specs/domain/{context}/models.md` — domain model updated
 - [ ] `dflow/specs/domain/{context}/analysis.md` — lifecycles, derived figures or mechanisms no single rule explains this change found or altered, in the owning context's copy, which may not be this host's; any spot this change worked around pending a domain decision, in those or in a rule or unrecorded knowledge that belongs there; and any open row there this change settled (created from `templates/analysis.md` the first time there is something to record; N/A when there is none)
-- [ ] `dflow/specs/domain/glossary.md` — new / renamed terms (mirror any RENAMED delta entries here)
+- [ ] `dflow/specs/domain/glossary.md` — new / renamed terms (mirror any RENAMED delta entries here). A row whose Notes carry a `not confirmed - …` item keeps it until this change's spec adds or changes that term, when the host's SPEC-ID takes its place, or a confirmation replaces it (`references/modify-existing-baseline.md` § Where confirmations are recorded).
 - [ ] `dflow/specs/domain/analysis.md` — ordered cross-context flows, role reach, or anything else no one context owns, that this change found or altered; any spot this change worked around pending a domain decision, in those or in unrecorded knowledge that belongs here; and any open row there this change settled (created from `templates/analysis.md` the first time there is something to record; N/A when there is none)
 - [ ] `dflow/specs/domain/{context}/behavior.md` — update scenarios to reflect Delta result (merge final state, not Delta markup). Sub-step:
       - Update the corresponding `rules.md` anchor's `last-updated` date (B4)

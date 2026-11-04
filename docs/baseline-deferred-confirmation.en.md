@@ -60,6 +60,32 @@ Each record is its own paragraph with a blank line before and after it. The `Que
 - A `Decision` exists only while an answer cannot be applied yet, and there is only one: `unresolved` when it still cannot be confirmed, `not-applied` when the ordinary spec flow has to apply it, `conflicting` when answers conflict. Its `confirmed by` says only that this role gave this answer — not that the rule or the code is confirmed, and not that the answer was applied.
 - A question id is the capturing host's SPEC-ID, `/Q` and a number of at least two digits. Within one SPEC-ID a number is **never reused**, even after its record is removed: a new question is numbered above the highest number already used for that SPEC-ID — in version history, commit messages included, and in the change not yet committed (a number counts once a record carried it; one only planned, never written into a record, does not) — not above the numbers still visible in the documents.
 
+### Terms not asked about: `not confirmed`
+
+Of the terms a capture used that `glossary.md` does not have yet, question 7 asks one by one only about those that need someone to make a choice:
+
+- the code or a document uses the same word for more than one thing (for example, one word that means both cancelling an approved leave and reporting back after the leave);
+- one thing goes by more than one name;
+- the name and what the code does disagree, or the code leaves open what it is (for example, whether a quota field holds the total or the balance).
+
+A name the AI only translated or coined itself is not such a choice; a term that also meets one of the three above is still asked about. A term `glossary.md` already marks unconfirmed is asked about too when it meets one of the three this time; a term a pending question already targets is answered by that question's id and not asked about again.
+
+A term you were asked about gets its row in the Terms table only once it is settled. While it is deferred, or you cannot settle it yet, it gets no row, only a pending question (one you cannot settle yet adds an `unresolved` `Decision` to its record); it is not written into Goals & Scope — that records only confirmations actually given.
+
+The other terms are not asked about: the AI writes them into the Terms table, named and defined as the code (its UI text included) or an existing document names and defines them, marks them unconfirmed, and shows them to you in one message with their definitions, together with each term this capture used that `glossary.md` already marks unconfirmed and that was not asked about this time. That message is not a question: only a term you explicitly accept or correct is confirmed; no answer, or a general "OK", leaves the term unconfirmed.
+
+An unconfirmed term's Notes cell carries one more item:
+
+```text
+not confirmed - inferred - Receipt.Status value Submitted (2026-10-16)
+```
+
+- The kind is one of the five kinds of `Draft basis`; `inferred` means the AI inferred the name or the meaning (for example, no screen shows the status in the team's language, and the AI translated the code's `Submitted` itself).
+- Once the term is confirmed, where it was confirmed takes this item's place: a confirmation in a host writes the SPEC-ID; a term question with an id, answered with no host, writes `confirmed by {role} - version history ({date})`. A term shown without being asked has no question id, so answering with no host cannot reach it; a later capture confirms it. The cell's other notes stay.
+- When a later feature or lightweight change writes this row: if its spec adds or changes the term, closeout replaces the item with that feature's SPEC-ID; if it only uses the term, the item stays.
+- A term shown without being asked is not a deferred question: it has no question id and no records, and deferring opens no question for it.
+- When documents move from a brownfield project into a new greenfield project (the README's Track Choice and Migration), the mark goes with them, and the greenfield flows do not recognize it: confirm the term in a brownfield capture before the move, or settle it in a greenfield spec after it.
+
 ## Answering later
 
 | When | How |
@@ -140,5 +166,12 @@ In this release the brownfield templates `behavior.md` move to shape 3 and `_ind
 | Answering with no host, the documents change after it starts or during review, and an answer lands on the wrong version | The basis is re-checked before it starts, but nothing locks meaning across branches | Whoever writes the answers back, and the reviewer at merge | Conflicts across branches become common, and comparing by hand costs more than a version snapshot would |
 | The no-host commit also changes other rows of the same file, and `dflow check-closeout` still exits 0 | The CLI does not check what a document change means; which rows are in scope is for the AI and review | Whoever writes the answers back, and reviewers | Out-of-scope changes actually happen; then reconsider a locator or a checked list of changes |
 | A confirmation given with no host has no host to cite | A reader who knows Dflow can tell the confirmation was not given in a capture; this difference is accepted on purpose | Document readers: read that commit when they need the process | Tracing where a confirmation came from needs more than version history gives |
+| The AI writes an ambiguous term into `glossary.md` as the code names it and only marks it `not confirmed`, without asking | Whether a term needs a choice is a judgement no machine can make; the message that shows the term carries its definition, so the developer can see it | The running AI, the developer | Reports of an ambiguous term marked unconfirmed and never asked about |
+| A reader skips the Notes and takes an unconfirmed name for the business's settled term, naming new code or a spec after it | The mark lives only in the Notes cell, with no column of its own: a column would change the template's shape number and every project would migrate once | Readers and later developers | Reports of something named after an unconfirmed name going wrong |
+| At closeout, a term the spec only uses is judged changed and the mark is replaced by a SPEC-ID (nobody confirmed it); or a feature settles a term its spec never changes, and the mark stays until a later capture shows it | "Adds or changes" versus "only uses" is a judgement no machine can make; closeout's diff shows the cell | The AI running the closeout or the lightweight change, the developer, reviewers | Reports of a replaced mark, or of a term taken as confirmed |
+| A general "OK" is not a confirmation, so a term can stay unconfirmed and be shown again by every later capture that uses it | A batch answer confirms only what the developer explicitly accepted, the same rule as for deferred questions | The project's maintainers | Unconfirmed terms pile up enough to get in the way of work |
+| There is no set way to confirm a shown term outside a capture: it has no question id, so answering with no host cannot reach it | No separate path is added for it | Developers who want to confirm a term outside a capture: they can still open another capture, or settle it in a later feature's spec | Reports of wanting to confirm a term outside a capture and finding no way |
+| Term questions an older release opened still wait for answers and do not become unconfirmed terms | Existing question records are not rewritten | Those projects | Reports of too many old term questions, or of wanting them turned into unconfirmed terms in one go |
+| Documents moved from a brownfield project into a new greenfield project take the mark with them; the greenfield flows do not recognize it and may overwrite it as an ordinary note when they next write the row | Greenfield produces no mark; moving documents is a one-time manual step of a migration, and no procedure is set for it | The team doing the migration | Reports of a migrated greenfield project treating an unconfirmed term as confirmed |
 
-The design reasons — why a candidate and what the system does are written apart, why a record goes once its answer is applied, why a question sits with its knowledge — are in the workflow bundle's `references/flow-rationale-registry.md`; look up `R-ME-BLDEFER-`.
+The design reasons — why a candidate and what the system does are written apart, why a record goes once its answer is applied, why a question sits with its knowledge — are in the workflow bundle's `references/flow-rationale-registry.md`; look up `R-ME-BLDEFER-`. For why question 7 asks only about terms that need a choice, and when a later closeout replaces the mark, look up `R-ME-BLTERMS-01` and `R-FF-TERMMARK-01`.

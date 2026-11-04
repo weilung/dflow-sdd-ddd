@@ -8,8 +8,19 @@
 
 ## Unreleased
 
-> **目前投影版號：`0.18.5`**（**未發布到 npm**；npm latest 仍是 `0.18.0`）。
-> 下面五段都在這一版裡，段標題標出各自第一次投影的版號。
+> **目前投影版號：`0.18.6`**（**未發布到 npm**；npm latest 仍是 `0.18.0`）。
+> 下面六段都在這一版裡，段標題標出各自第一次投影的版號。
+
+### brownfield baseline 盤點的名詞題只問要做選擇的，其餘照程式寫進 `glossary.md`、標 `not confirmed`（PROPOSAL-123，dist issue #30）——`0.18.6`
+
+**來源**：dist issue #30。
+
+- **第 7 題問哪些名詞（brownfield `modify-existing-baseline.md`）**：盤點用到、`glossary.md` 還沒有或已經標未確認的名詞，只逐題問要做選擇的——程式或文件把一個詞用在兩件以上的事上、一件事有兩個以上的叫法、名字和程式的做法對不上或意思沒說清楚；只是翻譯或取名不算，翻譯之外還符合三種之一照樣問。已經有待答題目的名詞照它的題號答。問了的名詞定下來才寫進 `glossary.md`；延後或定不了的不寫那一列，記成待確認題目（定不了的加一行 `unresolved` 的 `Decision`）。
+- **其餘的名詞**：照程式（畫面上的字也算）或文件的叫法與意思寫進 Terms 表，Notes 多一項 `not confirmed - {kind} - {複查入口} ({日期})`（種類照 `analysis.md` 的 Evidence 寫法；AI 翻譯或取的名字是 `inferred`），在同一則訊息裡連定義列給開發者看——明說接受或更正才算確認，沒回或一句「OK」不算；開發者把列出的名詞排除，就拿掉那一列。確認之後，確認的出處取代這一項，Notes 裡其他的備註照留。列出的名詞不是延後的題目：沒有題號、沒有紀錄。
+- **之後寫到那一列的流程（brownfield）**：收尾（`finish-feature-flow.md` Step 3，分 host 形狀之前一段）與 lightweight 變更（`modify-existing-flow.md` Step 6 清單）寫到標 `not confirmed` 的列時，這次的 spec 新增或改了那個名詞才換成 SPEC-ID；只是用到，標記照留。greenfield 的流程不產生這個標記，不改。
+- **教材（brownfield）**：walkthrough-07 第 7 題問免運門檻，Bob 定不了——不寫那一列，記一筆 `unresolved` 的待確認題目；照程式寫進的運費、重量級距表列給 Bob 看，運費 Bob 明說了算確認，重量級距表照樣 `not confirmed`。Goals & Scope 拿掉「免運門檻先不進 `glossary.md`」那一行（待決的狀態不記在確認行），加運費那一行；fixture 的 `glossary.md` 多兩列與那一筆題目紀錄；支線的題號跟著算。
+- 做法、限制與接受的風險：[`docs/baseline-deferred-confirmation.md`](docs/baseline-deferred-confirmation.md) 的「沒問的名詞」一節與風險表（與英文頁）。
+- **既有專案**：沒有遷移動作。範本形狀不變；workflow bundle 由 `dflow configure-agents` 刷新。已經開著的名詞題照舊等答案，不轉成未確認。
 
 ### Domain Event 預設在 commit 成功之後發、handler 失敗看業務看不看得到、檢查表的事件項對照 spec（PROPOSAL-122，dist issue #35）——`0.18.5`
 

@@ -287,6 +287,11 @@ signal, skip the debt reconciliation and report
 that reconciliation after the applicable document sync, before Step 4 — also
 for a no-BR family with an empty Current BR Snapshot.
 
+When this step writes a `glossary.md` row — in case (i) below, or in case (ii)
+on a host that carries phase-specs — whose Notes carry a `not confirmed - …`
+item, keep that item unless one of this feature's specs adds or changes that
+term; then this feature's SPEC-ID takes its place.
+
 **Then branch on what this host actually carries** — "zero-phase" (no
 phase-spec) is independent of whether a bounded context exists, so a minimal
 host may still touch a real BC, or none at all:

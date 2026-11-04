@@ -393,9 +393,17 @@ Bob: 對。「已知不一致」那段就是我們要的寫法：記三種結果
 6. 盤點時有沒有看到既有文件寫錯、名詞用法不一致？
    沒有。
 
-7. 這次用到、glossary 還沒有的名詞：免運門檻。要定一個主名詞嗎？
+7. 這次用到、glossary 還沒有，而且要選擇的名詞：免運門檻——三處判定不一致（HS-01），
+   程式沒說清楚它拿哪個金額比。要定一個主名詞嗎？
 Bob: 先不要。免運門檻怎麼判定還沒拍板（HS-01），現在寫定義等於先寫了半條規則。
      等營運拍板、那個 feature 寫 BR 時一起定。
+   那就不寫那一列，記一筆待確認題目（SPEC-20260511-001/Q01），Decision 寫 unresolved——
+   它不是確認，Goals & Scope 不記。
+   照程式寫進 glossary、還沒確認的：
+   - 運費（ShippingFee）：一張訂單的出貨費用，依重量級距表收費，拿去比的金額達到免運門檻就是 0。
+   - 重量級距表：依訂單重量決定運費的對照表（例：5–10kg = 150），購物車與結帳頁共用同一份。
+   有不同叫法再告訴我。
+Bob: 運費就叫運費。
 
 8. models.md、context-map.md 這次新增或改了的內容：
    Shipment 在 context-map.md 是 Undecided Neighbors 的一列。它是什麼——
@@ -424,6 +432,28 @@ Bob: 對，搬。
 沒有 BR-ID 的段落寫的是觀察本身，所以本篇整題問「照現況寫對了嗎」；帶 BR-ID 的情境問的是
 「寫的是不是確認的規則」，偏離行問的是觀察與證據（見 [walkthrough 03](walkthrough-03-baseline-capture.md) 的第 5 題）。
 
+第 7 題先分名詞，只逐題問要有人做選擇的：免運門檻三處拿去比的金額不一樣，程式沒說清楚它是什麼，所以問；
+運費、重量級距表照程式的叫法與意思寫進 `glossary.md`、標未確認，在同一則訊息裡連定義列給 Bob 看——
+跟第 3 題同一個道理，照程式寫下來的，依據記在條目上，不必一題一題問。那則清單**不是題目**：
+運費 Bob 明說了，算確認，Notes 換成本 SPEC-ID；重量級距表他沒說什麼，Notes 照樣是
+`not confirmed - code - …`——沒說話不是確認。它沒有題號、沒有紀錄，延後時也不會替它開題，
+要等之後的盤點用到時再列出來確認。免運門檻 Bob 定不了，所以不寫那一列，只在 `glossary.md` 的
+Open Questions 留一筆待確認題目，`Decision` 寫 `unresolved`；等 HS-01 拍板之後，在之後的盤點、或不開 host 時照題號回答。
+
+```markdown
+| 運費 | 一張訂單的出貨費用：依重量級距表收費，拿去比的金額達到免運門檻就是 0；三處怎麼產生見 `Shipment/analysis.md` RM-01。 | Shipment | `Order.ShippingFee` | `SPEC-20260511-001` 確認（照程式的叫法）。 |
+| 重量級距表 | 依訂單重量決定運費的對照表（例：5–10kg = 150），購物車與結帳頁共用同一份。 | Shipment | `ShoppingCart.CalculateShippingFee()`<br>`Checkout.BindShippingSummary()` | not confirmed - code - `ShoppingCart.aspx.cs` `CalculateShippingFee()`、`Checkout.aspx.cs` `BindShippingSummary()` (2026-05-11) |
+
+## Open Questions
+
+- Question: SPEC-20260511-001/Q01 — target: domain/glossary.md 免運門檻 — asks: 免運門檻要定成什麼主名詞與定義？
+
+> Decision: SPEC-20260511-001/Q01 — outcome: unresolved — answer: 現在定不了：免運門檻怎麼判定還沒拍板（Shipment/analysis.md HS-01），等營運拍板、寫 BR 的那個 feature 一起定 — confirmed by: Bob (2026-05-11) — applied to: not-applied with reason: 等 HS-01 拍板，再在之後的盤點或不開 host 時照題號回答
+```
+
+完整文件範例（Terms 表的其他列與 Open Questions 原本的三個問題在這裡省略）：
+[`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md)
+
 每一個確認在 host 的 Goals & Scope 記一行：它定了什麼、落在哪。baseline 最小 host 記在開頭那一兩句
 （盤點的範圍）之後——本 fixture 的 Goals & Scope 還有幾段說明，確認行就接在 Goals & Scope 的最後：
 
@@ -432,9 +462,12 @@ Bob: 對，搬。
 - 技術債：Step 3 沒有漏記。
 - 抽離機會：「Shipment 免運門檻判斷基準三處不一致」那一列（拍板後建立單一判定 contract）寫得夠清楚。
 - `Shipment/behavior.md`：「運費計算的三個產生點」、Scenario 1～3、「未捕捉的範圍」、「已知不一致（不在本文件裁定）」都照現況寫對。
-- 名詞：「免運門檻」先不進 `glossary.md`，等免運門檻的判定拍板（`Shipment/analysis.md` HS-01）時一起定。
+- `glossary.md`：「運費」照程式的叫法與定義確認（`Order.ShippingFee`）。
 - `context-map.md`：Shipment 是自己一個 context——Undecided Neighbors 那一列搬成 Context List 的 Shipment 一列與 Order → Shipment 的 Relationships 一列，每個值的去向看過、寫得對。
 ```
+
+免運門檻與重量級距表都不在這裡：免運門檻是一筆待確認的題目，重量級距表 Bob 沒說什麼——
+Goals & Scope 只記真的取得的確認，不記待決的狀態，也不記沒有人確認的名詞。
 
 確認不寫進 Resume Pointer（Current Progress 維持一兩句的游標），也不另開段落。
 `analysis.md` 的條目若是經 6.2 確認的，Evidence 會寫成
@@ -605,6 +638,9 @@ Bob:
 給 Bob 一次看（靠推論的、程式直接讀到的、技術債，分組列出，每一題有題號），其餘幾題照常逐題問完。
 延後的題目記在答案會改到的那份文件裡；Goals & Scope 只記真的取得的確認，不寫延後。
 
+照問的題目裡，第 7 題跟上面的故事一樣：Bob 照樣答免運門檻現在定不了，所以它在 `glossary.md` 也有一筆
+`unresolved` 的待確認題目，題號接在延後的三題後面，是 **Q04**；運費、重量級距表照樣列給 Bob 看，不佔題號。
+
 `Shipment/rules.md`（節錄）：
 
 ```markdown
@@ -675,7 +711,7 @@ Goals & Scope 照當場確認一樣記一行：
 
 checkpoint 1 commit 的就是這個最終形狀——文件裡看不出這題曾經延後。Q03 的紀錄還沒 commit 就拿掉了，所以 checkpoint 1 的
 commit message 要寫出它：`SPEC-20260511-001/Q03: answered by Bob (2026-05-11) — Severity High`；之後配新題號時，
-版本歷史裡才看得到 Q03 已經用過。Q01、Q02 還在等營運，照樣跟著 checkpoint 1 進去；
+版本歷史裡才看得到 Q03 已經用過。Q01、Q02 還在等營運、Q04 還在等 HS-01 拍板，照樣跟著 checkpoint 1 進去；
 盤點照常收尾、歸檔。（checkpoint 1 之後才回來的答案，不能塞進收尾的 commit：最小 host 只能修回 checkpoint 1。）
 
 ### 收尾之後答：另開一次普通的盤點
@@ -686,6 +722,7 @@ commit message 要寫出它：`SPEC-20260511-001/Q03: answered by Bob (2026-05-1
 - Q01，營運：「對，就是小計滿 1,000。」→ BR-001 改 `active`，拿掉它的 `Draft basis` 與 Q01 的整筆紀錄。
 - Q02，營運：「沒有這條規則，下單後本來就可以改運送方式。」→ 拿掉 BR-002 那一列、它的情境段、`Draft basis` 與 Q02 的整筆紀錄；
   「Shipping method edit observation」那一段留著，照樣是沒有 BR-ID 的現況觀察。
+- Q04 還在等 HS-01 拍板，這一次沒有答，`glossary.md` 裡它的紀錄照留。
 
 確認記在**這一次**的 host、用這一次的 SPEC-ID：
 
@@ -706,8 +743,8 @@ SPEC-20260511-001/Q01: accepted by 營運 (2026-05-25) — BR-001 active
 SPEC-20260511-001/Q02: rejected by 營運 (2026-05-25) — BR-002 removed; the observation stays
 ```
 
-之後若又要問 `SPEC-20260511-001` 的新題，編號從版本歷史裡用過的最大號往上加（Q03 在 checkpoint 1 的 commit message 裡）：
-下一題是 Q04，不是 Q01。
+之後若又要問 `SPEC-20260511-001` 的新題，編號從版本歷史裡用過的最大號往上加：下一題是 Q05，不是 Q01——
+Q03 只在 checkpoint 1 的 commit message 裡，Q04 答完、紀錄拿掉之後也一樣只在版本歷史裡。
 
 ### 另一種答法：合回之後不開 host
 
@@ -753,6 +790,8 @@ SPEC-20260511-001/Q02: rejected by 營運 (2026-05-25) — BR-002 removed; the o
 答的如果是 `analysis.md` 的 `inferred` 條目、名詞，或確認偏離的程式現況，那幾格的出處就寫
 `confirmed by 營運 - version history (2026-05-25)`（程式現況是在原本的證據後面接上
 `; confirmed by 營運 - version history (2026-05-25)`）：讀的人打開那一格的版本歷史，就是這顆 commit。
+名詞只有帶題號的（例如 Q04 的免運門檻）走得到這條路；重量級距表那種列出、沒問的名詞沒有題號，
+要在之後的盤點用到時確認。
 
 commit 之後照 PR 合回 `develop`；確認規則不代表可以 merge 或 push，AI 不會自己做。
 
@@ -767,6 +806,7 @@ commit 之後照 PR 合回 `develop`；確認規則不代表可以 merge 或 pus
 | 新建 | [`outputs/dflow/specs/domain/Shipment/analysis.md`](outputs/dflow/specs/domain/Shipment/analysis.md) | RM-01：運費的三個產出點、比門檻用哪個金額、通知信讀的快照；HS-01：免運門檻該拿哪個金額比（open，連回 tech-debt）。Step 2 第一次有東西要記時從範本建。 |
 | 修改 | [`outputs/dflow/specs/migration/tech-debt.md`](outputs/dflow/specs/migration/tech-debt.md) | 「三處免運門檻判斷基準不一致」記為 open，來源指回本 SPEC-ID。 |
 | 修改 | [`outputs/dflow/specs/domain/context-map.md`](outputs/dflow/specs/domain/context-map.md) | 第 8 題把 Shipment 從 Undecided Neighbors 搬成 Context List 的一列與 Order → Shipment 的 Relationships；Customer、Inventory、Invoice 仍是鄰居。 |
+| 修改 | [`outputs/dflow/specs/domain/glossary.md`](outputs/dflow/specs/domain/glossary.md) | 第 7 題：「運費」（Bob 明說接受，Notes 帶本 SPEC-ID）與「重量級距表」（Notes 標 `not confirmed`）兩列；免運門檻的待確認題目 `SPEC-20260511-001/Q01`（`unresolved` 的 Decision）。全域文件，不必在 baseline 那一列宣告。 |
 | 故意不建 | `phase-spec-*.md` / `lightweight-*.md` | baseline 不產 spec 檔；`Tier = baseline` 那一列就是它的記錄。 |
 | 故意不改 | 任何 `.aspx.cs` / `.cs` | observation-only。今天不改輸出。 |
 | 故意不建 | 任何 BR | 「哪一個門檻才對」是待決的業務決定，不是已成立的規則。 |

@@ -172,8 +172,33 @@ says:
    - in any other file of the spec tree (`_conventions.md`, say) → a separate
      commit after the capture merges, outside the workflow
      (`Git-principles-*.md` § 2).
-7. **Terms.** For a term this capture used that `glossary.md` does not have
-   yet, ask the developer to settle the primary term.
+7. **Terms.** Sort the terms this capture used before you ask about any:
+   - A term a pending question targets keeps that question: it is answered by
+     its id (§ Deferring 6.2 questions), never through the message below.
+   - Ask the developer, one by one, to settle a term that `glossary.md` does
+     not have yet, or marks unconfirmed, when settling it takes a choice the
+     code and the documents do not make: they use the term for more than one
+     thing; they call one thing by more than one name; or its name and what
+     the code does with it disagree, or the code leaves its meaning open — a
+     quota field that may hold the total or the balance, say. Translating or
+     coining a name is not, by itself, such a choice. Do not ask here about a
+     term question 6 asks about.
+   - Write each other term `glossary.md` does not have yet into its Terms
+     table, named and defined as the code — its UI text included — or a
+     document names and defines it, and mark it unconfirmed (§ Where
+     confirmations are recorded); a name you translated or coined takes the
+     kind `inferred`.
+   Then show the developer, in one message, the terms you wrote without
+   asking and each term this capture used that `glossary.md` already marks
+   unconfirmed and you did not ask about, each with its definition. That
+   message is not a question: a term the developer explicitly accepts or
+   corrects is settled, and no answer or a general "OK" leaves it
+   unconfirmed. When the developer leaves one of these terms out of
+   `glossary.md`, remove the row this capture wrote for it.
+   A new term you asked about gets its row only once it is settled. While it
+   is deferred, or the developer cannot settle it yet, write no row for it:
+   record its question as § Deferred confirmation records says, with an
+   `unresolved` Decision when the developer cannot settle it.
 8. **Models and context relationships.** For every `models.md` passage and
    `context-map.md` row this capture added or changed, ask the developer to
    confirm it. For an Undecided Neighbors row, also ask what the neighbor is —
@@ -211,6 +236,10 @@ be answered later.
 - A batch answer confirms only the items the developer could see with their
   ids and explicitly named as accepted. Completing the capture, approving a
   format or approving a commit confirms nothing.
+- A term question 7 shows without asking is never a deferred question: it
+  takes no question id and no records, and stays unconfirmed (§ Where
+  confirmations are recorded) until the developer explicitly accepts or
+  corrects it.
 - A deferred new rule candidate stays `draft`, with its Draft basis (§ Draft
   basis and current observations) and its question. A different view of an
   existing `active` rule is only a question: keep that rule and its status.
@@ -258,6 +287,10 @@ be answered later.
   evidence before it (`references/confirmed-rule-vs-code.md` § Scope and
   recording).
 - **`glossary.md`.** The confirmed term's Notes cell carries the same SPEC-ID.
+  An unconfirmed term's Notes cell carries, as an item of its own,
+  `not confirmed - {kind} - {what to open to re-check} ({YYYY-MM-DD})`;
+  `{kind}` takes the five kinds of § Draft basis and current observations.
+  Its confirmation takes that item's place; keep the cell's other notes.
 - **`rules.md` and `migration/tech-debt.md`** take no confirmation note — not
   in a Description, not in § Follow-up Notes. A `rules.md` row's `active` is
   its confirmation; who confirmed a rule or a debt item is in the Goals & Scope

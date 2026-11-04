@@ -32,7 +32,7 @@ branch: feature/SPEC-20260511-001-shipment-fee-baseline
 - 技術債：Step 3 沒有漏記。
 - 抽離機會：「Shipment 免運門檻判斷基準三處不一致」那一列（拍板後建立單一判定 contract）寫得夠清楚。
 - `Shipment/behavior.md`：「運費計算的三個產生點」、Scenario 1～3、「未捕捉的範圍」、「已知不一致（不在本文件裁定）」都照現況寫對。
-- 名詞：「免運門檻」先不進 `glossary.md`，等免運門檻的判定拍板（`Shipment/analysis.md` HS-01）時一起定。
+- `glossary.md`：「運費」照程式的叫法與定義確認（`Order.ShippingFee`）。
 - `context-map.md`：Shipment 是自己一個 context——Undecided Neighbors 那一列搬成 Context List 的 Shipment 一列與 Order → Shipment 的 Relationships 一列，每個值的去向看過、寫得對。
 
 ## Phase Specs
