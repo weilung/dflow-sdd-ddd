@@ -6,12 +6,25 @@
 
 ---
 
-## Unreleased
+## 0.19.0 — 2026-11-05 — greenfield 規劃程式之前讀 Technical Architecture、Domain Event 預設在 commit 成功之後發、baseline 盤點的名詞題只問要做選擇的、升級頁的乾淨對照
 
-> **目前投影版號：`0.18.6`**（**未發布到 npm**；npm latest 仍是 `0.18.0`）。
-> 下面六段都在這一版裡，段標題標出各自第一次投影的版號。
+**Proposals**：PROPOSAL-120（升級頁的乾淨對照）、PROPOSAL-121（greenfield 規劃程式之前讀 Technical Architecture）、PROPOSAL-122（同一個程序裡的 Domain Event 預設在 commit 成功之後發）、PROPOSAL-123（baseline 盤點的名詞題只問要做選擇的）；沒開提案、直接修的：dist issue #28、#29、#31、#32、#34
 
-### brownfield baseline 盤點的名詞題只問要做選擇的，其餘照程式寫進 `glossary.md`、標 `not confirmed`（PROPOSAL-123，dist issue #30）——`0.18.6`
+### 從 `0.18.0` 升上來
+
+照 [`docs/upgrading.md`](docs/upgrading.md) 升級：先升 CLI，在專案根目錄跑 `dflow configure-agents`，再跑 `dflow doctor`。這一版另外要注意：
+
+1. **正在跑的 flow，先用你現在這一版收完，再升級。**
+2. **範本都沒有升形狀號碼**：`dflow doctor` 不會因為這一版提示遷移。workflow bundle（含兩軌共用的建模指引、greenfield `events.md` 範本的佔位字）由 `dflow configure-agents` 刷新；已經寫好的文件不受影響。
+3. **greenfield 的 guide**（PROPOSAL-121）：`AI-AGENT-GUIDE.md` § Core Rules 多了第 6 條（程式的形狀照 `_overview.md` 的 Technical Architecture 一節）。`dflow configure-agents` 刷新 marker 之內的部分；採用 managed markers 之前的舊 guide 拿不到這一條，流程會在設計、規劃或寫程式之前停下來，請開發者把 guide 補上。
+4. **鷹架是專案自己的檔，不會自動更新**：greenfield `_overview.md` 與 `CLAUDE-md-snippet.md` 有幾處是舊說法（Domain 能依賴什麼、Testing 的例子），想跟上就照新的寫法改那幾句；要不要改，照 [`docs/upgrading.md`](docs/upgrading.md) 的 fresh-init 對照判斷。greenfield `Git-principles-*.md` 的 PR 檢查項在 Dflow 管理的區段裡，`dflow configure-agents` 會更新。
+5. 其餘各項都沒有遷移動作。dist 投影過的 `0.18.1`–`0.18.6` 都在這一版裡；下面每一段標題後面的版號，是它第一次投影的版號，各段的「既有專案」是從前一個投影升上來的說明。
+
+**驗證**：發布前 `scripts/check-repo-consistency.sh` 全數通過（含 `npm test` 與 `npm pack --dry-run`）。
+
+### 各項變更
+
+#### brownfield baseline 盤點的名詞題只問要做選擇的，其餘照程式寫進 `glossary.md`、標 `not confirmed`（PROPOSAL-123，dist issue #30）——`0.18.6`
 
 **來源**：dist issue #30。
 
@@ -22,7 +35,7 @@
 - 做法、限制與接受的風險：[`docs/baseline-deferred-confirmation.md`](docs/baseline-deferred-confirmation.md) 的「沒問的名詞」一節與風險表（與英文頁）。
 - **既有專案**：沒有遷移動作。範本形狀不變；workflow bundle 由 `dflow configure-agents` 刷新。已經開著的名詞題照舊等答案，不轉成未確認。
 
-### Domain Event 預設在 commit 成功之後發、handler 失敗看業務看不看得到、檢查表的事件項對照 spec（PROPOSAL-122，dist issue #35）——`0.18.5`
+#### Domain Event 預設在 commit 成功之後發、handler 失敗看業務看不看得到、檢查表的事件項對照 spec（PROPOSAL-122，dist issue #35）——`0.18.5`
 
 **來源**：dist issue #35。
 
@@ -34,7 +47,7 @@
 - 做法、限制與接受的風險：[`docs/domain-event-dispatch.md`](docs/domain-event-dispatch.md)（與英文頁）。
 - **既有專案**：沒有遷移動作。建模指引由 `dflow configure-agents` 刷新；範本形狀不變，已經寫好的 `events.md` 不受影響。已經在交易裡發的專案照舊，之後新寫的、改到另一個 Aggregate 的 handler 照第 2 條記一句理由。
 
-### greenfield 規劃程式之前讀 Technical Architecture、流程寫死的工具名稱改成例子（PROPOSAL-121，dist issue #33）——`0.18.4`
+#### greenfield 規劃程式之前讀 Technical Architecture、流程寫死的工具名稱改成例子（PROPOSAL-121，dist issue #33）——`0.18.4`
 
 **來源**：dist issue #33。
 
@@ -46,7 +59,7 @@
 - 做法、限制與接受的風險：[`docs/technical-architecture.md`](docs/technical-architecture.md)（與英文頁）。
 - **既有專案**：沒有遷移動作。guide 由 `dflow configure-agents` 刷新 marker 之內的部分，範本形狀不變；採用 managed markers 之前的舊 guide 拿不到第 6 條，流程會在設計、規劃或寫程式之前停下來，請開發者把 guide 補上。
 
-### 技術棧例子與套件授權、Domain 能依賴什麼、baseline 盤點少問一次、生命週期沒有「從任何狀態」的簡寫（dist issue #34、#32、#29、#31）——`0.18.3`
+#### 技術棧例子與套件授權、Domain 能依賴什麼、baseline 盤點少問一次、生命週期沒有「從任何狀態」的簡寫（dist issue #34、#32、#29、#31）——`0.18.3`
 
 **來源**：dist issue #34、#32、#29、#31。
 
@@ -59,7 +72,7 @@
 
 **既有專案**：沒有遷移動作。`Git-principles-*.md` 的 PR 檢查項在 Dflow 管理的區段裡，`dflow configure-agents` 會更新；`_overview.md` 與 `CLAUDE-md-snippet.md` 是你自己的檔，不會被改，想跟上就照新的寫法改那幾句。
 
-### DDD 建模指引：拆分或改名排成第一個階段時，新名詞什麼時候進 `glossary.md`（dist issue #28）——`0.18.2`
+#### DDD 建模指引：拆分或改名排成第一個階段時，新名詞什麼時候進 `glossary.md`（dist issue #28）——`0.18.2`
 
 **來源**：dist issue #28——`ddd-modeling-guide.md` § Revising an Established Model 第 2 點，把拆分或改名排成 feature 的第一個階段時寫的是「the glossary moves first」，照字面是第一個階段就改 `glossary.md`。`0.17.2`（PROPOSAL-118）起，帶 phase-spec 的 feature 進行中不寫 `glossary.md`：新的或改名的名詞記在 phase-spec 的 Domain Concepts 表，`/dflow:finish-feature` 收尾時才寫進去。同一個說法在 greenfield `_overview.md` 那時已經改掉，這一節沒有跟著改。
 
@@ -68,7 +81,7 @@
 
 **既有專案**：沒有遷移動作。
 
-### 升級頁的乾淨對照：它比 doctor 多看到什麼、答案從哪裡讀、指令檔也要比（PROPOSAL-120）——`0.18.1`
+#### 升級頁的乾淨對照：它比 doctor 多看到什麼、答案從哪裡讀、指令檔也要比（PROPOSAL-120）——`0.18.1`
 
 **來源**：PROPOSAL-120。[`docs/upgrading.md`](docs/upgrading.md) 的「徹底驗證」一節寫了乾淨對照怎麼做，沒寫為什麼值得做、「同答案」的答案從哪裡找；步驟只跑 `dflow init`，而 `init` 不產生指令檔，照做比不到它們。
 
